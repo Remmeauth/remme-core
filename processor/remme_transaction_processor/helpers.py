@@ -43,35 +43,35 @@ class BasicHandler(TransactionHandler):
         pass
 
 
-def make_address(prefix, name):
-    return prefix + hashlib.sha512(name.encode('utf-8')).hexdigest()[0:64]
+    def make_address(name):
+        return self.prefix + hashlib.sha512(name.encode('utf-8')).hexdigest()[0:64]
 
 
-def decode_transaction(transaction, transaction_pb_class):
-    transaction_payload = transaction_pb_class()
-    try:
-        transaction_payload.ParseFromString(transaction.payload)
-    except:
-        raise InvalidTransaction("Invalid payload serialization")
-    return transaction_payload
+    def decode_transaction(transaction, transaction_pb_class):
+        transaction_payload = transaction_pb_class()
+        try:
+            transaction_payload.ParseFromString(transaction.payload)
+        except:
+            raise InvalidTransaction("Invalid payload serialization")
+        return transaction_payload
 
 
-def get_data(prefix, name, context, data_pb_class):
-    data = data_pb_class()
-    data_address = make_address(prefix, name)
-    raw_data = context.get_state([data_address])
-    try:
-        data.ParseFromString(raw_data[0])
-    except IndexError:
-        return None, None
-    except:
-        raise InternalError("Failed to deserialize data")
-    return data
+    def get_data(context, data_pb_class):
+        data = data_pb_class()
+        data_address = make_address(self.prefix, name)
+        raw_data = context.get_state([data_address])
+        try:
+            data.ParseFromString(raw_data[0])
+        except IndexError:
+            return None, None
+        except:
+            raise InternalError("Failed to deserialize data")
+        return data
 
 
-def store_data(prefix, name, context, data_pb_instance):
-    serialized = data_pb_instance.SerializeToString()
-    data_address = make_address(prefix, name)
-    adresses = context.set_state({ data_address: serialized })
-    if len(addresses) < 1:
-        raise InternalError("State Error")
+    def store_data(name, context, data_pb_instance):
+        serialized = data_pb_instance.SerializeToString()
+        data_address = make_address(self.prefix, name)
+        adresses = context.set_state({ data_address: serialized })
+        if len(addresses) < 1:
+            raise InternalError("State Error")

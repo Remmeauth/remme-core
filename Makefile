@@ -17,7 +17,7 @@ PROTO_SRC_DIR = ./protos
 PROTO_DST_DIR = ./processor/remme_transaction_processor
 
 run:
-	docket-compose up
+	docker-compose up
 
 test:
 	docker-compose -f docker-compose.test.yml up --abort-on-container-exit
