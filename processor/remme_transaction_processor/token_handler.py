@@ -14,14 +14,21 @@
 # ------------------------------------------------------------------------
 
 from .helpers import *
+from token_pb2 import Token
 
 FAMILY_NAME = 'token'
 FAMILY_VERSIONS = ['0.1']
 
+# TODO
+# 1. initialization of the token from hardcoded public key.
+# 2. method
 
 class TokenHandler(BasicHandler):
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
-    
+
     def apply(self, transaction, context):
+        super().apply(transaction, context, Token)
+
+    def process_state(signer, method, data, state):
         pass
