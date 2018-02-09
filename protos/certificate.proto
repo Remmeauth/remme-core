@@ -14,3 +14,26 @@
 // ------------------------------------------------------------------------
 
 syntax = "proto3";
+
+message CertificateTransaction {
+    enum Operation {
+        CREATE = 0;
+        REVOKE = 2;
+    }
+
+    Operation type = 1;
+    // Required by CREATE. A raw certificate file.
+    string certificate_raw = 2;
+    // Required by REVOKE. The address of a certificate in the storage generated
+    // by the transaction processor.
+    string address = 3;
+}
+
+message CertificateStorage {
+    // Hash of the certificate raw binary.
+    string hash = 1;
+    // The UID field of a certificate.
+    string owner = 2;
+    bool revoked = 3;
+    // TODO: Exploit some of certificate fields to resolve hash collisions.
+}
