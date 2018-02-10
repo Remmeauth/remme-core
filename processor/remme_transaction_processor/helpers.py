@@ -42,12 +42,11 @@ class BasicHandler(TransactionHandler):
     def apply(self, transaction, context):
         pass
 
-
-    def make_address(name):
+    def _make_address(self, name):
         return self.prefix + hashlib.sha512(name.encode('utf-8')).hexdigest()[0:64]
 
 
-    def decode_transaction(transaction, transaction_pb_class):
+    def _decode_transaction(self, transaction, transaction_pb_class):
         transaction_payload = transaction_pb_class()
         try:
             transaction_payload.ParseFromString(transaction.payload)
@@ -56,7 +55,7 @@ class BasicHandler(TransactionHandler):
         return transaction_payload
 
 
-    def get_data(context, data_pb_class):
+    def _get_data(self, context, data_pb_class):
         data = data_pb_class()
         data_address = make_address(self.prefix, name)
         raw_data = context.get_state([data_address])
@@ -69,9 +68,8 @@ class BasicHandler(TransactionHandler):
         return data
 
 
-    def store_data(name, context, data_pb_instance):
+    def _store_data(self, address, context, data_pb_instance):
         serialized = data_pb_instance.SerializeToString()
-        data_address = make_address(self.prefix, name)
-        adresses = context.set_state({ data_address: serialized })
+        adresses = context.set_state({ address: serialized })
         if len(addresses) < 1:
             raise InternalError("State Error")
