@@ -43,6 +43,7 @@ class BasicHandler(TransactionHandler):
         pass
 
     def _make_address(self, name):
+        # TODO: Consider using hash functions from `cryptography` for more consistency
         return self.prefix + hashlib.sha512(name.encode('utf-8')).hexdigest()[0:64]
 
 
