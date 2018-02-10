@@ -68,7 +68,7 @@ class BasicHandler(TransactionHandler):
         return data
 
 
-    def _store_data(self, address, context, data_pb_instance):
+    def _store_data(self, context, address, data_pb_instance):
         serialized = data_pb_instance.SerializeToString()
         adresses = context.set_state({ address: serialized })
         if len(addresses) < 1:

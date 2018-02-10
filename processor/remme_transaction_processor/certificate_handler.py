@@ -57,8 +57,7 @@ class CertificateHandler(BasicHandler):
         data.hash = fingerprint
         data.owner = transactor
         data.revoked = False
-        self._store_data(address, context, data)
-
+        self._store_data(context, address, data)
 
     def apply(self, transaction, context):
         pass
