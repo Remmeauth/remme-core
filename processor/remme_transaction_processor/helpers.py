@@ -55,14 +55,13 @@ class BasicHandler(TransactionHandler):
         return transaction_payload
 
 
-    def _get_data(self, context, data_pb_class):
+    def _get_data(self, context, address, data_pb_class):
         data = data_pb_class()
-        data_address = make_address(self.prefix, name)
-        raw_data = context.get_state([data_address])
+        raw_data = context.get_state([address])
         try:
             data.ParseFromString(raw_data[0])
         except IndexError:
-            return None, None
+            return None
         except:
             raise InternalError("Failed to deserialize data")
         return data

@@ -58,6 +58,17 @@ class CertificateHandler(BasicHandler):
         data.owner = transactor
         data.revoked = False
         self._store_data(context, address, data)
+    
+    def _revoke_certificate(self, context, transactor, certificate_address):
+        data = self._get_data(context, certificate_address, CertificateStorage)
+        if data is None:
+            raise InvalidTransaction('No such certificate.')
+        if transactor != data.owner:
+            raise InvalidTransaction('Only owner can revoke the certificate.')
+        if data.revoked:
+            raise InvalidTransaction('The certificate is already revoked.')
+        data.revoked = True
+        self._store_data(context, certificate_address, data)
 
     def apply(self, transaction, context):
         pass
