@@ -14,21 +14,50 @@
 # ------------------------------------------------------------------------
 
 from .helpers import *
-from token_pb2 import Token
+from token_pb2 import Account, Transfer
+from sawtooth_sdk.processor.exceptions import InvalidTransaction
+
 
 FAMILY_NAME = 'token'
 FAMILY_VERSIONS = ['0.1']
 
-# TODO
-# 1. initialization of the token from hardcoded public key.
-# 2. method
+# TODO: add and cover w/ tests transfer
+
+METHOD_TRANSFER = 'transfer'
 
 class TokenHandler(BasicHandler):
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
 
     def apply(self, transaction, context):
-        super().apply(transaction, context, Token)
+        super().process_apply(transaction, context, Account)
 
-    def process_state(signer, method, data, state):
-        pass
+        # returns updated state
+    def process_state(self, signer, method, data, signer_account):
+        process_transaction = None
+        data_payload = None
+        if method == METHOD_TRANSFER:
+            data_payload = Transfer()
+            process_transaction = self.transfer
+
+        if not process_transaction or not data_payload:
+            raise InvalidTransaction("Not a valid transaction method {}".format(method))
+
+        try:
+            data_payload.ParseFromString(data)
+        except:
+            raise InvalidTransaction("Invalid data serialization for method {}".format(method))
+
+        return process_transaction(signer, signer_account, data_payload)
+
+    def transfer(self, signer, signer_account, params):
+        receiver_account = self.get_data(Account, params.address_to)
+
+        if (signer_account.balance - params.amount) < 0:
+            raise InvalidTransaction("Not enough transferable balance. Signer's current balance: {}".format(signer_account.balance))
+
+        receiver_account.balance += params.amount
+        signer_account.balance -= params.amount
+
+        return { signer: signer_account,
+                 params.address_to: receiver_account}

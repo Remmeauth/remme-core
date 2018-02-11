@@ -15,6 +15,11 @@
 
 syntax = "proto3";
 
-message Token {
+message Account {
     uint64 balance = 1;
+}
+
+message Transfer {
+    string address_to = 1;
+    uint64 amount = 2;
 }

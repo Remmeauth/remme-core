@@ -17,6 +17,5 @@ syntax = "proto3";
 
 message Transaction {
     string payload = 1;
-    string signed_by = 2;
-    string name = 3;
+    string method = 3;
 }

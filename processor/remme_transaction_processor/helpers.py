@@ -17,6 +17,8 @@ import hashlib
 from sawtooth_sdk.processor.handler import TransactionHandler
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 from sawtooth_sdk.processor.exceptions import InternalError
+from sawtooth_processor_test.message_factory import MessageFactory
+from transaction_pb2 import Transaction
 
 # TODO: think about more logging in helper functions
 
@@ -39,38 +41,56 @@ class BasicHandler(TransactionHandler):
     def namespaces(self):
         return [self._prefix]
 
-    def apply(self, transaction, context, pb_class):
-        signer, method, data = _decode_transaction(transaction)
+    # methods to modify in custom handler
 
-        state = self.get_data(pb_class, signer, context)
-
-        updated_state = self.process_state(signer, method, data, state)
-
-        self.store_state(signer, updated_state, context)
-
-    # method to modify in custom handler
-    def process_state(signer, method, data, state):
+    def apply(self, transaction, context):
         pass
 
-    def make_address(self, signer):
-        return self._prefix + signer
+    def process_state(self, signer, method, data, state):
+        pass
+
+    def get_factory(self, signer=None):
+        return MessageFactory(
+            family_name=self._family_name,
+            family_version=self._family_versions[-1],
+            namespace=self._prefix,
+            signer=signer
+        )
+
+    def process_apply(self, transaction, context, pb_class):
+        self.context = context
+        # signer is taken from header
+        # transaction follows Transaction proto
+        signer, method, data = self._decode_transaction(transaction)
+
+        state = self.get_data(pb_class, signer)
+
+        updated_state = self.process_state(signer, method, data, state)
+        adresses = self.context.set_state(updated_state)
+
+        if len(adresses) < len(updated_state):
+            raise InternalError("State Error")
+
+    def make_address(self, appendix):
+        return self._prefix + appendix
 
     def _decode_transaction(self, transaction):
-        transaction_payload = SignedDataTransaction()
+        transaction_payload = Transaction()
         try:
             transaction_payload.ParseFromString(transaction.payload)
         except:
             raise InvalidTransaction("Invalid payload serialization")
-        signer = transaction.header.signer_public_key
+
+        signer = self.make_address(transaction.header.signer_public_key)
         data = transaction_payload.data
         method = transaction_payload.method
 
         return signer, method, data
 
-    def get_data(self, pb_class, signer, context):
+    def get_data(self, pb_class, signer):
         data = pb_class()
         data_address = self.make_address(signer)
-        raw_data = context.get_state([data_address])
+        raw_data = self.context.get_state([data_address])
         try:
             data.ParseFromString(raw_data[0])
         except IndexError:
@@ -79,10 +99,10 @@ class BasicHandler(TransactionHandler):
             raise InternalError("Failed to deserialize data")
         return data
 
-
-    def store_state(self, updated_state, data_pb_instance, context):
+    # used from child handlers
+    def store_state(self, updated_state, data_pb_instance, key):
         serialized = data_pb_instance.SerializeToString(updated_state)
         data_address = self.make_address(signer)
-        adresses = context.set_state({ data_address: serialized })
-        if len(addresses) < 1:
+        adresses = self.context.set_state({ data_address: serialized })
+        if len(adresses) < 1:
             raise InternalError("State Error")

@@ -29,8 +29,8 @@ if __name__ == '__main__':
     parser.add_argument('endpoint')
     args = parser.parse_args()
     processor = TransactionProcessor(url=args.endpoint)
-    processor.add_handler(SignedDataHandler())
     processor.add_handler(TokenHandler())
+    processor.add_handler(CertificateHandler())
     try:
         processor.start()
     except KeyboardInterrupt:
