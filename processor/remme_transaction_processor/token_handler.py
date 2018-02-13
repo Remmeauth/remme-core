@@ -14,7 +14,7 @@
 # ------------------------------------------------------------------------
 
 from .helpers import *
-from token_pb2 import Account, Transfer
+from processor.remme_transaction_processor.token_pb2 import Account, Transfer
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
 

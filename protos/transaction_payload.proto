@@ -15,7 +15,7 @@
 
 syntax = "proto3";
 
-message Transaction {
+message TransactionPayload {
     string payload = 1;
     string method = 3;
 }

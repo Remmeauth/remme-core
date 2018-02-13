@@ -25,6 +25,8 @@ services:
       - 4004
     ports:
       - '4020:4004'
+    volumes:
+      - ./genesis:/genesis
     # start the validator with an empty genesis batch
     entrypoint: |
       bash -c "
@@ -44,9 +46,12 @@ services:
     build:
       context: processor/
     volumes:
-      - ./processor/remme_transaction_processor:/remme_transaction_processor
+      - ./processor/remme_transaction_processor:/processor/remme_transaction_processor
+      - ./genesis:/genesis
     entrypoint: |
-      python3 -m remme_transaction_processor tcp://validator:4004
+      python3 genesis/generate_token_genesis.py keys/root.pub
+      python3 -m processor.remme_transaction_processor tcp://validator:4004
+
 
   settings-tp:
     image: hyperledger/sawtooth-settings-tp:1.0
@@ -71,6 +76,9 @@ services:
     image: hyperledger/sawtooth-shell:1.0
     depends_on:
       - rest-api
+    volumes:
+      - ./genesis:/genesis
+      - ./keys:/root/.sawtooth/keys
     entrypoint: |
       bash -c "
         if [ ! -f /root/.sawtooth/keys/root.priv ]; then

@@ -18,9 +18,9 @@ from sawtooth_sdk.processor.handler import TransactionHandler
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 from sawtooth_sdk.processor.exceptions import InternalError
 from sawtooth_processor_test.message_factory import MessageFactory
-from transaction_pb2 import Transaction
 
 # TODO: think about more logging in helper functions
+from processor.remme_transaction_processor.transaction_payload_pb2 import TransactionPayload
 
 
 class BasicHandler(TransactionHandler):
@@ -66,16 +66,13 @@ class BasicHandler(TransactionHandler):
         state = self.get_data(pb_class, signer)
 
         updated_state = self.process_state(signer, method, data, state)
-        adresses = self.context.set_state(updated_state)
-
-        if len(adresses) < len(updated_state):
-            raise InternalError("State Error")
+        self.store_state(updated_state)
 
     def make_address(self, appendix):
         return self._prefix + appendix
 
     def _decode_transaction(self, transaction):
-        transaction_payload = Transaction()
+        transaction_payload = TransactionPayload()
         try:
             transaction_payload.ParseFromString(transaction.payload)
         except:
@@ -99,10 +96,7 @@ class BasicHandler(TransactionHandler):
             raise InternalError("Failed to deserialize data")
         return data
 
-    # used from child handlers
-    def store_state(self, updated_state, data_pb_instance, key):
-        serialized = data_pb_instance.SerializeToString(updated_state)
-        data_address = self.make_address(signer)
-        adresses = self.context.set_state({ data_address: serialized })
-        if len(adresses) < 1:
+    def store_state(self, updated_state):
+        adresses = self.context.set_state({k: v.SerializeToString() for k, v in updated_state.items()})
+        if len(adresses) < len(updated_state):
             raise InternalError("State Error")
