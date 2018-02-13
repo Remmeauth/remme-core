@@ -15,36 +15,44 @@
 
 from sawtooth_processor_test.transaction_processor_test_case \
     import TransactionProcessorTestCase
+from sawtooth_processor_test.mock_validator import MockValidator
 from .context import remme_transaction_processor
 from sawtooth_signing import create_context
 from sawtooth_signing import CryptoFactory
+import cbor
 
 
 class HelperTestCase(TransactionProcessorTestCase):
     @classmethod
     def setUpClass(cls, factory):
         super().setUpClass()
+        url = 'eth0:4004'
+
+        cls.validator = MockValidator()
+        cls.validator.listen(url)
         cls._factory = factory
 
-    def _dumps(self, obj):
-        return cbor.dumps(obj, sort_keys=True)
+    @classmethod
+    def tearDownClass(cls):
+        try:
+            cls.validator.close()
+        except AttributeError:
+            pass
 
-    def _loads(self, data):
-        return cbor.loads(data)
-
-    def get_new_signer(self):
+    @classmethod
+    def get_new_signer(cls):
         context = create_context('secp256k1')
         return CryptoFactory(context).new_signer(
             context.new_random_private_key())
 
-    def make_address(self, appendix):
-        return self._prefix + appendix
+    def _dumps(self, obj):
+        return cbor.dumps(obj, sort_keys=True)
 
 
 
     def send_transaction(self, method, data, address_access_list):
         payload = self._dumps({'method': method, 'data': data})
-        self._factory.create_transaction(payload, address_access_list, address_access_list, [])
+        self.validator.send(self._factory.create_transaction(payload, address_access_list, address_access_list, []))
 
     def expect_ok(self):
         self.expect_tp_response('OK')
@@ -54,5 +62,5 @@ class HelperTestCase(TransactionProcessorTestCase):
 
     def expect_tp_response(self, response):
         self.validator.expect(
-            self.player_1.create_tp_response(
+            self._factory.create_tp_response(
                 response))
