@@ -1,9 +1,8 @@
+import argparse
 import os
 
 # from processor.remme_transaction_processor.token_handler import TokenHandler
-from processor.remme_transaction_processor.token_pb2 import Account
-
-import argparse
+from processor.protos.token_pb2 import Account
 
 TOKEN_SUPPLY = 10000
 GENESIS_COMMAND_FILE = 'genesis/genesis-proposal.txt'

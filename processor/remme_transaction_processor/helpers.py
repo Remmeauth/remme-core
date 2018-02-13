@@ -14,13 +14,14 @@
 # ------------------------------------------------------------------------
 
 import hashlib
-from sawtooth_sdk.processor.handler import TransactionHandler
-from sawtooth_sdk.processor.exceptions import InvalidTransaction
-from sawtooth_sdk.processor.exceptions import InternalError
+
 from sawtooth_processor_test.message_factory import MessageFactory
+from sawtooth_sdk.processor.exceptions import InternalError
+from sawtooth_sdk.processor.exceptions import InvalidTransaction
+from sawtooth_sdk.processor.handler import TransactionHandler
 
 # TODO: think about more logging in helper functions
-from processor.remme_transaction_processor.transaction_payload_pb2 import TransactionPayload
+from processor.protos.transaction_payload_pb2 import TransactionPayload
 
 
 class BasicHandler(TransactionHandler):

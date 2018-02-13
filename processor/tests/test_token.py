@@ -1,7 +1,9 @@
+from protobuf_to_dict import protobuf_to_dict
+
+from processor.protos.token_pb2 import Transfer
 from processor.remme_transaction_processor.token_handler import TokenHandler, METHOD_TRANSFER
-from processor.remme_transaction_processor.token_pb2 import Transfer
 from processor.tests.test_helper import HelperTestCase
-from protobuf_to_dict import protobuf_to_dict, dict_to_protobuf
+
 
 class TokenTest(HelperTestCase):
     @classmethod

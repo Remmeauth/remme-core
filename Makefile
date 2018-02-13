@@ -14,7 +14,7 @@
 # ------------------------------------------------------------------------
 
 PROTO_SRC_DIR = ./protos
-PROTO_DST_DIR = ./processor/remme_transaction_processor
+PROTO_DST_DIR = ./processor/protos
 
 run:
 	docker-compose up

@@ -13,10 +13,10 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-from .helpers import *
-from processor.remme_transaction_processor.token_pb2 import Account, Transfer
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
+from processor.protos.token_pb2 import Account, Transfer
+from .helpers import *
 
 FAMILY_NAME = 'token'
 FAMILY_VERSIONS = ['0.1']
