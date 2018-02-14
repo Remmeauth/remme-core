@@ -14,12 +14,15 @@
 # ------------------------------------------------------------------------
 
 import datetime
+import hashlib
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
+from cryptogrphy.exceptions import InvalidSignature
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
+from sawtooth_signing.secp256k1 import Secp256k1PublicKey, Secp256k1Context
 from .helpers import *
 from .certificate_pb2 import CertificateStorage
 
@@ -34,14 +37,30 @@ class CertificateHandler(BasicHandler):
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
 
-    def _save_certificate(self, context, transactor, certificate):
+    def _save_certificate(self, context, transactor, certificate, signature_rem, signature_crt):
         certificate = x509.load_pem_x509_certificate(certificate_raw.encode(),
                                                      default_backend())
+        certificate_pubkey = certificate.public_key()
+        try:
+            certificate_pubkey.verify(signature_crt, signature_rem, hashes.SHA512())
+        except InvalidSignature:
+            raise InvalidTransaction('signature_crt mismatch')
+
+        sawtooth_signing_ctx = Secp256k1Context()
+        sawtooth_signing_pubkey = Secp256k1PublicKey(transactor)
+        sawtooth_signing_check_res = \
+            sawtooth_signing_ctx.verify(signature_rem,
+                                        hashlib.sha512(name.encode('utf-8')).hexdigest(),
+                                        sawtooth_signing_pubkey)
+        if not sawtooth_signing_check_res:
+            raise InvalidTransaction('signature_rem mismatch')
+
         subject = certificate.subject
         organization = subject.get_attributes_for_oid(NameOID.ORGANIZATION_NAME)
         uid = subject.get_attributes_for_oid(NameOID.USER_ID)
         valid_from = certificate.not_valid_before
         valid_until = certificate.not_valid_after
+
         if organization != CERT_ORGANIZATION:
             raise InvalidTransaction('The organization name should be set to REMME.')
         if uid != transactor:
@@ -50,6 +69,7 @@ class CertificateHandler(BasicHandler):
             raise InvalidTransaction('Expecting a self-signed certificate.')
         if valid_until - valid_from > CERT_MAX_VALIDITY:
             raise InvalidTransaction('The certificate validity exceeds the maximum value.')
+
         fingerprint = certificate.fingerprint(hashes.SHA512()).hex()
         # TODO: consider passing just the binary representation of the certificate here
         address = self._make_address(fingerprint)
@@ -57,6 +77,7 @@ class CertificateHandler(BasicHandler):
         data.hash = fingerprint
         data.owner = transactor
         data.revoked = False
+        
         self._store_data(context, address, data)
     
     def _revoke_certificate(self, context, transactor, certificate_address):
