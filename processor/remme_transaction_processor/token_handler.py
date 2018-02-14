@@ -21,7 +21,7 @@ from .helpers import *
 FAMILY_NAME = 'token'
 FAMILY_VERSIONS = ['0.1']
 
-# TODO: add and cover w/ tests transfer
+# TODO: ensure receiver_account.balance += params.amount is within uint64
 
 METHOD_TRANSFER = 'transfer'
 
@@ -51,10 +51,11 @@ class TokenHandler(BasicHandler):
         return process_transaction(signer, signer_account, data_payload)
 
     def transfer(self, signer, signer_account, params):
-        receiver_account = self.get_data(Account, params.address_to)
+        receiver_account = self._get_data(Account, params.address_to)
 
-        if (signer_account.balance - params.amount) < 0:
+        if signer_account.balance < params.amount:
             raise InvalidTransaction("Not enough transferable balance. Signer's current balance: {}".format(signer_account.balance))
+
 
         receiver_account.balance += params.amount
         signer_account.balance -= params.amount

@@ -50,7 +50,7 @@ class BasicHandler(TransactionHandler):
     def process_state(self, signer, method, data, state):
         pass
 
-    def get_factory(self, signer=None):
+    def get_message_factory(self, signer=None):
         return MessageFactory(
             family_name=self._family_name,
             family_version=self._family_versions[-1],
@@ -67,9 +67,12 @@ class BasicHandler(TransactionHandler):
         state = self.get_data(pb_class, signer)
 
         updated_state = self.process_state(signer, method, data, state)
-        self.store_state(updated_state)
+        self._store_state(updated_state)
 
     def make_address(self, appendix):
+        APPENDIX_LENGTH = 64
+        if (len(appendix) != APPENDIX_LENGTH):
+            raise InvalidTransaction("appendix {} must be {} characters long!".format(appendix, APPENDIX_LENGTH))
         return self._prefix + appendix
 
     def _decode_transaction(self, transaction):
@@ -85,7 +88,7 @@ class BasicHandler(TransactionHandler):
 
         return signer, method, data
 
-    def get_data(self, pb_class, signer):
+    def _get_data(self, pb_class, signer):
         data = pb_class()
         data_address = self.make_address(signer)
         raw_data = self.context.get_state([data_address])
@@ -97,7 +100,7 @@ class BasicHandler(TransactionHandler):
             raise InternalError("Failed to deserialize data")
         return data
 
-    def store_state(self, updated_state):
+    def _store_state(self, updated_state):
         adresses = self.context.set_state({k: v.SerializeToString() for k, v in updated_state.items()})
         if len(adresses) < len(updated_state):
             raise InternalError("State Error")
