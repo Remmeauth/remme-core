@@ -50,7 +50,9 @@ class HelperTestCase(TransactionProcessorTestCase):
 
     def send_transaction(self, method, data, address_access_list):
         payload = self._dumps({'method': method, 'data': data})
-        self.validator.send(self._factory.create_transaction(payload, address_access_list, address_access_list, []))
+        self.validator.send(
+            self._factory.create_transaction(payload, address_access_list, address_access_list, [])
+        )
 
     def expect_ok(self):
         self.expect_tp_response('OK')

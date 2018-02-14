@@ -77,9 +77,9 @@ class CertificateHandler(BasicHandler):
         data.hash = fingerprint
         data.owner = transactor
         data.revoked = False
-        
+
         self._store_data(context, address, data)
-    
+
     def _revoke_certificate(self, context, transactor, certificate_address):
         data = self._get_data(context, certificate_address, CertificateStorage)
         if data is None:

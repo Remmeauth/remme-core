@@ -25,6 +25,7 @@ FAMILY_VERSIONS = ['0.1']
 
 METHOD_TRANSFER = 'transfer'
 
+
 class TokenHandler(BasicHandler):
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
@@ -32,7 +33,7 @@ class TokenHandler(BasicHandler):
     def apply(self, transaction, context):
         super().process_apply(transaction, context, Account)
 
-        # returns updated state
+    # returns updated state
     def process_state(self, signer, method, data, signer_account):
         process_transaction = None
         data_payload = None
@@ -54,11 +55,11 @@ class TokenHandler(BasicHandler):
         receiver_account = self._get_data(Account, params.address_to)
 
         if signer_account.balance < params.amount:
-            raise InvalidTransaction("Not enough transferable balance. Signer's current balance: {}".format(signer_account.balance))
-
+            raise InvalidTransaction("Not enough transferable balance. Signer's current balance: {}"
+                                     .format(signer_account.balance))
 
         receiver_account.balance += params.amount
         signer_account.balance -= params.amount
 
-        return { signer: signer_account,
-                 params.address_to: receiver_account}
+        return {signer: signer_account,
+                params.address_to: receiver_account}
