@@ -12,13 +12,14 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='File with a public key to assign initial supply.')
     parser.add_argument('token_supply')
     parser.add_argument('key_file')
+    parser.add_argument('output_file')
     args = parser.parse_args()
 
     account = Account()
-    account.balance = args.token_supply
+    account.balance = int(args.token_supply)
 
     assert(os.path.exists(args.key_file))
-    with open(args.key_file, 'w+') as output_file:
-        with open(args.key_address, 'r') as pub_key:
-            key = args.key_address
-            print('sawset proposal create {}={}'.format(key, account.SerializeToString()))
+    with open(args.output_file, 'w+') as output_file:
+        with open(args.key_file, 'r') as pub_key:
+            key = pub_key.read()
+            output_file.write('sawset proposal create {}={}'.format(key[:-1], str(account.SerializeToString())[2:-1]))

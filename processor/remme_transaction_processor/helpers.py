@@ -60,8 +60,8 @@ class BasicHandler(TransactionHandler):
 
     def process_apply(self, transaction, context, pb_class):
         self.context = context
-        # signer is taken from header
-        # transaction follows Transaction proto
+        # signer is constructed from header.signer using make_address
+        # transaction follows Transaction proto format
         signer, method, data = self._decode_transaction(transaction)
 
         state = self.get_data(pb_class, signer)
