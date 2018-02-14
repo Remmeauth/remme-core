@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='certificate.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\x11\x63\x65rtificate.proto\"\x98\x01\n\x16\x43\x65rtificateTransaction\x12/\n\x04type\x18\x01 \x01(\x0e\x32!.CertificateTransaction.Operation\x12\x17\n\x0f\x63\x65rtificate_raw\x18\x02 \x01(\t\x12\x0f\n\x07\x61\x64\x64ress\x18\x03 \x01(\t\"#\n\tOperation\x12\n\n\x06\x43REATE\x10\x00\x12\n\n\x06REVOKE\x10\x02\"B\n\x12\x43\x65rtificateStorage\x12\x0c\n\x04hash\x18\x01 \x01(\t\x12\r\n\x05owner\x18\x02 \x01(\t\x12\x0f\n\x07revoked\x18\x03 \x01(\x08\x62\x06proto3')
+  serialized_pb=_b('\n\x11\x63\x65rtificate.proto\"\xc6\x01\n\x16\x43\x65rtificateTransaction\x12/\n\x04type\x18\x01 \x01(\x0e\x32!.CertificateTransaction.Operation\x12\x17\n\x0f\x63\x65rtificate_raw\x18\x02 \x01(\t\x12\x15\n\rsignature_rem\x18\x03 \x01(\t\x12\x15\n\rsignature_crt\x18\x04 \x01(\t\x12\x0f\n\x07\x61\x64\x64ress\x18\x05 \x01(\t\"#\n\tOperation\x12\n\n\x06\x43REATE\x10\x00\x12\n\n\x06REVOKE\x10\x02\"B\n\x12\x43\x65rtificateStorage\x12\x0c\n\x04hash\x18\x01 \x01(\t\x12\r\n\x05owner\x18\x02 \x01(\t\x12\x0f\n\x07revoked\x18\x03 \x01(\x08\x62\x06proto3')
 )
 
 
@@ -41,8 +41,8 @@ _CERTIFICATETRANSACTION_OPERATION = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=139,
-  serialized_end=174,
+  serialized_start=185,
+  serialized_end=220,
 )
 _sym_db.RegisterEnumDescriptor(_CERTIFICATETRANSACTION_OPERATION)
 
@@ -69,8 +69,22 @@ _CERTIFICATETRANSACTION = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='address', full_name='CertificateTransaction.address', index=2,
+      name='signature_rem', full_name='CertificateTransaction.signature_rem', index=2,
       number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='signature_crt', full_name='CertificateTransaction.signature_crt', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='address', full_name='CertificateTransaction.address', index=4,
+      number=5, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -89,7 +103,7 @@ _CERTIFICATETRANSACTION = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=22,
-  serialized_end=174,
+  serialized_end=220,
 )
 
 
@@ -133,8 +147,8 @@ _CERTIFICATESTORAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=176,
-  serialized_end=242,
+  serialized_start=222,
+  serialized_end=288,
 )
 
 _CERTIFICATETRANSACTION.fields_by_name['type'].enum_type = _CERTIFICATETRANSACTION_OPERATION

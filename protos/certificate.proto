@@ -24,9 +24,15 @@ message CertificateTransaction {
     Operation type = 1;
     // Required by CREATE. A raw certificate file.
     string certificate_raw = 2;
+    // Required by CREATE. SHA512 hash of certificate_raw signed by the
+    // user's private key on REMME blockchain and then by the private key of the
+    // certificate. Needed to verify, that the user actually owns the provided
+    // certificate.
+    string signature_rem = 3;
+    string signature_crt = 4;
     // Required by REVOKE. The address of a certificate in the storage generated
     // by the transaction processor.
-    string address = 3;
+    string address = 5;
 }
 
 message CertificateStorage {
