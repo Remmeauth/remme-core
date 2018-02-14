@@ -34,6 +34,7 @@ services:
           sawadm keygen &&
           sawtooth keygen my_key &&
           sawset genesis -k /root/.sawtooth/keys/my_key.priv &&
+          source /genesis/token-proposal.sh &&
           sawadm genesis config-genesis.batch
         fi;
         sawtooth-validator -vv \
@@ -46,11 +47,10 @@ services:
     build:
       context: processor/
     volumes:
-      - ./processor/remme_transaction_processor:/processor/remme_transaction_processor
+      - ./processor:/processor
       - ./genesis:/genesis
     entrypoint: |
-      python3 genesis/generate_token_genesis.py keys/root.pub
-      python3 -m processor.remme_transaction_processor tcp://validator:4004
+      python3 -m processor tcp://validator:4004
 
 
   settings-tp:
