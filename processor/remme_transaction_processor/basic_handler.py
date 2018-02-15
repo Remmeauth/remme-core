@@ -75,6 +75,9 @@ class BasicHandler(TransactionHandler):
             raise InvalidTransaction("appendix {} must be {} characters long!".format(appendix, APPENDIX_LENGTH))
         return self._prefix + appendix
 
+    def is_address(self, address):
+        return len(address) == 70 and isinstance(address, str)
+
     def _decode_transaction(self, transaction):
         transaction_payload = TransactionPayload()
         try:

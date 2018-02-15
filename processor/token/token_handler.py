@@ -16,7 +16,7 @@
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
 from processor.protos.token_pb2 import Account, Transfer
-from .helpers import *
+from processor.remme_transaction_processor.basic_handler import *
 
 FAMILY_NAME = 'token'
 FAMILY_VERSIONS = ['0.1']
@@ -51,6 +51,8 @@ class TokenHandler(BasicHandler):
         return process_transaction(signer, signer_account, data_payload)
 
     def transfer(self, signer, signer_account, params):
+        if not self.is_address(params.address_to):
+            raise InvalidTransaction("address_to parameter passed: {} is not an address.".format(params.address_to))
         receiver_account = self._get_data(Account, params.address_to)
 
         if signer_account.balance < params.amount:

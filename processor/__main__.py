@@ -13,12 +13,13 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-import sys
 import argparse
 import logging
+
 from sawtooth_sdk.processor.core import TransactionProcessor
+
 from processor.remme_transaction_processor.certificate_handler import CertificateHandler
-from processor.remme_transaction_processor.token_handler import TokenHandler
+from processor.token.token_handler import TokenHandler
 
 LOGGER = logging.getLogger(__name__)
 

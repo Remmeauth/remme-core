@@ -27,15 +27,16 @@ services:
       - '4020:4004'
     volumes:
       - ./genesis:/genesis
+      - ./keys:/root/.sawtooth/keys
     # start the validator with an empty genesis batch
     entrypoint: |
       bash -c "
-        if [ ! -f /etc/sawtooth/keys/validator.priv ]; then
+        if [ ! -f /etc/sawtooth/keys/validator2.priv ]; then
           sawadm keygen &&
-          sawtooth keygen my_key &&
+          sawtooth keygen my_key --force &&
           sawset genesis -k /root/.sawtooth/keys/my_key.priv &&
           source /genesis/token-proposal.sh &&
-          sawadm genesis config-genesis.batch
+          sawadm genesis config-genesis.batch /genesis/token-proposal.batch
         fi;
         sawtooth-validator -vv \
           --endpoint tcp://validator:8800 \

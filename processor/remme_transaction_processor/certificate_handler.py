@@ -13,7 +13,7 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-from .helpers import *
+from .basic_handler import *
 
 FAMILY_NAME = 'certificate'
 FAMILY_VERSIONS = ['0.1']
