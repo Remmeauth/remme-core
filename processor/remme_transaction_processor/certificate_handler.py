@@ -14,17 +14,20 @@
 # ------------------------------------------------------------------------
 
 import datetime
+import logging
 import hashlib
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
-from cryptogrphy.exceptions import InvalidSignature
+from cryptography.exceptions import InvalidSignature
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 from sawtooth_signing.secp256k1 import Secp256k1PublicKey, Secp256k1Context
 from .helpers import *
-from processor.protos.certificate_pb2 import CertificateStorage
+from processor.protos.certificate_pb2 import CertificateStorage, CertificateTransaction
+
+LOGGER = logging.getLogger(__name__)
 
 FAMILY_NAME = 'certificate'
 FAMILY_VERSIONS = ['0.1']
@@ -36,11 +39,17 @@ CERT_MAX_VALIDITY = datetime.timedelta(365)
 class CertificateHandler(BasicHandler):
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
+        LOGGER.info('Started certificates operations transactions handler.')
+    
+    def apply(self, transaction, context):
+        super().process_apply(transaction, context, CertificateTransaction)
+    
+    def process_state(self, signer, method, data, signer_account):
+        pass
 
     def _save_certificate(self, data, transactor, certificate_raw, signature_rem, signature_crt):
         certificate = x509.load_pem_x509_certificate(certificate_raw.encode(),
                                                      default_backend())
-
         if data is not None:
             InvalidTransaction('The certificate is already registered')
 
@@ -93,6 +102,3 @@ class CertificateHandler(BasicHandler):
         data.revoked = True
 
         return data
-
-    def apply(self, transaction, context):
-        pass

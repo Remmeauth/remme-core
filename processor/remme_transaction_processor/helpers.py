@@ -28,7 +28,7 @@ class BasicHandler(TransactionHandler):
     def __init__(self, name, versions):
         self._family_name = name
         self._family_versions = versions
-        self._prefix = hashlib.sha512(self.FAMILY_NAME.encode('utf-8')).hexdigest()[0:6]
+        self._prefix = hashlib.sha512(self._family_name.encode('utf-8')).hexdigest()[0:6]
 
     @property
     def family_name(self):

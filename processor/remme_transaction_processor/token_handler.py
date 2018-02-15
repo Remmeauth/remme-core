@@ -12,44 +12,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------
-
+import logging
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
-
 from processor.protos.token_pb2 import Account, Transfer
 from .helpers import *
+
+LOGGER = logging.getLogger(__name__)
 
 FAMILY_NAME = 'token'
 FAMILY_VERSIONS = ['0.1']
 
+
 # TODO: ensure receiver_account.balance += params.amount is within uint64
-
-METHOD_TRANSFER = 'transfer'
-
-
 class TokenHandler(BasicHandler):
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
+        LOGGER.info('Started REM token operations transactions handler.')
 
     def apply(self, transaction, context):
         super().process_apply(transaction, context, Account)
 
     # returns updated state
-    def process_state(self, signer, method, data, signer_account):
-        process_transaction = None
+    def process_state(self, signer, data, signer_account):
         data_payload = None
-        if method == METHOD_TRANSFER:
-            data_payload = Transfer()
-            process_transaction = self.transfer
-
-        if not process_transaction or not data_payload:
-            raise InvalidTransaction("Not a valid transaction method {}".format(method))
 
         try:
             data_payload.ParseFromString(data)
         except:
-            raise InvalidTransaction("Invalid data serialization for method {}".format(method))
+            raise InvalidTransaction("Invalid data serialization for a token transaction")
 
-        return process_transaction(signer, signer_account, data_payload)
+        return transfer(signer, signer_account, data_payload)
 
     def transfer(self, signer, signer_account, params):
         receiver_account = self._get_data(Account, params.address_to)
