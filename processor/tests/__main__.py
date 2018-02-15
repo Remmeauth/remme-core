@@ -13,25 +13,14 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-version: '2.1'
+import sys
+import os
 
-services:
-  tests:
-    build:
-      context: processor/
-    expose:
-      - 4004
-    volumes:
-      - ./processor:/processor
-    entrypoint: |
-      bash -c "cd /processor && python3 -m tests"
-    stop_signal: SIGKILL
-    environment:
-      TEST_BIND: "tcp://eth0:4004"
+sys.path.insert(0, os.getenv('PACKAGE_LOCATION', '/processor'))
 
-  remme-transaction-processor:
-    build:
-      context: processor/
-    volumes:
-      - ./processor:/processor
-    entrypoint: python3 -m processor.remme_transaction_processor tcp://validator:4004
+import unittest
+from .test_helper import *
+from .test_token import *
+
+if __name__ == '__main__':
+    unittest.main()
