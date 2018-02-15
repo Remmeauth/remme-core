@@ -24,7 +24,7 @@ from cryptogrphy.exceptions import InvalidSignature
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 from sawtooth_signing.secp256k1 import Secp256k1PublicKey, Secp256k1Context
 from .helpers import *
-from .certificate_pb2 import CertificateStorage
+from processor.protos.certificate_pb2 import CertificateStorage
 
 FAMILY_NAME = 'certificate'
 FAMILY_VERSIONS = ['0.1']
@@ -37,9 +37,13 @@ class CertificateHandler(BasicHandler):
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
 
-    def _save_certificate(self, context, transactor, certificate, signature_rem, signature_crt):
+    def _save_certificate(self, data, transactor, certificate_raw, signature_rem, signature_crt):
         certificate = x509.load_pem_x509_certificate(certificate_raw.encode(),
                                                      default_backend())
+
+        if data is not None:
+            InvalidTransaction('The certificate is already registered')
+
         certificate_pubkey = certificate.public_key()
         try:
             certificate_pubkey.verify(signature_crt, signature_rem, hashes.SHA512())
@@ -50,7 +54,7 @@ class CertificateHandler(BasicHandler):
         sawtooth_signing_pubkey = Secp256k1PublicKey(transactor)
         sawtooth_signing_check_res = \
             sawtooth_signing_ctx.verify(signature_rem,
-                                        hashlib.sha512(name.encode('utf-8')).hexdigest(),
+                                        hashlib.sha512(certificate_raw.encode('utf-8')).hexdigest(),
                                         sawtooth_signing_pubkey)
         if not sawtooth_signing_check_res:
             raise InvalidTransaction('signature_rem mismatch')
@@ -70,18 +74,16 @@ class CertificateHandler(BasicHandler):
         if valid_until - valid_from > CERT_MAX_VALIDITY:
             raise InvalidTransaction('The certificate validity exceeds the maximum value.')
 
-        fingerprint = certificate.fingerprint(hashes.SHA512()).hex()
-        # TODO: consider passing just the binary representation of the certificate here
-        address = self._make_address(fingerprint)
+        fingerprint = certificate.fingerprint(hashes.SHA512()).hex()[:64]
+        address = self.make_address(fingerprint)
         data = CertificateStorage()
         data.hash = fingerprint
         data.owner = transactor
         data.revoked = False
 
-        self._store_data(context, address, data)
+        return data
 
-    def _revoke_certificate(self, context, transactor, certificate_address):
-        data = self._get_data(context, certificate_address, CertificateStorage)
+    def _revoke_certificate(self, data, transactor, certificate_address):
         if data is None:
             raise InvalidTransaction('No such certificate.')
         if transactor != data.owner:
@@ -89,7 +91,8 @@ class CertificateHandler(BasicHandler):
         if data.revoked:
             raise InvalidTransaction('The certificate is already revoked.')
         data.revoked = True
-        self._store_data(context, certificate_address, data)
+
+        return data
 
     def apply(self, transaction, context):
         pass
