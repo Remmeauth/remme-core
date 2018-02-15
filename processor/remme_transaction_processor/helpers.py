@@ -71,8 +71,14 @@ class BasicHandler(TransactionHandler):
 
     def make_address(self, appendix):
         APPENDIX_LENGTH = 64
-        if (len(appendix) != APPENDIX_LENGTH):
+        if len(appendix) != APPENDIX_LENGTH:
             raise InvalidTransaction("appendix {} must be {} characters long!".format(appendix, APPENDIX_LENGTH))
+
+        try:
+            int(appendix, 16)
+        except ValueError:
+            raise InvalidTransaction('appendix should be a valid hexadecimal integer representation')
+
         return self._prefix + appendix
 
     def _decode_transaction(self, transaction):
