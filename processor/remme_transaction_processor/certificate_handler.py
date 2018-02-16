@@ -18,7 +18,6 @@ import logging
 import hashlib
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
 from cryptography.exceptions import InvalidSignature
@@ -40,12 +39,33 @@ class CertificateHandler(BasicHandler):
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
         LOGGER.info('Started certificates operations transactions handler.')
-    
+
     def apply(self, transaction, context):
         super().process_apply(transaction, context, CertificateTransaction)
     
     def process_state(self, signer, method, data, signer_account):
-        pass
+        transaction = CertificateTransaction()
+        data = None
+        transaction.ParseFromString(data)
+        if transaction.type == CertificateTransaction.Operation.CREATE:
+            appendix = hashlib.sha512(transaction.certificate_raw.encode('utf-8')).hexdigest()[0:64]
+            address = self.make_address(appendix)
+            stored_data = self._get_data(CertificateStorage, address)
+            data = self._save_certificate(stored_data,
+                                          signer,
+                                          transaction.certificate_raw,
+                                          transaction.signature_rem,
+                                          transaction.signature_crt)
+        if transaction.type == CertificateTransaction.Operation.REVOKE:
+            appendix = transaction.address
+            address = self.make_address(appendix)
+            stored_data = self._get_data(CertificateStorage, address)
+            data = self._revoke_certificate(stored_data, signer)
+        else:
+            raise InvalidTransaction('Unknown value {} for the certificate operation type.'.
+                                     format(int(transaction.type)))
+        # TODO: pass certificate address (refactoring)
+        self._store_state(data)
 
     def _save_certificate(self, data, transactor, certificate_raw, signature_rem, signature_crt):
         certificate = x509.load_pem_x509_certificate(certificate_raw.encode(),
@@ -82,17 +102,14 @@ class CertificateHandler(BasicHandler):
             raise InvalidTransaction('Expecting a self-signed certificate.')
         if valid_until - valid_from > CERT_MAX_VALIDITY:
             raise InvalidTransaction('The certificate validity exceeds the maximum value.')
-
         fingerprint = certificate.fingerprint(hashes.SHA512()).hex()[:64]
-        address = self.make_address(fingerprint)
-        data = CertificateStorage()
         data.hash = fingerprint
         data.owner = transactor
         data.revoked = False
 
         return data
 
-    def _revoke_certificate(self, data, transactor, certificate_address):
+    def _revoke_certificate(self, data, transactor):
         if data is None:
             raise InvalidTransaction('No such certificate.')
         if transactor != data.owner:
