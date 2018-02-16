@@ -13,8 +13,8 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.getenv('PACKAGE_LOCATION', '/processor'))
 
@@ -22,7 +22,7 @@ import argparse
 import logging
 from sawtooth_sdk.processor.core import TransactionProcessor
 
-from processor.shared.certificate_handler import CertificateHandler
+from processor.certificate.certificate_handler import CertificateHandler
 from processor.token.token_handler import TokenHandler
 
 LOGGER = logging.getLogger(__name__)
