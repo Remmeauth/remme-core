@@ -15,10 +15,10 @@
 
 import sys
 import os
+import unittest
 
 sys.path.insert(0, os.getenv('PACKAGE_LOCATION', '/processor'))
 
-import unittest
 from processor.tests.test_helper import *
 from processor.tests.test_token import *
 

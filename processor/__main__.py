@@ -15,12 +15,11 @@
 
 import os
 import sys
+import logging
+import argparse
+from sawtooth_sdk.processor.core import TransactionProcessor
 
 sys.path.insert(0, os.getenv('PACKAGE_LOCATION', '/processor'))
-
-import argparse
-import logging
-from sawtooth_sdk.processor.core import TransactionProcessor
 
 from processor.certificate.certificate_handler import CertificateHandler
 from processor.token.token_handler import TokenHandler
