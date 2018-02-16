@@ -20,6 +20,7 @@ from processor.tests.test_helper import HelperTestCase
 from processor.token.token_handler import TokenHandler, METHOD_TRANSFER
 
 
+# TODO update tests to correspond the new API
 class TokenTest(HelperTestCase):
     @classmethod
     def setUpClass(cls):
