@@ -13,15 +13,109 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
+import datetime
+import logging
+import hashlib
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
+from cryptography.x509.oid import NameOID
+from cryptography.hazmat.primitives import hashes
+from cryptography.exceptions import InvalidSignature
+from sawtooth_sdk.processor.exceptions import InvalidTransaction
+from sawtooth_signing.secp256k1 import Secp256k1PublicKey, Secp256k1Context
 from processor.shared.basic_handler import *
+from processor.protos.certificate_pb2 import CertificateStorage, CertificateTransaction
+
+LOGGER = logging.getLogger(__name__)
 
 FAMILY_NAME = 'certificate'
 FAMILY_VERSIONS = ['0.1']
+
+CERT_ORGANIZATION = 'REMME'
+CERT_MAX_VALIDITY = datetime.timedelta(365)
 
 
 class CertificateHandler(BasicHandler):
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
+        LOGGER.info('Started certificates operations transactions handler.')
 
     def apply(self, transaction, context):
-        pass
+        super().process_apply(transaction, context, CertificateTransaction)
+
+    def process_state(self, signer, method, data, signer_account):
+        transaction = CertificateTransaction()
+        data = None
+        transaction.ParseFromString(data)
+        if transaction.type == CertificateTransaction.Operation.CREATE:
+            appendix = hashlib.sha512(transaction.certificate_raw.encode('utf-8')).hexdigest()[0:64]
+            address = self.make_address(appendix)
+            stored_data = self._get_data(CertificateStorage, address)
+            data = self._save_certificate(stored_data,
+                                          signer,
+                                          transaction.certificate_raw,
+                                          transaction.signature_rem,
+                                          transaction.signature_crt)
+        if transaction.type == CertificateTransaction.Operation.REVOKE:
+            appendix = transaction.address
+            address = self.make_address(appendix)
+            stored_data = self._get_data(CertificateStorage, address)
+            data = self._revoke_certificate(stored_data, signer)
+        else:
+            raise InvalidTransaction('Unknown value {} for the certificate operation type.'.
+                                     format(int(transaction.type)))
+        # TODO: pass certificate address (refactoring)
+        self._store_state(data)
+
+    def _save_certificate(self, data, transactor, certificate_raw, signature_rem, signature_crt):
+        certificate = x509.load_pem_x509_certificate(certificate_raw.encode(),
+                                                     default_backend())
+        if data is not None:
+            InvalidTransaction('The certificate is already registered')
+
+        certificate_pubkey = certificate.public_key()
+        try:
+            certificate_pubkey.verify(signature_crt, signature_rem, hashes.SHA512())
+        except InvalidSignature:
+            raise InvalidTransaction('signature_crt mismatch')
+
+        sawtooth_signing_ctx = Secp256k1Context()
+        sawtooth_signing_pubkey = Secp256k1PublicKey(transactor)
+        sawtooth_signing_check_res = \
+            sawtooth_signing_ctx.verify(signature_rem,
+                                        hashlib.sha512(certificate_raw.encode('utf-8')).hexdigest(),
+                                        sawtooth_signing_pubkey)
+        if not sawtooth_signing_check_res:
+            raise InvalidTransaction('signature_rem mismatch')
+
+        subject = certificate.subject
+        organization = subject.get_attributes_for_oid(NameOID.ORGANIZATION_NAME)
+        uid = subject.get_attributes_for_oid(NameOID.USER_ID)
+        valid_from = certificate.not_valid_before
+        valid_until = certificate.not_valid_after
+
+        if organization != CERT_ORGANIZATION:
+            raise InvalidTransaction('The organization name should be set to REMME.')
+        if uid != transactor:
+            raise InvalidTransaction('The certificate should be sent by its signer.')
+        if subject != certificate.issuer:
+            raise InvalidTransaction('Expecting a self-signed certificate.')
+        if valid_until - valid_from > CERT_MAX_VALIDITY:
+            raise InvalidTransaction('The certificate validity exceeds the maximum value.')
+        fingerprint = certificate.fingerprint(hashes.SHA512()).hex()[:64]
+        data.hash = fingerprint
+        data.owner = transactor
+        data.revoked = False
+
+        return data
+
+    def _revoke_certificate(self, data, transactor):
+        if data is None:
+            raise InvalidTransaction('No such certificate.')
+        if transactor != data.owner:
+            raise InvalidTransaction('Only owner can revoke the certificate.')
+        if data.revoked:
+            raise InvalidTransaction('The certificate is already revoked.')
+        data.revoked = True
+
+        return data
