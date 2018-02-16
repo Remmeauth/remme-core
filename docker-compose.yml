@@ -51,7 +51,7 @@ services:
       - ./processor:/processor
     environment:
       PACKAGE_LOCATION: '/processor'
-    entrypoint: python3 -m processor.remme_transaction_processor tcp://validator:4004
+    entrypoint: python3 -m processor tcp://validator:4004
 
   settings-tp:
     image: hyperledger/sawtooth-settings-tp:1.0
