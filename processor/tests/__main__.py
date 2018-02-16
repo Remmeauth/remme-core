@@ -19,8 +19,8 @@ import os
 sys.path.insert(0, os.getenv('PACKAGE_LOCATION', '/processor'))
 
 import unittest
-from .test_helper import *
-from .test_token import *
+from processor.tests.test_helper import *
+from processor.tests.test_token import *
 
 if __name__ == '__main__':
     unittest.main()
