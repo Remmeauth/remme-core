@@ -13,11 +13,14 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-FROM ubuntu:xenial
+import sys
+import os
 
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 8AA7AF1F1091A5FD && \
-    echo "deb http://repo.sawtooth.me/ubuntu/1.0/stable xenial universe" >> /etc/apt/sources.list && \
-    apt-get update && \
-    apt-get install -y sawtooth
-RUN apt-get install -y python3-pip
-RUN pip3 install protobuf3-to-dict
+sys.path.insert(0, os.getenv('PACKAGE_LOCATION', '/processor'))
+
+import unittest
+from processor.tests.test_helper import *
+from processor.tests.test_token import *
+
+if __name__ == '__main__':
+    unittest.main()

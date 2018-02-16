@@ -22,5 +22,13 @@ run:
 test:
 	docker-compose -f docker-compose.test.yml up --abort-on-container-exit
 
-protobuf:
+build_protobuf:
 	protoc -I=$(PROTO_SRC_DIR) --python_out=$(PROTO_DST_DIR) $(PROTO_SRC_DIR)/*.proto
+
+build_docker:
+	docker-compose build
+	docker-compose -f docker-compose.test.yml build
+
+rebuild_docker:
+	docker-compose build --no-cache
+	docker-compose -f docker-compose.test.yml build --no-cache

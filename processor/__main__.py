@@ -13,9 +13,13 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
+import sys
+import os
+
+sys.path.insert(0, os.getenv('PACKAGE_LOCATION', '/processor'))
+
 import argparse
 import logging
-
 from sawtooth_sdk.processor.core import TransactionProcessor
 
 from processor.shared.certificate_handler import CertificateHandler
@@ -24,11 +28,11 @@ from processor.token.token_handler import TokenHandler
 LOGGER = logging.getLogger(__name__)
 
 # TODO: maybe add some logging
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Transaction processor.')
     parser.add_argument('endpoint')
     args = parser.parse_args()
+    LOGGER.info('Starting up')
     processor = TransactionProcessor(url=args.endpoint)
     processor.add_handler(TokenHandler())
     processor.add_handler(CertificateHandler())

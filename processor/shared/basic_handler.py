@@ -26,7 +26,7 @@ class BasicHandler(TransactionHandler):
     def __init__(self, name, versions):
         self._family_name = name
         self._family_versions = versions
-        self._prefix = hashlib.sha512(self.FAMILY_NAME.encode('utf-8')).hexdigest()[0:6]
+        self._prefix = hashlib.sha512(self._family_name.encode('utf-8')).hexdigest()[0:6]
 
     @property
     def family_name(self):
@@ -69,8 +69,14 @@ class BasicHandler(TransactionHandler):
 
     def make_address(self, appendix):
         APPENDIX_LENGTH = 64
-        if (len(appendix) != APPENDIX_LENGTH):
+        if len(appendix) != APPENDIX_LENGTH:
             raise InvalidTransaction("appendix {} must be {} characters long!".format(appendix, APPENDIX_LENGTH))
+
+        try:
+            int(appendix, 16)
+        except ValueError:
+            raise InvalidTransaction('appendix should be a valid hexadecimal integer representation')
+
         return self._prefix + appendix
 
     def is_address(self, address):
@@ -89,7 +95,7 @@ class BasicHandler(TransactionHandler):
         try:
             data.ParseFromString(raw_data[0])
         except IndexError:
-            return None, None
+            return None
         except:
             raise InternalError("Failed to deserialize data")
         return data

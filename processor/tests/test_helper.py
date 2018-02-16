@@ -16,7 +16,6 @@
 from sawtooth_processor_test.transaction_processor_test_case \
     import TransactionProcessorTestCase
 from sawtooth_processor_test.mock_validator import MockValidator
-from .context import remme_transaction_processor
 from sawtooth_signing import create_context
 from sawtooth_signing import CryptoFactory
 import cbor
@@ -50,7 +49,9 @@ class HelperTestCase(TransactionProcessorTestCase):
 
     def send_transaction(self, method, data, address_access_list):
         payload = self._dumps({'method': method, 'data': data})
-        self.validator.send(self._factory.create_transaction(payload, address_access_list, address_access_list, []))
+        self.validator.send(
+            self._factory.create_transaction(payload, address_access_list, address_access_list, [])
+        )
 
     def expect_ok(self):
         self.expect_tp_response('OK')

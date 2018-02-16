@@ -23,16 +23,18 @@ services:
       - 4004
     volumes:
       - ./processor:/processor
-    entrypoint: |
-      bash -c "cd /processor && python3 -m tests"
+    entrypoint: python3 -m processor.tests
     stop_signal: SIGKILL
     environment:
       TEST_BIND: "tcp://eth0:4004"
+      PACKAGE_LOCATION: '/processor'
+
 
   remme-transaction-processor:
     build:
       context: processor/
     volumes:
-      - ./processor/shared:/shared
-    entrypoint: |
-      python3 -m processor tcp://tests:4004
+      - ./processor:/processor
+    environment:
+      PACKAGE_LOCATION: '/processor'
+    entrypoint: python3 -m processor.remme_transaction_processor tcp://validator:4004

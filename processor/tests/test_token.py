@@ -34,5 +34,6 @@ class TokenTest(HelperTestCase):
         transfer = Transfer()
         transfer.address_to = self.account_address2
         transfer.amount = 200
-        self.send_transaction(METHOD_TRANSFER, protobuf_to_dict(transfer),[self.account_address1, self.account_address2])
+        self.send_transaction(METHOD_TRANSFER, protobuf_to_dict(transfer),
+                              [self.account_address1, self.account_address2])
         self.expect_ok()
