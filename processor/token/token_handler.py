@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------
-import logging
-from sawtooth_sdk.processor.exceptions import InvalidTransaction
-from processor.protos.token_pb2 import Account, Transfer
-from .helpers import *
 
-LOGGER = logging.getLogger(__name__)
+from sawtooth_sdk.processor.exceptions import InvalidTransaction
+
+from processor.protos.token_pb2 import Account, Transfer, TokenPayload
+from processor.shared.basic_handler import *
 
 FAMILY_NAME = 'token'
 FAMILY_VERSIONS = ['0.1']
@@ -27,31 +26,45 @@ FAMILY_VERSIONS = ['0.1']
 class TokenHandler(BasicHandler):
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
-        LOGGER.info('Started REM token operations transactions handler.')
 
     def apply(self, transaction, context):
         super().process_apply(transaction, context, Account)
 
-    # returns updated state
-    def process_state(self, signer, data, signer_account):
+        # returns updated state
+    def process_state(self, signer, payload, signer_account):
+        token_payload = TokenPayload()
+        try:
+            token_payload.ParseFromString(payload)
+        except:
+            raise InvalidTransaction("Invalid payload serialization!")
+
+        process_transaction = None
         data_payload = None
+        if token_payload.method == TokenPayload.TRANSFER:
+            data_payload = Transfer()
+            process_transaction = self.transfer
+
+        if not process_transaction or not data_payload:
+            raise InvalidTransaction("Not a valid transaction method {}".format(token_payload.method))
 
         try:
-            data_payload.ParseFromString(data)
+            data_payload.ParseFromString(token_payload.data)
         except:
-            raise InvalidTransaction("Invalid data serialization for a token transaction")
+            raise InvalidTransaction("Invalid data serialization for method {}".format(token_payload.method))
 
-        return transfer(signer, signer_account, data_payload)
+        return process_transaction(signer, signer_account, data_payload)
 
     def transfer(self, signer, signer_account, params):
+        if not self.is_address(params.address_to):
+            raise InvalidTransaction("address_to parameter passed: {} is not an address.".format(params.address_to))
         receiver_account = self._get_data(Account, params.address_to)
 
         if signer_account.balance < params.amount:
-            raise InvalidTransaction("Not enough transferable balance. Signer's current balance: {}"
-                                     .format(signer_account.balance))
+            raise InvalidTransaction("Not enough transferable balance. Signer's current balance: {}".format(signer_account.balance))
+
 
         receiver_account.balance += params.amount
         signer_account.balance -= params.amount
 
-        return {signer: signer_account,
-                params.address_to: receiver_account}
+        return { signer: signer_account,
+                 params.address_to: receiver_account}
