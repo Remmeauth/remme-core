@@ -1,7 +1,7 @@
 import argparse
 import os
 
-# from processor.remme_transaction_processor.token_handler import TokenHandler
+# from processor.shared.token_handler import TokenHandler
 from processor.protos.token_pb2 import Account
 
 OUTPUT_SH = 'genesis/token-proposal.sh'

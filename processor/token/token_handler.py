@@ -15,15 +15,13 @@
 
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
-from processor.protos.token_pb2 import Account, Transfer
-from processor.remme_transaction_processor.basic_handler import *
+from processor.protos.token_pb2 import Account, Transfer, TokenPayload
+from processor.shared.basic_handler import *
 
 FAMILY_NAME = 'token'
 FAMILY_VERSIONS = ['0.1']
 
 # TODO: ensure receiver_account.balance += params.amount is within uint64
-
-METHOD_TRANSFER = 'transfer'
 
 class TokenHandler(BasicHandler):
     def __init__(self):
@@ -33,20 +31,26 @@ class TokenHandler(BasicHandler):
         super().process_apply(transaction, context, Account)
 
         # returns updated state
-    def process_state(self, signer, method, data, signer_account):
+    def process_state(self, signer, payload, signer_account):
+        token_payload = TokenPayload()
+        try:
+            token_payload.ParseFromString(payload)
+        except:
+            raise InvalidTransaction("Invalid payload serialization!")
+
         process_transaction = None
         data_payload = None
-        if method == METHOD_TRANSFER:
+        if token_payload.method == TokenPayload.TRANSFER:
             data_payload = Transfer()
             process_transaction = self.transfer
 
         if not process_transaction or not data_payload:
-            raise InvalidTransaction("Not a valid transaction method {}".format(method))
+            raise InvalidTransaction("Not a valid transaction method {}".format(token_payload.method))
 
         try:
-            data_payload.ParseFromString(data)
+            data_payload.ParseFromString(token_payload.data)
         except:
-            raise InvalidTransaction("Invalid data serialization for method {}".format(method))
+            raise InvalidTransaction("Invalid data serialization for method {}".format(token_payload.method))
 
         return process_transaction(signer, signer_account, data_payload)
 

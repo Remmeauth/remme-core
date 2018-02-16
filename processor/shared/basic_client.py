@@ -1,4 +1,4 @@
-# Copyright 2017 Intel Corporation
+# Copyright 2018 REMME
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,34 +13,34 @@
 # limitations under the License.
 # ------------------------------------------------------------------------------
 
-import hashlib
 import base64
+import hashlib
 import time
+
+import cbor
 import requests
 import yaml
-import cbor
-
-from sawtooth_signing import create_context
+from sawtooth_sdk.protobuf.batch_pb2 import Batch
+from sawtooth_sdk.protobuf.batch_pb2 import BatchHeader
+from sawtooth_sdk.protobuf.batch_pb2 import BatchList
+from sawtooth_sdk.protobuf.transaction_pb2 import Transaction
+from sawtooth_sdk.protobuf.transaction_pb2 import TransactionHeader
 from sawtooth_signing import CryptoFactory
 from sawtooth_signing import ParseError
+from sawtooth_signing import create_context
 from sawtooth_signing.secp256k1 import Secp256k1PrivateKey
 
-from sawtooth_sdk.protobuf.transaction_pb2 import TransactionHeader
-from sawtooth_sdk.protobuf.transaction_pb2 import Transaction
-from sawtooth_sdk.protobuf.batch_pb2 import BatchList
-from sawtooth_sdk.protobuf.batch_pb2 import BatchHeader
-from sawtooth_sdk.protobuf.batch_pb2 import Batch
-
-from processor.token.exceptions import ClientException
+from processor.settings import REST_API_URL, TP_KEY_FILE
+from processor.shared.exceptions import ClientException
 
 
 def _sha512(data):
     return hashlib.sha512(data).hexdigest()
 
-
-class Client:
-    def __init__(self, url, keyfile=None):
-        self.url = url
+class BasicClient:
+    def __init__(self, family_handler, keyfile=TP_KEY_FILE):
+        self.url = REST_API_URL
+        self._family_handler = family_handler
 
         if keyfile is not None:
             try:
@@ -60,10 +60,6 @@ class Client:
             self._signer = CryptoFactory(
                 create_context('secp256k1')).new_signer(private_key)
 
-    def set(self, name, value, wait=None):
-        return self._send_transaction('set', name, value, wait=wait)
-
-
     def list(self):
         result = self._send_request(
             "state?address={}".format(
@@ -80,15 +76,15 @@ class Client:
         except BaseException:
             return None
 
-    def show(self, name):
-        address = self._get_address(name)
+    def get_value(self, key):
+        address = self._get_address(key)
 
-        result = self._send_request("state/{}".format(address), name=name,)
+        result = self._send_request("state/{}".format(address))
 
         try:
             return cbor.loads(
                 base64.b64decode(
-                    yaml.safe_load(result)["data"]))[name]
+                    yaml.safe_load(result)["data"]))[key]
 
         except BaseException:
             return None
@@ -102,14 +98,15 @@ class Client:
             raise ClientException(err)
 
     def _get_prefix(self):
-        return _sha512('intkey'.encode('utf-8'))[0:6]
+        return self._family_handler.namespaces[-1]
 
-    def _get_address(self, name):
+    def _get_address(self, pub_key):
+        if len(pub_key) > 64:
+            raise ClientException("Wrong pub_key size: {}".format(pub_key))
         prefix = self._get_prefix()
-        game_address = _sha512(name.encode('utf-8'))[64:]
-        return prefix + game_address
+        return prefix + pub_key
 
-    def _send_request(self, suffix, data=None, content_type=None, name=None):
+    def _send_request(self, suffix, data=None, content_type=None):
         if self.url.startswith("http://"):
             url = "{}/{}".format(self.url, suffix)
         else:
@@ -127,7 +124,7 @@ class Client:
                 result = requests.get(url, headers=headers)
 
             if result.status_code == 404:
-                raise ClientException("No such key: {}".format(name))
+                raise ClientException("No such key!")
 
             elif not result.ok:
                 raise ClientException("Error {}: {}".format(
@@ -142,7 +139,7 @@ class Client:
 
         return result.text
 
-    def _send_transaction(self, method, data, addresses_input_output):
+    def _send_transaction(self, method, data, addresses_input_output, wait=None):
         payload = cbor.dumps({
             'method': method,
             'data': data
@@ -150,8 +147,8 @@ class Client:
 
         header = TransactionHeader(
             signer_public_key=self._signer.get_public_key().as_hex(),
-            family_name=self._family,
-            family_version="1.0",
+            family_name=self._family_handler.family_name,
+            family_version=self._family_handler.family_versions[-1],
             inputs=addresses_input_output,
             outputs=addresses_input_output,
             dependencies=[],

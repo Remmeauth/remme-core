@@ -13,26 +13,8 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-version: '2.1'
+class CliException(Exception):
+    pass
 
-services:
-  tests:
-    build:
-      context: processor/
-    expose:
-      - 4004
-    volumes:
-      - ./processor:/processor
-    entrypoint: |
-      bash -c "cd /processor && python3 -m tests"
-    stop_signal: SIGKILL
-    environment:
-      TEST_BIND: "tcp://eth0:4004"
-
-  remme-transaction-processor:
-    build:
-      context: processor/
-    volumes:
-      - ./processor/shared:/shared
-    entrypoint: |
-      python3 -m processor tcp://tests:4004
+class ClientException(Exception):
+    pass

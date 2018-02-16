@@ -13,26 +13,10 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-version: '2.1'
+from processor.shared.basic_client import BasicClient
+from processor.token.token_handler import TokenHandler
 
-services:
-  tests:
-    build:
-      context: processor/
-    expose:
-      - 4004
-    volumes:
-      - ./processor:/processor
-    entrypoint: |
-      bash -c "cd /processor && python3 -m tests"
-    stop_signal: SIGKILL
-    environment:
-      TEST_BIND: "tcp://eth0:4004"
+# TODO in progress
 
-  remme-transaction-processor:
-    build:
-      context: processor/
-    volumes:
-      - ./processor/shared:/shared
-    entrypoint: |
-      python3 -m processor tcp://tests:4004
+class TokenClient(BasicClient):
+    super().__init__(TokenHandler)

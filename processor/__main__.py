@@ -18,7 +18,7 @@ import logging
 
 from sawtooth_sdk.processor.core import TransactionProcessor
 
-from processor.remme_transaction_processor.certificate_handler import CertificateHandler
+from processor.shared.certificate_handler import CertificateHandler
 from processor.token.token_handler import TokenHandler
 
 LOGGER = logging.getLogger(__name__)

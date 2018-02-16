@@ -15,6 +15,14 @@
 
 syntax = "proto3";
 
+message TokenPayload {
+    enum Method {
+        TRANSER = 0;
+    }
+    Method method = 1;
+    string data = 2;
+}
+
 message Account {
     uint64 balance = 1;
 }

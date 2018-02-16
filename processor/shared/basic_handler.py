@@ -21,8 +21,6 @@ from sawtooth_sdk.processor.exceptions import InvalidTransaction
 from sawtooth_sdk.processor.handler import TransactionHandler
 
 # TODO: think about more logging in helper functions
-from processor.protos.transaction_payload_pb2 import TransactionPayload
-
 
 class BasicHandler(TransactionHandler):
     def __init__(self, name, versions):
@@ -47,7 +45,7 @@ class BasicHandler(TransactionHandler):
     def apply(self, transaction, context):
         pass
 
-    def process_state(self, signer, method, data, state):
+    def process_state(self, signer, payload, state):
         pass
 
     def get_message_factory(self, signer=None):
@@ -62,11 +60,11 @@ class BasicHandler(TransactionHandler):
         self.context = context
         # signer is constructed from header.signer using make_address
         # transaction follows Transaction proto format
-        signer, method, data = self._decode_transaction(transaction)
+        signer, payload = self._decode_transaction(transaction)
 
         state = self.get_data(pb_class, signer)
 
-        updated_state = self.process_state(signer, method, data, state)
+        updated_state = self.process_state(signer, payload, state)
         self._store_state(updated_state)
 
     def make_address(self, appendix):
@@ -79,17 +77,10 @@ class BasicHandler(TransactionHandler):
         return len(address) == 70 and isinstance(address, str)
 
     def _decode_transaction(self, transaction):
-        transaction_payload = TransactionPayload()
-        try:
-            transaction_payload.ParseFromString(transaction.payload)
-        except:
-            raise InvalidTransaction("Invalid payload serialization")
-
         signer = self.make_address(transaction.header.signer_public_key)
-        data = transaction_payload.data
-        method = transaction_payload.method
+        payload = transaction.payload
 
-        return signer, method, data
+        return signer, payload
 
     def _get_data(self, pb_class, signer):
         data = pb_class()
