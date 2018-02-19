@@ -59,12 +59,12 @@ class TokenHandler(BasicHandler):
             raise InvalidTransaction("address_to parameter passed: {} is not an address.".format(params.address_to))
         receiver_account = self._get_data(Account, params.address_to)
 
-        if signer_account.balance < params.amount:
+        if signer_account.balance < params.value:
             raise InvalidTransaction("Not enough transferable balance. Signer's current balance: {}".format(signer_account.balance))
 
 
-        receiver_account.balance += params.amount
-        signer_account.balance -= params.amount
+        receiver_account.balance += params.value
+        signer_account.balance -= params.value
 
         return { signer: signer_account,
                  params.address_to: receiver_account}

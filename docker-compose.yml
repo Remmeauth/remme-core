@@ -79,10 +79,12 @@ services:
     volumes:
       - ./genesis:/genesis
       - ./keys:/root/.sawtooth/keys
+      - ./processor:/processor
     entrypoint: |
       bash -c "
         if [ ! -f /root/.sawtooth/keys/root.priv ]; then
           sawtooth keygen
         fi;
+        python3 /processor/cli/setup.py && \
         tail -f /dev/null
       "
