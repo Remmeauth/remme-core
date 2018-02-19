@@ -20,7 +20,8 @@ from protobuf3_to_dict import protobuf_to_dict
 # TODO in progress
 
 class TokenClient(BasicClient):
-    super().__init__(TokenHandler)
+    def __init__(self):
+        super().__init__(TokenHandler)
 
     def transfer(self, address_to, value, wait=None):
         extra_addresses_input_output = [address_to]

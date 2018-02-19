@@ -73,7 +73,8 @@ services:
         --bind rest-api:8008
 
   shell:
-    image: hyperledger/sawtooth-shell:1.0
+    build:
+      context: .
     depends_on:
       - rest-api
     volumes:
@@ -85,5 +86,6 @@ services:
         if [ ! -f /root/.sawtooth/keys/root.priv ]; then
           sawtooth keygen
         fi;
+        python3 /processor/cli/setup.py && \
         tail -f /dev/null
       "
