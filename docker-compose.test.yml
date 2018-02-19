@@ -25,10 +25,11 @@ services:
       - ./processor:/processor
     entrypoint: python3 -m processor.tests
     stop_signal: SIGKILL
+    depends_on:
+      - remme-transaction-processor
     environment:
       TEST_BIND: "tcp://eth0:4004"
       PACKAGE_LOCATION: '/processor'
-
 
   remme-transaction-processor:
     build:
@@ -37,4 +38,4 @@ services:
       - ./processor:/processor
     environment:
       PACKAGE_LOCATION: '/processor'
-    entrypoint: python3 -m processor tcp://validator:4004
+    entrypoint: python3 -m processor tcp://tests:4004

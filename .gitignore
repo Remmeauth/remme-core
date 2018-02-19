@@ -2,3 +2,4 @@
 .idea/
 keys/
 *.pyc
+genesis/token-proposal.batch

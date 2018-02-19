@@ -25,7 +25,7 @@ class HelperTestCase(TransactionProcessorTestCase):
     @classmethod
     def setUpClass(cls, factory):
         super().setUpClass()
-        url = 'eth0:4004'
+        url = 'tcp://eth0:4004'
 
         cls.validator = MockValidator()
         cls.validator.listen(url)

@@ -80,7 +80,13 @@ class BasicHandler(TransactionHandler):
         return self._prefix + appendix
 
     def is_address(self, address):
-        return len(address) == 70 and isinstance(address, str)
+        try:
+            assert isinstance(address, str)
+            assert len(address) == 70
+            int(address, 16)
+            return True
+        except:
+            return False
 
     def _decode_transaction(self, transaction):
         signer = self.make_address(transaction.header.signer_public_key)
