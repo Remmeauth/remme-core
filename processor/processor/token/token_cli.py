@@ -45,13 +45,13 @@ class TokenCli(BasicCli):
         response = self.client.transfer(args.address_to, args.value)
         print(response)
 
-    def main(self):
+    def init(self):
         commands = []
-        commands += [({
+        commands += [{
             'parser': self.parser_transfer,
             'action': self.do_transfer
-        })]
+        }]
         self.main_wrapper(commands)
 
 def main():
-    TokenCli().main()
+    TokenCli().init()
