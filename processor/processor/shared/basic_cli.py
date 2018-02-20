@@ -22,8 +22,7 @@ import traceback
 import pkg_resources
 from colorlog import ColoredFormatter
 
-from processor.shared.exceptions import CliException
-from processor.processor.shared.exceptions import ClientException
+from processor.shared.exceptions import CliException, ClientException
 
 DISTRIBUTION_NAME = 'sawtooth-intkey'
 
@@ -99,7 +98,7 @@ class BasicCli:
     def main(self, commands, prog_name=os.path.basename(sys.argv[0]), args=None):
         if args is None:
             args = sys.argv[1:]
-        parser = self.create_parser(prog_name, commands.parsers)
+        parser = self.create_parser(prog_name, list(map(lambda command: command['parser'], commands)) )
         args = parser.parse_args(args)
 
         if args.verbose is None:

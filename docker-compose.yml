@@ -91,6 +91,6 @@ services:
         if [ ! -f /root/.sawtooth/keys/root.priv ]; then
           sawtooth keygen
         fi;
-        pip3 install --force-reinstal /processor && \
+        pip3 install --upgrade /processor && \
         tail -f /dev/null
       "

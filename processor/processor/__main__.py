@@ -32,7 +32,6 @@ if __name__ == '__main__':
     processor = TransactionProcessor(url=args.endpoint)
     processor.add_handler(TokenHandler())
     processor.add_handler(CertificateHandler())
-    raise Exception('check')
     try:
         processor.start()
     except KeyboardInterrupt:
