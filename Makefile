@@ -14,12 +14,14 @@
 # ------------------------------------------------------------------------
 
 PROTO_SRC_DIR = ./protos
-PROTO_DST_DIR = ./processor/protos
+PROTO_DST_DIR = ./processor/processor/protos
 
 run:
 	docker-compose up
 
 shell:
+	docker stop $(docker ps -aq)
+	docker-compose up
 	docker exec -it $(docker-compose ps -q shell) bash
 
 test:

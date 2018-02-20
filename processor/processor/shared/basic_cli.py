@@ -112,8 +112,8 @@ class BasicCli:
             sys.exit(1)
 
         for command in commands:
-            if args.command == command.name:
-                command.action(args)
+            if args.command == command['name']:
+                command['action'](args)
                 return
         raise CliException("invalid command: {}".format(args.command))
 

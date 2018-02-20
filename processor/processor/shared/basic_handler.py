@@ -21,6 +21,8 @@ from sawtooth_sdk.processor.exceptions import InvalidTransaction
 from sawtooth_sdk.processor.handler import TransactionHandler
 
 # TODO: think about more logging in helper functions
+from processor.shared.basic_client import _sha512
+
 
 class BasicHandler(TransactionHandler):
     def __init__(self, name, versions):
@@ -68,6 +70,7 @@ class BasicHandler(TransactionHandler):
         self._store_state(updated_state)
 
     def make_address(self, appendix):
+        appendix = _sha512(appendix.encode('utf-8'))[-64:]
         APPENDIX_LENGTH = 64
         if len(appendix) != APPENDIX_LENGTH:
             raise InvalidTransaction("appendix {} must be {} characters long!".format(appendix, APPENDIX_LENGTH))
