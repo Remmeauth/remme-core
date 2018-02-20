@@ -21,14 +21,9 @@ import traceback
 
 import pkg_resources
 from colorlog import ColoredFormatter
-from sawtooth_intkey.client_cli.create_batch import add_create_batch_parser
-from sawtooth_intkey.client_cli.exceptions import ClientException
-from sawtooth_intkey.client_cli.generate import add_generate_parser
-from sawtooth_intkey.client_cli.intkey_workload import add_workload_parser
-from sawtooth_intkey.client_cli.load import add_load_parser
-from sawtooth_intkey.client_cli.populate import add_populate_parser
 
 from processor.shared.exceptions import CliException
+from processor.processor.shared.exceptions import ClientException
 
 DISTRIBUTION_NAME = 'sawtooth-intkey'
 
@@ -98,12 +93,6 @@ class BasicCli:
 
         for add_parser in parsers:
             add_parser(subparsers, parent_parser)
-
-        add_generate_parser(subparsers, parent_parser)
-        add_load_parser(subparsers, parent_parser)
-        add_populate_parser(subparsers, parent_parser)
-        add_create_batch_parser(subparsers, parent_parser)
-        add_workload_parser(subparsers, parent_parser)
 
         return parser
 

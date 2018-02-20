@@ -142,6 +142,13 @@ class BasicClient:
         return result.text
 
     def _send_transaction(self, method, data, extra_addresses_input_output, wait=None):
+        '''
+           Signs and sends transaction to the network using rest-api.
+
+           :param str method: The method (defined in proto) for Transaction Processor to process the request.
+           :param dict data: Dictionary that is required by TP to process the transaction.
+           :param str extra_addresses_input_output: list of addresses(keys) for which to get and save state.
+        '''
         addresses_input_output = [self.make_address(self._signer.get_public_key())]
         if extra_addresses_input_output:
             addresses_input_output += extra_addresses_input_output
