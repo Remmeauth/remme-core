@@ -4,7 +4,7 @@ import os
 import sys
 import sysconfig
 
-from processor.rem_token.token_cli import TokenCli
+from processor.token.token_cli import TokenCli
 
 # sys.path.insert(0, os.path.join(
 #     os.path.dirname(os.path.dirname(os.path.realpath(__file__))),

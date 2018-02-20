@@ -14,7 +14,7 @@
 # ------------------------------------------------------------------------
 from processor.protos.token_pb2 import TokenPayload, Transfer
 from processor.shared.basic_client import BasicClient
-from processor.rem_token.token_handler import TokenHandler
+from processor.token.token_handler import TokenHandler
 from protobuf3_to_dict import protobuf_to_dict
 
 # TODO in progress

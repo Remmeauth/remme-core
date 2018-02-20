@@ -53,7 +53,7 @@ services:
       PACKAGE_LOCATION: '/processor'
     entrypoint: |
       bash -c "
-        pip3 install /processor && \
+        pip3 install --force-reinstal /processor && \
         python3 -m processor tcp://validator:4004
       "
 
@@ -92,6 +92,6 @@ services:
         if [ ! -f /root/.sawtooth/keys/root.priv ]; then
           sawtooth keygen
         fi;
-        pip3 install /processor && \
+        pip3 install --force-reinstal /processor && \
         tail -f /dev/null
       "
