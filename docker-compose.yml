@@ -51,7 +51,11 @@ services:
       - ./processor:/processor
     environment:
       PACKAGE_LOCATION: '/processor'
-    entrypoint: python3 -m processor tcp://validator:4004
+    entrypoint: |
+      bash -c "
+        pip3 install /processor && \
+        python3 -m processor tcp://validator:4004
+      "
 
   settings-tp:
     image: hyperledger/sawtooth-settings-tp:1.0
@@ -74,18 +78,20 @@ services:
 
   shell:
     build:
-      context: .
+      context: ./processor/processor/cli
     depends_on:
       - rest-api
     volumes:
       - ./genesis:/genesis
       - ./keys:/root/.sawtooth/keys
       - ./processor:/processor
+    stdin_open: true
+    tty: true
     entrypoint: |
       bash -c "
         if [ ! -f /root/.sawtooth/keys/root.priv ]; then
           sawtooth keygen
         fi;
-        python3 /processor/cli/setup.py && \
+        pip3 install /processor && \
         tail -f /dev/null
       "

@@ -14,7 +14,7 @@
 # ------------------------------------------------------------------------
 
 from processor.shared.basic_cli import BasicCli
-from processor.token.token_client import TokenClient
+from processor.rem_token.token_client import TokenClient
 
 # TODO create decorator to remove manual changes to "commands"
 
