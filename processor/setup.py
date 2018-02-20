@@ -1,8 +1,3 @@
-from __future__ import print_function
-
-import os
-import subprocess
-
 from setuptools import setup, find_packages
 
 data_files = []
@@ -23,6 +18,7 @@ setup(
     data_files=data_files,
     entry_points={
         'console_scripts': [
-            'token = processor.token.token_cli:main',
+            'rem-token=processor.token.token_cli:main',
         ]
-    })
+    }
+)

@@ -23,19 +23,24 @@ services:
       - 4004
     volumes:
       - ./processor:/processor
-    entrypoint: python3 -m processor.tests
+    entrypoint: |
+      bash -c "
+        pip3 install --force-reinstal /processor && \
+        python3 -m processor.tests
+      "
     stop_signal: SIGKILL
     depends_on:
       - remme-transaction-processor
     environment:
       TEST_BIND: "tcp://eth0:4004"
-      PACKAGE_LOCATION: '/processor'
 
   remme-transaction-processor:
     build:
       context: processor/
     volumes:
       - ./processor:/processor
-    environment:
-      PACKAGE_LOCATION: '/processor'
-    entrypoint: python3 -m processor tcp://tests:4004
+    entrypoint: |
+      bash -c "
+        pip3 install --force-reinstal /processor && \
+        python3 -m processor tcp://validator:4004
+      "

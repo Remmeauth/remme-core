@@ -16,9 +16,6 @@
 import sys
 import os
 import unittest
-
-sys.path.insert(0, os.getenv('PACKAGE_LOCATION', '/processor'))
-
 from .test_token import *
 
 if __name__ == '__main__':

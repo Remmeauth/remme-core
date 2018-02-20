@@ -15,9 +15,6 @@
 
 import sys
 import os
-
-sys.path.insert(0, os.getenv('PACKAGE_LOCATION', '/processor'))
-
 import argparse
 from processor.protos.token_pb2 import Account
 
