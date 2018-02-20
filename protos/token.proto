@@ -29,5 +29,5 @@ message Account {
 
 message Transfer {
     string address_to = 1;
-    uint64 amount = 2;
+    uint64 value = 2;
 }

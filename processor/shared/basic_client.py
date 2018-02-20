@@ -42,23 +42,25 @@ class BasicClient:
         self.url = REST_API_URL
         self._family_handler = family_handler
 
-        if keyfile is not None:
-            try:
-                with open(keyfile) as fd:
-                    private_key_str = fd.read().strip()
-                    fd.close()
-            except OSError as err:
-                raise ClientException(
-                    'Failed to read private key: {}'.format(str(err)))
+        try:
+            with open(keyfile) as fd:
+                private_key_str = fd.read().strip()
+                fd.close()
+        except OSError as err:
+            raise ClientException(
+                'Failed to read private key: {}'.format(str(err)))
 
-            try:
-                private_key = Secp256k1PrivateKey.from_hex(private_key_str)
-            except ParseError as e:
-                raise ClientException(
-                    'Unable to load private key: {}'.format(str(e)))
+        try:
+            private_key = Secp256k1PrivateKey.from_hex(private_key_str)
+        except ParseError as e:
+            raise ClientException(
+                'Unable to load private key: {}'.format(str(e)))
 
-            self._signer = CryptoFactory(
-                create_context('secp256k1')).new_signer(private_key)
+        self._signer = CryptoFactory(
+            create_context('secp256k1')).new_signer(private_key)
+
+    def make_address(self, pub_key):
+        return self._family_handler.make_address(pub_key)
 
     def list(self):
         result = self._send_request(
@@ -139,7 +141,11 @@ class BasicClient:
 
         return result.text
 
-    def _send_transaction(self, method, data, addresses_input_output, wait=None):
+    def _send_transaction(self, method, data, extra_addresses_input_output, wait=None):
+        addresses_input_output = [self.make_address(self._signer.get_public_key())]
+        if extra_addresses_input_output:
+            addresses_input_output += extra_addresses_input_output
+
         payload = cbor.dumps({
             'method': method,
             'data': data

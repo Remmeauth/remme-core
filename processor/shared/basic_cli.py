@@ -33,9 +33,6 @@ from processor.shared.exceptions import CliException
 DISTRIBUTION_NAME = 'sawtooth-intkey'
 
 class BasicCli:
-    def __init__(self, client):
-        self._client = client
-
     def create_console_handler(self, verbose_level):
         clog = logging.StreamHandler()
         formatter = ColoredFormatter(
@@ -133,10 +130,10 @@ class BasicCli:
         raise CliException("invalid command: {}".format(args.command))
 
 
-    def main_wrapper(self):
+    def main_wrapper(self, commands):
         # pylint: disable=bare-except
         try:
-            self.main()
+            self.main(commands)
         except (CliException, ClientException) as err:
             print("Error: {}".format(err), file=sys.stderr)
             sys.exit(1)

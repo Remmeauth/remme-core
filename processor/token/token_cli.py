@@ -16,8 +16,42 @@
 from processor.shared.basic_cli import BasicCli
 from processor.token.token_client import TokenClient
 
-# TODO in progress
+# TODO create decorator to remove manual changes to "commands"
 
 class TokenCli(BasicCli):
     def __init__(self):
-        super().__init__(TokenClient)
+        self.client = TokenClient
+
+    def parser_transfer(self, subparsers, parent_parser):
+        message = 'Send REMME token transfer transaction.'
+
+        parser = subparsers.add_parser(
+            'transfer',
+            parents=[parent_parser],
+            description=message,
+            help='Transfers <amount> of tokens to <address>.')
+
+        parser.add_argument(
+            'address_to',
+            type=str,
+            help='REMME account address.')
+
+        parser.add_argument(
+            'value',
+            type=int,
+            help='Amount of REMME tokens to transfer with 4 decimals.')
+
+    def do_transfer(self, args):
+        response = self.client.transfer(args.address_to, args.value)
+        print(response)
+
+    def main(self):
+        commands = []
+        commands += [({
+            'parser': self.parser_transfer,
+            'action': self.do_transfer
+        })]
+        self.main_wrapper(commands)
+
+def main():
+    TokenCli().main()
