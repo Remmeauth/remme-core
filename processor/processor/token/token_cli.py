@@ -18,15 +18,16 @@ from processor.token.token_client import TokenClient
 
 # TODO create decorator to remove manual changes to "commands"
 
+METHOD_TRANSFER = 'transfer'
 class TokenCli(BasicCli):
     def __init__(self):
-        self.client = TokenClient
+        self.client = TokenClient()
 
     def parser_transfer(self, subparsers, parent_parser):
         message = 'Send REMME token transfer transaction.'
 
         parser = subparsers.add_parser(
-            'transfer',
+            METHOD_TRANSFER,
             parents=[parent_parser],
             description=message,
             help='Transfers <amount> of tokens to <address>.')
@@ -42,12 +43,13 @@ class TokenCli(BasicCli):
             help='Amount of REMME tokens to transfer with 4 decimals.')
 
     def do_transfer(self, args):
-        response = self.client.transfer(args.address_to, args.value)
+        response = self.client.transfer(address_to=args.address_to, value=args.value)
         print(response)
 
     def init(self):
         commands = []
         commands += [{
+            'name': METHOD_TRANSFER,
             'parser': self.parser_transfer,
             'action': self.do_transfer
         }]

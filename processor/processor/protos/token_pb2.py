@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='token.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\x0btoken.proto\"Y\n\x0cTokenPayload\x12$\n\x06method\x18\x01 \x01(\x0e\x32\x14.TokenPayload.Method\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\t\"\x15\n\x06Method\x12\x0b\n\x07TRANSER\x10\x00\"\x1a\n\x07\x41\x63\x63ount\x12\x0f\n\x07\x62\x61lance\x18\x01 \x01(\x04\".\n\x08Transfer\x12\x12\n\naddress_to\x18\x01 \x01(\t\x12\x0e\n\x06\x61mount\x18\x02 \x01(\x04\x62\x06proto3')
+  serialized_pb=_b('\n\x0btoken.proto\"Z\n\x0cTokenPayload\x12$\n\x06method\x18\x01 \x01(\x0e\x32\x14.TokenPayload.Method\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\t\"\x16\n\x06Method\x12\x0c\n\x08TRANSFER\x10\x00\"\x1a\n\x07\x41\x63\x63ount\x12\x0f\n\x07\x62\x61lance\x18\x01 \x01(\x04\"-\n\x08Transfer\x12\x12\n\naddress_to\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x04\x62\x06proto3')
 )
 
 
@@ -31,14 +31,14 @@ _TOKENPAYLOAD_METHOD = _descriptor.EnumDescriptor(
   file=DESCRIPTOR,
   values=[
     _descriptor.EnumValueDescriptor(
-      name='TRANSER', index=0, number=0,
+      name='TRANSFER', index=0, number=0,
       options=None,
       type=None),
   ],
   containing_type=None,
   options=None,
   serialized_start=83,
-  serialized_end=104,
+  serialized_end=105,
 )
 _sym_db.RegisterEnumDescriptor(_TOKENPAYLOAD_METHOD)
 
@@ -56,14 +56,14 @@ _TOKENPAYLOAD = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='data', full_name='TokenPayload.data', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -78,7 +78,7 @@ _TOKENPAYLOAD = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=15,
-  serialized_end=104,
+  serialized_end=105,
 )
 
 
@@ -95,7 +95,7 @@ _ACCOUNT = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -108,8 +108,8 @@ _ACCOUNT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=106,
-  serialized_end=132,
+  serialized_start=107,
+  serialized_end=133,
 )
 
 
@@ -126,14 +126,14 @@ _TRANSFER = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='amount', full_name='Transfer.amount', index=1,
+      name='value', full_name='Transfer.value', index=1,
       number=2, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -146,7 +146,7 @@ _TRANSFER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=134,
+  serialized_start=135,
   serialized_end=180,
 )
 

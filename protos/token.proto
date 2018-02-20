@@ -17,7 +17,7 @@ syntax = "proto3";
 
 message TokenPayload {
     enum Method {
-        TRANSER = 0;
+        TRANSFER = 0;
     }
     Method method = 1;
     string data = 2;
