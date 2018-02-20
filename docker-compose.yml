@@ -53,7 +53,7 @@ services:
       PACKAGE_LOCATION: '/processor'
     entrypoint: |
       bash -c "
-        pip3 install --force-reinstal /processor && \
+        pip3 install --upgrade /processor && \
         python3 -m processor tcp://validator:4004
       "
 
