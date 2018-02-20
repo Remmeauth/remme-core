@@ -14,7 +14,6 @@
 # ------------------------------------------------------------------------
 
 # TODO: Start to connect to an existing network
-# TODO: Fix rest-api (fails to start)
 
 version: '2.1'
 
