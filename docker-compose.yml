@@ -27,6 +27,7 @@ services:
     volumes:
       - ./genesis:/genesis
       - ./keys:/root/.sawtooth/keys
+#      - ./genesis/data:/var/lib/sawtooth
     # start the validator with an empty genesis batch
     entrypoint: |
       bash -c "
@@ -46,8 +47,6 @@ services:
       context: processor/
     volumes:
       - ./processor:/processor
-    environment:
-      PACKAGE_LOCATION: '/processor'
     entrypoint: |
       bash -c "
         pip3 install --upgrade /processor && \
