@@ -79,9 +79,7 @@ class BasicClient:
             return None
 
     def get_value(self, key):
-        address = self._get_address(key)
-
-        result = self._send_request("state/{}".format(address))
+        result = self._send_request("state/{}".format(key))
 
         try:
             return cbor.loads(

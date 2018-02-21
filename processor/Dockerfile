@@ -20,4 +20,5 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 8AA7AF1F10
     apt-get update && \
     apt-get install -y sawtooth
 RUN apt-get install -y python3-pip
-RUN pip3 install protobuf3-to-dict
+COPY requirements.txt /root
+RUN pip3 install -r /root/requirements.txt

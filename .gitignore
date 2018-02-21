@@ -3,3 +3,5 @@
 keys/
 *.pyc
 genesis/token-proposal.batch
+*.DS_Store
+

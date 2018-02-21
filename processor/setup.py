@@ -9,11 +9,6 @@ setup(
     url='',
     packages=find_packages(),
     install_requires=[
-        "cbor",
-        "colorlog",
-        "sawtooth-sdk",
-        "sawtooth-signing",
-        "protobuf3_to_dict",
     ],
     data_files=data_files,
     entry_points={

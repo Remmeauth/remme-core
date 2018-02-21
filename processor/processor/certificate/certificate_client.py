@@ -34,8 +34,7 @@ class CertificateClient(BasicClient):
         transaction.certificate_raw = certificate_raw
         transaction.signature_rem = signature_rem
         transaction.signature_crt = signature_crt
-        # TODO rm hardcoded prefix
-        crt_address = '3d9e7b' + hashlib.sha512(transaction.certificate_raw.encode('utf-8')).hexdigest()[0:64]
+        crt_address = self.make_address(transaction.certificate_raw)
         print(crt_address)
 
         self._send_transaction(CertificateTransaction.CREATE, transaction.SerializeToString(), [crt_address])
