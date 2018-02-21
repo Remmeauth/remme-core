@@ -34,6 +34,5 @@ class TokenClient(BasicClient):
         extra_addresses_input_output = [address_to]
         transfer = Transfer()
         transfer.address_to = address_to
-        print(value)
-        transfer.value = int(value)
+        transfer.value = value
         return self._send_transaction(TokenPayload.TRANSFER, protobuf_to_dict(transfer), extra_addresses_input_output)
