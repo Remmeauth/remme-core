@@ -15,8 +15,9 @@
 
 import hashlib
 from processor.protos.certificate_pb2 import CertificateTransaction
-from processor.shared.basic_client import BasicClient
+from processor.shared.basic_client import BasicClient, _sha512
 from processor.certificate.certificate_handler import CertificateHandler
+
 
 class CertificateClient(BasicClient):
     def __init__(self):
@@ -34,9 +35,8 @@ class CertificateClient(BasicClient):
         transaction.certificate_raw = certificate_raw
         transaction.signature_rem = signature_rem
         transaction.signature_crt = signature_crt
-        # TODO rm hardcoded prefix
-        crt_address = '3d9e7b' + hashlib.sha512(transaction.certificate_raw.encode('utf-8')).hexdigest()[0:64]
-        print(crt_address)
+        crt_address = self._family_handler._prefix + hashlib.sha512(transaction.certificate_raw.encode('utf-8')).hexdigest()[0:64]
+        print('Certificate address', crt_address)
 
         self._send_transaction(CertificateTransaction.CREATE, transaction.SerializeToString(), [crt_address])
 
@@ -45,3 +45,9 @@ class CertificateClient(BasicClient):
         transaction.type = CertificateTransaction.REVOKE
         transaction.address = address
         self._send_transaction(CertificateTransaction.REVOKE, transaction.SerializeToString(), [address])
+
+    def get_signer_address(self):
+        return self.make_address(self._signer.get_public_key().as_hex())
+
+    def sign_text(self, data):
+        return self._signer.sign(data.encode('utf-8'))

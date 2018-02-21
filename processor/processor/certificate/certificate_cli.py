@@ -14,9 +14,10 @@
 # ------------------------------------------------------------------------
 
 import datetime
+import hashlib
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
@@ -37,6 +38,23 @@ class CertificateCli(BasicCli):
             description=message,
             help='Generate and register a new certificate.')
 
+    def parser_revoke(self, subparsers, parent_parser):
+        message = 'Revoke a certificate on the REMME blockchain.'
+
+        parser = subparsers.add_parser(
+            'revoke',
+            parents=[parent_parser],
+            description=message,
+            help='Revoke a certificate.')
+
+        parser.add_argument(
+            'address',
+            type=str,
+        )
+
+    def revoke(self, args):
+        self.client.revoke_certificate(args.address)
+
     def generate_and_register(self, args):
         # GENERATE KEY AND CERTIFICATE
         key = rsa.generate_private_key(
@@ -54,8 +72,9 @@ class CertificateCli(BasicCli):
             x509.NameAttribute(NameOID.COUNTRY_NAME, "US"),
             x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "CA"),
             x509.NameAttribute(NameOID.LOCALITY_NAME, "San Francisco"),
-            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "My Company"),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "REMME"),
             x509.NameAttribute(NameOID.COMMON_NAME, "mysite.com"),
+            x509.NameAttribute(NameOID.USER_ID, self.client.get_signer_address())
         ])
         cert = x509.CertificateBuilder().subject_name(
             subject
@@ -79,15 +98,34 @@ class CertificateCli(BasicCli):
         with open("certificate.pem", "wb") as f:
             f.write(cert.public_bytes(serialization.Encoding.PEM))
 
-        self.client.register_certificate(cert.public_bytes(serialization.Encoding.DER).hex(), '', '')
+        crt_bin = cert.public_bytes(serialization.Encoding.DER).hex()
+        crt_hash = hashlib.sha512(crt_bin.encode('utf-8')).hexdigest()
+        rem_sig = self.client.sign_text(crt_hash)
 
+        print(rem_sig)
+
+        crt_sig = key.sign(
+            bytes.fromhex(rem_sig),
+            padding.PSS(
+                mgf=padding.MGF1(hashes.SHA256()),
+                salt_length=padding.PSS.MAX_LENGTH
+            ),
+            hashes.SHA256()
+        )
+        print(crt_sig)
+
+        self.client.register_certificate(crt_bin, rem_sig, crt_sig.hex())
 
     def run(self):
-        commands = [({
+        commands = [{
             'name': 'generate',
             'parser': self.parser_certificate,
             'action': self.generate_and_register
-        })]
+        }, {
+            'name': 'revoke',
+            'parser': self.parser_revoke,
+            'action': self.revoke
+        }]
         self.main_wrapper(commands)
 
 

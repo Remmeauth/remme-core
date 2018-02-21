@@ -17,6 +17,7 @@ import cbor
 import datetime
 import logging
 import hashlib
+import secp256k1
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.x509.oid import NameOID
@@ -48,9 +49,8 @@ class CertificateHandler(BasicHandler):
     def make_address(self, appendix):
         return self._prefix + appendix
 
-    def process_state(self, signer, payload, state):
+    def process_state(self, signer_pubkey, signer, payload, state):
         transaction = CertificateTransaction()
-        data = None
         payload_decoded = cbor.loads(payload)
         transaction.ParseFromString(payload_decoded['data'])
         if transaction.type == CertificateTransaction.CREATE:
@@ -59,24 +59,31 @@ class CertificateHandler(BasicHandler):
             stored_data = CertificateStorage()
             if isinstance(raw_data, list):
                 if len(raw_data) > 0:
-                    stored_data.ParseFromString(raw_data[0])
+                    stored_data.ParseFromString(raw_data[0].data)
             data = self._save_certificate(stored_data,
                                           signer,
+                                          signer_pubkey,
                                           transaction.certificate_raw,
                                           transaction.signature_rem,
-                                          transaction.signature_crt)
-        if transaction.type == CertificateTransaction.REVOKE:
+                                          transaction.signature_crt,
+                                          self._prefix + appendix)
+            return data
+        elif transaction.type == CertificateTransaction.REVOKE:
             appendix = transaction.address
-            address = self.make_address(appendix)
-            stored_data = self._get_data(CertificateStorage, address)
-            data = self._revoke_certificate(stored_data, signer)
+            raw_data = self.context.get_state([appendix])
+            stored_data = CertificateStorage()
+            if isinstance(raw_data, list):
+                if len(raw_data) > 0:
+                    stored_data.ParseFromString(raw_data[0].data)
+                else:
+                    InvalidTransaction('No certificate in the given address')
+            data = self._revoke_certificate(stored_data, signer, appendix)
+            return data
         else:
             raise InvalidTransaction('Unknown value {} for the certificate operation type.'.
                                      format(int(transaction.type)))
-        # TODO: pass certificate address (refactoring)
-        self._store_state(data)
 
-    def _save_certificate(self, data, transactor, certificate_raw, signature_rem, signature_crt):
+    def _save_certificate(self, data, transactor, transactor_pubkey, certificate_raw, signature_rem, signature_crt, address):
         certificate = x509.load_der_x509_certificate(bytes.fromhex(certificate_raw),
                                                      default_backend())
         if data is not None:
@@ -93,24 +100,24 @@ class CertificateHandler(BasicHandler):
             raise InvalidTransaction('signature_crt mismatch')
 
         sawtooth_signing_ctx = Secp256k1Context()
-        sawtooth_signing_pubkey = Secp256k1PublicKey(transactor)
+        sawtooth_signing_pubkey = Secp256k1PublicKey.from_hex(transactor_pubkey)
         sawtooth_signing_check_res = \
             sawtooth_signing_ctx.verify(signature_rem,
-                                        hashlib.sha512(certificate_raw.encode('utf-8')).hexdigest(),
+                                        hashlib.sha512(certificate_raw.encode('utf-8')).hexdigest().encode('utf-8'),
                                         sawtooth_signing_pubkey)
         if not sawtooth_signing_check_res:
-            raise InvalidTransaction('signature_rem mismatch')
+            raise InvalidTransaction('signature_rem mismatch with signer key {}'.format(transactor_pubkey))
 
         subject = certificate.subject
-        organization = subject.get_attributes_for_oid(NameOID.ORGANIZATION_NAME)
-        uid = subject.get_attributes_for_oid(NameOID.USER_ID)
+        organization = subject.get_attributes_for_oid(NameOID.ORGANIZATION_NAME)[0].value
+        uid = subject.get_attributes_for_oid(NameOID.USER_ID)[0].value
         valid_from = certificate.not_valid_before
         valid_until = certificate.not_valid_after
 
         if organization != CERT_ORGANIZATION:
-            raise InvalidTransaction('The organization name should be set to REMME.')
+            raise InvalidTransaction('The organization name should be set to REMME. The actual name is {}'.format(organization))
         if uid != transactor:
-            raise InvalidTransaction('The certificate should be sent by its signer.')
+            raise InvalidTransaction('The certificate should be sent by its signer. Certificate signed by {}. Transaction sent by {}.'.format(uid, transactor))
         if subject != certificate.issuer:
             raise InvalidTransaction('Expecting a self-signed certificate.')
         if valid_until - valid_from > CERT_MAX_VALIDITY:
@@ -120,9 +127,9 @@ class CertificateHandler(BasicHandler):
         data.owner = transactor
         data.revoked = False
 
-        return data
+        return {address: data}
 
-    def _revoke_certificate(self, data, transactor):
+    def _revoke_certificate(self, data, transactor, certificate_address):
         if data is None:
             raise InvalidTransaction('No such certificate.')
         if transactor != data.owner:
@@ -131,4 +138,4 @@ class CertificateHandler(BasicHandler):
             raise InvalidTransaction('The certificate is already revoked.')
         data.revoked = True
 
-        return data
+        return {certificate_address: data}

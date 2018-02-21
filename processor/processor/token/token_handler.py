@@ -31,7 +31,7 @@ class TokenHandler(BasicHandler):
         super().process_apply(transaction, context, Account)
 
         # returns updated state
-    def process_state(self, signer, payload, signer_account):
+    def process_state(self, signer_pubkey, signer, payload, signer_account):
         token_payload = TokenPayload()
         try:
             token_payload.ParseFromString(payload)

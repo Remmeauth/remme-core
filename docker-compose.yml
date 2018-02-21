@@ -30,13 +30,11 @@ services:
     # start the validator with an empty genesis batch
     entrypoint: |
       bash -c "
-        if [ ! -f /etc/.sawtooth/keys/my_key.priv ]; then
-          sawadm keygen --force &&
-          sawtooth keygen my_key --force &&
-          source /genesis/token-proposal.sh &&
-          sawset genesis -k /root/.sawtooth/keys/my_key.priv &&
-          sawadm genesis config-genesis.batch /genesis/token-proposal.batch
-        fi;
+          sawadm keygen --force && \
+          sawtooth keygen my_key --force && \
+          source /genesis/token-proposal.sh && \
+          sawset genesis -k /root/.sawtooth/keys/my_key.priv && \
+          sawadm genesis config-genesis.batch /genesis/token-proposal.batch && \
         sawtooth-validator -vv \
           --endpoint tcp://validator:8800 \
           --bind component:tcp://eth0:4004 \

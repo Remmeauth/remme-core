@@ -47,7 +47,7 @@ class BasicHandler(TransactionHandler):
     def apply(self, transaction, context):
         pass
 
-    def process_state(self, signer, payload, state):
+    def process_state(self, signer_pubkey, signer, payload, state):
         pass
 
     def get_message_factory(self, signer=None):
@@ -67,7 +67,7 @@ class BasicHandler(TransactionHandler):
         # state = self._get_data(pb_class, signer)
         state = None
 
-        updated_state = self.process_state(signer, payload, state)
+        updated_state = self.process_state(transaction.header.signer_public_key, signer, payload, state)
         self._store_state(updated_state)
 
     def make_address(self, appendix):
