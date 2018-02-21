@@ -27,6 +27,7 @@ services:
     volumes:
       - ./genesis:/genesis
       - ./keys:/root/.sawtooth/keys
+#      - ./genesis/data:/var/lib/sawtooth
     # start the validator with an empty genesis batch
     entrypoint: |
       bash -c "

@@ -16,17 +16,17 @@
 import sys
 import os
 import argparse
-from processor.protos.token_pb2 import Account
+from processor.processor.protos.token_pb2 import Account
+from processor.processor.settings import TP_KEY_FILE
 
 OUTPUT_SH = 'genesis/token-proposal.sh'
 OUTPUT_BATCH = '/genesis/token-proposal.batch'
-SIGNING_KEY = '/root/.sawtooth/keys/my_key.priv'
+SIGNING_KEY = TP_KEY_FILE
 KEY_FILE = 'keys/my_key.pub'
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='File with a public key to assign initial supply.')
     parser.add_argument('token_supply')
-    parser.add_argument('key_file')
     args = parser.parse_args()
 
     account = Account()

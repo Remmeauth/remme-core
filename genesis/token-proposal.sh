@@ -1,1 +1,1 @@
-sawset proposal create -o /genesis/token-proposal.batch -k /root/.sawtooth/keys/my_key.priv 02a88e589e86002d40e773149a8d93378119fc932a34e2e2ea863688bf435a6dd0=\x08\x90N 
+sawset proposal create -o /genesis/token-proposal.batch -k /root/.sawtooth/keys/my_key.priv 03a846c1312df4a381dc835dc983ed9ce172dc8ce04b2f7aeda504b39e5c8fec70=\x08\xa0\x8d\x06 
