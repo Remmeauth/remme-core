@@ -64,7 +64,8 @@ class BasicHandler(TransactionHandler):
         # transaction follows Transaction proto format
         signer, payload = self._decode_transaction(transaction)
 
-        state = self.get_data(pb_class, signer)
+        # state = self._get_data(pb_class, signer)
+        state = None
 
         updated_state = self.process_state(signer, payload, state)
         self._store_state(updated_state)

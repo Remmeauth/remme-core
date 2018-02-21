@@ -19,6 +19,7 @@ setup(
     entry_points={
         'console_scripts': [
             'rem-token=processor.token.token_cli:main',
+            'rem-crt=processor.certificate.certificate_cli:main'
         ]
     }
 )
