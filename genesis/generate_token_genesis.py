@@ -73,6 +73,8 @@ if __name__ == '__main__':
     zero_address = handler.namespaces[-1] + '0' * 64
     target_address = handler.make_address(signer.get_public_key().as_hex())
 
+    print('Issuing tokens to address {}'.format(target_address))
+
     addresses_input_output = [zero_address, target_address]
 
     transaction_header = TransactionHeader(
