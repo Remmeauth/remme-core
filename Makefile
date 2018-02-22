@@ -19,6 +19,9 @@ PROTO_DST_DIR = ./processor/processor/protos
 run:
 	docker-compose up
 
+shell:
+	docker exec -it $(shell docker-compose ps -q shell) bash
+
 test:
 	docker-compose -f docker-compose.test.yml up --abort-on-container-exit
 

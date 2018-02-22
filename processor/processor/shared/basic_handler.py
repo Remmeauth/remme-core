@@ -71,6 +71,7 @@ class BasicHandler(TransactionHandler):
         self._store_state(updated_state)
 
     def make_address(self, appendix):
+        print('appendix: {}'.format(appendix))
         appendix = _sha512(appendix.encode('utf-8'))[-64:]
         APPENDIX_LENGTH = 64
         if len(appendix) != APPENDIX_LENGTH:

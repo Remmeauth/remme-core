@@ -30,7 +30,7 @@ from sawtooth_signing import ParseError
 from sawtooth_signing import create_context
 from sawtooth_signing.secp256k1 import Secp256k1PrivateKey
 
-from processor.settings import REST_API_URL, TP_KEY_FILE
+from processor.settings import REST_API_URL, PRIV_KEY_FILE
 from processor.shared.exceptions import ClientException
 
 from processor.shared.exceptions import KeyNotFound
@@ -40,7 +40,7 @@ def _sha512(data):
     return hashlib.sha512(data).hexdigest()
 
 class BasicClient:
-    def __init__(self, family_handler, keyfile=TP_KEY_FILE):
+    def __init__(self, family_handler, keyfile=PRIV_KEY_FILE):
         self.url = REST_API_URL
         self._family_handler = family_handler()
 

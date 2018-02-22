@@ -24,21 +24,25 @@ services:
       - 4004
     ports:
       - '4020:4004'
+
+    environment:
+      - GENESIS=true
     volumes:
       - ./genesis:/genesis
       - ./keys:/root/.sawtooth/keys
 #      - ./genesis/data:/var/lib/sawtooth
-    # start the validator with an empty genesis batch
+    # To start a new validator: add `rm /var/lib/sawtooth/*`
     entrypoint: |
       bash -c "
-        sawadm keygen --force && \
-        sawtooth keygen my_key --force && \
-        source /genesis/token-proposal.sh && \
-        sawset genesis -k /root/.sawtooth/keys/my_key.priv && \
+        sawadm keygen && \
+        sawtooth keygen key
         if [ -d "/var/lib/sawtooth" ]; then
-           rm /var/lib/sawtooth/*
+          rm /var/lib/sawtooth/*
         fi
+        source /genesis/token-proposal.sh && \
+        sawset genesis -k /root/.sawtooth/keys/key.priv && \
         sawadm genesis config-genesis.batch /genesis/token-proposal.batch && \
+
         sawtooth-validator -vv \
           --endpoint tcp://validator:8800 \
           --bind component:tcp://eth0:4004 \
@@ -83,7 +87,7 @@ services:
     depends_on:
       - rest-api
     volumes:
-      - ./genesis:/genesis
+      - ./genesis:/root/genesis
       - ./keys:/root/.sawtooth/keys
       - ./processor:/processor
     stdin_open: true
