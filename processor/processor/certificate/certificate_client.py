@@ -53,4 +53,7 @@ class CertificateClient(BasicClient):
         return self._signer.sign(data.encode('utf-8'))
 
     def get_status(self, address):
-        return self.get_value(address)
+        data = self.get_value(address)
+        storage = CertificateStorage()
+        storage.ParseFromString(data)
+        return storage.revoked

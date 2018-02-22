@@ -23,6 +23,7 @@ from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
 from processor.shared.basic_cli import BasicCli
 from processor.certificate.certificate_client import CertificateClient
+from processor.shared.exceptions import CliException, KeyNotFound
 
 
 class CertificateCli(BasicCli):
@@ -70,7 +71,14 @@ class CertificateCli(BasicCli):
         self.client.revoke_certificate(args.address)
 
     def check_status(self, args):
-        print(self.client.get_status(args.address))
+        try:
+            status = self.client.get_status(args.address)
+            if status:
+                print('Certificate on address {} is revoked.'.format(args.address))
+            else:
+                print('Certificate on address {} is valid.'.format(args.address))
+        except KeyNotFound:
+            print('No certificate registered on address {}.'.format(args.address))
 
     def generate_and_register(self, args):
         # GENERATE KEY AND CERTIFICATE
@@ -119,8 +127,6 @@ class CertificateCli(BasicCli):
         crt_hash = hashlib.sha512(crt_bin.encode('utf-8')).hexdigest()
         rem_sig = self.client.sign_text(crt_hash)
 
-        print(rem_sig)
-
         crt_sig = key.sign(
             bytes.fromhex(rem_sig),
             padding.PSS(
@@ -129,7 +135,6 @@ class CertificateCli(BasicCli):
             ),
             hashes.SHA256()
         )
-        print(crt_sig)
 
         self.client.register_certificate(crt_bin, rem_sig, crt_sig.hex())
 
