@@ -15,7 +15,7 @@
 
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
-from processor.protos.token_pb2 import Account, Transfer, TokenPayload, Genesis
+from processor.protos.token_pb2 import Account, Transfer, TokenPayload, Genesis, GenesisStatus
 from processor.shared.basic_handler import *
 
 FAMILY_NAME = 'token'
@@ -58,18 +58,23 @@ class TokenHandler(BasicHandler):
         return process_transaction(signer, signer_account, data_payload)
 
     def genesis(self, signer, signer_account, data_payload):
-        if not self.is_address(data_payload.address_to):
-            raise InvalidTransaction("address_to parameter passed: {} is not an address.".format(data_payload.address_to))
         zero_address = self._get_state(self._prefix + '0' * 64)
+        genesis_status = GenesisStatus()
         if len(zero_address) == 0:
             pass
-        elif zero_address[0] == 'initialized':
-            raise InvalidTransaction('Genesis transaction already performed')
+        else:
+            genesis_status.ParseFromString(zero_address[0])
 
-        signer_account.balance = data_payload.total_supply
+        if genesis_status.status:
+            raise InvalidTransaction('Genesis is already initialized.')
+
+        genesis_status.status = True
+
+        account = Account()
+        account.balance = data_payload.total_supply
         return {
-            signer: signer_account,
-            (self._prefix + '0' * 64): 'initialized'
+            signer: account,
+            (self._prefix + '0' * 64): genesis_status
         }
 
     def transfer(self, signer, signer_account, params):

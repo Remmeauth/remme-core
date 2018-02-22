@@ -138,7 +138,7 @@ class BasicClient:
 
         return result.text
 
-    def _send_transaction(self, method, data, addresses_input_output, wait=None):
+    def _send_transaction(self, method, payload, addresses_input_output, wait=None):
         '''
            Signs and sends transaction to the network using rest-api.
 
@@ -146,11 +146,6 @@ class BasicClient:
            :param dict data: Dictionary that is required by TP to process the transaction.
            :param str addresses_input_output: list of addresses(keys) for which to get and save state.
         '''
-
-        payload = cbor.dumps({
-            'method': method,
-            'data': data
-        })
 
         header = TransactionHeader(
             signer_public_key=self._signer.get_public_key().as_hex(),

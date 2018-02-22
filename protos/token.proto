@@ -21,7 +21,7 @@ message TokenPayload {
         GENESIS = 1;
     }
     Method method = 1;
-    string data = 2;
+    bytes data = 2;
 }
 
 message Account {
@@ -35,4 +35,8 @@ message Transfer {
 
 message Genesis {
     uint64 total_supply = 1;
+}
+
+message GenesisStatus {
+    bool status = 1;
 }

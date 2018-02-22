@@ -51,8 +51,7 @@ class CertificateHandler(BasicHandler):
 
     def process_state(self, signer_pubkey, signer, payload, state):
         transaction = CertificateTransaction()
-        payload_decoded = cbor.loads(payload)
-        transaction.ParseFromString(payload_decoded['data'])
+        transaction.ParseFromString(payload)
         if transaction.type == CertificateTransaction.CREATE:
             appendix = hashlib.sha512(transaction.certificate_raw.encode('utf-8')).hexdigest()[0:64]
             raw_data = self.context.get_state([self._prefix + appendix])

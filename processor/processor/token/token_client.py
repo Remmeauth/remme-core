@@ -37,5 +37,3 @@ class TokenClient(BasicClient):
 
     def get_account(self, address):
         return self.get_value(address)
-
-

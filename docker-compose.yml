@@ -39,7 +39,6 @@ services:
         if [ -d "/var/lib/sawtooth" ]; then
           rm /var/lib/sawtooth/*
         fi
-        source /genesis/token-proposal.sh && \
         sawset genesis -k /root/.sawtooth/keys/key.priv && \
         sawadm genesis config-genesis.batch /genesis/token-proposal.batch && \
 
