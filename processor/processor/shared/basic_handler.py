@@ -99,10 +99,13 @@ class BasicHandler(TransactionHandler):
 
         return signer, payload
 
+    def _get_state(self, address):
+        return self.context.get_state([address])
+
     def _get_data(self, pb_class, signer):
         data = pb_class()
         data_address = self.make_address(signer)
-        raw_data = self.context.get_state([data_address])
+        raw_data = self._get_state(data_address)
         try:
             data.ParseFromString(raw_data[0])
         except IndexError:

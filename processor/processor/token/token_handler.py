@@ -15,7 +15,7 @@
 
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
-from processor.protos.token_pb2 import Account, Transfer, TokenPayload
+from processor.protos.token_pb2 import Account, Transfer, TokenPayload, Genesis
 from processor.shared.basic_handler import *
 
 FAMILY_NAME = 'token'
@@ -43,6 +43,9 @@ class TokenHandler(BasicHandler):
         if token_payload.method == TokenPayload.TRANSFER:
             data_payload = Transfer()
             process_transaction = self.transfer
+        elif token_payload.method == TokenPayload.GENESIS:
+            data_payload = Genesis()
+            process_transaction = self.genesis
 
         if not process_transaction or not data_payload:
             raise InvalidTransaction("Not a valid transaction method {}".format(token_payload.method))
@@ -53,6 +56,21 @@ class TokenHandler(BasicHandler):
             raise InvalidTransaction("Invalid data serialization for method {}".format(token_payload.method))
 
         return process_transaction(signer, signer_account, data_payload)
+
+    def genesis(self, signer, signer_account, data_payload):
+        if not self.is_address(data_payload.address_to):
+            raise InvalidTransaction("address_to parameter passed: {} is not an address.".format(data_payload.address_to))
+        zero_address = self._get_state(self._prefix + '0' * 64)
+        if len(zero_address) == 0:
+            pass
+        elif zero_address[0] == 'initialized':
+            raise InvalidTransaction('Genesis transaction already performed')
+
+        signer_account.balance = data_payload.total_supply
+        return {
+            signer: signer_account,
+            (self._prefix + '0' * 64): 'initialized'
+        }
 
     def transfer(self, signer, signer_account, params):
         if not self.is_address(params.address_to):

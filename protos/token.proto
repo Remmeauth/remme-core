@@ -18,6 +18,7 @@ syntax = "proto3";
 message TokenPayload {
     enum Method {
         TRANSFER = 0;
+        GENESIS = 1;
     }
     Method method = 1;
     string data = 2;
@@ -30,4 +31,8 @@ message Account {
 message Transfer {
     string address_to = 1;
     uint64 value = 2;
+}
+
+message Genesis {
+    uint64 total_supply = 1;
 }
