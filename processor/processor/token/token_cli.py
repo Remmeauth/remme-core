@@ -85,10 +85,10 @@ class TokenCli(BasicCli):
         print(response)
     def do_balance(self, args):
         if args.address == 'me':
-            args.address = self.client._signer.get_public_key().as_hex()
+            args.address = self.client.make_address(self.client._signer.get_public_key().as_hex())
         try:
             response = self.client.get_account(address=args.address)
-            print(response)
+            # print(response)
         except KeyNotFound:
             print('Balance: 0 REM')
         except Exception as e:

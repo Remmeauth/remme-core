@@ -26,12 +26,14 @@ FAMILY_VERSIONS = ['0.1']
 class TokenHandler(BasicHandler):
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
+        self.zero_address = self._prefix + '0' * 64
 
     def apply(self, transaction, context):
         super().process_apply(transaction, context, Account)
 
         # returns updated state
-    def process_state(self, signer_pubkey, signer, payload, signer_account):
+    def process_state(self, signer_pubkey, signer, payload):
+        signer_account = self._get_data(Account, signer)
         token_payload = TokenPayload()
         try:
             token_payload.ParseFromString(payload)
@@ -58,12 +60,10 @@ class TokenHandler(BasicHandler):
         return process_transaction(signer, signer_account, data_payload)
 
     def genesis(self, signer, signer_account, data_payload):
-        zero_address = self._get_state(self._prefix + '0' * 64)
+        zero_address = self._get_state(self.zero_address)
         genesis_status = GenesisStatus()
-        if len(zero_address) == 0:
-            pass
-        else:
-            genesis_status.ParseFromString(zero_address[0])
+        if zero_address:
+            genesis_status.ParseFromString(zero_address)
 
         if genesis_status.status:
             raise InvalidTransaction('Genesis is already initialized.')
@@ -74,10 +74,12 @@ class TokenHandler(BasicHandler):
         account.balance = data_payload.total_supply
         return {
             signer: account,
-            (self._prefix + '0' * 64): genesis_status
+            self.zero_address: genesis_status
         }
 
     def transfer(self, signer, signer_account, params):
+        if self.zero_address in [params.address_to, signer_account]:
+            raise InvalidTransaction("Zero address cannot send, nor receive transfers!")
         if not self.is_address(params.address_to):
             raise InvalidTransaction("address_to parameter passed: {} is not an address.".format(params.address_to))
         receiver_account = self._get_data(Account, params.address_to)

@@ -33,12 +33,10 @@ from processor.settings import PUB_KEY_FILE, PRIV_KEY_FILE
 # HOW TO RUN
 # 1. In shell generate needed key `sawtooth keygen key`
 # 2. python3 genesis/generate_token_genesis.py <token supply>
+from processor.processor.shared.basic_client import _sha512
 
 OUTPUT_SH = 'genesis/token-proposal.sh'
 OUTPUT_BATCH = '/root/genesis/token-proposal.batch'
-
-def _sha512(data):
-    return hashlib.sha512(data).hexdigest()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='File with a public key to assign initial supply.')
@@ -72,7 +70,7 @@ if __name__ == '__main__':
 
     zero_address = handler.namespaces[-1] + '0' * 64
     target_address = handler.make_address(signer.get_public_key().as_hex())
-
+    print(target_address)
     addresses_input_output = [zero_address, target_address]
 
     transaction_header = TransactionHeader(

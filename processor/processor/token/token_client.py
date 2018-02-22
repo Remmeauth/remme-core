@@ -18,6 +18,9 @@ from processor.shared.basic_client import BasicClient
 from processor.token.token_handler import TokenHandler
 from protobuf_to_dict import protobuf_to_dict
 
+from processor.protos.token_pb2 import Account
+
+
 class TokenClient(BasicClient):
     def __init__(self):
         super().__init__(TokenHandler)
@@ -30,10 +33,18 @@ class TokenClient(BasicClient):
 
     def transfer(self, address_to, value):
         extra_addresses_input_output = [address_to]
+
         transfer = Transfer()
         transfer.address_to = address_to
         transfer.value = value
-        return self._send_transaction(TokenPayload.TRANSFER, protobuf_to_dict(transfer), extra_addresses_input_output)
+        payload = TokenPayload()
+        payload.method = TokenPayload.TRANSFER
+        payload.data = transfer.SerializeToString()
+        return self._send_transaction(TokenPayload.TRANSFER, payload.SerializeToString(), extra_addresses_input_output)
 
     def get_account(self, address):
+        # account = Account()
+        # account.ParseFromString(bytes(self.get_value(address)).decode('utf-8'))
+        # print(account)
+        # return account
         return self.get_value(address)
