@@ -52,8 +52,25 @@ class CertificateCli(BasicCli):
             type=str,
         )
 
+    def parser_status(self, subparsers, parent_parser):
+        message = 'Check a certificate status.'
+
+        parser = subparsers.add_parser(
+            'check',
+            parents=[parent_parser],
+            description=message,
+            help='Check a certificate status..')
+
+        parser.add_argument(
+            'address',
+            type=str,
+        )
+
     def revoke(self, args):
         self.client.revoke_certificate(args.address)
+
+    def check_status(self, args):
+        print(self.client.get_status(args.address))
 
     def generate_and_register(self, args):
         # GENERATE KEY AND CERTIFICATE
@@ -125,6 +142,10 @@ class CertificateCli(BasicCli):
             'name': 'revoke',
             'parser': self.parser_revoke,
             'action': self.revoke
+        }, {
+            'name': 'check',
+            'parser': self.parser_status,
+            'action': self.check_status
         }]
         self.main_wrapper(commands)
 
