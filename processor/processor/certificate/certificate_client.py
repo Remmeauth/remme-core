@@ -14,7 +14,7 @@
 # ------------------------------------------------------------------------
 
 import hashlib
-from processor.protos.certificate_pb2 import CertificateTransaction
+from processor.protos.certificate_pb2 import CertificateTransaction, CertificateStorage
 from processor.shared.basic_client import BasicClient, _sha512
 from processor.certificate.certificate_handler import CertificateHandler
 
@@ -51,3 +51,6 @@ class CertificateClient(BasicClient):
 
     def sign_text(self, data):
         return self._signer.sign(data.encode('utf-8'))
+
+    def get_status(self, address):
+        return self.get_value(address)
