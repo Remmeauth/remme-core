@@ -13,6 +13,9 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
+class KeyNotFound(Exception):
+    pass
+
 class CliException(Exception):
     pass
 

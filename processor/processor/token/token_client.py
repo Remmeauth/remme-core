@@ -19,6 +19,8 @@ from processor.token.token_handler import TokenHandler
 from protobuf_to_dict import protobuf_to_dict
 
 # TODO in progress
+from processor.shared.exceptions import KeyNotFound
+
 
 class TokenClient(BasicClient):
     def __init__(self):
@@ -38,4 +40,7 @@ class TokenClient(BasicClient):
         return self._send_transaction(TokenPayload.TRANSFER, protobuf_to_dict(transfer), extra_addresses_input_output)
 
     def get_account(self, address):
-        return self.get_value(address)
+        try:
+            return self.get_value(address)
+        except KeyNotFound:
+            print('Balance: 0 REM')

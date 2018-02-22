@@ -33,6 +33,8 @@ from sawtooth_signing.secp256k1 import Secp256k1PrivateKey
 from processor.settings import REST_API_URL, TP_KEY_FILE
 from processor.shared.exceptions import ClientException
 
+from processor.shared.exceptions import KeyNotFound
+
 
 def _sha512(data):
     return hashlib.sha512(data).hexdigest()
@@ -124,7 +126,7 @@ class BasicClient:
                 result = requests.get(url, headers=headers)
 
             if result.status_code == 404:
-                raise ClientException("No such key!")
+                raise KeyNotFound()
 
             elif not result.ok:
                 raise ClientException("Error {}: {}".format(
