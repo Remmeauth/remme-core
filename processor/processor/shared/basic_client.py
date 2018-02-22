@@ -83,7 +83,7 @@ class BasicClient:
 
     def get_value(self, key):
         result = self._send_request("state/{}".format(key))
-        return json.loads(result)['data']
+        return base64.b64decode(json.loads(result)['data'])
 
     def _get_status(self, batch_id, wait):
         try:

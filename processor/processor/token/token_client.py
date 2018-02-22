@@ -43,8 +43,7 @@ class TokenClient(BasicClient):
         return self._send_transaction(TokenPayload.TRANSFER, payload.SerializeToString(), extra_addresses_input_output)
 
     def get_account(self, address):
-        # account = Account()
-        # account.ParseFromString(bytes(self.get_value(address)).decode('utf-8'))
-        # print(account)
-        # return account
-        return self.get_value(address)
+        account = Account()
+        account.ParseFromString(self.get_value(address))
+        return account
+        # return self.get_value(address)

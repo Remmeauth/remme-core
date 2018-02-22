@@ -77,8 +77,10 @@ class TokenHandler(BasicHandler):
             self.zero_address: genesis_status
         }
 
-    def transfer(self, signer, signer_account, params):
-        if self.zero_address in [params.address_to, signer_account]:
+    def transfer(self, signer_address, signer_account, params):
+        if params.address_to == signer_address:
+            raise InvalidTransaction("Transaction cannot be sent to the same same address as of the sender!")
+        if self.zero_address in [params.address_to, signer_address]:
             raise InvalidTransaction("Zero address cannot send, nor receive transfers!")
         if not self.is_address(params.address_to):
             raise InvalidTransaction("address_to parameter passed: {} is not an address.".format(params.address_to))
@@ -91,5 +93,5 @@ class TokenHandler(BasicHandler):
         receiver_account.balance += params.value
         signer_account.balance -= params.value
 
-        return { signer: signer_account,
+        return { signer_address: signer_account,
                  params.address_to: receiver_account}

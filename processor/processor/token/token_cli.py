@@ -87,7 +87,8 @@ class TokenCli(BasicCli):
         if args.address == 'me':
             args.address = self.client.make_address(self.client._signer.get_public_key().as_hex())
         try:
-            response = self.client.get_account(address=args.address)
+            account = self.client.get_account(address=args.address)
+            print("Balance: {}\n".format(account.balance))
             # print(response)
         except KeyNotFound:
             print('Balance: 0 REM')
