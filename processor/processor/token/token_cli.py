@@ -17,7 +17,7 @@ from processor.shared.basic_cli import BasicCli
 from processor.token.token_client import TokenClient
 
 # TODO create decorator to remove manual changes to "commands"
-from processor.shared.exceptions import CliException
+from processor.shared.exceptions import CliException, KeyNotFound
 
 METHOD_TRANSFER = 'transfer'
 METHOD_BALANCE = 'balance'
@@ -86,8 +86,14 @@ class TokenCli(BasicCli):
     def do_balance(self, args):
         if args.address == 'me':
             args.address = self.client._signer.get_public_key().as_hex()
-        response = self.client.get_account(address=args.address)
-        print(response)
+        try:
+            response = self.client.get_account(address=args.address)
+            print(response)
+        except KeyNotFound:
+            print('Balance: 0 REM')
+        except Exception as e:
+            print(e)
+
 
     def init(self):
         commands = []

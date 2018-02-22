@@ -126,7 +126,7 @@ class BasicClient:
                 result = requests.get(url, headers=headers)
 
             if result.status_code == 404:
-                raise KeyNotFound()
+                raise KeyNotFound("404")
 
             elif not result.ok:
                 raise ClientException("Error {}: {}".format(
@@ -135,9 +135,6 @@ class BasicClient:
         except requests.ConnectionError as err:
             raise ClientException(
                 'Failed to connect to REST API: {}'.format(err))
-
-        except BaseException as err:
-            raise ClientException(err)
 
         return result.text
 
