@@ -49,7 +49,7 @@ class CertificateHandler(BasicHandler):
     def make_address(self, appendix):
         return self._prefix + appendix
 
-    def process_state(self, signer_pubkey, signer, payload, state):
+    def process_state(self, signer_pubkey, signer, payload):
         transaction = CertificateTransaction()
         transaction.ParseFromString(payload)
         if transaction.type == CertificateTransaction.CREATE:

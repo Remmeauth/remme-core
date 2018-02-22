@@ -47,7 +47,7 @@ class BasicHandler(TransactionHandler):
     def apply(self, transaction, context):
         pass
 
-    def process_state(self, signer_pubkey, signer, payload, state):
+    def process_state(self, signer_pubkey, signer, payload):
         pass
 
     def get_message_factory(self, signer=None):
@@ -64,10 +64,7 @@ class BasicHandler(TransactionHandler):
         # transaction follows Transaction proto format
         signer, payload = self._decode_transaction(transaction)
 
-        # state = self._get_data(pb_class, signer)
-        state = None
-
-        updated_state = self.process_state(transaction.header.signer_public_key, signer, payload, state)
+        updated_state = self.process_state(transaction.header.signer_public_key, signer, payload)
         self._store_state(updated_state)
 
     def make_address(self, appendix):
@@ -99,18 +96,22 @@ class BasicHandler(TransactionHandler):
         return signer, payload
 
     def _get_state(self, address):
-        return self.context.get_state([address])
+        result = self.context.get_state([address])
+        print(result)
+        return result[0].data if result else None
 
-    def _get_data(self, pb_class, signer):
+    def _get_data(self, pb_class, data_address):
+        print(data_address)
         data = pb_class()
-        data_address = self.make_address(signer)
         raw_data = self._get_state(data_address)
-        try:
-            data.ParseFromString(raw_data[0])
-        except IndexError:
-            return None
-        except:
-            raise InternalError("Failed to deserialize data")
+        print(raw_data)
+        if raw_data:
+            try:
+                data.ParseFromString(raw_data)
+            except IndexError:
+                return None
+            except:
+                raise InternalError("Failed to deserialize data")
         return data
 
     def _store_state(self, updated_state):
