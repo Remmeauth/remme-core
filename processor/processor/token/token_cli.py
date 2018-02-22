@@ -75,7 +75,6 @@ class TokenCli(BasicCli):
     def do_address(self, args):
         public_key = args.pub_key
         if public_key == 'me':
-            print('pub key: {}'.format(self.client._signer.get_public_key().as_hex()))
             public_key = self.client._signer.get_public_key().as_hex()
         if not int(public_key, 16) or len(public_key) != 66:
             raise CliException('Please, make sure public key is a 66 digit hex number: {}'.format(public_key))
