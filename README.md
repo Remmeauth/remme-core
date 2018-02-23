@@ -17,7 +17,7 @@ When you have this repository cloned run the following commands:
 * `make build_docker`
 * `make run`
 
-After all the package are started up run `docker exec -it $(docker-compose ps -q shell) bash` to enter the console.
+After all the package are started up run `make shell` to enter the console.
 
 You can try `rem-token` and `rem-crt` commands to run operations related to token and certificates respectively.
 
