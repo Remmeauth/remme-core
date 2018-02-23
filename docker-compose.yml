@@ -89,6 +89,7 @@ services:
       - ./genesis:/root/genesis
       - ./keys:/root/.sawtooth/keys
       - ./processor:/processor
+      - ./bash/.bashrc:/root/.bashrc
     stdin_open: true
     tty: true
     entrypoint: |
