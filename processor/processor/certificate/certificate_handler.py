@@ -52,42 +52,31 @@ class CertificateHandler(BasicHandler):
     def process_state(self, signer_pubkey, signer, payload):
         transaction = CertificateTransaction()
         transaction.ParseFromString(payload)
+
+        address = self.make_address(transaction.certificate_raw)
+        stored_data = self._get_data(CertificateStorage, address)
         if transaction.type == CertificateTransaction.CREATE:
-            appendix = hashlib.sha512(transaction.certificate_raw.encode('utf-8')).hexdigest()[0:64]
-            raw_data = self.context.get_state([self._prefix + appendix])
-            stored_data = CertificateStorage()
-            if isinstance(raw_data, list):
-                if len(raw_data) > 0:
-                    stored_data.ParseFromString(raw_data[0].data)
-            data = self._save_certificate(stored_data,
-                                          signer,
+            # TODO can stored_data be not None during the creaation? Any checks?
+            if stored_data:
+                InvalidTransaction('The certificate is already registered')
+            return self._save_certificate(signer,
                                           signer_pubkey,
                                           transaction.certificate_raw,
                                           transaction.signature_rem,
                                           transaction.signature_crt,
-                                          self._prefix + appendix)
-            return data
+                                          address)
         elif transaction.type == CertificateTransaction.REVOKE:
-            appendix = transaction.address
-            raw_data = self.context.get_state([appendix])
-            stored_data = CertificateStorage()
-            if isinstance(raw_data, list):
-                if len(raw_data) > 0:
-                    stored_data.ParseFromString(raw_data[0].data)
-                else:
-                    InvalidTransaction('No certificate in the given address')
-            data = self._revoke_certificate(stored_data, signer, appendix)
-            return data
+            if not stored_data:
+                raise InvalidTransaction('No certificate in the given address')
+            return self._revoke_certificate(stored_data, signer, address)
         else:
             raise InvalidTransaction('Unknown value {} for the certificate operation type.'.
                                      format(int(transaction.type)))
 
-    def _save_certificate(self, data, transactor, transactor_pubkey, certificate_raw, signature_rem, signature_crt, address):
+    def _save_certificate(self, transactor, transactor_pubkey, certificate_raw, signature_rem, signature_crt, address):
         certificate = x509.load_der_x509_certificate(bytes.fromhex(certificate_raw),
                                                      default_backend())
-        if data is not None:
-            InvalidTransaction('The certificate is already registered')
-
+        data = CertificateStorage()
         certificate_pubkey = certificate.public_key()
         try:
             certificate_pubkey.verify(bytes.fromhex(signature_crt),
@@ -121,8 +110,7 @@ class CertificateHandler(BasicHandler):
             raise InvalidTransaction('Expecting a self-signed certificate.')
         if valid_until - valid_from > CERT_MAX_VALIDITY:
             raise InvalidTransaction('The certificate validity exceeds the maximum value.')
-        fingerprint = certificate.fingerprint(hashes.SHA512()).hex()[:64]
-        data.hash = fingerprint
+        data.hash = certificate.fingerprint(hashes.SHA512()).hex()[:64]
         data.owner = transactor
         data.revoked = False
 
