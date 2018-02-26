@@ -18,15 +18,15 @@ version: '2.1'
 services:
   tests:
     build:
-      context: processor/
+      context: .
     expose:
       - 4004
     volumes:
-      - ./processor:/processor
+      - .:/remme
     entrypoint: |
       bash -c "
-        pip3 install --force-reinstal /processor && \
-        python3 -m processor.tests
+        pip3 install --upgrade /remme && \
+        python3 -m remme.tests
       "
     stop_signal: SIGKILL
     depends_on:
@@ -36,11 +36,11 @@ services:
 
   remme-transaction-processor:
     build:
-      context: processor/
+      context: .
     volumes:
-      - ./processor:/processor
+      - .:/remme
     entrypoint: |
       bash -c "
-        pip3 install --force-reinstal /processor && \
-        python3 -m processor tcp://validator:4004
+        pip3 install --upgrade /remme && \
+        python3 -m remme tcp://tests:4004
       "

@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------
-from processor.protos.token_pb2 import TokenPayload, Transfer
-from processor.protos import token_pb2
-from processor.shared.basic_client import BasicClient
-from processor.token.token_handler import TokenHandler
+from remme.protos.token_pb2 import TokenPayload, Transfer
+from remme.protos import token_pb2
+from remme.shared.basic_client import BasicClient
+from remme.token.token_handler import TokenHandler
 from protobuf_to_dict import protobuf_to_dict
 
-from processor.protos.token_pb2 import Account
+from remme.protos.token_pb2 import Account
 
 
 class TokenClient(BasicClient):

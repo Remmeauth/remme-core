@@ -16,24 +16,24 @@
 import argparse
 import hashlib
 import time
-from processor.protos.token_pb2 import Genesis, TokenPayload
-from processor.token.token_handler import TokenHandler
+from remme.protos.token_pb2 import Genesis, TokenPayload
+from remme.token.token_handler import TokenHandler
 from sawtooth_sdk.protobuf.transaction_pb2 import Transaction
 from sawtooth_sdk.protobuf.transaction_pb2 import TransactionHeader
 from sawtooth_sdk.protobuf.batch_pb2 import Batch
 from sawtooth_sdk.protobuf.batch_pb2 import BatchHeader
 from sawtooth_sdk.protobuf.batch_pb2 import BatchList
-from processor.shared.exceptions import ClientException
+from remme.shared.exceptions import ClientException
 from sawtooth_signing import CryptoFactory
 from sawtooth_signing import ParseError
 from sawtooth_signing import create_context
 from sawtooth_signing.secp256k1 import Secp256k1PrivateKey
-from processor.settings import PUB_KEY_FILE, PRIV_KEY_FILE
+from remme.settings import PUB_KEY_FILE, PRIV_KEY_FILE
 
 # HOW TO RUN
 # 1. In shell generate needed key `sawtooth keygen key`
 # 2. python3 genesis/generate_token_genesis.py <token supply>
-from processor.processor.shared.basic_client import _sha512
+from remme.shared.basic_client import _sha512
 
 OUTPUT_SH = 'genesis/token-proposal.sh'
 OUTPUT_BATCH = '/root/genesis/token-proposal.batch'

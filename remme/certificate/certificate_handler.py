@@ -26,8 +26,8 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.exceptions import InvalidSignature
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 from sawtooth_signing.secp256k1 import Secp256k1PublicKey, Secp256k1Context
-from processor.shared.basic_handler import *
-from processor.protos.certificate_pb2 import CertificateStorage, CertificateTransaction
+from remme.shared.basic_handler import *
+from remme.protos.certificate_pb2 import CertificateStorage, CertificateTransaction
 
 LOGGER = logging.getLogger(__name__)
 

@@ -15,9 +15,9 @@
 
 from protobuf_to_dict import protobuf_to_dict
 
-from processor.protos.token_pb2 import Transfer
-from processor.tests.test_helper import HelperTestCase
-from processor.token.token_handler import TokenHandler
+from remme.protos.token_pb2 import Transfer
+from remme.tests.test_helper import HelperTestCase
+from remme.token.token_handler import TokenHandler
 
 
 # TODO update tests to correspond the new API
