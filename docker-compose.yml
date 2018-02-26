@@ -24,14 +24,11 @@ services:
       - 4004
     ports:
       - '4020:4004'
-
     environment:
       - GENESIS=true
     volumes:
       - ./genesis:/genesis
       - ./keys:/root/.sawtooth/keys
-#      - ./genesis/data:/var/lib/sawtooth
-    # To start a new validator: add `rm /var/lib/sawtooth/*`
     entrypoint: |
       bash -c "
         sawadm keygen && \
@@ -50,15 +47,13 @@ services:
 
   remme-transaction-processor:
     build:
-      context: processor/
+      context: .
     volumes:
-      - ./processor:/processor
-    environment:
-      PACKAGE_LOCATION: '/processor'
+      - .:/remme
     entrypoint: |
       bash -c "
-        pip3 install --upgrade /processor && \
-        python3 -m processor tcp://validator:4004
+        pip3 install --upgrade /remme && \
+        python3 -m remme tcp://validator:4004
       "
 
   settings-tp:
@@ -82,13 +77,13 @@ services:
 
   shell:
     build:
-      context: ./processor/processor/cli
+      context: remme/cli
     depends_on:
       - rest-api
     volumes:
       - ./genesis:/root/genesis
       - ./keys:/root/.sawtooth/keys
-      - ./processor:/processor
+      - .:/remme
       - ./bash/.bashrc:/root/.bashrc
     stdin_open: true
     tty: true
@@ -97,6 +92,6 @@ services:
         if [ ! -f /root/.sawtooth/keys/root.priv ]; then
           sawtooth keygen
         fi;
-        pip3 install --upgrade /processor && \
+        pip3 install --upgrade /remme && \
         tail -f /dev/null
       "

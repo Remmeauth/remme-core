@@ -31,10 +31,10 @@ from sawtooth_signing import ParseError
 from sawtooth_signing import create_context
 from sawtooth_signing.secp256k1 import Secp256k1PrivateKey
 
-from processor.settings import REST_API_URL, PRIV_KEY_FILE
-from processor.shared.exceptions import ClientException
+from remme.settings import REST_API_URL, PRIV_KEY_FILE
+from remme.shared.exceptions import ClientException
 
-from processor.shared.exceptions import KeyNotFound
+from remme.shared.exceptions import KeyNotFound
 
 
 def _sha512(data):

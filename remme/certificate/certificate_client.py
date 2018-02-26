@@ -14,9 +14,9 @@
 # ------------------------------------------------------------------------
 
 import hashlib
-from processor.protos.certificate_pb2 import CertificateTransaction, CertificateStorage
-from processor.shared.basic_client import BasicClient, _sha512
-from processor.certificate.certificate_handler import CertificateHandler
+from remme.protos.certificate_pb2 import CertificateTransaction, CertificateStorage
+from remme.shared.basic_client import BasicClient, _sha512
+from remme.certificate.certificate_handler import CertificateHandler
 
 
 class CertificateClient(BasicClient):

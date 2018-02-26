@@ -15,8 +15,8 @@
 
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
-from processor.protos.token_pb2 import Account, Transfer, TokenPayload, Genesis, GenesisStatus
-from processor.shared.basic_handler import *
+from remme.protos.token_pb2 import Account, Transfer, TokenPayload, Genesis, GenesisStatus
+from remme.shared.basic_handler import *
 
 FAMILY_NAME = 'token'
 FAMILY_VERSIONS = ['0.1']

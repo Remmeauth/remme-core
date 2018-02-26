@@ -21,9 +21,9 @@ from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
-from processor.shared.basic_cli import BasicCli
-from processor.certificate.certificate_client import CertificateClient
-from processor.shared.exceptions import CliException, KeyNotFound
+from remme.shared.basic_cli import BasicCli
+from remme.certificate.certificate_client import CertificateClient
+from remme.shared.exceptions import CliException, KeyNotFound
 
 
 class CertificateCli(BasicCli):

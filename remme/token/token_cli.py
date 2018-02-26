@@ -13,11 +13,11 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-from processor.shared.basic_cli import BasicCli
-from processor.token.token_client import TokenClient
+from remme.shared.basic_cli import BasicCli
+from remme.token.token_client import TokenClient
 
 # TODO create decorator to remove manual changes to "commands"
-from processor.shared.exceptions import CliException, KeyNotFound
+from remme.shared.exceptions import CliException, KeyNotFound
 
 METHOD_TRANSFER = 'transfer'
 METHOD_BALANCE = 'balance'

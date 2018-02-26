@@ -21,7 +21,7 @@ from sawtooth_sdk.processor.exceptions import InvalidTransaction
 from sawtooth_sdk.processor.handler import TransactionHandler
 
 # TODO: think about more logging in helper functions
-from processor.shared.basic_client import _sha512
+from remme.shared.basic_client import _sha512
 
 
 class BasicHandler(TransactionHandler):

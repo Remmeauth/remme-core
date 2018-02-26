@@ -22,7 +22,7 @@ import traceback
 import pkg_resources
 from colorlog import ColoredFormatter
 
-from processor.shared.exceptions import CliException, ClientException
+from remme.shared.exceptions import CliException, ClientException
 
 DISTRIBUTION_NAME = 'sawtooth-intkey'
 
