@@ -46,13 +46,14 @@ class CertificateHandler(BasicHandler):
         super().process_apply(context, CertificateTransaction, transaction)
 
     def process_state(self, context, signer_pubkey, transaction):
-        address = self.make_address_from_data(transaction.certificate_raw)
-        stored_data = self.get_data(context, CertificateStorage, address)
         if transaction.type == CertificateTransaction.CREATE:
+            address = self.make_address_from_data(transaction.certificate_raw)
+            stored_data = self.get_data(context, CertificateStorage, address)
             return self._save_certificate(stored_data, signer_pubkey, transaction.certificate_raw,
                                           transaction.signature_rem, transaction.signature_crt, address)
         elif transaction.type == CertificateTransaction.REVOKE:
-            return self._revoke_certificate(stored_data, signer_pubkey, address)
+            stored_data = self.get_data(context, CertificateStorage, transaction.address)
+            return self._revoke_certificate(stored_data, signer_pubkey, transaction.address)
         else:
             raise InvalidTransaction('Unknown value {} for the certificate operation type.'.
                                      format(int(transaction.type)))
@@ -99,6 +100,7 @@ class CertificateHandler(BasicHandler):
         if valid_until - valid_from > CERT_MAX_VALIDITY:
             raise InvalidTransaction('The certificate validity exceeds the maximum value.')
         fingerprint = certificate.fingerprint(hashes.SHA512()).hex()[:64]
+        data = CertificateStorage()
         data.hash = fingerprint
         data.owner = transactor_pubkey
         data.revoked = False

@@ -99,7 +99,7 @@ class CertificateCli(BasicCli):
             x509.NameAttribute(NameOID.LOCALITY_NAME, "San Francisco"),
             x509.NameAttribute(NameOID.ORGANIZATION_NAME, "REMME"),
             x509.NameAttribute(NameOID.COMMON_NAME, "mysite.com"),
-            x509.NameAttribute(NameOID.USER_ID, self.client.get_signer_address())
+            x509.NameAttribute(NameOID.USER_ID, self.client.get_signer_pubkey())
         ])
         cert = x509.CertificateBuilder().subject_name(
             subject
