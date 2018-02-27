@@ -62,8 +62,11 @@ class BasicClient:
         self._signer = CryptoFactory(
             create_context('secp256k1')).new_signer(private_key)
 
-    def make_address(self, pub_key):
-        return self._family_handler.make_address(pub_key)
+    def make_address(self, prefix):
+        return self._family_handler.make_address(prefix)
+
+    def make_address_from_data(self, data):
+        return self._family_handler.make_address_from_data(data)
 
     def list(self):
         result = self._send_request(
