@@ -68,8 +68,8 @@ if __name__ == '__main__':
 
     signer = CryptoFactory(create_context('secp256k1')).new_signer(private_key)
 
-    zero_address = handler.namespaces[-1] + '0' * 64
-    target_address = handler.make_address(signer.get_public_key().as_hex())
+    zero_address = handler.make_address('0' * 64)
+    target_address = handler.make_address_from_data(signer.get_public_key().as_hex())
 
     addresses_input_output = [zero_address, target_address]
 

@@ -59,7 +59,9 @@ class TokenHandler(BasicHandler):
 
     def genesis(self, context, signer, signer_account, data_payload):
         genesis_status = self.get_data(context, GenesisStatus, self.zero_address)
-        if genesis_status.status:
+        if not genesis_status:
+            genesis_status = GenesisStatus()
+        elif genesis_status.status:
             raise InvalidTransaction('Genesis is already initialized.')
         genesis_status.status = True
         account = Account()

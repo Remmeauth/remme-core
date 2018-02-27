@@ -54,7 +54,7 @@ class BasicHandler(TransactionHandler):
 
     def process_apply(self, context, pb_class, transaction):
         transaction_payload = pb_class()
-        transaction.ParseFromString(transaction.payload)
+        transaction_payload.ParseFromString(transaction.payload)
         updated_state = self.process_state(context, transaction.header.signer_public_key, transaction_payload)
         self._store_state(context, updated_state)
 
