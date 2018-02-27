@@ -14,21 +14,17 @@
 # ------------------------------------------------------------------------
 
 import hashlib
-
+from google.protobuf.text_format import ParseError
 from sawtooth_processor_test.message_factory import MessageFactory
 from sawtooth_sdk.processor.exceptions import InternalError
-from sawtooth_sdk.processor.exceptions import InvalidTransaction
 from sawtooth_sdk.processor.handler import TransactionHandler
-
-# TODO: think about more logging in helper functions
-from remme.shared.basic_client import _sha512
 
 
 class BasicHandler(TransactionHandler):
     def __init__(self, name, versions):
         self._family_name = name
         self._family_versions = versions
-        self._prefix = hashlib.sha512(self._family_name.encode('utf-8')).hexdigest()[0:6]
+        self._prefix = hashlib.sha512(self._family_name.encode('utf-8')).hexdigest()[:6]
 
     @property
     def family_name(self):
@@ -42,13 +38,11 @@ class BasicHandler(TransactionHandler):
     def namespaces(self):
         return [self._prefix]
 
-    # methods to modify in custom handler
-
     def apply(self, transaction, context):
         pass
 
-    def process_state(self, signer_pubkey, signer, payload):
-        pass
+    def process_state(self, context, signer_pubkey, transaction_payload):
+        return {}
 
     def get_message_factory(self, signer=None):
         return MessageFactory(
@@ -58,63 +52,41 @@ class BasicHandler(TransactionHandler):
             signer=signer
         )
 
-    def process_apply(self, transaction, context, pb_class):
-        self.context = context
-        # signer is constructed from header.signer using make_address
-        # transaction follows Transaction proto format
-        signer, payload = self._decode_transaction(transaction)
-
-        updated_state = self.process_state(transaction.header.signer_public_key, signer, payload)
-        self._store_state(updated_state)
+    def process_apply(self, context, transaction):
+        updated_state = self.process_state(context, transaction.header.signer_public_key, transaction.payload)
+        self._store_state(context, updated_state)
 
     def make_address(self, appendix):
-        appendix = _sha512(appendix.encode('utf-8'))[-64:]
-        APPENDIX_LENGTH = 64
-        if len(appendix) != APPENDIX_LENGTH:
-            raise InvalidTransaction("appendix {} must be {} characters long!".format(appendix, APPENDIX_LENGTH))
-
-        try:
-            int(appendix, 16)
-        except ValueError:
-            raise InvalidTransaction('appendix should be a valid hexadecimal integer representation')
-
-        return self._prefix + appendix
-
-    def is_address(self, address):
+        address = self._prefix + appendix
         try:
             assert isinstance(address, str)
             assert len(address) == 70
             int(address, 16)
-            return True
-        except:
-            return False
+        except (AssertionError, ValueError):
+            raise InternalError('Addresses should be 70 characters long. Prefix: {}. Appendix: {}.'
+                                .format(self._prefix, appendix))
+        return address
 
-    def _decode_transaction(self, transaction):
-        signer = self.make_address(transaction.header.signer_public_key)
-        payload = transaction.payload
+    def _get_state(self, context, address):
+        result = context.get_state([address])
+        if len(result) != 1:
+            return None
+        return result[0].data
 
-        return signer, payload
-
-    def _get_state(self, address):
-        result = self.context.get_state([address])
-        print(result)
-        return result[0].data if result else None
-
-    def _get_data(self, pb_class, data_address):
-        print(data_address)
-        data = pb_class()
-        raw_data = self._get_state(data_address)
-        print(raw_data)
+    def _get_data(self, context, pb_class, address):
+        raw_data = self._get_state(context, address)
         if raw_data:
             try:
+                data = pb_class()
                 data.ParseFromString(raw_data)
-            except IndexError:
-                return None
-            except:
-                raise InternalError("Failed to deserialize data")
-        return data
+                return data
+            except ParseError:
+                raise InternalError('Failed to deserialize data')
+        else:
+            return None
 
-    def _store_state(self, updated_state):
-        adresses = self.context.set_state({k: v.SerializeToString() for k, v in updated_state.items()})
-        if len(adresses) < len(updated_state):
-            raise InternalError("State Error")
+    def _store_state(self, context, updated_state):
+        addresses = context.set_state({k: v.SerializeToString() for k, v in updated_state.items()})
+        if len(addresses) < len(updated_state):
+            raise InternalError('Failed to update all of states. Updated: {}. Full list of states to update: {}.'
+                                .format(addresses, updated_state.keys()))
