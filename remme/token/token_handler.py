@@ -73,6 +73,8 @@ class TokenHandler(BasicHandler):
 
     def transfer(self, context, signer_address, signer_account, params):
         receiver_account = self.get_data(context, Account, params.address_to)
+        if not receiver_account:
+            receiver_account = Account()
 
         if signer_account.balance < params.value:
             raise InvalidTransaction("Not enough transferable balance. Signer's current balance: {}"
