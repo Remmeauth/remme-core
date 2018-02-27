@@ -39,10 +39,10 @@ class BasicHandler(TransactionHandler):
         return [self._prefix]
 
     def apply(self, transaction, context):
-        pass
+        raise InternalError('No implementation for `apply`')
 
     def process_state(self, context, signer_pubkey, transaction_payload):
-        return {}
+        raise InternalError('No implementation for `process_state`')
 
     def get_message_factory(self, signer=None):
         return MessageFactory(
