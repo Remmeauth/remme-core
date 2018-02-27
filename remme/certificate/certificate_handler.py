@@ -61,9 +61,7 @@ class CertificateHandler(BasicHandler):
     def _save_certificate(self, data, transactor_pubkey, certificate_raw, signature_rem, signature_crt, address):
         certificate = x509.load_der_x509_certificate(bytes.fromhex(certificate_raw),
                                                      default_backend())
-        if data is not None:
-            InvalidTransaction('The certificate is already registered')
-
+        data = CertificateStorage()
         certificate_pubkey = certificate.public_key()
         try:
             certificate_pubkey.verify(bytes.fromhex(signature_crt),
@@ -99,6 +97,7 @@ class CertificateHandler(BasicHandler):
             raise InvalidTransaction('Expecting a self-signed certificate.')
         if valid_until - valid_from > CERT_MAX_VALIDITY:
             raise InvalidTransaction('The certificate validity exceeds the maximum value.')
+
         fingerprint = certificate.fingerprint(hashes.SHA512()).hex()[:64]
         data = CertificateStorage()
         data.hash = fingerprint
