@@ -46,8 +46,7 @@ class CertificateHandler(BasicHandler):
         super().process_apply(context, CertificateTransaction, transaction)
 
     def process_state(self, context, signer_pubkey, transaction):
-        address_appendix = hashlib.sha512(transaction.certificate_raw.encode('utf-8')).hexdigest()[:64]
-        address = self.make_address(address_appendix)
+        address = self.make_address_from_data(transaction.certificate_raw)
         stored_data = self.get_data(context, CertificateStorage, address)
         if transaction.type == CertificateTransaction.CREATE:
             return self._save_certificate(stored_data, signer_pubkey, transaction.certificate_raw,

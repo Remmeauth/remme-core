@@ -69,6 +69,10 @@ class BasicHandler(TransactionHandler):
                                 .format(self._prefix, appendix))
         return address
 
+    def make_address_from_data(self, data):
+        appendix = hashlib.sha512(data.encode('utf-8')).hexdigest()[:64]
+        return self.make_address(appendix)
+
     def get_data(self, context, pb_class, address):
         raw_data = context.get_state([address])
         if raw_data:
