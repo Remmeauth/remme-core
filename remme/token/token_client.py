@@ -15,6 +15,7 @@
 from remme.protos.token_pb2 import TokenPayload, Transfer
 from remme.protos import token_pb2
 from remme.shared.basic_client import BasicClient
+from remme.shared.exceptions import ClientException
 from remme.token.token_handler import TokenHandler
 from protobuf_to_dict import protobuf_to_dict
 

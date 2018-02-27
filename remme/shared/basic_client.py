@@ -65,6 +65,9 @@ class BasicClient:
     def make_address(self, pub_key):
         return self._family_handler.make_address(pub_key)
 
+    def is_address(self, address):
+        return self._family_handler.is_address(address)
+
     def list(self):
         result = self._send_request(
             "state?address={}".format(
@@ -132,6 +135,29 @@ class BasicClient:
 
         return result.text
 
+    def _make_batch_list(self, signer, payload, addresses_input_output):
+        header = TransactionHeader(
+            signer_public_key=signer.get_public_key().as_hex(),
+            family_name=self._family_handler.family_name,
+            family_version=self._family_handler.family_versions[-1],
+            inputs=addresses_input_output,
+            outputs=addresses_input_output,
+            dependencies=[],
+            payload_sha512=_sha512(payload),
+            batcher_public_key=signer.get_public_key().as_hex(),
+            nonce=time.time().hex().encode()
+        ).SerializeToString()
+
+        signature = signer.sign(header)
+
+        transaction = Transaction(
+            header=header,
+            payload=payload,
+            header_signature=signature
+        )
+
+        return self._sign_batch_list(signer, [transaction])
+
     def _send_transaction(self, method, payload, addresses_input_output, wait=None):
         '''
            Signs and sends transaction to the network using rest-api.
@@ -140,28 +166,11 @@ class BasicClient:
            :param dict data: Dictionary that is required by TP to process the transaction.
            :param str addresses_input_output: list of addresses(keys) for which to get and save state.
         '''
+        for address in addresses_input_output:
+            if not self.is_address(address):
+                raise ClientException('one of addresses_input_output {} is not an address'.format(addresses_input_output))
 
-        header = TransactionHeader(
-            signer_public_key=self._signer.get_public_key().as_hex(),
-            family_name=self._family_handler.family_name,
-            family_version=self._family_handler.family_versions[-1],
-            inputs=addresses_input_output,
-            outputs=addresses_input_output,
-            dependencies=[],
-            payload_sha512=_sha512(payload),
-            batcher_public_key=self._signer.get_public_key().as_hex(),
-            nonce=time.time().hex().encode()
-        ).SerializeToString()
-
-        signature = self._signer.sign(header)
-
-        transaction = Transaction(
-            header=header,
-            payload=payload,
-            header_signature=signature
-        )
-
-        batch_list = self._create_batch_list([transaction])
+        batch_list = self._make_batch_list(self._signer, payload, addresses_input_output)
         batch_id = batch_list.batches[0].header_signature
 
         if wait and wait > 0:
@@ -188,15 +197,15 @@ class BasicClient:
             'application/octet-stream',
         )
 
-    def _create_batch_list(self, transactions):
+    def _sign_batch_list(self, signer, transactions):
         transaction_signatures = [t.header_signature for t in transactions]
 
         header = BatchHeader(
-            signer_public_key=self._signer.get_public_key().as_hex(),
+            signer_public_key=signer.get_public_key().as_hex(),
             transaction_ids=transaction_signatures
         ).SerializeToString()
 
-        signature = self._signer.sign(header)
+        signature = signer.sign(header)
 
         batch = Batch(
             header=header,

@@ -89,7 +89,6 @@ class TokenCli(BasicCli):
         try:
             account = self.client.get_account(address=args.address)
             print("Balance: {}\n".format(account.balance))
-            # print(response)
         except KeyNotFound:
             print('Balance: 0 REM')
         except Exception as e:

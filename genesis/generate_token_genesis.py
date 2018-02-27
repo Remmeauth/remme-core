@@ -17,6 +17,7 @@ import argparse
 import hashlib
 import time
 from remme.protos.token_pb2 import Genesis, TokenPayload
+from remme.token.token_client import TokenClient
 from remme.token.token_handler import TokenHandler
 from sawtooth_sdk.protobuf.transaction_pb2 import Transaction
 from sawtooth_sdk.protobuf.transaction_pb2 import TransactionHeader
@@ -71,41 +72,11 @@ if __name__ == '__main__':
     zero_address = handler.namespaces[-1] + '0' * 64
     target_address = handler.make_address(signer.get_public_key().as_hex())
 
+    print('Issuing tokens to address {}'.format(target_address))
+
     addresses_input_output = [zero_address, target_address]
 
-    transaction_header = TransactionHeader(
-        signer_public_key=signer.get_public_key().as_hex(),
-        family_name=handler.family_name,
-        family_version=handler.family_versions[-1],
-        inputs=addresses_input_output,
-        outputs=addresses_input_output,
-        dependencies=[],
-        payload_sha512=_sha512(payload.SerializeToString()),
-        batcher_public_key=signer.get_public_key().as_hex(),
-        nonce=time.time().hex().encode()
-    ).SerializeToString()
-
-    transaction_signature = signer.sign(transaction_header)
-
-    transaction = Transaction(
-        header=transaction_header,
-        payload=payload.SerializeToString(),
-        header_signature=transaction_signature
-    )
-
-    batch_header = BatchHeader(
-        signer_public_key=signer.get_public_key().as_hex(),
-        transaction_ids=[transaction_signature]
-    ).SerializeToString()
-
-    batch_signature = signer.sign(batch_header)
-
-    batch = Batch(
-        header=batch_header,
-        transactions=[transaction],
-        header_signature=batch_signature)
-
-    batch_list = BatchList(batches=[batch])
+    batch_list = TokenClient()._make_batch_list(signer, payload, addresses_input_output)
 
     batch_file = open(OUTPUT_BATCH, 'wb')
     batch_file.write(batch_list.SerializeToString())
