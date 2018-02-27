@@ -44,6 +44,7 @@ if __name__ == '__main__':
     parser.add_argument('token_supply')
     args = parser.parse_args()
 
+    token_client = TokenClient()
     genesis = Genesis()
     genesis.total_supply = int(args.token_supply)
 
@@ -53,30 +54,14 @@ if __name__ == '__main__':
 
     handler = TokenHandler()
 
-    try:
-        with open(PRIV_KEY_FILE) as fd:
-            private_key_str = fd.read().strip()
-            fd.close()
-    except OSError as err:
-        raise ClientException(
-            'Failed to read private key: {}'.format(str(err)))
-
-    try:
-        private_key = Secp256k1PrivateKey.from_hex(private_key_str)
-    except ParseError as e:
-        raise ClientException(
-            'Unable to load private key: {}'.format(str(e)))
-
-    signer = CryptoFactory(create_context('secp256k1')).new_signer(private_key)
-
     zero_address = handler.namespaces[-1] + '0' * 64
-    target_address = handler.make_address(signer.get_public_key().as_hex())
+    target_address = handler.make_address(token_client.get_signer().get_public_key().as_hex())
 
     print('Issuing tokens to address {}'.format(target_address))
 
     addresses_input_output = [zero_address, target_address]
 
-    batch_list = TokenClient()._make_batch_list(signer, payload, addresses_input_output)
+    batch_list = TokenClient()._make_batch_list(payload, addresses_input_output)
 
     batch_file = open(OUTPUT_BATCH, 'wb')
     batch_file.write(batch_list.SerializeToString())

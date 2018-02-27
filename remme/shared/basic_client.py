@@ -88,6 +88,9 @@ class BasicClient:
         result = self._send_request("state/{}".format(key))
         return base64.b64decode(json.loads(result)['data'])
 
+    def get_signer(self):
+        return self._signer
+
     def _get_status(self, batch_id, wait):
         try:
             result = self._send_request(
@@ -135,7 +138,8 @@ class BasicClient:
 
         return result.text
 
-    def _make_batch_list(self, signer, payload, addresses_input_output):
+    def _make_batch_list(self, payload, addresses_input_output):
+        signer = self._signer
         header = TransactionHeader(
             signer_public_key=signer.get_public_key().as_hex(),
             family_name=self._family_handler.family_name,
@@ -170,7 +174,7 @@ class BasicClient:
             if not self.is_address(address):
                 raise ClientException('one of addresses_input_output {} is not an address'.format(addresses_input_output))
 
-        batch_list = self._make_batch_list(self._signer, payload, addresses_input_output)
+        batch_list = self._make_batch_list(payload, addresses_input_output)
         batch_id = batch_list.batches[0].header_signature
 
         if wait and wait > 0:
