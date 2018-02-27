@@ -14,27 +14,14 @@
 # ------------------------------------------------------------------------
 
 import argparse
-import hashlib
-import time
+
 from remme.protos.token_pb2 import Genesis, TokenPayload
 from remme.token.token_client import TokenClient
 from remme.token.token_handler import TokenHandler
-from sawtooth_sdk.protobuf.transaction_pb2 import Transaction
-from sawtooth_sdk.protobuf.transaction_pb2 import TransactionHeader
-from sawtooth_sdk.protobuf.batch_pb2 import Batch
-from sawtooth_sdk.protobuf.batch_pb2 import BatchHeader
-from sawtooth_sdk.protobuf.batch_pb2 import BatchList
-from remme.shared.exceptions import ClientException
-from sawtooth_signing import CryptoFactory
-from sawtooth_signing import ParseError
-from sawtooth_signing import create_context
-from sawtooth_signing.secp256k1 import Secp256k1PrivateKey
-from remme.settings import PUB_KEY_FILE, PRIV_KEY_FILE
 
 # HOW TO RUN
 # 1. In shell generate needed key `sawtooth keygen key`
 # 2. python3 genesis/generate_token_genesis.py <token supply>
-from remme.shared.basic_client import _sha512
 
 OUTPUT_SH = 'genesis/token-proposal.sh'
 OUTPUT_BATCH = '/root/genesis/token-proposal.batch'
@@ -54,14 +41,14 @@ if __name__ == '__main__':
 
     handler = TokenHandler()
 
-    zero_address = handler.namespaces[-1] + '0' * 64
-    target_address = handler.make_address(token_client.get_signer().get_public_key().as_hex())
+    zero_address = handler.make_address('0' * 64)
+    target_address = handler.make_address_from_data(token_client.get_signer().get_public_key().as_hex())
 
     print('Issuing tokens to address {}'.format(target_address))
 
     addresses_input_output = [zero_address, target_address]
 
-    batch_list = TokenClient()._make_batch_list(payload, addresses_input_output)
+    batch_list = TokenClient()._make_batch_list(payload.SerializeToString(), addresses_input_output)
 
     batch_file = open(OUTPUT_BATCH, 'wb')
     batch_file.write(batch_list.SerializeToString())
