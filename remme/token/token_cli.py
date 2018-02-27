@@ -22,6 +22,8 @@ from remme.shared.exceptions import CliException, KeyNotFound
 METHOD_TRANSFER = 'transfer'
 METHOD_BALANCE = 'balance'
 METHOD_ADDRESS = 'address'
+
+
 class TokenCli(BasicCli):
     def __init__(self):
         self.client = TokenClient()
@@ -78,14 +80,15 @@ class TokenCli(BasicCli):
             public_key = self.client._signer.get_public_key().as_hex()
         if not int(public_key, 16) or len(public_key) != 66:
             raise CliException('Please, make sure public key is a 66 digit hex number: {}'.format(public_key))
-        print(self.client.make_address(public_key))
+        print(self.client.make_address_from_data(public_key))
 
     def do_transfer(self, args):
         response = self.client.transfer(address_to=args.address_to, value=args.value)
         print(response)
+
     def do_balance(self, args):
         if args.address == 'me':
-            args.address = self.client.make_address(self.client._signer.get_public_key().as_hex())
+            args.address = self.client.make_address_from_data(self.client._signer.get_public_key().as_hex())
         try:
             account = self.client.get_account(address=args.address)
             print("Balance: {}\n".format(account.balance))
