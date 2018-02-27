@@ -52,8 +52,10 @@ class BasicHandler(TransactionHandler):
             signer=signer
         )
 
-    def process_apply(self, context, transaction):
-        updated_state = self.process_state(context, transaction.header.signer_public_key, transaction.payload)
+    def process_apply(self, context, pb_class, transaction):
+        transaction_payload = pb_class()
+        transaction.ParseFromString(transaction.payload)
+        updated_state = self.process_state(context, transaction.header.signer_public_key, transaction_payload)
         self._store_state(context, updated_state)
 
     def make_address(self, appendix):
@@ -67,19 +69,15 @@ class BasicHandler(TransactionHandler):
                                 .format(self._prefix, appendix))
         return address
 
-    def _get_state(self, context, address):
-        result = context.get_state([address])
-        if len(result) != 1:
-            return None
-        return result[0].data
-
-    def _get_data(self, context, pb_class, address):
-        raw_data = self._get_state(context, address)
+    def get_data(self, context, pb_class, address):
+        raw_data = context.get_state([address])
         if raw_data:
             try:
                 data = pb_class()
-                data.ParseFromString(raw_data)
+                data.ParseFromString(raw_data[0].data)
                 return data
+            except IndexError:
+                return None
             except ParseError:
                 raise InternalError('Failed to deserialize data')
         else:
