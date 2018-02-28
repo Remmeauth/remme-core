@@ -141,7 +141,8 @@ class BasicClient:
 
         return result.text
 
-    def _make_batch_list(self, payload, addresses_input_output):
+    def _make_batch_list(self, payload_pb, addresses_input_output):
+        payload = payload_pb.SerializeToString()
         signer = self._signer
         header = TransactionHeader(
             signer_public_key=signer.get_public_key().as_hex(),
@@ -165,7 +166,7 @@ class BasicClient:
 
         return self._sign_batch_list(signer, [transaction])
 
-    def _send_transaction(self, method, payload, addresses_input_output, wait=None):
+    def _send_transaction(self, payload_pb, addresses_input_output, wait=None):
         '''
            Signs and sends transaction to the network using rest-api.
 
@@ -177,7 +178,7 @@ class BasicClient:
             if not self.is_address(address):
                 raise ClientException('one of addresses_input_output {} is not an address'.format(addresses_input_output))
 
-        batch_list = self._make_batch_list(payload, addresses_input_output)
+        batch_list = self._make_batch_list(payload_pb, addresses_input_output)
         batch_id = batch_list.batches[0].header_signature
 
         if wait and wait > 0:

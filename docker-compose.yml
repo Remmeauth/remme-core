@@ -27,7 +27,7 @@ services:
     environment:
       - GENESIS=true
     volumes:
-      - ./genesis:/genesis
+      - ./remme/genesis:/genesis
       - ./keys:/root/.sawtooth/keys
     entrypoint: |
       bash -c "
@@ -81,7 +81,7 @@ services:
     depends_on:
       - rest-api
     volumes:
-      - ./genesis:/root/genesis
+      - ./remme/genesis:/root/genesis
       - ./keys:/root/.sawtooth/keys
       - .:/remme
       - ./bash/.bashrc:/root/.bashrc

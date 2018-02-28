@@ -26,6 +26,7 @@ from remme.shared.exceptions import CliException, ClientException
 
 DISTRIBUTION_NAME = 'sawtooth-intkey'
 
+
 class BasicCli:
     def create_console_handler(self, verbose_level):
         clog = logging.StreamHandler()
@@ -52,7 +53,6 @@ class BasicCli:
             clog.setLevel(logging.DEBUG)
 
         return clog
-
 
     def setup_loggers(self, verbose_level):
         logger = logging.getLogger()

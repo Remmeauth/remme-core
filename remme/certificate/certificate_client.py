@@ -27,7 +27,7 @@ class CertificateClient(BasicClient):
         addresses_input_output = []
         if extra_addresses_input_output:
             addresses_input_output += extra_addresses_input_output
-        return super()._send_transaction(method, data, addresses_input_output)
+        return super()._send_transaction(data, addresses_input_output)
 
     def register_certificate(self, certificate_raw, signature_rem, signature_crt):
         transaction = CertificateTransaction()
@@ -38,13 +38,13 @@ class CertificateClient(BasicClient):
         crt_address = self.make_address_from_data(certificate_raw)
         print('Certificate address', crt_address)
 
-        self._send_transaction(CertificateTransaction.CREATE, transaction.SerializeToString(), [crt_address])
+        self._send_transaction(CertificateTransaction.CREATE, transaction, [crt_address])
 
     def revoke_certificate(self, address):
         transaction = CertificateTransaction()
         transaction.type = CertificateTransaction.REVOKE
         transaction.address = address
-        self._send_transaction(CertificateTransaction.REVOKE, transaction.SerializeToString(), [address])
+        self._send_transaction(CertificateTransaction.REVOKE, transaction, [address])
 
     def get_signer_pubkey(self):
         return self._signer.get_public_key().as_hex()
