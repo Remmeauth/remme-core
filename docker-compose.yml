@@ -27,7 +27,7 @@ services:
     environment:
       - GENESIS=true
     volumes:
-      - ./remme/genesis:/genesis
+      - ./remme/genesis/batch:/genesis/batch
       - ./keys:/root/.sawtooth/keys
     entrypoint: |
       bash -c "
@@ -37,7 +37,7 @@ services:
           rm /var/lib/sawtooth/*
         fi
         sawset genesis -k /root/.sawtooth/keys/key.priv && \
-        sawadm genesis config-genesis.batch /genesis/token-proposal.batch && \
+        sawadm genesis config-genesis.batch /genesis/batch/token-proposal.batch && \
 
         sawtooth-validator -vv \
           --endpoint tcp://validator:8800 \

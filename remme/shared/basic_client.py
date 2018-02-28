@@ -71,22 +71,6 @@ class BasicClient:
     def is_address(self, address):
         return self._family_handler.is_address(address)
 
-    def list(self):
-        result = self._send_request(
-            "state?address={}".format(
-                self._get_prefix()))
-
-        try:
-            encoded_entries = yaml.safe_load(result)["data"]
-
-            return [
-                cbor.loads(base64.b64decode(entry["data"]))
-                for entry in encoded_entries
-            ]
-
-        except BaseException:
-            return None
-
     def get_value(self, key):
         result = self._send_request("state/{}".format(key))
         return base64.b64decode(json.loads(result)['data'])
@@ -166,7 +150,7 @@ class BasicClient:
 
         return self._sign_batch_list(signer, [transaction])
 
-    def _send_transaction(self, payload_pb, addresses_input_output, wait=None):
+    def _send_transaction(self, payload_pb, addresses_input_output):
         '''
            Signs and sends transaction to the network using rest-api.
 
@@ -179,26 +163,6 @@ class BasicClient:
                 raise ClientException('one of addresses_input_output {} is not an address'.format(addresses_input_output))
 
         batch_list = self._make_batch_list(payload_pb, addresses_input_output)
-        batch_id = batch_list.batches[0].header_signature
-
-        if wait and wait > 0:
-            wait_time = 0
-            start_time = time.time()
-            response = self._send_request(
-                "batches", batch_list.SerializeToString(),
-                'application/octet-stream',
-            )
-            while wait_time < wait:
-                status = self._get_status(
-                    batch_id,
-                    wait - int(wait_time),
-                )
-                wait_time = time.time() - start_time
-
-                if status != 'PENDING':
-                    return response
-
-            return response
 
         return self._send_request(
             "batches", batch_list.SerializeToString(),
