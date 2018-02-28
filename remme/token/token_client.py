@@ -25,11 +25,13 @@ class TokenClient(BasicClient):
     def __init__(self):
         super().__init__(TokenHandler)
 
-    def _send_transaction(self, method, data, extra_addresses_input_output):
+    def _send_transaction(self, method, data_pb, extra_addresses_input_output):
+        payload = TokenPayload()
+        payload.method = method
         addresses_input_output = [self.make_address_from_data(self._signer.get_public_key().as_hex())]
         if extra_addresses_input_output:
             addresses_input_output += extra_addresses_input_output
-        return super()._send_transaction(method, data, addresses_input_output)
+        return super()._send_transaction(data_pb, addresses_input_output)
 
     def transfer(self, address_to, value):
         extra_addresses_input_output = [address_to]
@@ -40,7 +42,7 @@ class TokenClient(BasicClient):
         payload = TokenPayload()
         payload.method = TokenPayload.TRANSFER
         payload.data = transfer.SerializeToString()
-        return self._send_transaction(TokenPayload.TRANSFER, payload.SerializeToString(), extra_addresses_input_output)
+        return self._send_transaction(TokenPayload.TRANSFER, transfer, extra_addresses_input_output)
 
     def get_account(self, address):
         account = Account()

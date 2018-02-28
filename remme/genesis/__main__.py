@@ -14,14 +14,9 @@
 # ------------------------------------------------------------------------
 
 import argparse
-
 from remme.protos.token_pb2 import Genesis, TokenPayload
 from remme.token.token_client import TokenClient
 from remme.token.token_handler import TokenHandler
-
-# HOW TO RUN
-# 1. In shell generate needed key `sawtooth keygen key`
-# 2. python3 genesis/generate_token_genesis.py <token supply>
 
 OUTPUT_SH = 'genesis/token-proposal.sh'
 OUTPUT_BATCH = '/root/genesis/token-proposal.batch'
@@ -43,12 +38,12 @@ if __name__ == '__main__':
 
     zero_address = handler.make_address('0' * 64)
     target_address = handler.make_address_from_data(token_client.get_signer().get_public_key().as_hex())
-
+    
     print('Issuing tokens to address {}'.format(target_address))
 
     addresses_input_output = [zero_address, target_address]
 
-    batch_list = TokenClient()._make_batch_list(payload.SerializeToString(), addresses_input_output)
+    batch_list = TokenClient()._make_batch_list(payload, addresses_input_output)
 
     batch_file = open(OUTPUT_BATCH, 'wb')
     batch_file.write(batch_list.SerializeToString())
