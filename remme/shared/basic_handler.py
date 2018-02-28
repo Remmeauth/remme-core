@@ -58,15 +58,19 @@ class BasicHandler(TransactionHandler):
         updated_state = self.process_state(context, transaction.header.signer_public_key, transaction_payload)
         self._store_state(context, updated_state)
 
-    def make_address(self, appendix):
-        address = self._prefix + appendix
+    def is_address(self, address):
         try:
             assert isinstance(address, str)
             assert len(address) == 70
             int(address, 16)
+            return True
         except (AssertionError, ValueError):
-            raise InternalError('Addresses should be 70 characters long. Prefix: {}. Appendix: {}.'
-                                .format(self._prefix, appendix))
+            return False
+
+    def make_address(self, appendix):
+        address = self._prefix + appendix
+        if not self.is_address(address):
+            raise InternalError('{} is not a valid address'.format(address))
         return address
 
     def make_address_from_data(self, data):
