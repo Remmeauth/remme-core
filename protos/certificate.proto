@@ -17,7 +17,7 @@ syntax = "proto3";
 
 message CertificateTransaction {
     enum Method {
-        CREATE = 0;
+        STORE = 0;
         REVOKE = 1;
     }
 

@@ -136,7 +136,7 @@ class CertificateCli(BasicCli):
             hashes.SHA256()
         )
 
-        self.client.register_certificate(crt_bin, rem_sig, crt_sig.hex())
+        self.client.store_certificate(crt_bin, rem_sig, crt_sig.hex())
 
     def run(self):
         commands = [{

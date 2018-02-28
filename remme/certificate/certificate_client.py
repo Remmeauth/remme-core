@@ -29,14 +29,14 @@ class CertificateClient(BasicClient):
         transaction.data = payload.SerializeToString()
         return super()._send_transaction(method, transaction.SerializeToString(), [crt_address])
 
-    def register_certificate(self, certificate_raw, signature_rem, signature_crt):
+    def store_certificate(self, certificate_raw, signature_rem, signature_crt):
         payload = NewCertificatePayload()
         payload.certificate_raw = certificate_raw
         payload.signature_rem = signature_rem
         payload.signature_crt = signature_crt
         crt_address = self.make_address_from_data(certificate_raw)
         print('Certificate address', crt_address)
-        self._send_transaction(CertificateTransaction.CREATE, payload, crt_address)
+        self._send_transaction(CertificateTransaction.STORE, payload, crt_address)
 
     def revoke_certificate(self, crt_address):
         payload = RevokeCertificatePayload()

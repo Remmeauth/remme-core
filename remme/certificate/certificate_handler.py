@@ -49,9 +49,9 @@ class CertificateHandler(BasicHandler):
 
     def process_state(self, context, signer_pubkey, transaction):
         processing = {
-            CertificateTransaction.CREATE: {
+            CertificateTransaction.STORE: {
                 'pb_class': NewCertificatePayload,
-                'processor': self._save_certificate
+                'processor': self._store_certificate
             },
             CertificateTransaction.REVOKE: {
                 'pb_class': RevokeCertificatePayload,
@@ -69,7 +69,7 @@ class CertificateHandler(BasicHandler):
         except ParseError:
             raise InvalidTransaction('Cannot decode transaction payload')
 
-    def _save_certificate(self, context, signer_pubkey, transaction_payload):
+    def _store_certificate(self, context, signer_pubkey, transaction_payload):
         address = self.make_address_from_data(transaction_payload.certificate_raw)
         data = self.get_data(context, CertificateStorage, address)
         if data:
