@@ -62,7 +62,7 @@ class CertificateHandler(BasicHandler):
         try:
             transaction_payload = processing[transaction.method]['pb_class']()
             transaction_payload.ParseFromString(transaction.payload)
-            processing[transaction.method]['processor'](context, signer_pubkey, transaction_payload)
+            return processing[transaction.method]['processor'](context, signer_pubkey, transaction_payload)
         except KeyError:
             raise InvalidTransaction('Unknown value {} for the certificate operation type.'.
                                      format(int(transaction.type)))
@@ -72,7 +72,7 @@ class CertificateHandler(BasicHandler):
     def _save_certificate(self, context, signer_pubkey, transaction_payload):
         address = self.make_address_from_data(transaction_payload.certificate_raw)
         data = self.get_data(context, CertificateStorage, address)
-        if data is not None:
+        if data:
             raise InvalidTransaction('This certificate is already registered.')
 
         certificate = x509.load_der_x509_certificate(bytes.fromhex(transaction_payload.certificate_raw),
@@ -87,7 +87,7 @@ class CertificateHandler(BasicHandler):
         except InvalidSignature:
             raise InvalidTransaction('signature_crt mismatch')
 
-        crt_hash = hashlib.sha512(transaction_payload.certificate_raw).hexdigest().encode('utf-8')
+        crt_hash = hashlib.sha512(transaction_payload.certificate_raw.encode('utf-8')).hexdigest().encode('utf-8')
         sawtooth_signing_ctx = Secp256k1Context()
         sawtooth_signing_pubkey = Secp256k1PublicKey.from_hex(signer_pubkey)
         sawtooth_signing_check_res = \

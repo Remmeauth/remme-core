@@ -31,7 +31,7 @@ class CertificateClient(BasicClient):
 
     def register_certificate(self, certificate_raw, signature_rem, signature_crt):
         payload = NewCertificatePayload()
-        payload.certificate_raw = certificate_raw.encode('utf-8')
+        payload.certificate_raw = certificate_raw
         payload.signature_rem = signature_rem
         payload.signature_crt = signature_crt
         crt_address = self.make_address_from_data(certificate_raw)

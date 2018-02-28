@@ -27,7 +27,7 @@ message CertificateTransaction {
 
 message NewCertificatePayload {
     // A raw certificate file in DER encoding.
-    bytes certificate_raw = 1;
+    string certificate_raw = 1;
     // SHA512 hash of certificate_raw signed by the user's private key on REMME
     // blockchain and then by the private key of the certificate. Needed to
     // verify, that the user actually owns the provided certificate.

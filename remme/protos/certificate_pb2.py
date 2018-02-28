@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='certificate.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\x11\x63\x65rtificate.proto\"{\n\x16\x43\x65rtificateTransaction\x12.\n\x06method\x18\x01 \x01(\x0e\x32\x1e.CertificateTransaction.Method\x12\x0f\n\x07payload\x18\x02 \x01(\x0c\" \n\x06Method\x12\n\n\x06\x43REATE\x10\x00\x12\n\n\x06REVOKE\x10\x01\"^\n\x15NewCertificatePayload\x12\x17\n\x0f\x63\x65rtificate_raw\x18\x01 \x01(\x0c\x12\x15\n\rsignature_rem\x18\x02 \x01(\t\x12\x15\n\rsignature_crt\x18\x03 \x01(\t\"+\n\x18RevokeCertificatePayload\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"B\n\x12\x43\x65rtificateStorage\x12\x0c\n\x04hash\x18\x01 \x01(\t\x12\r\n\x05owner\x18\x02 \x01(\t\x12\x0f\n\x07revoked\x18\x03 \x01(\x08\x62\x06proto3')
+  serialized_pb=_b('\n\x11\x63\x65rtificate.proto\"{\n\x16\x43\x65rtificateTransaction\x12.\n\x06method\x18\x01 \x01(\x0e\x32\x1e.CertificateTransaction.Method\x12\x0f\n\x07payload\x18\x02 \x01(\x0c\" \n\x06Method\x12\n\n\x06\x43REATE\x10\x00\x12\n\n\x06REVOKE\x10\x01\"^\n\x15NewCertificatePayload\x12\x17\n\x0f\x63\x65rtificate_raw\x18\x01 \x01(\t\x12\x15\n\rsignature_rem\x18\x02 \x01(\t\x12\x15\n\rsignature_crt\x18\x03 \x01(\t\"+\n\x18RevokeCertificatePayload\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"B\n\x12\x43\x65rtificateStorage\x12\x0c\n\x04hash\x18\x01 \x01(\t\x12\r\n\x05owner\x18\x02 \x01(\t\x12\x0f\n\x07revoked\x18\x03 \x01(\x08\x62\x06proto3')
 )
 
 
@@ -95,8 +95,8 @@ _NEWCERTIFICATEPAYLOAD = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='certificate_raw', full_name='NewCertificatePayload.certificate_raw', index=0,
-      number=1, type=12, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b(""),
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
