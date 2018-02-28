@@ -61,7 +61,7 @@ class CertificateHandler(BasicHandler):
 
         try:
             transaction_payload = processing[transaction.method]['pb_class']()
-            transaction_payload.ParseFromString(transaction.payload)
+            transaction_payload.ParseFromString(transaction.data)
             return processing[transaction.method]['processor'](context, signer_pubkey, transaction_payload)
         except KeyError:
             raise InvalidTransaction('Unknown value {} for the certificate operation type.'.

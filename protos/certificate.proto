@@ -22,7 +22,7 @@ message CertificateTransaction {
     }
 
     Method method = 1;
-    bytes payload = 2;
+    bytes data = 2;
 }
 
 message NewCertificatePayload {

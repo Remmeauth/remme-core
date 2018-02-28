@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='certificate.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\x11\x63\x65rtificate.proto\"{\n\x16\x43\x65rtificateTransaction\x12.\n\x06method\x18\x01 \x01(\x0e\x32\x1e.CertificateTransaction.Method\x12\x0f\n\x07payload\x18\x02 \x01(\x0c\" \n\x06Method\x12\n\n\x06\x43REATE\x10\x00\x12\n\n\x06REVOKE\x10\x01\"^\n\x15NewCertificatePayload\x12\x17\n\x0f\x63\x65rtificate_raw\x18\x01 \x01(\t\x12\x15\n\rsignature_rem\x18\x02 \x01(\t\x12\x15\n\rsignature_crt\x18\x03 \x01(\t\"+\n\x18RevokeCertificatePayload\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"B\n\x12\x43\x65rtificateStorage\x12\x0c\n\x04hash\x18\x01 \x01(\t\x12\r\n\x05owner\x18\x02 \x01(\t\x12\x0f\n\x07revoked\x18\x03 \x01(\x08\x62\x06proto3')
+  serialized_pb=_b('\n\x11\x63\x65rtificate.proto\"x\n\x16\x43\x65rtificateTransaction\x12.\n\x06method\x18\x01 \x01(\x0e\x32\x1e.CertificateTransaction.Method\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\" \n\x06Method\x12\n\n\x06\x43REATE\x10\x00\x12\n\n\x06REVOKE\x10\x01\"^\n\x15NewCertificatePayload\x12\x17\n\x0f\x63\x65rtificate_raw\x18\x01 \x01(\t\x12\x15\n\rsignature_rem\x18\x02 \x01(\t\x12\x15\n\rsignature_crt\x18\x03 \x01(\t\"+\n\x18RevokeCertificatePayload\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"B\n\x12\x43\x65rtificateStorage\x12\x0c\n\x04hash\x18\x01 \x01(\t\x12\r\n\x05owner\x18\x02 \x01(\t\x12\x0f\n\x07revoked\x18\x03 \x01(\x08\x62\x06proto3')
 )
 
 
@@ -41,8 +41,8 @@ _CERTIFICATETRANSACTION_METHOD = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=112,
-  serialized_end=144,
+  serialized_start=109,
+  serialized_end=141,
 )
 _sym_db.RegisterEnumDescriptor(_CERTIFICATETRANSACTION_METHOD)
 
@@ -62,7 +62,7 @@ _CERTIFICATETRANSACTION = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='payload', full_name='CertificateTransaction.payload', index=1,
+      name='data', full_name='CertificateTransaction.data', index=1,
       number=2, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
@@ -82,7 +82,7 @@ _CERTIFICATETRANSACTION = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=21,
-  serialized_end=144,
+  serialized_end=141,
 )
 
 
@@ -126,8 +126,8 @@ _NEWCERTIFICATEPAYLOAD = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=146,
-  serialized_end=240,
+  serialized_start=143,
+  serialized_end=237,
 )
 
 
@@ -157,8 +157,8 @@ _REVOKECERTIFICATEPAYLOAD = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=242,
-  serialized_end=285,
+  serialized_start=239,
+  serialized_end=282,
 )
 
 
@@ -202,8 +202,8 @@ _CERTIFICATESTORAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=287,
-  serialized_end=353,
+  serialized_start=284,
+  serialized_end=350,
 )
 
 _CERTIFICATETRANSACTION.fields_by_name['method'].enum_type = _CERTIFICATETRANSACTION_METHOD

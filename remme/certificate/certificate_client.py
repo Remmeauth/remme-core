@@ -26,7 +26,7 @@ class CertificateClient(BasicClient):
     def _send_transaction(self, method, payload, crt_address):
         transaction = CertificateTransaction()
         transaction.method = method
-        transaction.payload = payload.SerializeToString()
+        transaction.data = payload.SerializeToString()
         return super()._send_transaction(method, transaction.SerializeToString(), [crt_address])
 
     def register_certificate(self, certificate_raw, signature_rem, signature_crt):
