@@ -36,7 +36,7 @@ if __name__ == '__main__':
 
     handler = TokenHandler()
 
-    zero_address = handler.namespaces[-1] + '0' * 64
+    zero_address = handler.make_address('0' * 64)
     target_address = handler.make_address_from_data(token_client.get_signer().get_public_key().as_hex())
     
     print('Issuing tokens to address {}'.format(target_address))
