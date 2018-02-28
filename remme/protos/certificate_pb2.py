@@ -19,32 +19,32 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='certificate.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\x11\x63\x65rtificate.proto\"\xc6\x01\n\x16\x43\x65rtificateTransaction\x12/\n\x04type\x18\x01 \x01(\x0e\x32!.CertificateTransaction.Operation\x12\x17\n\x0f\x63\x65rtificate_raw\x18\x02 \x01(\t\x12\x15\n\rsignature_rem\x18\x03 \x01(\t\x12\x15\n\rsignature_crt\x18\x04 \x01(\t\x12\x0f\n\x07\x61\x64\x64ress\x18\x05 \x01(\t\"#\n\tOperation\x12\n\n\x06\x43REATE\x10\x00\x12\n\n\x06REVOKE\x10\x02\"B\n\x12\x43\x65rtificateStorage\x12\x0c\n\x04hash\x18\x01 \x01(\t\x12\r\n\x05owner\x18\x02 \x01(\t\x12\x0f\n\x07revoked\x18\x03 \x01(\x08\x62\x06proto3')
+  serialized_pb=_b('\n\x11\x63\x65rtificate.proto\"w\n\x16\x43\x65rtificateTransaction\x12.\n\x06method\x18\x01 \x01(\x0e\x32\x1e.CertificateTransaction.Method\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\"\x1f\n\x06Method\x12\t\n\x05STORE\x10\x00\x12\n\n\x06REVOKE\x10\x01\"^\n\x15NewCertificatePayload\x12\x17\n\x0f\x63\x65rtificate_raw\x18\x01 \x01(\t\x12\x15\n\rsignature_rem\x18\x02 \x01(\t\x12\x15\n\rsignature_crt\x18\x03 \x01(\t\"+\n\x18RevokeCertificatePayload\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"B\n\x12\x43\x65rtificateStorage\x12\x0c\n\x04hash\x18\x01 \x01(\t\x12\r\n\x05owner\x18\x02 \x01(\t\x12\x0f\n\x07revoked\x18\x03 \x01(\x08\x62\x06proto3')
 )
 
 
 
-_CERTIFICATETRANSACTION_OPERATION = _descriptor.EnumDescriptor(
-  name='Operation',
-  full_name='CertificateTransaction.Operation',
+_CERTIFICATETRANSACTION_METHOD = _descriptor.EnumDescriptor(
+  name='Method',
+  full_name='CertificateTransaction.Method',
   filename=None,
   file=DESCRIPTOR,
   values=[
     _descriptor.EnumValueDescriptor(
-      name='CREATE', index=0, number=0,
+      name='STORE', index=0, number=0,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='REVOKE', index=1, number=2,
+      name='REVOKE', index=1, number=1,
       options=None,
       type=None),
   ],
   containing_type=None,
   options=None,
-  serialized_start=185,
-  serialized_end=220,
+  serialized_start=109,
+  serialized_end=140,
 )
-_sym_db.RegisterEnumDescriptor(_CERTIFICATETRANSACTION_OPERATION)
+_sym_db.RegisterEnumDescriptor(_CERTIFICATETRANSACTION_METHOD)
 
 
 _CERTIFICATETRANSACTION = _descriptor.Descriptor(
@@ -55,36 +55,61 @@ _CERTIFICATETRANSACTION = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='type', full_name='CertificateTransaction.type', index=0,
+      name='method', full_name='CertificateTransaction.method', index=0,
       number=1, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='certificate_raw', full_name='CertificateTransaction.certificate_raw', index=1,
+      name='data', full_name='CertificateTransaction.data', index=1,
+      number=2, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+    _CERTIFICATETRANSACTION_METHOD,
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=21,
+  serialized_end=140,
+)
+
+
+_NEWCERTIFICATEPAYLOAD = _descriptor.Descriptor(
+  name='NewCertificatePayload',
+  full_name='NewCertificatePayload',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='certificate_raw', full_name='NewCertificatePayload.certificate_raw', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='signature_rem', full_name='NewCertificatePayload.signature_rem', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='signature_rem', full_name='CertificateTransaction.signature_rem', index=2,
+      name='signature_crt', full_name='NewCertificatePayload.signature_crt', index=2,
       number=3, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='signature_crt', full_name='CertificateTransaction.signature_crt', index=3,
-      number=4, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='address', full_name='CertificateTransaction.address', index=4,
-      number=5, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -94,7 +119,6 @@ _CERTIFICATETRANSACTION = _descriptor.Descriptor(
   ],
   nested_types=[],
   enum_types=[
-    _CERTIFICATETRANSACTION_OPERATION,
   ],
   options=None,
   is_extendable=False,
@@ -102,8 +126,39 @@ _CERTIFICATETRANSACTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=22,
-  serialized_end=220,
+  serialized_start=142,
+  serialized_end=236,
+)
+
+
+_REVOKECERTIFICATEPAYLOAD = _descriptor.Descriptor(
+  name='RevokeCertificatePayload',
+  full_name='RevokeCertificatePayload',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='address', full_name='RevokeCertificatePayload.address', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=238,
+  serialized_end=281,
 )
 
 
@@ -147,13 +202,15 @@ _CERTIFICATESTORAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=222,
-  serialized_end=288,
+  serialized_start=283,
+  serialized_end=349,
 )
 
-_CERTIFICATETRANSACTION.fields_by_name['type'].enum_type = _CERTIFICATETRANSACTION_OPERATION
-_CERTIFICATETRANSACTION_OPERATION.containing_type = _CERTIFICATETRANSACTION
+_CERTIFICATETRANSACTION.fields_by_name['method'].enum_type = _CERTIFICATETRANSACTION_METHOD
+_CERTIFICATETRANSACTION_METHOD.containing_type = _CERTIFICATETRANSACTION
 DESCRIPTOR.message_types_by_name['CertificateTransaction'] = _CERTIFICATETRANSACTION
+DESCRIPTOR.message_types_by_name['NewCertificatePayload'] = _NEWCERTIFICATEPAYLOAD
+DESCRIPTOR.message_types_by_name['RevokeCertificatePayload'] = _REVOKECERTIFICATEPAYLOAD
 DESCRIPTOR.message_types_by_name['CertificateStorage'] = _CERTIFICATESTORAGE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -163,6 +220,20 @@ CertificateTransaction = _reflection.GeneratedProtocolMessageType('CertificateTr
   # @@protoc_insertion_point(class_scope:CertificateTransaction)
   ))
 _sym_db.RegisterMessage(CertificateTransaction)
+
+NewCertificatePayload = _reflection.GeneratedProtocolMessageType('NewCertificatePayload', (_message.Message,), dict(
+  DESCRIPTOR = _NEWCERTIFICATEPAYLOAD,
+  __module__ = 'certificate_pb2'
+  # @@protoc_insertion_point(class_scope:NewCertificatePayload)
+  ))
+_sym_db.RegisterMessage(NewCertificatePayload)
+
+RevokeCertificatePayload = _reflection.GeneratedProtocolMessageType('RevokeCertificatePayload', (_message.Message,), dict(
+  DESCRIPTOR = _REVOKECERTIFICATEPAYLOAD,
+  __module__ = 'certificate_pb2'
+  # @@protoc_insertion_point(class_scope:RevokeCertificatePayload)
+  ))
+_sym_db.RegisterMessage(RevokeCertificatePayload)
 
 CertificateStorage = _reflection.GeneratedProtocolMessageType('CertificateStorage', (_message.Message,), dict(
   DESCRIPTOR = _CERTIFICATESTORAGE,
