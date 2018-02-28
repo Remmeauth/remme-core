@@ -4,4 +4,4 @@ keys/
 *.pyc
 *.DS_Store
 remme/genesis/data
-remme/genesis/token-proposal.batch
+remme/genesis/batch/token-proposal.batch
