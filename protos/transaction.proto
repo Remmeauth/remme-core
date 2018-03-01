@@ -15,27 +15,7 @@
 
 syntax = "proto3";
 
-message TokenMethod {
-    enum Method {
-        TRANSFER = 0;
-        GENESIS = 1;
-    }
-}
-
-
-message Account {
-    uint64 balance = 1;
-}
-
-message Transfer {
-    string address_to = 1;
-    uint64 value = 2;
-}
-
-message Genesis {
-    uint64 total_supply = 1;
-}
-
-message GenesisStatus {
-    bool status = 1;
+message TransactionPayload {
+    uint32 method = 1;
+    bytes data = 2;
 }

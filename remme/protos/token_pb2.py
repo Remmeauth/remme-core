@@ -19,14 +19,14 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='token.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\x0btoken.proto\"g\n\x0cTokenPayload\x12$\n\x06method\x18\x01 \x01(\x0e\x32\x14.TokenPayload.Method\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\"#\n\x06Method\x12\x0c\n\x08TRANSFER\x10\x00\x12\x0b\n\x07GENESIS\x10\x01\"\x1a\n\x07\x41\x63\x63ount\x12\x0f\n\x07\x62\x61lance\x18\x01 \x01(\x04\"-\n\x08Transfer\x12\x12\n\naddress_to\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x04\"\x1f\n\x07Genesis\x12\x14\n\x0ctotal_supply\x18\x01 \x01(\x04\"\x1f\n\rGenesisStatus\x12\x0e\n\x06status\x18\x01 \x01(\x08\x62\x06proto3')
+  serialized_pb=_b('\n\x0btoken.proto\"2\n\x0bTokenMethod\"#\n\x06Method\x12\x0c\n\x08TRANSFER\x10\x00\x12\x0b\n\x07GENESIS\x10\x01\"\x1a\n\x07\x41\x63\x63ount\x12\x0f\n\x07\x62\x61lance\x18\x01 \x01(\x04\"-\n\x08Transfer\x12\x12\n\naddress_to\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x04\"\x1f\n\x07Genesis\x12\x14\n\x0ctotal_supply\x18\x01 \x01(\x04\"\x1f\n\rGenesisStatus\x12\x0e\n\x06status\x18\x01 \x01(\x08\x62\x06proto3')
 )
 
 
 
-_TOKENPAYLOAD_METHOD = _descriptor.EnumDescriptor(
+_TOKENMETHOD_METHOD = _descriptor.EnumDescriptor(
   name='Method',
-  full_name='TokenPayload.Method',
+  full_name='TokenMethod.Method',
   filename=None,
   file=DESCRIPTOR,
   values=[
@@ -41,39 +41,25 @@ _TOKENPAYLOAD_METHOD = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=83,
-  serialized_end=118,
+  serialized_start=30,
+  serialized_end=65,
 )
-_sym_db.RegisterEnumDescriptor(_TOKENPAYLOAD_METHOD)
+_sym_db.RegisterEnumDescriptor(_TOKENMETHOD_METHOD)
 
 
-_TOKENPAYLOAD = _descriptor.Descriptor(
-  name='TokenPayload',
-  full_name='TokenPayload',
+_TOKENMETHOD = _descriptor.Descriptor(
+  name='TokenMethod',
+  full_name='TokenMethod',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
-    _descriptor.FieldDescriptor(
-      name='method', full_name='TokenPayload.method', index=0,
-      number=1, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='data', full_name='TokenPayload.data', index=1,
-      number=2, type=12, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b(""),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
-    _TOKENPAYLOAD_METHOD,
+    _TOKENMETHOD_METHOD,
   ],
   options=None,
   is_extendable=False,
@@ -82,7 +68,7 @@ _TOKENPAYLOAD = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=15,
-  serialized_end=118,
+  serialized_end=65,
 )
 
 
@@ -112,8 +98,8 @@ _ACCOUNT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=120,
-  serialized_end=146,
+  serialized_start=67,
+  serialized_end=93,
 )
 
 
@@ -150,8 +136,8 @@ _TRANSFER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=148,
-  serialized_end=193,
+  serialized_start=95,
+  serialized_end=140,
 )
 
 
@@ -181,8 +167,8 @@ _GENESIS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=195,
-  serialized_end=226,
+  serialized_start=142,
+  serialized_end=173,
 )
 
 
@@ -212,25 +198,24 @@ _GENESISSTATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=228,
-  serialized_end=259,
+  serialized_start=175,
+  serialized_end=206,
 )
 
-_TOKENPAYLOAD.fields_by_name['method'].enum_type = _TOKENPAYLOAD_METHOD
-_TOKENPAYLOAD_METHOD.containing_type = _TOKENPAYLOAD
-DESCRIPTOR.message_types_by_name['TokenPayload'] = _TOKENPAYLOAD
+_TOKENMETHOD_METHOD.containing_type = _TOKENMETHOD
+DESCRIPTOR.message_types_by_name['TokenMethod'] = _TOKENMETHOD
 DESCRIPTOR.message_types_by_name['Account'] = _ACCOUNT
 DESCRIPTOR.message_types_by_name['Transfer'] = _TRANSFER
 DESCRIPTOR.message_types_by_name['Genesis'] = _GENESIS
 DESCRIPTOR.message_types_by_name['GenesisStatus'] = _GENESISSTATUS
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
-TokenPayload = _reflection.GeneratedProtocolMessageType('TokenPayload', (_message.Message,), dict(
-  DESCRIPTOR = _TOKENPAYLOAD,
+TokenMethod = _reflection.GeneratedProtocolMessageType('TokenMethod', (_message.Message,), dict(
+  DESCRIPTOR = _TOKENMETHOD,
   __module__ = 'token_pb2'
-  # @@protoc_insertion_point(class_scope:TokenPayload)
+  # @@protoc_insertion_point(class_scope:TokenMethod)
   ))
-_sym_db.RegisterMessage(TokenPayload)
+_sym_db.RegisterMessage(TokenMethod)
 
 Account = _reflection.GeneratedProtocolMessageType('Account', (_message.Message,), dict(
   DESCRIPTOR = _ACCOUNT,

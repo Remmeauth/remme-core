@@ -23,13 +23,14 @@ import cbor
 
 class HelperTestCase(TransactionProcessorTestCase):
     @classmethod
-    def setUpClass(cls, factory):
+    def setUpClass(cls, factory, pb_payload_class):
         super().setUpClass()
         url = 'tcp://eth0:4004'
 
         cls.validator = MockValidator()
         cls.validator.listen(url)
         cls._factory = factory
+        cls._pb_payload_class = pb_payload_class
 
     @classmethod
     def tearDownClass(cls):
@@ -47,10 +48,12 @@ class HelperTestCase(TransactionProcessorTestCase):
     def _dumps(self, obj):
         return cbor.dumps(obj, sort_keys=True)
 
-    def send_transaction(self, method, data, address_access_list):
-        payload = self._dumps({'method': method, 'data': data})
+    def send_transaction(self, method, pb_data, address_access_list):
+        payload_pb = self._pb_payload_class()
+        payload_pb.method = method
+        payload_pb.data = pb_data.SerializeToString()
         self.validator.send(
-            self._factory.create_transaction(payload, address_access_list, address_access_list, [])
+            self._factory.create_transaction(payload_pb.SerializeToString(), address_access_list, address_access_list, [])
         )
 
     def expect_ok(self):

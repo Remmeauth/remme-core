@@ -19,6 +19,8 @@ from sawtooth_processor_test.message_factory import MessageFactory
 from sawtooth_sdk.processor.exceptions import InternalError
 from sawtooth_sdk.processor.handler import TransactionHandler
 
+from remme.protos.transaction_pb2 import TransactionPayload
+
 
 class BasicHandler(TransactionHandler):
     def __init__(self, name, versions):
@@ -52,8 +54,9 @@ class BasicHandler(TransactionHandler):
             signer=signer
         )
 
-    def process_apply(self, context, pb_class, transaction):
-        transaction_payload = pb_class()
+    # Called by TransactionProcessor
+    def apply(self, transaction, context):
+        transaction_payload = TransactionPayload()
         transaction_payload.ParseFromString(transaction.payload)
         updated_state = self.process_state(context, transaction.header.signer_public_key, transaction_payload)
         self._store_state(context, updated_state)

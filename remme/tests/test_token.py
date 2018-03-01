@@ -26,12 +26,14 @@ class TokenTestCase(HelperTestCase):
     def setUpClass(cls):
         account_signer1 = cls.get_new_signer()
         cls.token_handler = TokenHandler()
-        super().setUpClass(cls.token_handler.get_message_factory(account_signer1))
-        cls.account_address1 = cls.token_handler.make_address(account_signer1.get_public_key().as_hex()[:64])
+        super().setUpClass(cls.token_handler.get_message_factory(account_signer1), )
+
+        cls.account_address1 = cls.token_handler.make_address(account_signer1.get_public_key().as_hex())
         account_signer2 = cls.get_new_signer()
-        cls.account_address2 = cls.token_handler.make_address(account_signer2.get_public_key().as_hex()[:64])
+        cls.account_address2 = cls.token_handler.make_address(account_signer2.get_public_key().as_hex())
 
     def test_transfer(self):
+        self.send_transaction()
         transfer = Transfer()
         transfer.address_to = self.account_address2
         transfer.amount = 200
