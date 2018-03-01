@@ -23,12 +23,13 @@ from remme.shared.logging import setup_logging
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Transaction processor.')
     parser.add_argument('endpoint')
+    parser.add_argument('-v', '--verbosity', type=int, default=2)
     args = parser.parse_args()
     processor = TransactionProcessor(url=args.endpoint)
     processor.add_handler(TokenHandler())
     processor.add_handler(CertificateHandler())
     try:
-        setup_logging('remme')
+        setup_logging('remme', args.verbosity)
         processor.start()
     except KeyboardInterrupt:
         pass
