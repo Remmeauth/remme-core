@@ -25,6 +25,9 @@ shell:
 test:
 	docker-compose -f docker-compose.test.yml up --abort-on-container-exit
 
+reload_module:
+	pip3 install --upgrade /remme
+
 build_protobuf:
 	protoc -I=$(PROTO_SRC_DIR) --python_out=$(PROTO_DST_DIR) $(PROTO_SRC_DIR)/*.proto
 

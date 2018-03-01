@@ -19,7 +19,7 @@ from remme.token.token_client import TokenClient
 from remme.token.token_handler import TokenHandler
 
 OUTPUT_SH = 'genesis/token-proposal.sh'
-OUTPUT_BATCH = '/root/genesis/token-proposal.batch'
+OUTPUT_BATCH = '/root/genesis/batch/token-proposal.batch'
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='File with a public key to assign initial supply.')
