@@ -30,6 +30,8 @@ from remme.shared.basic_handler import BasicHandler
 from remme.protos.certificate_pb2 import CertificateStorage, CertificateTransaction, \
     NewCertificatePayload, RevokeCertificatePayload
 
+LOGGER = logging.getLogger(__name__)
+
 FAMILY_NAME = 'certificate'
 FAMILY_VERSIONS = ['0.1']
 
@@ -117,6 +119,8 @@ class CertificateHandler(BasicHandler):
         data.owner = signer_pubkey
         data.revoked = False
 
+        LOGGER.info('Registered a new certificate on address {}. Fingerprint: {}'.format(address, fingerprint))
+
         return {address: data}
 
     def _revoke_certificate(self, context, signer_pubkey, transaction_payload):
@@ -128,5 +132,7 @@ class CertificateHandler(BasicHandler):
         if data.revoked:
             raise InvalidTransaction('The certificate is already revoked.')
         data.revoked = True
+
+        LOGGER.info('Revoked the certificate on address {}'.format(transaction_payload.address))
 
         return {transaction_payload.address: data}
