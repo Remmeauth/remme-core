@@ -30,8 +30,6 @@ from remme.shared.basic_handler import BasicHandler
 from remme.protos.certificate_pb2 import CertificateStorage, CertificateTransaction, \
     NewCertificatePayload, RevokeCertificatePayload
 
-LOGGER = logging.getLogger(__name__)
-
 FAMILY_NAME = 'certificate'
 FAMILY_VERSIONS = ['0.1']
 
@@ -42,7 +40,6 @@ CERT_MAX_VALIDITY = datetime.timedelta(365)
 class CertificateHandler(BasicHandler):
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
-        LOGGER.info('Started certificates operations transactions handler.')
 
     def apply(self, transaction, context):
         super().process_apply(context, CertificateTransaction, transaction)
