@@ -28,7 +28,7 @@ if __name__ == '__main__':
     processor.add_handler(TokenHandler())
     processor.add_handler(CertificateHandler())
     try:
-        setup_logging('remme-' + str(processor.zmq_id)[2:-1])
+        setup_logging('remme')
         processor.start()
     except KeyboardInterrupt:
         pass

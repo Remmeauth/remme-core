@@ -15,10 +15,20 @@
 
 from sawtooth_sdk.processor.log import init_console_logging
 from sawtooth_sdk.processor.log import log_configuration
+from sawtooth_sdk.processor.config import get_log_config
 from sawtooth_sdk.processor.config import get_log_dir
 
 
-def setup_logging(name, verbosity=6):
-    log_dir = get_log_dir()
-    log_configuration(log_dir=log_dir, name=name)
+def setup_logging(name, verbosity=2):
+    log_config = get_log_config(filename='{}_log_config.toml'.format(name))
+
+    if log_config is None:
+        log_config = get_log_config(filename='{}_log_config.yaml'.format(name))
+
+    if log_config is not None:
+        log_configuration(log_config=log_config)
+    else:
+        log_dir = get_log_dir()
+        log_configuration(log_dir=log_dir, name=name)
+
     init_console_logging(verbose_level=verbosity)
