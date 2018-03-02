@@ -26,3 +26,19 @@ jobs:
       - run:
           name: Run tests
           command: make test
+  deploy:
+    machine:
+      docker_layer_caching: true
+    steps:
+      - checkout
+      - run:
+          name: Build Docker images
+          command: make build_docker
+      - run:
+          name: Push to Docker
+          command: |
+            docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD && \
+            docker tag remme/remme-core:latest remme/remme-core:$CIRCLE_TAG && \
+            docker tag remme/remme-core-dev:latest remme/remme-core-dev:$CIRCLE_TAG && \
+            docker push remme/remme-core && \
+            docker push remme/remme-core-dev
