@@ -23,7 +23,7 @@ WORKDIR /root
 COPY ./requirements.txt .
 RUN pip3 install -r ./requirements.txt
 
-FROM remme/remme-dev:latest AS production
+FROM remme/remme-core-dev:latest AS production
 WORKDIR /root
 RUN mkdir remme
 COPY . ./remme

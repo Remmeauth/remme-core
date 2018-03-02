@@ -35,9 +35,9 @@ build_protobuf:
 	protoc -I=$(PROTO_SRC_DIR) --python_out=$(PROTO_DST_DIR) $(PROTO_SRC_DIR)/*.proto
 
 build_docker:
-	docker build --target development --tag remme/remme-dev:latest .
-	docker build --target production --tag remme/remme:latest .
+	docker build --target development --tag remme/remme-core-dev:latest .
+	docker build --target production --tag remme/remme-core:latest .
 
 rebuild_docker:
-	docker build --target development --tag remme/remme-dev:latest --no-cache .
-	docker build --target production --tag remme/remme:latest --no-cache .
+	docker build --target development --tag remme/remme-core-dev:latest --no-cache .
+	docker build --target production --tag remme/remme-core:latest --no-cache .

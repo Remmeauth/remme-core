@@ -46,7 +46,7 @@ services:
       "
 
   remme-transaction-processor:
-    image: remme/remme-dev:latest
+    image: remme/remme-core-dev:latest
     volumes:
       - .:/root/remme
     entrypoint: |
@@ -75,7 +75,7 @@ services:
         --bind rest-api:8008
 
   shell:
-    image: remme/remme-dev:latest
+    image: remme/remme-core-dev:latest
     depends_on:
       - rest-api
     volumes:

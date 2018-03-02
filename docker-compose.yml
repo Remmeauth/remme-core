@@ -46,7 +46,7 @@ services:
       "
 
   remme-transaction-processor:
-    image: remme/remme:latest
+    image: remme/remme-core:latest
     entrypoint: python3 -m remme tcp://validator:4004
 
   settings-tp:
@@ -69,7 +69,7 @@ services:
         --bind rest-api:8008
 
   shell:
-    image: remme/remme:latest
+    image: remme/remme-core:latest
     depends_on:
       - rest-api
     volumes:

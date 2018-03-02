@@ -17,7 +17,7 @@ version: '2.1'
 
 services:
   tests:
-    image: remme/remme-dev:latest
+    image: remme/remme-core-dev:latest
     expose:
       - 4004
     volumes:
@@ -34,7 +34,7 @@ services:
       TEST_BIND: "tcp://eth0:4004"
 
   remme-transaction-processor:
-    image: remme/remme-dev:latest
+    image: remme/remme-core-dev:latest
     volumes:
       - .:/root/remme
     entrypoint: |
