@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------
-from remme.protos.token_pb2 import Transfer, Genesis, TokenMethod
+from remme.protos.token_pb2 import TokenMethod, GenesisPayload, TransferPayload
 from remme.shared.basic_client import BasicClient
 from remme.token.token_handler import TokenHandler
 
@@ -30,14 +30,14 @@ class TokenClient(BasicClient):
         return super()._send_transaction(method, data_pb, addresses_input_output)
 
     def get_transfer_payload(self, address_to, value):
-        transfer = Transfer()
+        transfer = TransferPayload()
         transfer.address_to = address_to
         transfer.value = value
 
         return transfer
 
     def get_genesis_payload(self, total_supply):
-        genesis = Genesis()
+        genesis = GenesisPayload()
         genesis.total_supply = int(total_supply)
 
         return genesis

@@ -14,21 +14,12 @@
 # ------------------------------------------------------------------------
 
 import argparse
-from remme.protos.token_pb2 import Genesis, TokenPayload
+from remme.protos.token_pb2 import GenesisPayload
 from remme.token.token_client import TokenClient
-from remme.token.token_handler import TokenHandler
+from remme.token.token_handler import TokenHandler, TransactionPayload
 
 OUTPUT_SH = 'genesis/token-proposal.sh'
 OUTPUT_BATCH = '/root/genesis/batch/token-proposal.batch'
-
-
-def create_genesis_payload(total_supply):
-    genesis = Genesis()
-    genesis.total_supply = int(total_supply)
-
-
-
-    return payload
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='File with a public key to assign initial supply.')
@@ -45,11 +36,11 @@ if __name__ == '__main__':
 
     addresses_input_output = [zero_address, target_address]
 
-    payload = TokenPayload()
+    payload = TransactionPayload()
     payload.method = TokenPayload.GENESIS
     payload.data = token_client.get_genesis_payload(args.token_supply).SerializeToString()
 
-    batch_list = TokenClient()._make_batch_list(payload.SerializeToString(), addresses_input_output)
+    batch_list = TokenClient().make_batch_list(payload.SerializeToString(), addresses_input_output)
 
     batch_file = open(OUTPUT_BATCH, 'wb')
     batch_file.write(batch_list.SerializeToString())

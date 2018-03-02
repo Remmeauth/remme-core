@@ -22,6 +22,7 @@ services:
       - 4004
     volumes:
       - .:/root/remme
+      - ./keys:/root/.sawtooth/keys
     entrypoint: |
       bash -c "
         pip3 install --upgrade /root/remme && \

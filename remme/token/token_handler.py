@@ -17,7 +17,8 @@ import logging
 from google.protobuf.text_format import ParseError
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
-from remme.protos.token_pb2 import Account, Transfer, Genesis, GenesisStatus, TokenMethod
+from remme.protos.token_pb2 import Account, GenesisStatus, TokenMethod, GenesisPayload, \
+    TransferPayload
 from remme.shared.basic_handler import *
 
 LOGGER = logging.getLogger(__name__)
@@ -38,10 +39,10 @@ class TokenHandler(BasicHandler):
         process_transaction = None
         data_payload = None
         if payload.method == TokenMethod.TRANSFER:
-            data_payload = Transfer()
+            data_payload = TransferPayload()
             process_transaction = self.transfer
         elif payload.method == TokenMethod.GENESIS:
-            data_payload = Genesis()
+            data_payload = GenesisPayload()
             process_transaction = self.genesis
 
         if not process_transaction or not data_payload:

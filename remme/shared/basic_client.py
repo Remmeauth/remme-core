@@ -40,6 +40,7 @@ from remme.shared.exceptions import KeyNotFound
 def _sha512(data):
     return hashlib.sha512(data).hexdigest()
 
+
 class BasicClient:
     def __init__(self, family_handler, keyfile=PRIV_KEY_FILE):
         self.url = REST_API_URL
@@ -125,7 +126,7 @@ class BasicClient:
 
         return result.text
 
-    def _make_batch_list(self, payload_pb, addresses_input_output):
+    def make_batch_list(self, payload_pb, addresses_input_output):
         payload = payload_pb.SerializeToString()
         signer = self._signer
         header = TransactionHeader(
@@ -166,7 +167,7 @@ class BasicClient:
             if not self.is_address(address):
                 raise ClientException('one of addresses_input_output {} is not an address'.format(addresses_input_output))
 
-        batch_list = self._make_batch_list(payload, addresses_input_output)
+        batch_list = self.make_batch_list(payload, addresses_input_output)
 
         return self._send_request(
             "batches", batch_list.SerializeToString(),

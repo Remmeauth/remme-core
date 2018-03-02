@@ -22,18 +22,17 @@ message TokenMethod {
     }
 }
 
-
-message Account {
-    uint64 balance = 1;
-}
-
-message Transfer {
+message TransferPayload {
     string address_to = 1;
     uint64 value = 2;
 }
 
-message Genesis {
+message GenesisPayload {
     uint64 total_supply = 1;
+}
+
+message Account {
+    uint64 balance = 1;
 }
 
 message GenesisStatus {
