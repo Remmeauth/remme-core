@@ -13,9 +13,7 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-from protobuf_to_dict import protobuf_to_dict
-
-from remme.protos.token_pb2 import TokenMethod, GenesisStatus, Account, TransferPayload
+from remme.protos.token_pb2 import TokenMethod, GenesisStatus, Account
 from remme.tests.test_helper import HelperTestCase
 from remme.token.token_client import TokenClient
 from remme.token.token_handler import ZERO_ADDRESS, TokenHandler
