@@ -17,15 +17,14 @@ version: '2.1'
 
 services:
   tests:
-    build:
-      context: .
+    image: remme/remme-dev:latest
     expose:
       - 4004
     volumes:
-      - .:/remme
+      - .:/root/remme
     entrypoint: |
       bash -c "
-        pip3 install --upgrade /remme && \
+        pip3 install --upgrade /root/remme && \
         python3 -m remme.tests
       "
     stop_signal: SIGKILL
@@ -35,12 +34,11 @@ services:
       TEST_BIND: "tcp://eth0:4004"
 
   remme-transaction-processor:
-    build:
-      context: .
+    image: remme/remme-dev:latest
     volumes:
-      - .:/remme
+      - .:/root/remme
     entrypoint: |
       bash -c "
-        pip3 install --upgrade /remme && \
+        pip3 install --upgrade /root/remme && \
         python3 -m remme tcp://tests:4004
       "

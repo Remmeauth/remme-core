@@ -13,12 +13,18 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-FROM ubuntu:xenial
-
+FROM ubuntu:xenial AS development
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 8AA7AF1F1091A5FD && \
     echo "deb http://repo.sawtooth.me/ubuntu/1.0/stable xenial universe" >> /etc/apt/sources.list && \
     apt-get update && \
-    apt-get install -y sawtooth
-RUN apt-get install -y python3-pip
-COPY requirements.txt /root
-RUN pip3 install -r /root/requirements.txt
+    apt-get install -y sawtooth && \
+    apt-get install -y python3-pip
+WORKDIR /root
+COPY ./requirements.txt .
+RUN pip3 install -r ./requirements.txt
+
+FROM remme/remme-dev:latest AS production
+WORKDIR /root
+RUN mkdir remme
+COPY . ./remme
+RUN pip3 install ./remme

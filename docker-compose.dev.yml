@@ -46,10 +46,14 @@ services:
       "
 
   remme-transaction-processor:
-    image: remme/remme:latest
+    image: remme/remme-dev:latest
     volumes:
       - .:/root/remme
-    entrypoint: python3 -m remme tcp://validator:4004
+    entrypoint: |
+      bash -c "
+        pip3 install --upgrade /root/remme && \
+        python3 -m remme tcp://validator:4004
+      "
 
   settings-tp:
     image: hyperledger/sawtooth-settings-tp:1.0
@@ -71,7 +75,7 @@ services:
         --bind rest-api:8008
 
   shell:
-    image: remme/remme:latest
+    image: remme/remme-dev:latest
     depends_on:
       - rest-api
     volumes:
@@ -86,5 +90,6 @@ services:
         if [ ! -f /root/.sawtooth/keys/root.priv ]; then
           sawtooth keygen
         fi;
+        pip3 install --upgrade /root/remme && \
         tail -f /dev/null
       "

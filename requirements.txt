@@ -1,5 +1,3 @@
-cbor
 colorlog
 sawtooth-sdk
 sawtooth-signing
-protobuf3_to_dict
