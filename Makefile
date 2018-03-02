@@ -19,6 +19,9 @@ PROTO_DST_DIR = ./remme/protos
 run:
 	docker-compose up
 
+run_dev:
+	docker-compose up -f docker-compose.dev.yml
+
 shell:
 	docker exec -it $(shell docker-compose ps -q shell) bash
 
@@ -32,9 +35,9 @@ build_protobuf:
 	protoc -I=$(PROTO_SRC_DIR) --python_out=$(PROTO_DST_DIR) $(PROTO_SRC_DIR)/*.proto
 
 build_docker:
-	docker-compose build
-	docker-compose -f docker-compose.test.yml build
+	docker build --target development --tag remme/remme-core-dev:latest .
+	docker build --target production --tag remme/remme-core:latest .
 
 rebuild_docker:
-	docker-compose build --no-cache
-	docker-compose -f docker-compose.test.yml build --no-cache
+	docker build --target development --tag remme/remme-core-dev:latest --no-cache .
+	docker build --target production --tag remme/remme-core:latest --no-cache .
