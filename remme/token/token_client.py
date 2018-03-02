@@ -29,6 +29,7 @@ class TokenClient(BasicClient):
             addresses_input_output += extra_addresses_input_output
         return super()._send_transaction(method, data_pb, addresses_input_output)
 
+    @classmethod
     def get_transfer_payload(self, address_to, value):
         transfer = TransferPayload()
         transfer.address_to = address_to
@@ -36,6 +37,7 @@ class TokenClient(BasicClient):
 
         return transfer
 
+    @classmethod
     def get_genesis_payload(self, total_supply):
         genesis = GenesisPayload()
         genesis.total_supply = int(total_supply)

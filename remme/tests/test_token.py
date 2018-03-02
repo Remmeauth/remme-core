@@ -24,13 +24,12 @@ class TokenTestCase(HelperTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass(TokenHandler)
-        cls.token_client = TokenClient()
 
     def test_empty_genesis(self):
         TOTAL_SUPPLY = 10000
         zero_address = self.handler.make_address(ZERO_ADDRESS)
 
-        self.send_transaction(TokenMethod.GENESIS, self.token_client.get_genesis_payload(TOTAL_SUPPLY),
+        self.send_transaction(TokenMethod.GENESIS, TokenClient.get_genesis_payload(TOTAL_SUPPLY),
                               self.account_address1)
 
         self.expect_get({self.account_address1: None})

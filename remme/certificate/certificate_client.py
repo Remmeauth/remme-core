@@ -23,6 +23,7 @@ class CertificateClient(BasicClient):
     def __init__(self):
         super().__init__(CertificateHandler)
 
+    @classmethod
     def get_new_certificate_payload(self, certificate_raw, signature_rem, signature_crt):
         payload = NewCertificatePayload()
         payload.certificate_raw = certificate_raw
@@ -31,6 +32,7 @@ class CertificateClient(BasicClient):
 
         return payload
 
+    @classmethod
     def get_revoke_payload(self, crt_address):
         payload = RevokeCertificatePayload()
         payload.address = crt_address
