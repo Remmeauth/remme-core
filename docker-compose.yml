@@ -47,8 +47,6 @@ services:
 
   remme-transaction-processor:
     image: remme/remme:latest
-    volumes:
-      - .:/root/remme
     entrypoint: python3 -m remme tcp://validator:4004
 
   settings-tp:
@@ -77,7 +75,6 @@ services:
     volumes:
       - ./remme/genesis:/root/genesis
       - ./keys:/root/.sawtooth/keys
-      - .:/root/remme
       - ./bash/.bashrc:/root/.bashrc
     stdin_open: true
     tty: true
