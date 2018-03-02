@@ -27,7 +27,7 @@ class CertificateClient(BasicClient):
         transaction = CertificateTransaction()
         transaction.method = method
         transaction.data = payload.SerializeToString()
-        return super()._send_transaction(method, transaction.SerializeToString(), [crt_address])
+        return super()._send_transaction(transaction, [crt_address])
 
     def store_certificate(self, certificate_raw, signature_rem, signature_crt):
         payload = NewCertificatePayload()

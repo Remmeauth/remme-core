@@ -13,26 +13,23 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-import os
-import sys
-import logging
 import argparse
 from sawtooth_sdk.processor.core import TransactionProcessor
 from remme.certificate.certificate_handler import CertificateHandler
 from remme.token.token_handler import TokenHandler
+from remme.shared.logging import setup_logging
 
-LOGGER = logging.getLogger(__name__)
 
-# TODO: maybe add some logging
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Transaction processor.')
     parser.add_argument('endpoint')
+    parser.add_argument('-v', '--verbosity', type=int, default=2)
     args = parser.parse_args()
-    LOGGER.info('Starting up')
     processor = TransactionProcessor(url=args.endpoint)
     processor.add_handler(TokenHandler())
     processor.add_handler(CertificateHandler())
     try:
+        setup_logging('remme', args.verbosity)
         processor.start()
     except KeyboardInterrupt:
         pass

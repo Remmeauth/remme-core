@@ -42,7 +42,6 @@ CERT_MAX_VALIDITY = datetime.timedelta(365)
 class CertificateHandler(BasicHandler):
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
-        LOGGER.info('Started certificates operations transactions handler.')
 
     def apply(self, transaction, context):
         super().process_apply(context, CertificateTransaction, transaction)
@@ -120,6 +119,8 @@ class CertificateHandler(BasicHandler):
         data.owner = signer_pubkey
         data.revoked = False
 
+        LOGGER.info('Registered a new certificate on address {}. Fingerprint: {}'.format(address, fingerprint))
+
         return {address: data}
 
     def _revoke_certificate(self, context, signer_pubkey, transaction_payload):
@@ -131,5 +132,7 @@ class CertificateHandler(BasicHandler):
         if data.revoked:
             raise InvalidTransaction('The certificate is already revoked.')
         data.revoked = True
+
+        LOGGER.info('Revoked the certificate on address {}'.format(transaction_payload.address))
 
         return {transaction_payload.address: data}

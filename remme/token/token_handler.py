@@ -13,11 +13,14 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
+import logging
 from google.protobuf.text_format import ParseError
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
 from remme.protos.token_pb2 import Account, Transfer, TokenPayload, Genesis, GenesisStatus
 from remme.shared.basic_handler import *
+
+LOGGER = logging.getLogger(__name__)
 
 ZERO_ADDRESS = '0' * 64
 
@@ -66,6 +69,8 @@ class TokenHandler(BasicHandler):
         genesis_status.status = True
         account = Account()
         account.balance = data_payload.total_supply
+        LOGGER.info('Generated genesis transaction. Emmitted {} tokens to address {}'
+                    .format(data_payload.total_supply, signer))
         return {
             signer: account,
             self.zero_address: genesis_status
@@ -82,6 +87,10 @@ class TokenHandler(BasicHandler):
 
         receiver_account.balance += params.value
         signer_account.balance -= params.value
+
+        LOGGER.info('Transferred {} tokens from {} to {}'.format(params.value,
+                                                                 receiver_account.balance,
+                                                                 signer_account.balance))
 
         return {
             signer_address: signer_account,
