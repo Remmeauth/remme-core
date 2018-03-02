@@ -25,24 +25,28 @@ from remme.token.token_handler import ZERO_ADDRESS, TokenHandler
 class TokenTestCase(HelperTestCase):
     @classmethod
     def setUpClass(cls):
-        print('setUpClass')
         super().setUpClass(TokenHandler)
         cls.token_client = TokenClient()
 
     def test_empty_genesis(self):
         TOTAL_SUPPLY = 10000
         zero_address = self.handler.make_address(ZERO_ADDRESS)
+
         self.send_transaction(TokenMethod.GENESIS, self.token_client.get_genesis_payload(TOTAL_SUPPLY),
                               self.account_address1)
-        print(zero_address)
-        self.expect_tps()
+
+        self.expect_get({self.account_address1: None})
         self.expect_get({zero_address: None})
+
         genesis_status = GenesisStatus()
         genesis_status.status = True
         account = Account()
         account.balance = TOTAL_SUPPLY
-        self.expect_set(self.account_address1, account)
-        self.expect_set(zero_address, genesis_status)
+
+        self.expect_set({
+            self.account_address1: account,
+            zero_address: genesis_status
+        })
 
     def test_transfer(self):
         pass

@@ -43,8 +43,8 @@ class CertificateHandler(BasicHandler):
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
 
-    def process_state(self, context, signer_pubkey, transaction):
-        processing = {
+    def get_state_processor(self):
+        return {
             CertificateMethod.STORE: {
                 'pb_class': NewCertificatePayload,
                 'processor': self._store_certificate
@@ -54,16 +54,6 @@ class CertificateHandler(BasicHandler):
                 'processor': self._revoke_certificate
             }
         }
-
-        try:
-            transaction_payload = processing[transaction.method]['pb_class']()
-            transaction_payload.ParseFromString(transaction.data)
-            return processing[transaction.method]['processor'](context, signer_pubkey, transaction_payload)
-        except KeyError:
-            raise InvalidTransaction('Unknown value {} for the certificate operation type.'.
-                                     format(int(transaction.type)))
-        except ParseError:
-            raise InvalidTransaction('Cannot decode transaction payload')
 
     def _store_certificate(self, context, signer_pubkey, transaction_payload):
         address = self.make_address_from_data(transaction_payload.certificate_raw)

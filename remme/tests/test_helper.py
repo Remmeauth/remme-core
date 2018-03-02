@@ -13,13 +13,12 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-from sawtooth_processor_test.transaction_processor_test_case \
-    import TransactionProcessorTestCase
 from sawtooth_signing import create_context
 from sawtooth_signing import CryptoFactory
 
 from remme.certificate.certificate_handler import CertificateHandler
 from remme.protos.transaction_pb2 import TransactionPayload
+from remme.tests.tp_test_case import TransactionProcessorTestCase
 from remme.token.token_handler import TokenHandler
 
 HANDLERS = [TokenHandler, CertificateHandler]
@@ -39,25 +38,10 @@ class HelperTestCase(TransactionProcessorTestCase):
         cls._factory = cls.handler.get_message_factory(account_signer1)
 
     @classmethod
-    def tearDownClass(cls):
-        try:
-            cls.validator.close()
-        except AttributeError:
-            pass
-
-    @classmethod
     def get_new_signer(cls):
         context = create_context('secp256k1')
         return CryptoFactory(context).new_signer(
             context.new_random_private_key())
-
-    def expect_tps(self):
-        for handler_class in HANDLERS[1:2]:
-            print('expect')
-            self.validator.expect(handler_class().get_message_factory(self.get_new_signer()).create_tp_register())
-            print('success')
-
-
 
     def send_transaction(self, method, pb_data, address_access_list):
         payload_pb = TransactionPayload()
@@ -76,7 +60,9 @@ class HelperTestCase(TransactionProcessorTestCase):
 
     def expect_set(self, key_value):
         received = self.validator.expect(
-            self._factory.create_set_request([address for address, _ in key_value.items()]))
+            self._factory.create_set_request({key: value_pb.SerializeToString()
+                                              for key, value_pb in key_value.items()}))
+
         print('sending set response...')
         self.validator.respond(
             self._factory.create_set_response(key_value), received)
