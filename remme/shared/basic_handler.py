@@ -18,6 +18,9 @@ from google.protobuf.text_format import ParseError
 from sawtooth_processor_test.message_factory import MessageFactory
 from sawtooth_sdk.processor.exceptions import InternalError
 from sawtooth_sdk.processor.handler import TransactionHandler
+from sawtooth_sdk.processor.exceptions import InvalidTransaction
+
+from remme.protos.transaction_pb2 import TransactionPayload
 
 
 class BasicHandler(TransactionHandler):
@@ -38,11 +41,8 @@ class BasicHandler(TransactionHandler):
     def namespaces(self):
         return [self._prefix]
 
-    def apply(self, transaction, context):
-        raise InternalError('No implementation for `apply`')
-
-    def process_state(self, context, signer_pubkey, transaction_payload):
-        raise InternalError('No implementation for `process_state`')
+    def get_state_processor(self):
+        raise InternalError('No implementation for `get_state_processor`')
 
     def get_message_factory(self, signer=None):
         return MessageFactory(
@@ -52,11 +52,26 @@ class BasicHandler(TransactionHandler):
             signer=signer
         )
 
-    def process_apply(self, context, pb_class, transaction):
-        transaction_payload = pb_class()
-        transaction_payload.ParseFromString(transaction.payload)
-        updated_state = self.process_state(context, transaction.header.signer_public_key, transaction_payload)
+    # Called by TransactionProcessor
+    def apply(self, transaction, context):
+        updated_state = self.process_transaction(context, transaction)
         self._store_state(context, updated_state)
+
+    def process_transaction(self, context, transaction):
+        transaction_payload = TransactionPayload()
+        transaction_payload.ParseFromString(transaction.payload)
+
+        state_processor = self.get_state_processor()
+        try:
+            data_pb = state_processor[transaction_payload.method]['pb_class']()
+            data_pb.ParseFromString(transaction_payload.data)
+            return state_processor[transaction_payload.method]['processor'](context, transaction.header.signer_public_key,
+                                                                    data_pb)
+        except KeyError:
+            raise InvalidTransaction('Unknown value {} for the certificate operation type.'.
+                                     format(int(transaction_payload.method)))
+        except ParseError:
+            raise InvalidTransaction('Cannot decode transaction payload')
 
     def is_address(self, address):
         try:

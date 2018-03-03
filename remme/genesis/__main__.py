@@ -14,9 +14,9 @@
 # ------------------------------------------------------------------------
 
 import argparse
-from remme.protos.token_pb2 import Genesis, TokenPayload
+from remme.protos.token_pb2 import GenesisPayload
 from remme.token.token_client import TokenClient
-from remme.token.token_handler import TokenHandler
+from remme.token.token_handler import TokenHandler, TransactionPayload
 
 OUTPUT_SH = 'genesis/token-proposal.sh'
 OUTPUT_BATCH = '/root/genesis/batch/token-proposal.batch'
@@ -27,23 +27,20 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     token_client = TokenClient()
-    genesis = Genesis()
-    genesis.total_supply = int(args.token_supply)
+    token_handler = TokenHandler()
 
-    payload = TokenPayload()
-    payload.method = TokenPayload.GENESIS
-    payload.data = genesis.SerializeToString()
-
-    handler = TokenHandler()
-
-    zero_address = handler.make_address('0' * 64)
-    target_address = handler.make_address_from_data(token_client.get_signer().get_public_key().as_hex())
+    zero_address = token_handler.make_address('0' * 64)
+    target_address = token_handler.make_address_from_data(token_client.get_signer().get_public_key().as_hex())
     
     print('Issuing tokens to address {}'.format(target_address))
 
     addresses_input_output = [zero_address, target_address]
 
-    batch_list = TokenClient()._make_batch_list(payload, addresses_input_output)
+    payload = TransactionPayload()
+    payload.method = TokenPayload.GENESIS
+    payload.data = token_client.get_genesis_payload(args.token_supply).SerializeToString()
+
+    batch_list = TokenClient().make_batch_list(payload.SerializeToString(), addresses_input_output)
 
     batch_file = open(OUTPUT_BATCH, 'wb')
     batch_file.write(batch_list.SerializeToString())

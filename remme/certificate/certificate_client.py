@@ -13,8 +13,8 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-from remme.protos.certificate_pb2 import CertificateTransaction, CertificateStorage, \
-                                         NewCertificatePayload, RevokeCertificatePayload
+from remme.protos.certificate_pb2 import CertificateStorage, \
+    NewCertificatePayload, RevokeCertificatePayload, CertificateMethod
 from remme.shared.basic_client import BasicClient
 from remme.certificate.certificate_handler import CertificateHandler
 
@@ -23,25 +23,31 @@ class CertificateClient(BasicClient):
     def __init__(self):
         super().__init__(CertificateHandler)
 
-    def _send_transaction(self, method, payload, crt_address):
-        transaction = CertificateTransaction()
-        transaction.method = method
-        transaction.data = payload.SerializeToString()
-        return super()._send_transaction(transaction, [crt_address])
-
-    def store_certificate(self, certificate_raw, signature_rem, signature_crt):
+    @classmethod
+    def get_new_certificate_payload(self, certificate_raw, signature_rem, signature_crt):
         payload = NewCertificatePayload()
         payload.certificate_raw = certificate_raw
         payload.signature_rem = signature_rem
         payload.signature_crt = signature_crt
-        crt_address = self.make_address_from_data(certificate_raw)
-        print('Certificate address', crt_address)
-        self._send_transaction(CertificateTransaction.STORE, payload, crt_address)
 
-    def revoke_certificate(self, crt_address):
+        return payload
+
+    @classmethod
+    def get_revoke_payload(self, crt_address):
         payload = RevokeCertificatePayload()
         payload.address = crt_address
-        self._send_transaction(CertificateTransaction.REVOKE, payload, crt_address)
+
+        return payload
+
+    def store_certificate(self, certificate_raw, signature_rem, signature_crt):
+        payload = self.get_new_certificate_payload(certificate_raw, signature_rem, signature_crt)
+        crt_address = self.make_address_from_data(certificate_raw)
+        print('Certificate address', crt_address)
+        self._send_transaction(CertificateMethod.STORE, payload, [crt_address])
+
+    def revoke_certificate(self, crt_address):
+        payload = self.get_revoke_payload(crt_address)
+        self._send_transaction(CertificateMethod.REVOKE, payload, [crt_address])
 
     def get_signer_pubkey(self):
         return self._signer.get_public_key().as_hex()

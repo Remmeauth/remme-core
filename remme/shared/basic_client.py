@@ -18,7 +18,6 @@ import hashlib
 import time
 import json
 
-import cbor
 import requests
 import yaml
 from sawtooth_sdk.protobuf.batch_pb2 import Batch
@@ -31,6 +30,7 @@ from sawtooth_signing import ParseError
 from sawtooth_signing import create_context
 from sawtooth_signing.secp256k1 import Secp256k1PrivateKey
 
+from remme.protos.transaction_pb2 import TransactionPayload
 from remme.settings import REST_API_URL, PRIV_KEY_FILE
 from remme.shared.exceptions import ClientException
 
@@ -39,6 +39,7 @@ from remme.shared.exceptions import KeyNotFound
 
 def _sha512(data):
     return hashlib.sha512(data).hexdigest()
+
 
 class BasicClient:
     def __init__(self, family_handler, keyfile=PRIV_KEY_FILE):
@@ -125,7 +126,7 @@ class BasicClient:
 
         return result.text
 
-    def _make_batch_list(self, payload_pb, addresses_input_output):
+    def make_batch_list(self, payload_pb, addresses_input_output):
         payload = payload_pb.SerializeToString()
         signer = self._signer
         header = TransactionHeader(
@@ -150,7 +151,7 @@ class BasicClient:
 
         return self._sign_batch_list(signer, [transaction])
 
-    def _send_transaction(self, payload_pb, addresses_input_output):
+    def _send_transaction(self, method, data_pb, addresses_input_output):
         '''
            Signs and sends transaction to the network using rest-api.
 
@@ -158,11 +159,15 @@ class BasicClient:
            :param dict data: Dictionary that is required by TP to process the transaction.
            :param str addresses_input_output: list of addresses(keys) for which to get and save state.
         '''
+        payload = TransactionPayload()
+        payload.method = method
+        payload.data = data_pb.SerializeToString()
+
         for address in addresses_input_output:
             if not self.is_address(address):
                 raise ClientException('one of addresses_input_output {} is not an address'.format(addresses_input_output))
 
-        batch_list = self._make_batch_list(payload_pb, addresses_input_output)
+        batch_list = self.make_batch_list(payload, addresses_input_output)
 
         return self._send_request(
             "batches", batch_list.SerializeToString(),

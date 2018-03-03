@@ -15,14 +15,11 @@
 
 syntax = "proto3";
 
-message CertificateTransaction {
+message CertificateMethod {
     enum Method {
         STORE = 0;
         REVOKE = 1;
     }
-
-    Method method = 1;
-    bytes data = 2;
 }
 
 message NewCertificatePayload {

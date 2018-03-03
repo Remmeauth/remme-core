@@ -13,26 +13,38 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-from protobuf_to_dict import protobuf_to_dict
-
-from remme.protos.token_pb2 import Transfer
+from remme.protos.token_pb2 import TokenMethod, GenesisStatus, Account
 from remme.tests.test_helper import HelperTestCase
-from remme.token.token_handler import TokenHandler
+from remme.token.token_client import TokenClient
+from remme.token.token_handler import ZERO_ADDRESS, TokenHandler
 
 
 # TODO update tests to correspond the new API
 class TokenTestCase(HelperTestCase):
     @classmethod
     def setUpClass(cls):
-        account_signer1 = cls.get_new_signer()
-        cls.token_handler = TokenHandler()
-        super().setUpClass(cls.token_handler.get_message_factory(account_signer1))
-        cls.account_address1 = cls.token_handler.make_address(account_signer1.get_public_key().as_hex()[:64])
-        account_signer2 = cls.get_new_signer()
-        cls.account_address2 = cls.token_handler.make_address(account_signer2.get_public_key().as_hex()[:64])
+        super().setUpClass(TokenHandler)
+
+    def test_empty_genesis(self):
+        TOTAL_SUPPLY = 10000
+        zero_address = self.handler.make_address(ZERO_ADDRESS)
+
+        self.send_transaction(TokenMethod.GENESIS, TokenClient.get_genesis_payload(TOTAL_SUPPLY),
+                              self.account_address1)
+
+        self.expect_get({self.account_address1: None})
+        self.expect_get({zero_address: None})
+
+        genesis_status = GenesisStatus()
+        genesis_status.status = True
+        account = Account()
+        account.balance = TOTAL_SUPPLY
+
+        self.expect_set({
+            self.account_address1: account,
+            zero_address: genesis_status
+        })
 
     def test_transfer(self):
-        transfer = Transfer()
-        transfer.address_to = self.account_address2
-        transfer.amount = 200
+        pass
         # TODO: new test logic

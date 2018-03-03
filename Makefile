@@ -20,7 +20,7 @@ run:
 	docker-compose up
 
 run_dev:
-	docker-compose up -f docker-compose.dev.yml
+	docker-compose -f docker-compose.dev.yml up
 
 shell:
 	docker exec -it $(shell docker-compose ps -q shell) bash

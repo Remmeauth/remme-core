@@ -17,7 +17,8 @@ import logging
 from google.protobuf.text_format import ParseError
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
-from remme.protos.token_pb2 import Account, Transfer, TokenPayload, Genesis, GenesisStatus
+from remme.protos.token_pb2 import Account, GenesisStatus, TokenMethod, GenesisPayload, \
+    TransferPayload
 from remme.shared.basic_handler import *
 
 LOGGER = logging.getLogger(__name__)
@@ -28,39 +29,32 @@ FAMILY_NAME = 'token'
 FAMILY_VERSIONS = ['0.1']
 
 
-# TODO: ensure receiver_account.balance += params.amount is within uint64
+# TODO: ensure receiver_account.balance += transfer_payload.amount is within uint64
 class TokenHandler(BasicHandler):
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
         self.zero_address = self.make_address(ZERO_ADDRESS)
 
-    def apply(self, transaction, context):
-        super().process_apply(context, TokenPayload, transaction)
+    def get_state_processor(self):
+        return {
+            TokenMethod.TRANSFER: {
+                'pb_class': TransferPayload,
+                'processor': self._transfer
+            },
+            TokenMethod.GENESIS: {
+                'pb_class': GenesisPayload,
+                'processor': self._genesis
+            }
+        }
 
-    def process_state(self, context, signer_pubkey, payload):
-        process_transaction = None
-        data_payload = None
-        if payload.method == TokenPayload.TRANSFER:
-            data_payload = Transfer()
-            process_transaction = self.transfer
-        elif payload.method == TokenPayload.GENESIS:
-            data_payload = Genesis()
-            process_transaction = self.genesis
-
-        if not process_transaction or not data_payload:
-            raise InvalidTransaction("Not a valid transaction method {}".format(payload.method))
-
-        try:
-            data_payload.ParseFromString(payload.data)
-        except ParseError:
-            raise InvalidTransaction("Invalid data serialization for method {}".format(payload.method))
-
-        address = self.make_address_from_data(signer_pubkey)
+    def _get_account_by_pub_key(self, context, pub_key):
+        address = self.make_address_from_data(pub_key)
         account = self.get_data(context, Account, address)
 
-        return process_transaction(context, address, account, data_payload)
+        return (address, account)
 
-    def genesis(self, context, signer, signer_account, data_payload):
+    def _genesis(self, context, pub_key, genesis_payload):
+        (signer_key, account) = self._get_account_by_pub_key(context, pub_key)
         genesis_status = self.get_data(context, GenesisStatus, self.zero_address)
         if not genesis_status:
             genesis_status = GenesisStatus()
@@ -68,31 +62,37 @@ class TokenHandler(BasicHandler):
             raise InvalidTransaction('Genesis is already initialized.')
         genesis_status.status = True
         account = Account()
-        account.balance = data_payload.total_supply
+        account.balance = genesis_payload.total_supply
         LOGGER.info('Generated genesis transaction. Emmitted {} tokens to address {}'
-                    .format(data_payload.total_supply, signer))
+                    .format(genesis_payload.total_supply, signer_key))
         return {
-            signer: account,
+            signer_key: account,
             self.zero_address: genesis_status
         }
 
-    def transfer(self, context, signer_address, signer_account, params):
-        receiver_account = self.get_data(context, Account, params.address_to)
+    def _transfer(self, context, pub_key, transfer_payload):
+        (signer_key, signer_account) = self._get_account_by_pub_key(context, pub_key)
+
+        if signer_key == transfer_payload.address_to:
+            raise InvalidTransaction("Account cannot sent tokens to itself.")
+
+        receiver_account = self.get_data(context, Account, transfer_payload.address_to)
+
         if not receiver_account:
             receiver_account = Account()
 
-        if signer_account.balance < params.value:
+        if signer_account.balance < transfer_payload.value:
             raise InvalidTransaction("Not enough transferable balance. Signer's current balance: {}"
                                      .format(signer_account.balance))
 
-        receiver_account.balance += params.value
-        signer_account.balance -= params.value
+        receiver_account.balance += transfer_payload.value
+        signer_account.balance -= transfer_payload.value
 
-        LOGGER.info('Transferred {} tokens from {} to {}'.format(params.value,
+        LOGGER.info('Transferred {} tokens from {} to {}'.format(transfer_payload.value,
                                                                  receiver_account.balance,
                                                                  signer_account.balance))
 
         return {
-            signer_address: signer_account,
-            params.address_to: receiver_account
+            signer_key: signer_account,
+            transfer_payload.address_to: receiver_account
         }
