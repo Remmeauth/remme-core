@@ -1,5 +1,8 @@
 # REMME Core 0.1.0-alpha
 
+[![CircleCI](https://img.shields.io/circleci/project/github/Remmeauth/remme-core.svg)](https://circleci.com/gh/Remmeauth/remme-core)
+[![Docker Stars](https://img.shields.io/docker/stars/remme/remme-core.svg)](https://hub.docker.com/r/remme/remme-core/)
+
 **This is alpha version! It is not suitable for any use in production and is intended to demonstrate capabilities of Hyperledger Sawtooth in the scope of REMME.**
 
 The first release of REMME Core 0.1.0 alpha laid the foundation for the REMME protocol:
