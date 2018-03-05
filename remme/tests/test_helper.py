@@ -52,6 +52,7 @@ class HelperTestCase(TransactionProcessorTestCase):
         LOGGER.info('expect_get: {}'.format(key_value))
         received = self.validator.expect(
             self._factory.create_get_request([address for address, _ in key_value.items()]))
+        LOGGER.info('expect_get create_get_response')
 
         self.validator.respond(
             self._factory.create_get_response({key: value_pb.SerializeToString()
