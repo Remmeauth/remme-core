@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------
-from remme.protos.token_pb2 import TokenPayload, Transfer
-from remme.protos import token_pb2
+
+import json
+
+from remme.protos.token_pb2 import TokenMethod, GenesisPayload, TransferPayload
 from remme.shared.basic_client import BasicClient
 from remme.token.token_handler import TokenHandler
-from protobuf_to_dict import protobuf_to_dict
 
 from remme.protos.token_pb2 import Account
 
@@ -25,25 +26,43 @@ class TokenClient(BasicClient):
     def __init__(self):
         super().__init__(TokenHandler)
 
-    def _send_transaction(self, method, data, extra_addresses_input_output):
-        addresses_input_output = [self.make_address(self._signer.get_public_key().as_hex())]
+    def _send_transaction(self, method, data_pb, extra_addresses_input_output):
+        addresses_input_output = [self.make_address_from_data(self._signer.get_public_key().as_hex())]
         if extra_addresses_input_output:
             addresses_input_output += extra_addresses_input_output
-        return super()._send_transaction(method, data, addresses_input_output)
+        return super()._send_transaction(method, data_pb, addresses_input_output)
+
+    @classmethod
+    def get_transfer_payload(self, address_to, value):
+        transfer = TransferPayload()
+        transfer.address_to = address_to
+        transfer.value = value
+
+        return transfer
+
+    @classmethod
+    def get_genesis_payload(self, total_supply):
+        genesis = GenesisPayload()
+        genesis.total_supply = int(total_supply)
+
+        return genesis
+
+    @classmethod
+    def get_account_model(self, balance):
+        account = Account()
+        account.balance = int(balance)
+
+        return account
 
     def transfer(self, address_to, value):
         extra_addresses_input_output = [address_to]
+        transfer = self.get_transfer_payload(address_to, value)
 
-        transfer = Transfer()
-        transfer.address_to = address_to
-        transfer.value = value
-        payload = TokenPayload()
-        payload.method = TokenPayload.TRANSFER
-        payload.data = transfer.SerializeToString()
-        return self._send_transaction(TokenPayload.TRANSFER, payload.SerializeToString(), extra_addresses_input_output)
+        status = self._send_transaction(TokenMethod.TRANSFER, transfer, extra_addresses_input_output)
+
+        return json.loads(status)
 
     def get_account(self, address):
         account = Account()
         account.ParseFromString(self.get_value(address))
         return account
-        # return self.get_value(address)

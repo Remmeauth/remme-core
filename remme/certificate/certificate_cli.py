@@ -15,6 +15,7 @@
 
 import datetime
 import hashlib
+from getpass import getpass
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
@@ -23,7 +24,7 @@ from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
 from remme.shared.basic_cli import BasicCli
 from remme.certificate.certificate_client import CertificateClient
-from remme.shared.exceptions import CliException, KeyNotFound
+from remme.shared.exceptions import KeyNotFound
 
 
 class CertificateCli(BasicCli):
@@ -81,25 +82,43 @@ class CertificateCli(BasicCli):
             print('No certificate registered on address {}.'.format(args.address))
 
     def generate_and_register(self, args):
+        # GET USER DATA
+        country_name = input('Country name: ')
+        state_name = input('State or province name: ')
+        locality_name = input('Locality name: ')
+        common_name = input('Common name: ')
+        validity = int(input('Certificate should be valid for (number of days): '))
+        passphrase = getpass('Enter passphrase (leave empty for no passphrase): ')
+        passphrase_repeat = getpass('Repeat passphrase: ')
+
+        if passphrase != passphrase_repeat:
+            print('Passphrase mismatch!')
+            exit(0)
+
+        if passphrase:
+            encryption_algorithm = serialization.BestAvailableEncryption(passphrase.encode('utf-8'))
+        else:
+            encryption_algorithm = serialization.NoEncryption()
+
         # GENERATE KEY AND CERTIFICATE
         key = rsa.generate_private_key(
             public_exponent=65537,
             key_size=2048,
             backend=default_backend()
         )
-        with open("key.pem", "wb") as f:
+        with open('key.pem', 'wb') as f:
             f.write(key.private_bytes(
                 encoding=serialization.Encoding.PEM,
                 format=serialization.PrivateFormat.TraditionalOpenSSL,
-                encryption_algorithm=serialization.BestAvailableEncryption(b"passphrase"),
+                encryption_algorithm=encryption_algorithm,
             ))
         subject = issuer = x509.Name([
-            x509.NameAttribute(NameOID.COUNTRY_NAME, "US"),
-            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "CA"),
-            x509.NameAttribute(NameOID.LOCALITY_NAME, "San Francisco"),
-            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "REMME"),
-            x509.NameAttribute(NameOID.COMMON_NAME, "mysite.com"),
-            x509.NameAttribute(NameOID.USER_ID, self.client.get_signer_address())
+            x509.NameAttribute(NameOID.COUNTRY_NAME, country_name),
+            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, state_name),
+            x509.NameAttribute(NameOID.LOCALITY_NAME, locality_name),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, 'REMME'),
+            x509.NameAttribute(NameOID.COMMON_NAME, common_name),
+            x509.NameAttribute(NameOID.USER_ID, self.client.get_signer_pubkey())
         ])
         cert = x509.CertificateBuilder().subject_name(
             subject
@@ -112,15 +131,11 @@ class CertificateCli(BasicCli):
         ).not_valid_before(
             datetime.datetime.utcnow()
         ).not_valid_after(
-            # Our certificate will be valid for 10 days
-            datetime.datetime.utcnow() + datetime.timedelta(days=10)
-        ).add_extension(
-            x509.SubjectAlternativeName([x509.DNSName(u"localhost")]),
-            critical=False,
-            # Sign our certificate with our private key
+            datetime.datetime.utcnow() + datetime.timedelta(days=validity)
         ).sign(key, hashes.SHA256(), default_backend())
+
         # Write our certificate out to disk.
-        with open("certificate.pem", "wb") as f:
+        with open('certificate.pem', 'wb') as f:
             f.write(cert.public_bytes(serialization.Encoding.PEM))
 
         crt_bin = cert.public_bytes(serialization.Encoding.DER).hex()
@@ -136,7 +151,9 @@ class CertificateCli(BasicCli):
             hashes.SHA256()
         )
 
-        self.client.register_certificate(crt_bin, rem_sig, crt_sig.hex())
+        status, address = self.client.store_certificate(crt_bin, rem_sig, crt_sig.hex())
+        print('Certificate status check: {}'.format(status['link']))
+        print('Certificate storage address: {}'.format(address))
 
     def run(self):
         commands = [{

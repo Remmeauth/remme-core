@@ -18,7 +18,6 @@ import hashlib
 import time
 import json
 
-import cbor
 import requests
 import yaml
 from sawtooth_sdk.protobuf.batch_pb2 import Batch
@@ -31,6 +30,7 @@ from sawtooth_signing import ParseError
 from sawtooth_signing import create_context
 from sawtooth_signing.secp256k1 import Secp256k1PrivateKey
 
+from remme.protos.transaction_pb2 import TransactionPayload
 from remme.settings import REST_API_URL, PRIV_KEY_FILE
 from remme.shared.exceptions import ClientException
 
@@ -39,6 +39,7 @@ from remme.shared.exceptions import KeyNotFound
 
 def _sha512(data):
     return hashlib.sha512(data).hexdigest()
+
 
 class BasicClient:
     def __init__(self, family_handler, keyfile=PRIV_KEY_FILE):
@@ -62,28 +63,21 @@ class BasicClient:
         self._signer = CryptoFactory(
             create_context('secp256k1')).new_signer(private_key)
 
-    def make_address(self, pub_key):
-        return self._family_handler.make_address(pub_key)
+    def make_address(self, prefix):
+        return self._family_handler.make_address(prefix)
 
-    def list(self):
-        result = self._send_request(
-            "state?address={}".format(
-                self._get_prefix()))
+    def make_address_from_data(self, data):
+        return self._family_handler.make_address_from_data(data)
 
-        try:
-            encoded_entries = yaml.safe_load(result)["data"]
-
-            return [
-                cbor.loads(base64.b64decode(entry["data"]))
-                for entry in encoded_entries
-            ]
-
-        except BaseException:
-            return None
+    def is_address(self, address):
+        return self._family_handler.is_address(address)
 
     def get_value(self, key):
         result = self._send_request("state/{}".format(key))
         return base64.b64decode(json.loads(result)['data'])
+
+    def get_signer(self):
+        return self._signer
 
     def _get_status(self, batch_id, wait):
         try:
@@ -132,28 +126,22 @@ class BasicClient:
 
         return result.text
 
-    def _send_transaction(self, method, payload, addresses_input_output, wait=None):
-        '''
-           Signs and sends transaction to the network using rest-api.
-
-           :param str method: The method (defined in proto) for Transaction Processor to process the request.
-           :param dict data: Dictionary that is required by TP to process the transaction.
-           :param str addresses_input_output: list of addresses(keys) for which to get and save state.
-        '''
-
+    def make_batch_list(self, payload_pb, addresses_input_output):
+        payload = payload_pb.SerializeToString()
+        signer = self._signer
         header = TransactionHeader(
-            signer_public_key=self._signer.get_public_key().as_hex(),
+            signer_public_key=signer.get_public_key().as_hex(),
             family_name=self._family_handler.family_name,
             family_version=self._family_handler.family_versions[-1],
             inputs=addresses_input_output,
             outputs=addresses_input_output,
             dependencies=[],
             payload_sha512=_sha512(payload),
-            batcher_public_key=self._signer.get_public_key().as_hex(),
+            batcher_public_key=signer.get_public_key().as_hex(),
             nonce=time.time().hex().encode()
         ).SerializeToString()
 
-        signature = self._signer.sign(header)
+        signature = signer.sign(header)
 
         transaction = Transaction(
             header=header,
@@ -161,42 +149,40 @@ class BasicClient:
             header_signature=signature
         )
 
-        batch_list = self._create_batch_list([transaction])
-        batch_id = batch_list.batches[0].header_signature
+        return self._sign_batch_list(signer, [transaction])
 
-        if wait and wait > 0:
-            wait_time = 0
-            start_time = time.time()
-            response = self._send_request(
-                "batches", batch_list.SerializeToString(),
-                'application/octet-stream',
-            )
-            while wait_time < wait:
-                status = self._get_status(
-                    batch_id,
-                    wait - int(wait_time),
-                )
-                wait_time = time.time() - start_time
+    def _send_transaction(self, method, data_pb, addresses_input_output):
+        '''
+           Signs and sends transaction to the network using rest-api.
 
-                if status != 'PENDING':
-                    return response
+           :param str method: The method (defined in proto) for Transaction Processor to process the request.
+           :param dict data: Dictionary that is required by TP to process the transaction.
+           :param str addresses_input_output: list of addresses(keys) for which to get and save state.
+        '''
+        payload = TransactionPayload()
+        payload.method = method
+        payload.data = data_pb.SerializeToString()
 
-            return response
+        for address in addresses_input_output:
+            if not self.is_address(address):
+                raise ClientException('one of addresses_input_output {} is not an address'.format(addresses_input_output))
+
+        batch_list = self.make_batch_list(payload, addresses_input_output)
 
         return self._send_request(
             "batches", batch_list.SerializeToString(),
             'application/octet-stream',
         )
 
-    def _create_batch_list(self, transactions):
+    def _sign_batch_list(self, signer, transactions):
         transaction_signatures = [t.header_signature for t in transactions]
 
         header = BatchHeader(
-            signer_public_key=self._signer.get_public_key().as_hex(),
+            signer_public_key=signer.get_public_key().as_hex(),
             transaction_ids=transaction_signatures
         ).SerializeToString()
 
-        signature = self._signer.sign(header)
+        signature = signer.sign(header)
 
         batch = Batch(
             header=header,

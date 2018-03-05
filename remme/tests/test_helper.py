@@ -12,31 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------
-
-from sawtooth_processor_test.transaction_processor_test_case \
-    import TransactionProcessorTestCase
-from sawtooth_processor_test.mock_validator import MockValidator
+import logging
 from sawtooth_signing import create_context
 from sawtooth_signing import CryptoFactory
-import cbor
+
+from remme.protos.transaction_pb2 import TransactionPayload
+from remme.tests.tp_test_case import TransactionProcessorTestCase
+
+LOGGER = logging.getLogger(__name__)
 
 
 class HelperTestCase(TransactionProcessorTestCase):
     @classmethod
-    def setUpClass(cls, factory):
+    def setUpClass(cls, handler):
         super().setUpClass()
-        url = 'tcp://eth0:4004'
+        cls.handler = handler()
 
-        cls.validator = MockValidator()
-        cls.validator.listen(url)
-        cls._factory = factory
+        account_signer1 = cls.get_new_signer()
+        cls.account_address1 = cls.handler.make_address_from_data(account_signer1.get_public_key().as_hex())
+        account_signer2 = cls.get_new_signer()
+        cls.account_address2 = cls.handler.make_address_from_data(account_signer2.get_public_key().as_hex())
 
-    @classmethod
-    def tearDownClass(cls):
-        try:
-            cls.validator.close()
-        except AttributeError:
-            pass
+        cls._factory = cls.handler.get_message_factory(account_signer1)
 
     @classmethod
     def get_new_signer(cls):
@@ -44,22 +41,43 @@ class HelperTestCase(TransactionProcessorTestCase):
         return CryptoFactory(context).new_signer(
             context.new_random_private_key())
 
-    def _dumps(self, obj):
-        return cbor.dumps(obj, sort_keys=True)
-
-    def send_transaction(self, method, data, address_access_list):
-        payload = self._dumps({'method': method, 'data': data})
+    def send_transaction(self, method, pb_data, address_access_list):
+        payload_pb = TransactionPayload()
+        payload_pb.method = method
+        payload_pb.data = pb_data.SerializeToString()
         self.validator.send(
-            self._factory.create_transaction(payload, address_access_list, address_access_list, [])
+            self._factory.create_tp_process_request(payload_pb.SerializeToString(), address_access_list, address_access_list, [])
         )
 
-    def expect_ok(self):
-        self.expect_tp_response('OK')
+    def expect_get(self, key_value):
+        LOGGER.info('expect_get: {}'.format(key_value))
+        received = self.validator.expect(
+            self._factory.create_get_request([address for address, _ in key_value.items()]))
+        LOGGER.info('expect_get create_get_response')
 
-    def expect_invalid(self):
-        self.expect_tp_response('INVALID_TRANSACTION')
+        self.validator.respond(
+            self._factory.create_get_response({key: value_pb.SerializeToString() if value_pb else None
+                                              for key, value_pb in key_value.items()}),
+            received)
 
-    def expect_tp_response(self, response):
+    def expect_set(self, key_value):
+        received = self.validator.expect(
+            self._factory.create_set_request({key: value_pb.SerializeToString()
+                                              for key, value_pb in key_value.items()}))
+
+        print('sending set response...')
+        self.validator.respond(
+            self._factory.create_set_response(key_value), received)
+
+    def _expect_tp_response(self, response):
         self.validator.expect(
-            self._factory.create_tp_response(
-                response))
+            self._factory.create_tp_response(response))
+
+    def expect_ok(self):
+        self._expect_tp_response('OK')
+
+    def expect_invalid_transaction(self):
+        self._expect_tp_response("INVALID_TRANSACTION")
+
+    def expect_internal_error(self):
+        self._expect_tp_response("INTERNAL_ERROR")

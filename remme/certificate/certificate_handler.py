@@ -13,11 +13,9 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-import cbor
 import datetime
 import logging
 import hashlib
-import secp256k1
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.x509.oid import NameOID
@@ -26,8 +24,10 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.exceptions import InvalidSignature
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 from sawtooth_signing.secp256k1 import Secp256k1PublicKey, Secp256k1Context
-from remme.shared.basic_handler import *
-from remme.protos.certificate_pb2 import CertificateStorage, CertificateTransaction
+
+from remme.shared.basic_handler import BasicHandler
+from remme.protos.certificate_pb2 import CertificateStorage, \
+    NewCertificatePayload, RevokeCertificatePayload, CertificateMethod
 
 LOGGER = logging.getLogger(__name__)
 
@@ -41,71 +41,46 @@ CERT_MAX_VALIDITY = datetime.timedelta(365)
 class CertificateHandler(BasicHandler):
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
-        LOGGER.info('Started certificates operations transactions handler.')
 
-    def apply(self, transaction, context):
-        super().process_apply(transaction, context, CertificateTransaction)
+    def get_state_processor(self):
+        return {
+            CertificateMethod.STORE: {
+                'pb_class': NewCertificatePayload,
+                'processor': self._store_certificate
+            },
+            CertificateMethod.REVOKE: {
+                'pb_class': RevokeCertificatePayload,
+                'processor': self._revoke_certificate
+            }
+        }
 
-    def make_address(self, appendix):
-        return self._prefix + appendix
+    def _store_certificate(self, context, signer_pubkey, transaction_payload):
+        address = self.make_address_from_data(transaction_payload.certificate_raw)
+        data = self.get_data(context, CertificateStorage, address)
+        if data:
+            raise InvalidTransaction('This certificate is already registered.')
 
-    def process_state(self, signer_pubkey, signer, payload):
-        transaction = CertificateTransaction()
-        transaction.ParseFromString(payload)
-        if transaction.type == CertificateTransaction.CREATE:
-            appendix = hashlib.sha512(transaction.certificate_raw.encode('utf-8')).hexdigest()[0:64]
-            raw_data = self.context.get_state([self._prefix + appendix])
-            stored_data = CertificateStorage()
-            if isinstance(raw_data, list):
-                if len(raw_data) > 0:
-                    stored_data.ParseFromString(raw_data[0].data)
-            data = self._save_certificate(stored_data,
-                                          signer,
-                                          signer_pubkey,
-                                          transaction.certificate_raw,
-                                          transaction.signature_rem,
-                                          transaction.signature_crt,
-                                          self._prefix + appendix)
-            return data
-        elif transaction.type == CertificateTransaction.REVOKE:
-            appendix = transaction.address
-            raw_data = self.context.get_state([appendix])
-            stored_data = CertificateStorage()
-            if isinstance(raw_data, list):
-                if len(raw_data) > 0:
-                    stored_data.ParseFromString(raw_data[0].data)
-                else:
-                    InvalidTransaction('No certificate in the given address')
-            data = self._revoke_certificate(stored_data, signer, appendix)
-            return data
-        else:
-            raise InvalidTransaction('Unknown value {} for the certificate operation type.'.
-                                     format(int(transaction.type)))
-
-    def _save_certificate(self, data, transactor, transactor_pubkey, certificate_raw, signature_rem, signature_crt, address):
-        certificate = x509.load_der_x509_certificate(bytes.fromhex(certificate_raw),
+        certificate = x509.load_der_x509_certificate(bytes.fromhex(transaction_payload.certificate_raw),
                                                      default_backend())
-        if data is not None:
-            InvalidTransaction('The certificate is already registered')
-
         certificate_pubkey = certificate.public_key()
         try:
-            certificate_pubkey.verify(bytes.fromhex(signature_crt),
-                                      bytes.fromhex(signature_rem),
+            certificate_pubkey.verify(bytes.fromhex(transaction_payload.signature_crt),
+                                      bytes.fromhex(transaction_payload.signature_rem),
                                       padding.PSS(mgf=padding.MGF1(hashes.SHA256()),
                                                   salt_length=padding.PSS.MAX_LENGTH),
                                       hashes.SHA256())
         except InvalidSignature:
             raise InvalidTransaction('signature_crt mismatch')
 
+        crt_hash = hashlib.sha512(transaction_payload.certificate_raw.encode('utf-8')).hexdigest().encode('utf-8')
         sawtooth_signing_ctx = Secp256k1Context()
-        sawtooth_signing_pubkey = Secp256k1PublicKey.from_hex(transactor_pubkey)
+        sawtooth_signing_pubkey = Secp256k1PublicKey.from_hex(signer_pubkey)
         sawtooth_signing_check_res = \
-            sawtooth_signing_ctx.verify(signature_rem,
-                                        hashlib.sha512(certificate_raw.encode('utf-8')).hexdigest().encode('utf-8'),
+            sawtooth_signing_ctx.verify(transaction_payload.signature_rem,
+                                        crt_hash,
                                         sawtooth_signing_pubkey)
         if not sawtooth_signing_check_res:
-            raise InvalidTransaction('signature_rem mismatch with signer key {}'.format(transactor_pubkey))
+            raise InvalidTransaction('signature_rem mismatch with signer key {}'.format(signer_pubkey))
 
         subject = certificate.subject
         organization = subject.get_attributes_for_oid(NameOID.ORGANIZATION_NAME)[0].value
@@ -114,27 +89,36 @@ class CertificateHandler(BasicHandler):
         valid_until = certificate.not_valid_after
 
         if organization != CERT_ORGANIZATION:
-            raise InvalidTransaction('The organization name should be set to REMME. The actual name is {}'.format(organization))
-        if uid != transactor:
-            raise InvalidTransaction('The certificate should be sent by its signer. Certificate signed by {}. Transaction sent by {}.'.format(uid, transactor))
+            raise InvalidTransaction('The organization name should be set to REMME. The actual name is {}'
+                                     .format(organization))
+        if uid != signer_pubkey:
+            raise InvalidTransaction('The certificate should be sent by its signer. Certificate signed by {}. '
+                                     'Transaction sent by {}.'.format(uid, signer_pubkey))
         if subject != certificate.issuer:
             raise InvalidTransaction('Expecting a self-signed certificate.')
         if valid_until - valid_from > CERT_MAX_VALIDITY:
             raise InvalidTransaction('The certificate validity exceeds the maximum value.')
+
         fingerprint = certificate.fingerprint(hashes.SHA512()).hex()[:64]
+        data = CertificateStorage()
         data.hash = fingerprint
-        data.owner = transactor
+        data.owner = signer_pubkey
         data.revoked = False
+
+        LOGGER.info('Registered a new certificate on address {}. Fingerprint: {}'.format(address, fingerprint))
 
         return {address: data}
 
-    def _revoke_certificate(self, data, transactor, certificate_address):
+    def _revoke_certificate(self, context, signer_pubkey, transaction_payload):
+        data = self.get_data(context, CertificateStorage, transaction_payload.address)
         if data is None:
             raise InvalidTransaction('No such certificate.')
-        if transactor != data.owner:
+        if signer_pubkey != data.owner:
             raise InvalidTransaction('Only owner can revoke the certificate.')
         if data.revoked:
             raise InvalidTransaction('The certificate is already revoked.')
         data.revoked = True
 
-        return {certificate_address: data}
+        LOGGER.info('Revoked the certificate on address {}'.format(transaction_payload.address))
+
+        return {transaction_payload.address: data}

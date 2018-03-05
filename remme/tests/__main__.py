@@ -16,7 +16,10 @@
 import sys
 import os
 import unittest
+
+from remme.shared.logging import setup_logging
 from .test_token import *
 
 if __name__ == '__main__':
+    setup_logging('remme', 2)
     unittest.main()

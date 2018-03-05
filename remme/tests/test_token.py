@@ -12,27 +12,94 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------
-
-from protobuf_to_dict import protobuf_to_dict
-
-from remme.protos.token_pb2 import Transfer
+import logging
+import inspect
+from remme.protos.token_pb2 import TokenMethod, GenesisStatus, Account
+from remme.shared.logging import test
 from remme.tests.test_helper import HelperTestCase
-from remme.token.token_handler import TokenHandler
+from remme.token.token_client import TokenClient
+from remme.token.token_handler import ZERO_ADDRESS, TokenHandler
 
+LOGGER = logging.getLogger(__name__)
 
 # TODO update tests to correspond the new API
+# TODO no transaction zero_address plus
 class TokenTestCase(HelperTestCase):
     @classmethod
     def setUpClass(cls):
-        account_signer1 = cls.get_new_signer()
-        cls.token_handler = TokenHandler()
-        super().setUpClass(cls.token_handler.get_message_factory(account_signer1))
-        cls.account_address1 = cls.token_handler.make_address(account_signer1.get_public_key().as_hex()[:64])
-        account_signer2 = cls.get_new_signer()
-        cls.account_address2 = cls.token_handler.make_address(account_signer2.get_public_key().as_hex()[:64])
+        super().setUpClass(TokenHandler)
 
-    def test_transfer(self):
-        transfer = Transfer()
-        transfer.address_to = self.account_address2
-        transfer.amount = 200
-        # TODO: new test logic
+    @test
+    def test_genesis_empty(self):
+        TOTAL_SUPPLY = 10000
+        zero_address = self.handler.make_address(ZERO_ADDRESS)
+
+        self.send_transaction(TokenMethod.GENESIS, TokenClient.get_genesis_payload(TOTAL_SUPPLY),
+                              [zero_address, self.account_address1])
+
+        self.expect_get({self.account_address1: None})
+        self.expect_get({zero_address: None})
+
+        genesis_status = GenesisStatus()
+        genesis_status.status = True
+        account = Account()
+        account.balance = TOTAL_SUPPLY
+
+        self.expect_set({
+            self.account_address1: account,
+            zero_address: genesis_status
+        })
+
+        self.expect_ok()
+
+    @test
+    def test_genesis_fail(self):
+        TOTAL_SUPPLY = 10000
+        zero_address = self.handler.make_address(ZERO_ADDRESS)
+
+        self.send_transaction(TokenMethod.GENESIS, TokenClient.get_genesis_payload(TOTAL_SUPPLY),
+                              [zero_address, self.account_address1])
+
+        genesis_status = GenesisStatus()
+        genesis_status.status = True
+
+        self.expect_get({self.account_address1: None})
+        self.expect_get({zero_address: genesis_status})
+
+        self.expect_invalid_transaction()
+
+    @test
+    def test_transfer_success(self):
+        ACCOUNT_AMOUNT1 = 1000
+        ACCOUNT_AMOUNT2 = 500
+        TRANSFER_VALUE = 200
+        self.send_transaction(TokenMethod.TRANSFER,
+                              TokenClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
+                              [self.account_address1, self.account_address2])
+        self.expect_get({self.account_address1: TokenClient.get_account_model(ACCOUNT_AMOUNT1)})
+        self.expect_get({self.account_address2: TokenClient.get_account_model(ACCOUNT_AMOUNT2)})
+
+        self.expect_set({
+            self.account_address1: TokenClient.get_account_model(ACCOUNT_AMOUNT1-TRANSFER_VALUE),
+            self.account_address2: TokenClient.get_account_model(ACCOUNT_AMOUNT2+TRANSFER_VALUE)
+        })
+
+        self.expect_ok()
+
+    # @test
+    # def test_transfer_fail(self):
+    #     ACCOUNT_AMOUNT1 = 1000
+    #     ACCOUNT_AMOUNT2 = 500
+    #     TRANSFER_VALUE = 200
+    #     self.send_transaction(TokenMethod.TRANSFER,
+    #                           TokenClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
+    #                           [self.account_address1, self.account_address2])
+    #     self.expect_get({self.account_address1: None})
+    #     self.expect_get({self.account_address2: TokenClient.get_account_model(ACCOUNT_AMOUNT2)})
+    #
+    #     self.expect_set({
+    #         self.account_address1: TokenClient.get_account_model(ACCOUNT_AMOUNT1 - TRANSFER_VALUE),
+    #         self.account_address2: TokenClient.get_account_model(ACCOUNT_AMOUNT2 + TRANSFER_VALUE)
+    #     })
+    #
+    #     self.expect_ok()
