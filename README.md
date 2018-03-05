@@ -13,14 +13,17 @@ You will need Docker and Docker Compose installed on your machine.
 
 Go to the [Releases](https://github.com/Remmeauth/remme-core/releases) section and download the latest version for end-users (`<version_number>-release.zip`). Unpack this archive and run `run.sh`. After this file has started up, open a new terminal window and run `shell.sh` to access the interactive shell.
 
+On the first run you will need to initialize the genesis block.
+Run `python3 -m remme.genesis 1000000` and restart the validator (`Ctrl-C` in the validator window and run it again).
+
 ### For developers & contributors
 
 CLone this repository to your machine: `git clone https://github.com/Remmeauth/remme-core.git`
 
 When you have this repository cloned go the project directory run the following commands:
 
-* `make build_docker`
-* `make run_dev`
+- `make build_docker`
+- `make run_dev`
 
 After all the packages are started up run `make shell` in a separate terminal to enter the interactive console.
 
