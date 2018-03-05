@@ -47,6 +47,13 @@ class TokenClient(BasicClient):
 
         return genesis
 
+    @classmethod
+    def get_account_model(self, balance):
+        account = Account()
+        account.balance = int(balance)
+
+        return account
+
     def transfer(self, address_to, value):
         extra_addresses_input_output = [address_to]
         transfer = self.get_transfer_payload(address_to, value)

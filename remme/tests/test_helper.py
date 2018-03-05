@@ -12,16 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------
-
+import logging
 from sawtooth_signing import create_context
 from sawtooth_signing import CryptoFactory
 
-from remme.certificate.certificate_handler import CertificateHandler
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.tests.tp_test_case import TransactionProcessorTestCase
-from remme.token.token_handler import TokenHandler
 
-HANDLERS = [TokenHandler, CertificateHandler]
+LOGGER = logging.getLogger(__name__)
 
 
 class HelperTestCase(TransactionProcessorTestCase):
@@ -52,10 +50,14 @@ class HelperTestCase(TransactionProcessorTestCase):
         )
 
     def expect_get(self, key_value):
+        LOGGER.info('expect_get: {}'.format(key_value))
         received = self.validator.expect(
             self._factory.create_get_request([address for address, _ in key_value.items()]))
+        LOGGER.info('expect_get create_get_response')
+
         self.validator.respond(
-            self._factory.create_get_response(key_value),
+            self._factory.create_get_response({key: value_pb.SerializeToString() if value_pb else None
+                                              for key, value_pb in key_value.items()}),
             received)
 
     def expect_set(self, key_value):

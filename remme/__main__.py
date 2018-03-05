@@ -16,10 +16,10 @@
 import argparse
 from sawtooth_sdk.processor.core import TransactionProcessor
 from remme.certificate.certificate_handler import CertificateHandler
-from remme.settings import TP_HANDLERS
 from remme.token.token_handler import TokenHandler
 from remme.shared.logging import setup_logging
 
+TP_HANDLERS = [TokenHandler, CertificateHandler]
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Transaction processor.')

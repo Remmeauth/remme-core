@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------
-
+import logging
 from sawtooth_sdk.processor.log import init_console_logging
 from sawtooth_sdk.processor.log import log_configuration
 from sawtooth_sdk.processor.config import get_log_config
 from sawtooth_sdk.processor.config import get_log_dir
 
+LOGGER = logging.getLogger(__name__)
 
 def setup_logging(name, verbosity=2):
     log_config = get_log_config(filename='{}_log_config.toml'.format(name))
@@ -32,3 +33,11 @@ def setup_logging(name, verbosity=2):
         log_configuration(log_dir=log_dir, name=name)
 
     init_console_logging(verbose_level=verbosity)
+
+
+def test(func):
+    def wrapper(*args, **kwargs):
+        LOGGER.info('Testing: {} with args: {}, kwargs: {}'.format(func.__name__, args, kwargs))
+        return func(*args, **kwargs)
+    return wrapper
+
