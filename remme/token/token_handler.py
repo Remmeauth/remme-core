@@ -50,11 +50,11 @@ class TokenHandler(BasicHandler):
     def _get_account_by_pub_key(self, context, pub_key):
         address = self.make_address_from_data(pub_key)
         account = self.get_data(context, Account, address)
-
-        return (address, account)
+        LOGGER.info(account)
+        return address, account
 
     def _genesis(self, context, pub_key, genesis_payload):
-        (signer_key, account) = self._get_account_by_pub_key(context, pub_key)
+        signer_key, account = self._get_account_by_pub_key(context, pub_key)
         genesis_status = self.get_data(context, GenesisStatus, self.zero_address)
         if not genesis_status:
             genesis_status = GenesisStatus()
@@ -71,15 +71,18 @@ class TokenHandler(BasicHandler):
         }
 
     def _transfer(self, context, pub_key, transfer_payload):
-        (signer_key, signer_account) = self._get_account_by_pub_key(context, pub_key)
-
+        signer_key, signer_account = self._get_account_by_pub_key(context, pub_key)
+        if self.zero_address in [transfer_payload.address_to, signer_key]:
+            raise InvalidTransaction("Zero address cannot involve in any operation.")
         if signer_key == transfer_payload.address_to:
-            raise InvalidTransaction("Account cannot sent tokens to itself.")
+            raise InvalidTransaction("Account cannot send tokens to itself.")
 
         receiver_account = self.get_data(context, Account, transfer_payload.address_to)
 
         if not receiver_account:
             receiver_account = Account()
+        if not signer_account:
+            signer_account = Account()
 
         if signer_account.balance < transfer_payload.value:
             raise InvalidTransaction("Not enough transferable balance. Signer's current balance: {}"
@@ -89,8 +92,8 @@ class TokenHandler(BasicHandler):
         signer_account.balance -= transfer_payload.value
 
         LOGGER.info('Transferred {} tokens from {} to {}'.format(transfer_payload.value,
-                                                                 receiver_account.balance,
-                                                                 signer_account.balance))
+                                                                 signer_key,
+                                                                 transfer_payload.address_to))
 
         return {
             signer_key: signer_account,

@@ -52,6 +52,23 @@ class TokenTestCase(HelperTestCase):
 
         self.expect_ok()
 
+    @test
+    def test_genesis_fail(self):
+        TOTAL_SUPPLY = 10000
+        zero_address = self.handler.make_address(ZERO_ADDRESS)
+
+        self.send_transaction(TokenMethod.GENESIS, TokenClient.get_genesis_payload(TOTAL_SUPPLY),
+                              [zero_address, self.account_address1])
+
+        genesis_status = GenesisStatus()
+        genesis_status.status = True
+
+        self.expect_get({self.account_address1: None})
+        self.expect_get({zero_address: genesis_status})
+
+        self.expect_invalid_transaction()
+
+    @test
     def test_transfer_success(self):
         ACCOUNT_AMOUNT1 = 1000
         ACCOUNT_AMOUNT2 = 500
@@ -68,3 +85,21 @@ class TokenTestCase(HelperTestCase):
         })
 
         self.expect_ok()
+
+    # @test
+    # def test_transfer_fail(self):
+    #     ACCOUNT_AMOUNT1 = 1000
+    #     ACCOUNT_AMOUNT2 = 500
+    #     TRANSFER_VALUE = 200
+    #     self.send_transaction(TokenMethod.TRANSFER,
+    #                           TokenClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
+    #                           [self.account_address1, self.account_address2])
+    #     self.expect_get({self.account_address1: None})
+    #     self.expect_get({self.account_address2: TokenClient.get_account_model(ACCOUNT_AMOUNT2)})
+    #
+    #     self.expect_set({
+    #         self.account_address1: TokenClient.get_account_model(ACCOUNT_AMOUNT1 - TRANSFER_VALUE),
+    #         self.account_address2: TokenClient.get_account_model(ACCOUNT_AMOUNT2 + TRANSFER_VALUE)
+    #     })
+    #
+    #     self.expect_ok()

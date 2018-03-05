@@ -21,7 +21,7 @@ from sawtooth_sdk.processor.handler import TransactionHandler
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
 from remme.protos.transaction_pb2 import TransactionPayload
-from remme.shared.logging import test
+from remme.shared.logging import test, LOGGER
 
 
 class BasicHandler(TransactionHandler):
@@ -95,12 +95,12 @@ class BasicHandler(TransactionHandler):
 
     @test
     def get_data(self, context, pb_class, address):
-
         raw_data = context.get_state([address])
         if raw_data:
             try:
                 data = pb_class()
                 data.ParseFromString(raw_data[0].data)
+
                 return data
             except IndexError:
                 return None

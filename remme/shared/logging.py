@@ -38,6 +38,6 @@ def setup_logging(name, verbosity=2):
 def test(func):
     def wrapper(*args, **kwargs):
         LOGGER.info('Testing: {} with args: {}, kwargs: {}'.format(func.__name__, args, kwargs))
-        func(*args, **kwargs)
+        return func(*args, **kwargs)
     return wrapper
 

@@ -21,6 +21,7 @@ from remme.tests.tp_test_case import TransactionProcessorTestCase
 
 LOGGER = logging.getLogger(__name__)
 
+
 class HelperTestCase(TransactionProcessorTestCase):
     @classmethod
     def setUpClass(cls, handler):
@@ -55,7 +56,7 @@ class HelperTestCase(TransactionProcessorTestCase):
         LOGGER.info('expect_get create_get_response')
 
         self.validator.respond(
-            self._factory.create_get_response({key: value_pb.SerializeToString()
+            self._factory.create_get_response({key: value_pb.SerializeToString() if value_pb else None
                                               for key, value_pb in key_value.items()}),
             received)
 
