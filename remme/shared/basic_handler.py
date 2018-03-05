@@ -65,8 +65,7 @@ class BasicHandler(TransactionHandler):
         try:
             data_pb = state_processor[transaction_payload.method]['pb_class']()
             data_pb.ParseFromString(transaction_payload.data)
-            return state_processor[transaction_payload.method]['processor'](context, transaction.header.signer_public_key,
-                                                                    data_pb)
+            return state_processor[transaction_payload.method]['processor'](context, transaction.header.signer_public_key, data_pb)
         except KeyError:
             raise InvalidTransaction('Unknown value {} for the certificate operation type.'.
                                      format(int(transaction_payload.method)))

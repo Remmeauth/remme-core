@@ -83,8 +83,8 @@ class TokenCli(BasicCli):
         print(self.client.make_address_from_data(public_key))
 
     def do_transfer(self, args):
-        response = self.client.transfer(address_to=args.address_to, value=args.value)
-        print(response)
+        status = self.client.transfer(address_to=args.address_to, value=args.value)
+        print('Transfer status check: {}'.format(status['link']))
 
     def do_balance(self, args):
         if args.address == 'me':

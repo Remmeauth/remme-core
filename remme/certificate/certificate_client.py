@@ -13,6 +13,8 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
+import json
+
 from remme.protos.certificate_pb2 import CertificateStorage, \
     NewCertificatePayload, RevokeCertificatePayload, CertificateMethod
 from remme.shared.basic_client import BasicClient
@@ -42,8 +44,8 @@ class CertificateClient(BasicClient):
     def store_certificate(self, certificate_raw, signature_rem, signature_crt):
         payload = self.get_new_certificate_payload(certificate_raw, signature_rem, signature_crt)
         crt_address = self.make_address_from_data(certificate_raw)
-        print('Certificate address', crt_address)
-        self._send_transaction(CertificateMethod.STORE, payload, [crt_address])
+        status = self._send_transaction(CertificateMethod.STORE, payload, [crt_address])
+        return json.loads(status), crt_address
 
     def revoke_certificate(self, crt_address):
         payload = self.get_revoke_payload(crt_address)

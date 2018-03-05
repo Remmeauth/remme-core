@@ -1,3 +1,4 @@
 colorlog
 sawtooth-sdk
 sawtooth-signing
+cryptography
