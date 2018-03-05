@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Continuous integrations setup.
 - Push release images to Docker Hub.
 - A separate setup for end users.
+- Started test coverage.
 ### Changed
 - Transactions: unified data structures and transaction processors.
 - Faster startup in Docker containers for end users and separate Docker container for development purposes (instant source code updates).
