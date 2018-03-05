@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------
+
+import json
+
 from remme.protos.token_pb2 import TokenMethod, GenesisPayload, TransferPayload
 from remme.shared.basic_client import BasicClient
 from remme.token.token_handler import TokenHandler
@@ -48,7 +51,9 @@ class TokenClient(BasicClient):
         extra_addresses_input_output = [address_to]
         transfer = self.get_transfer_payload(address_to, value)
 
-        return self._send_transaction(TokenMethod.TRANSFER, transfer, extra_addresses_input_output)
+        status = self._send_transaction(TokenMethod.TRANSFER, transfer, extra_addresses_input_output)
+
+        return json.loads(status)
 
     def get_account(self, address):
         account = Account()

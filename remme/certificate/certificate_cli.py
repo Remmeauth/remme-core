@@ -151,7 +151,9 @@ class CertificateCli(BasicCli):
             hashes.SHA256()
         )
 
-        self.client.store_certificate(crt_bin, rem_sig, crt_sig.hex())
+        status, address = self.client.store_certificate(crt_bin, rem_sig, crt_sig.hex())
+        print('Certificate status check: {}'.format(status['link']))
+        print('Certificate storage address: {}'.format(address))
 
     def run(self):
         commands = [{
