@@ -75,7 +75,6 @@ services:
     volumes:
       - ./remme/genesis:/root/genesis
       - ./keys:/root/.sawtooth/keys
-      - ./bash/.bashrc:/root/.bashrc
     stdin_open: true
     tty: true
     entrypoint: |

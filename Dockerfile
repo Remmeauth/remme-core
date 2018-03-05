@@ -26,5 +26,6 @@ RUN pip3 install -r ./requirements.txt
 FROM remme/remme-core-dev:latest AS production
 WORKDIR /root
 RUN mkdir remme
+COPY ./bash/.bashrc /root/.bashrc
 COPY . ./remme
 RUN pip3 install ./remme
