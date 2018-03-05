@@ -14,7 +14,7 @@
 # ------------------------------------------------------------------------
 
 import argparse
-from remme.protos.token_pb2 import GenesisPayload
+from remme.protos.token_pb2 import TokenMethod
 from remme.token.token_client import TokenClient
 from remme.token.token_handler import TokenHandler, TransactionPayload
 
@@ -37,10 +37,10 @@ if __name__ == '__main__':
     addresses_input_output = [zero_address, target_address]
 
     payload = TransactionPayload()
-    payload.method = TokenPayload.GENESIS
+    payload.method = TokenMethod.GENESIS
     payload.data = token_client.get_genesis_payload(args.token_supply).SerializeToString()
 
-    batch_list = TokenClient().make_batch_list(payload.SerializeToString(), addresses_input_output)
+    batch_list = TokenClient().make_batch_list(payload, addresses_input_output)
 
     batch_file = open(OUTPUT_BATCH, 'wb')
     batch_file.write(batch_list.SerializeToString())
