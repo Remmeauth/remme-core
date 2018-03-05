@@ -21,6 +21,7 @@ from sawtooth_sdk.processor.handler import TransactionHandler
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
 from remme.protos.transaction_pb2 import TransactionPayload
+from remme.shared.logging import test
 
 
 class BasicHandler(TransactionHandler):
@@ -92,7 +93,9 @@ class BasicHandler(TransactionHandler):
         appendix = hashlib.sha512(data.encode('utf-8')).hexdigest()[:64]
         return self.make_address(appendix)
 
+    @test
     def get_data(self, context, pb_class, address):
+
         raw_data = context.get_state([address])
         if raw_data:
             try:
