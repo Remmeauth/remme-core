@@ -16,7 +16,6 @@
 import datetime
 import logging
 import hashlib
-from google.protobuf.text_format import ParseError
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.x509.oid import NameOID
