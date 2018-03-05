@@ -1,4 +1,4 @@
-# REMME Core 0.1.0-alpha
+# REMME Core
 
 [![CircleCI](https://img.shields.io/circleci/project/github/Remmeauth/remme-core.svg)](https://circleci.com/gh/Remmeauth/remme-core)
 [![Docker Stars](https://img.shields.io/docker/stars/remme/remme-core.svg)](https://hub.docker.com/r/remme/remme-core/)
