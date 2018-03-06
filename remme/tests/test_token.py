@@ -24,6 +24,8 @@ LOGGER = logging.getLogger(__name__)
 
 # TODO update tests to correspond the new API
 # TODO no transaction zero_address plus
+
+
 class TokenTestCase(HelperTestCase):
     @classmethod
     def setUpClass(cls):
