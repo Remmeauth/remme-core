@@ -72,7 +72,7 @@ class TokenTestCase(HelperTestCase):
     def test_transfer_success(self):
         ACCOUNT_AMOUNT1 = 1000
         ACCOUNT_AMOUNT2 = 500
-        TRANSFER_VALUE = 200
+        TRANSFER_VALUE = ACCOUNT_AMOUNT1
         self.send_transaction(TokenMethod.TRANSFER,
                               TokenClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
                               [self.account_address1, self.account_address2])
@@ -86,20 +86,44 @@ class TokenTestCase(HelperTestCase):
 
         self.expect_ok()
 
-    # @test
-    # def test_transfer_fail(self):
-    #     ACCOUNT_AMOUNT1 = 1000
-    #     ACCOUNT_AMOUNT2 = 500
-    #     TRANSFER_VALUE = 200
-    #     self.send_transaction(TokenMethod.TRANSFER,
-    #                           TokenClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
-    #                           [self.account_address1, self.account_address2])
-    #     self.expect_get({self.account_address1: None})
-    #     self.expect_get({self.account_address2: TokenClient.get_account_model(ACCOUNT_AMOUNT2)})
-    #
-    #     self.expect_set({
-    #         self.account_address1: TokenClient.get_account_model(ACCOUNT_AMOUNT1 - TRANSFER_VALUE),
-    #         self.account_address2: TokenClient.get_account_model(ACCOUNT_AMOUNT2 + TRANSFER_VALUE)
-    #     })
-    #
-    #     self.expect_ok()
+    @test
+    def test_transfer_fail_no_balance(self):
+        ACCOUNT_AMOUNT1 = 200
+        ACCOUNT_AMOUNT2 = 500
+        TRANSFER_VALUE = ACCOUNT_AMOUNT1 + 1
+        self.send_transaction(TokenMethod.TRANSFER,
+                              TokenClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
+                              [self.account_address1, self.account_address2])
+        self.expect_get({self.account_address1: TokenClient.get_account_model(ACCOUNT_AMOUNT1)})
+        self.expect_get({self.account_address2: TokenClient.get_account_model(ACCOUNT_AMOUNT2)})
+
+        self.expect_invalid_transaction()
+
+    @test
+    def test_transfer_fail_no_state_address1(self):
+        ACCOUNT_AMOUNT2 = 500
+        TRANSFER_VALUE = 200
+        self.send_transaction(TokenMethod.TRANSFER,
+                              TokenClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
+                              [self.account_address1, self.account_address2])
+        self.expect_get({self.account_address1: None})
+        self.expect_get({self.account_address2: TokenClient.get_account_model(ACCOUNT_AMOUNT2)})
+
+        self.expect_invalid_transaction()
+
+    @test
+    def test_transfer_fail_no_state_address2(self):
+        ACCOUNT_AMOUNT1 = 500
+        TRANSFER_VALUE = 200
+        self.send_transaction(TokenMethod.TRANSFER,
+                              TokenClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
+                              [self.account_address1, self.account_address2])
+        self.expect_get({self.account_address1: TokenClient.get_account_model(ACCOUNT_AMOUNT1)})
+        self.expect_get({self.account_address2: None})
+
+        self.expect_set({
+            self.account_address1: TokenClient.get_account_model(ACCOUNT_AMOUNT1 - TRANSFER_VALUE),
+            self.account_address2: TokenClient.get_account_model(0 + TRANSFER_VALUE)
+        })
+
+        self.expect_ok()
