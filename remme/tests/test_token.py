@@ -127,3 +127,25 @@ class TokenTestCase(HelperTestCase):
         })
 
         self.expect_ok()
+
+    @test
+    def test_transfer_fail_to_oneself(self):
+        ACCOUNT_AMOUNT1 = 500
+        TRANSFER_VALUE = 200
+        self.send_transaction(TokenMethod.TRANSFER,
+                              TokenClient.get_transfer_payload(self.account_address1, TRANSFER_VALUE),
+                              [self.account_address1, self.account_address2])
+        self.expect_get({self.account_address1: TokenClient.get_account_model(ACCOUNT_AMOUNT1)})
+
+        self.expect_invalid_transaction()
+
+    @test
+    def test_transfer_fail_to_zeroaddress(self):
+        ACCOUNT_AMOUNT1 = 500
+        TRANSFER_VALUE = 200
+        self.send_transaction(TokenMethod.TRANSFER,
+                              TokenClient.get_transfer_payload(self.handler.make_address(ZERO_ADDRESS), TRANSFER_VALUE),
+                              [self.account_address1, self.account_address2])
+        self.expect_get({self.account_address1: TokenClient.get_account_model(ACCOUNT_AMOUNT1)})
+
+        self.expect_invalid_transaction()
