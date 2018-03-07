@@ -21,8 +21,6 @@ services:
     volumes:
       - ./remme/genesis:/root/genesis
       - ./keys:/root/.sawtooth/keys
-    environment:
-      - REM_TOKEN_SUPPLY=1000000000
     entrypoint: |
       bash -c "
         if [ ! -f /root/.sawtooth/keys/key.priv ]; then
