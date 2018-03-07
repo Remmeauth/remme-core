@@ -16,6 +16,8 @@
 PROTO_SRC_DIR = ./protos
 PROTO_DST_DIR = ./remme/protos
 
+TOTAL_SUPPLY ?= 10000000000000
+
 run:
 	docker-compose up
 
@@ -27,6 +29,9 @@ shell:
 
 test:
 	docker-compose -f docker-compose.test.yml up --abort-on-container-exit
+
+genesis:
+	docker-compose -f docker-compose.genesis.yml run -e REM_TOKEN_SUPPLY=$(TOTAL_SUPPLY) genesis
 
 reload_module:
 	pip3 install --upgrade /remme
