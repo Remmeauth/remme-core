@@ -19,6 +19,7 @@ from remme.protos.certificate_pb2 import CertificateStorage, \
     NewCertificatePayload, RevokeCertificatePayload, CertificateMethod
 from remme.shared.basic_client import BasicClient
 from remme.certificate.certificate_handler import CertificateHandler
+from remme.token.token_handler import TokenHandler
 
 
 class CertificateClient(BasicClient):
@@ -44,7 +45,8 @@ class CertificateClient(BasicClient):
     def store_certificate(self, certificate_raw, signature_rem, signature_crt):
         payload = self.get_new_certificate_payload(certificate_raw, signature_rem, signature_crt)
         crt_address = self.make_address_from_data(certificate_raw)
-        status = self._send_transaction(CertificateMethod.STORE, payload, [crt_address])
+        account_address = TokenHandler().make_address_from_data(self._signer.get_public_key().as_hex())
+        status = self._send_transaction(CertificateMethod.STORE, payload, [crt_address, account_address])
         return json.loads(status), crt_address
 
     def revoke_certificate(self, crt_address):
