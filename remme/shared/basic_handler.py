@@ -21,6 +21,7 @@ from sawtooth_sdk.processor.handler import TransactionHandler
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
 from remme.protos.transaction_pb2 import TransactionPayload
+from remme.shared.logging import test, LOGGER
 
 
 class BasicHandler(TransactionHandler):
@@ -28,7 +29,6 @@ class BasicHandler(TransactionHandler):
         self._family_name = name
         self._family_versions = versions
         self._prefix = hashlib.sha512(self._family_name.encode('utf-8')).hexdigest()[:6]
-        self._foreign_prefixes = list()
 
     @property
     def family_name(self):
@@ -40,20 +40,7 @@ class BasicHandler(TransactionHandler):
 
     @property
     def namespaces(self):
-        return self._foreign_prefixes + [self._prefix]
-
-    @property
-    def own_namespace(self):
-        return self._prefix
-
-    def _add_foreign_namespace(self, prefix):
-        if len(prefix) > 6:
-            raise InternalError('Prefixes should be 6 characters long')
-        try:
-            int(prefix, 16)
-        except ValueError:
-            raise InternalError('Prefixes should be valid hexadecimal numbers')
-        self._foreign_prefixes.append(prefix)
+        return [self._prefix]
 
     def get_state_processor(self):
         raise InternalError('No implementation for `get_state_processor`')
@@ -105,6 +92,7 @@ class BasicHandler(TransactionHandler):
         appendix = hashlib.sha512(data.encode('utf-8')).hexdigest()[:64]
         return self.make_address(appendix)
 
+    @test
     def get_data(self, context, pb_class, address):
         raw_data = context.get_state([address])
         if raw_data:
