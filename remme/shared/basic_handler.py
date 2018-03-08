@@ -23,7 +23,40 @@ from sawtooth_sdk.processor.exceptions import InvalidTransaction
 from remme.protos.transaction_pb2 import TransactionPayload
 
 
-class BasicHandler(TransactionHandler):
+def store_state(context, updated_state):
+    addresses = context.set_state({k: v.SerializeToString() for k, v in updated_state.items()})
+    if len(addresses) < len(updated_state):
+        raise InternalError('Failed to update all of states. Updated: {}. Full list of states to update: {}.'
+                            .format(addresses, updated_state.keys()))
+
+
+def get_data(context, pb_class, address):
+    raw_data = context.get_state([address])
+    if raw_data:
+        try:
+            data = pb_class()
+            data.ParseFromString(raw_data[0].data)
+
+            return data
+        except IndexError:
+            return None
+        except ParseError:
+            raise InternalError('Failed to deserialize data')
+    else:
+        return None
+
+
+def is_address(address):
+    try:
+        assert isinstance(address, str)
+        assert len(address) == 70
+        int(address, 16)
+        return True
+    except (AssertionError, ValueError):
+        return False
+
+
+class BasicMiddleware:
     def __init__(self, name, versions):
         self._family_name = name
         self._family_versions = versions
@@ -41,21 +74,47 @@ class BasicHandler(TransactionHandler):
     def namespaces(self):
         return [self._prefix]
 
+    def make_address(self, appendix):
+        address = self._prefix + appendix
+        if not is_address(address):
+            raise InternalError('{} is not a valid address'.format(address))
+        return address
+
+    def make_address_from_data(self, data):
+        appendix = hashlib.sha512(data.encode('utf-8')).hexdigest()[:64]
+        return self.make_address(appendix)
+
+
+class BasicHandler(TransactionHandler):
+    def __init__(self, middleware):
+        self._middleware = middleware
+
+    @property
+    def family_name(self):
+        return self._middleware.family_name
+
+    @property
+    def family_versions(self):
+        return self._middleware.family_versions
+
+    @property
+    def namespaces(self):
+        return self._middleware.namespaces
+
     def get_state_processor(self):
         raise InternalError('No implementation for `get_state_processor`')
 
     def get_message_factory(self, signer=None):
         return MessageFactory(
-            family_name=self._family_name,
-            family_version=self._family_versions[-1],
-            namespace=self._prefix,
+            family_name=self.family_name,
+            family_version=self.family_versions[-1],
+            namespace=self.namespaces[-1],
             signer=signer
         )
 
-    # Called by TransactionProcessor
     def apply(self, transaction, context):
         updated_state = self.process_transaction(context, transaction)
-        self._store_state(context, updated_state)
+        store_state(context, updated_state)
 
     def process_transaction(self, context, transaction):
         transaction_payload = TransactionPayload()
@@ -71,43 +130,3 @@ class BasicHandler(TransactionHandler):
                                      format(int(transaction_payload.method)))
         except ParseError:
             raise InvalidTransaction('Cannot decode transaction payload')
-
-    def is_address(self, address):
-        try:
-            assert isinstance(address, str)
-            assert len(address) == 70
-            int(address, 16)
-            return True
-        except (AssertionError, ValueError):
-            return False
-
-    def make_address(self, appendix):
-        address = self._prefix + appendix
-        if not self.is_address(address):
-            raise InternalError('{} is not a valid address'.format(address))
-        return address
-
-    def make_address_from_data(self, data):
-        appendix = hashlib.sha512(data.encode('utf-8')).hexdigest()[:64]
-        return self.make_address(appendix)
-
-    def get_data(self, context, pb_class, address):
-        raw_data = context.get_state([address])
-        if raw_data:
-            try:
-                data = pb_class()
-                data.ParseFromString(raw_data[0].data)
-
-                return data
-            except IndexError:
-                return None
-            except ParseError:
-                raise InternalError('Failed to deserialize data')
-        else:
-            return None
-
-    def _store_state(self, context, updated_state):
-        addresses = context.set_state({k: v.SerializeToString() for k, v in updated_state.items()})
-        if len(addresses) < len(updated_state):
-            raise InternalError('Failed to update all of states. Updated: {}. Full list of states to update: {}.'
-                                .format(addresses, updated_state.keys()))

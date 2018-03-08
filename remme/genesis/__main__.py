@@ -29,8 +29,8 @@ if __name__ == '__main__':
     token_client = TokenClient()
     token_handler = TokenHandler()
 
-    zero_address = token_handler.make_address('0' * 64)
-    target_address = token_handler.make_address_from_data(token_client.get_signer().get_public_key().as_hex())
+    zero_address = token_handler.middleware.make_address('0' * 64)
+    target_address = token_handler.middleware.make_address_from_data(token_client.get_signer().get_public_key().as_hex())
     
     print('Issuing {} tokens to address {}'.format(args.token_supply, target_address))
 

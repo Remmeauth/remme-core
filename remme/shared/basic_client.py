@@ -33,8 +33,8 @@ from sawtooth_signing.secp256k1 import Secp256k1PrivateKey
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.settings import REST_API_URL, PRIV_KEY_FILE
 from remme.shared.exceptions import ClientException
-
 from remme.shared.exceptions import KeyNotFound
+from remme.shared.basic_handler import is_address
 
 
 def _sha512(data):
@@ -44,7 +44,7 @@ def _sha512(data):
 class BasicClient:
     def __init__(self, family_handler, keyfile=PRIV_KEY_FILE):
         self.url = REST_API_URL
-        self._family_handler = family_handler()
+        self._middleware = family_handler.middleware
 
         try:
             with open(keyfile) as fd:
@@ -64,13 +64,13 @@ class BasicClient:
             create_context('secp256k1')).new_signer(private_key)
 
     def make_address(self, prefix):
-        return self._family_handler.make_address(prefix)
+        return self._middleware.make_address(prefix)
 
     def make_address_from_data(self, data):
-        return self._family_handler.make_address_from_data(data)
+        return self._middleware.make_address_from_data(data)
 
     def is_address(self, address):
-        return self._family_handler.is_address(address)
+        return is_address(address)
 
     def get_value(self, key):
         result = self._send_request("state/{}".format(key))
@@ -88,7 +88,7 @@ class BasicClient:
             raise ClientException(err)
 
     def _get_prefix(self):
-        return self._family_handler.namespaces[-1]
+        return self._middleware.namespaces[-1]
 
     def _get_address(self, pub_key):
         if len(pub_key) > 64:
@@ -131,8 +131,8 @@ class BasicClient:
         signer = self._signer
         header = TransactionHeader(
             signer_public_key=signer.get_public_key().as_hex(),
-            family_name=self._family_handler.family_name,
-            family_version=self._family_handler.family_versions[-1],
+            family_name=self._middleware.family_name,
+            family_version=self._middleware.family_versions[-1],
             inputs=addresses_input_output,
             outputs=addresses_input_output,
             dependencies=[],

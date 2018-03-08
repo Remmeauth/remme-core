@@ -29,11 +29,23 @@ FAMILY_NAME = 'token'
 FAMILY_VERSIONS = ['0.1']
 
 
-# TODO: ensure receiver_account.balance += transfer_payload.amount is within uint64
-class TokenHandler(BasicHandler):
+class TokenMiddleware(BasicMiddleware):
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
-        self.zero_address = self.make_address(ZERO_ADDRESS)
+
+    def get_account_by_pub_key(self, context, pub_key):
+        address = self.make_address_from_data(pub_key)
+        account = get_data(context, Account, address)
+        return address, account
+
+
+# TODO: ensure receiver_account.balance += transfer_payload.amount is within uint64
+class TokenHandler(BasicHandler):
+    middleware = TokenMiddleware()
+
+    def __init__(self):
+        super().__init__(TokenHandler.middleware)
+        self.zero_address = self.middleware.make_address(ZERO_ADDRESS)
 
     def get_state_processor(self):
         return {
@@ -47,15 +59,9 @@ class TokenHandler(BasicHandler):
             }
         }
 
-    def _get_account_by_pub_key(self, context, pub_key):
-        address = self.make_address_from_data(pub_key)
-        account = self.get_data(context, Account, address)
-        LOGGER.info(account)
-        return address, account
-
     def _genesis(self, context, pub_key, genesis_payload):
-        signer_key, account = self._get_account_by_pub_key(context, pub_key)
-        genesis_status = self.get_data(context, GenesisStatus, self.zero_address)
+        signer_key, account = self.middleware.get_account_by_pub_key(context, pub_key)
+        genesis_status = get_data(context, GenesisStatus, self.zero_address)
         if not genesis_status:
             genesis_status = GenesisStatus()
         elif genesis_status.status:
@@ -71,13 +77,13 @@ class TokenHandler(BasicHandler):
         }
 
     def _transfer(self, context, pub_key, transfer_payload):
-        signer_key, signer_account = self._get_account_by_pub_key(context, pub_key)
+        signer_key, signer_account = self.middleware.get_account_by_pub_key(context, pub_key)
         if self.zero_address in [transfer_payload.address_to, signer_key]:
             raise InvalidTransaction("Zero address cannot involve in any operation.")
         if signer_key == transfer_payload.address_to:
             raise InvalidTransaction("Account cannot send tokens to itself.")
 
-        receiver_account = self.get_data(context, Account, transfer_payload.address_to)
+        receiver_account = get_data(context, Account, transfer_payload.address_to)
 
         if not receiver_account:
             receiver_account = Account()
