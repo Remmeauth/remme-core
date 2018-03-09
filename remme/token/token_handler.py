@@ -14,7 +14,6 @@
 # ------------------------------------------------------------------------
 
 import logging
-from google.protobuf.text_format import ParseError
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
 from remme.protos.token_pb2 import Account, GenesisStatus, TokenMethod, GenesisPayload, \
