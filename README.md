@@ -19,7 +19,7 @@ On the first run you will need to initialize the genesis block. To make that jus
 
 ### For developers & contributors
 
-CLone this repository to your machine: `git clone https://github.com/Remmeauth/remme-core.git`
+Clone this repository to your machine: `git clone https://github.com/Remmeauth/remme-core.git`
 
 When you have this repository cloned go the project directory run the following commands:
 

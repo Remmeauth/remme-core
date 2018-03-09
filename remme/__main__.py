@@ -26,11 +26,11 @@ if __name__ == '__main__':
     parser.add_argument('endpoint')
     parser.add_argument('-v', '--verbosity', type=int, default=2)
     args = parser.parse_args()
+    setup_logging('REMME', args.verbosity)
     processor = TransactionProcessor(url=args.endpoint)
     for handler in TP_HANDLERS:
-        processor.add_handler(handler())
+        processor.add_handler(handler)
     try:
-        setup_logging('remme', args.verbosity)
         processor.start()
     except KeyboardInterrupt:
         pass
