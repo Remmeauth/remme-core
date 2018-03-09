@@ -34,7 +34,6 @@ FAMILY_VERSIONS = ['0.1']
 @singleton
 class TokenHandler(BasicHandler):
     def __init__(self):
-        LOGGER.info('Initialized')
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
         self.zero_address = self.make_address(ZERO_ADDRESS)
 

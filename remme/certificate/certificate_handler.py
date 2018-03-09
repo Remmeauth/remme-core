@@ -45,7 +45,6 @@ CERT_STORE_PRICE = 10
 @singleton
 class CertificateHandler(BasicHandler):
     def __init__(self):
-        LOGGER.info('Initialized')
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
 
     def get_state_processor(self):
