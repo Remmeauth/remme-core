@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [0.2.0-alpha] - 2018-03-05
+## [0.2.1-alpha] - 2018-03-09
 ### Added
 - Enter parameters for certificate from CLI.
 - Continuous integrations setup.
@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - A separate setup for end users.
 - Started test coverage.
 - Convenient way to generate a new genesis block.
+- A fixed amount of token is burnt on a certificate issuance.
 ### Changed
 - Transactions: unified data structures and transaction processors.
 - Faster startup in Docker containers for end users and separate Docker container for development purposes (instant source code updates).
