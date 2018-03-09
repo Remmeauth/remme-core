@@ -29,9 +29,9 @@ class HelperTestCase(TransactionProcessorTestCase):
         cls.handler = handler()
 
         account_signer1 = cls.get_new_signer()
-        cls.account_address1 = cls.handler.middleware.make_address_from_data(account_signer1.get_public_key().as_hex())
+        cls.account_address1 = cls.handler.make_address_from_data(account_signer1.get_public_key().as_hex())
         account_signer2 = cls.get_new_signer()
-        cls.account_address2 = cls.handler.middleware.make_address_from_data(account_signer2.get_public_key().as_hex())
+        cls.account_address2 = cls.handler.make_address_from_data(account_signer2.get_public_key().as_hex())
 
         cls._factory = cls.handler.get_message_factory(account_signer1)
 

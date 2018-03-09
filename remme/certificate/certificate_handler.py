@@ -25,10 +25,11 @@ from cryptography.exceptions import InvalidSignature
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 from sawtooth_signing.secp256k1 import Secp256k1PublicKey, Secp256k1Context
 
-from remme.shared.basic_handler import BasicHandler, BasicMiddleware, get_data
+from remme.shared.basic_handler import BasicHandler, get_data
 from remme.token.token_handler import TokenHandler
 from remme.protos.certificate_pb2 import CertificateStorage, \
     NewCertificatePayload, RevokeCertificatePayload, CertificateMethod
+from remme.shared.singleton import singleton
 
 LOGGER = logging.getLogger(__name__)
 
@@ -41,11 +42,11 @@ CERT_MAX_VALIDITY = datetime.timedelta(365)
 CERT_STORE_PRICE = 10
 
 
+@singleton
 class CertificateHandler(BasicHandler):
-    middleware = BasicMiddleware(FAMILY_NAME, FAMILY_VERSIONS)
-
     def __init__(self):
-        super().__init__(CertificateHandler.middleware)
+        LOGGER.info('Initialized')
+        super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
 
     def get_state_processor(self):
         return {
@@ -60,7 +61,7 @@ class CertificateHandler(BasicHandler):
         }
 
     def _store_certificate(self, context, signer_pubkey, transaction_payload):
-        address = self.middleware.make_address_from_data(transaction_payload.certificate_raw)
+        address = self.make_address_from_data(transaction_payload.certificate_raw)
         data = get_data(context, CertificateStorage, address)
         if data:
             raise InvalidTransaction('This certificate is already registered.')
@@ -110,7 +111,7 @@ class CertificateHandler(BasicHandler):
         data.owner = signer_pubkey
         data.revoked = False
 
-        account_address, account = TokenHandler.middleware.get_account_by_pub_key(context, signer_pubkey)
+        account_address, account = TokenHandler().get_account_by_pub_key(context, signer_pubkey)
         if account.balance < CERT_STORE_PRICE:
             raise InvalidTransaction('Not enough tokens to register a new certificate. Current balance: {}'
                                      .format(account.balance))

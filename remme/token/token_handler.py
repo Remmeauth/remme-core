@@ -20,6 +20,7 @@ from sawtooth_sdk.processor.exceptions import InvalidTransaction
 from remme.protos.token_pb2 import Account, GenesisStatus, TokenMethod, GenesisPayload, \
     TransferPayload
 from remme.shared.basic_handler import *
+from remme.shared.singleton import singleton
 
 LOGGER = logging.getLogger(__name__)
 
@@ -29,23 +30,13 @@ FAMILY_NAME = 'token'
 FAMILY_VERSIONS = ['0.1']
 
 
-class TokenMiddleware(BasicMiddleware):
-    def __init__(self):
-        super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
-
-    def get_account_by_pub_key(self, context, pub_key):
-        address = self.make_address_from_data(pub_key)
-        account = get_data(context, Account, address)
-        return address, account
-
-
 # TODO: ensure receiver_account.balance += transfer_payload.amount is within uint64
+@singleton
 class TokenHandler(BasicHandler):
-    middleware = TokenMiddleware()
-
     def __init__(self):
-        super().__init__(TokenHandler.middleware)
-        self.zero_address = self.middleware.make_address(ZERO_ADDRESS)
+        LOGGER.info('Initialized')
+        super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
+        self.zero_address = self.make_address(ZERO_ADDRESS)
 
     def get_state_processor(self):
         return {
@@ -59,8 +50,13 @@ class TokenHandler(BasicHandler):
             }
         }
 
+    def get_account_by_pub_key(self, context, pub_key):
+        address = self.make_address_from_data(pub_key)
+        account = get_data(context, Account, address)
+        return address, account
+
     def _genesis(self, context, pub_key, genesis_payload):
-        signer_key, account = self.middleware.get_account_by_pub_key(context, pub_key)
+        signer_key, account = self.get_account_by_pub_key(context, pub_key)
         genesis_status = get_data(context, GenesisStatus, self.zero_address)
         if not genesis_status:
             genesis_status = GenesisStatus()
@@ -69,7 +65,7 @@ class TokenHandler(BasicHandler):
         genesis_status.status = True
         account = Account()
         account.balance = genesis_payload.total_supply
-        LOGGER.info('Generated genesis transaction. Emmitted {} tokens to address {}'
+        LOGGER.info('Generated genesis transaction. Issued {} tokens to address {}'
                     .format(genesis_payload.total_supply, signer_key))
         return {
             signer_key: account,
@@ -77,7 +73,7 @@ class TokenHandler(BasicHandler):
         }
 
     def _transfer(self, context, pub_key, transfer_payload):
-        signer_key, signer_account = self.middleware.get_account_by_pub_key(context, pub_key)
+        signer_key, signer_account = self.get_account_by_pub_key(context, pub_key)
         if self.zero_address in [transfer_payload.address_to, signer_key]:
             raise InvalidTransaction("Zero address cannot involve in any operation.")
         if signer_key == transfer_payload.address_to:
