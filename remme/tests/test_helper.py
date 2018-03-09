@@ -26,7 +26,7 @@ class HelperTestCase(TransactionProcessorTestCase):
     @classmethod
     def setUpClass(cls, handler):
         super().setUpClass()
-        cls.handler = handler()
+        cls.handler = handler
 
         account_signer1 = cls.get_new_signer()
         cls.account_address1 = cls.handler.make_address_from_data(account_signer1.get_public_key().as_hex())

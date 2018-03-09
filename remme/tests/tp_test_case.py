@@ -5,6 +5,7 @@ from sawtooth_processor_test.mock_validator import MockValidator
 
 from remme.__main__ import TP_HANDLERS
 
+
 class TransactionProcessorTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
