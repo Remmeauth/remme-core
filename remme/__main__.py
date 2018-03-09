@@ -29,7 +29,7 @@ if __name__ == '__main__':
     setup_logging('REMME', args.verbosity)
     processor = TransactionProcessor(url=args.endpoint)
     for handler in TP_HANDLERS:
-        processor.add_handler(handler())
+        processor.add_handler(handler)
     try:
         processor.start()
     except KeyboardInterrupt:
