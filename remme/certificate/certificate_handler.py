@@ -110,7 +110,7 @@ class CertificateHandler(BasicHandler):
         data.owner = signer_pubkey
         data.revoked = False
 
-        account_address, account = TokenHandler().get_account_by_pub_key(context, signer_pubkey)
+        account_address, account = TokenHandler.get_account_by_pub_key(context, signer_pubkey)
         if account.balance < CERT_STORE_PRICE:
             raise InvalidTransaction('Not enough tokens to register a new certificate. Current balance: {}'
                                      .format(account.balance))

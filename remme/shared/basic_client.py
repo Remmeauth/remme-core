@@ -44,7 +44,7 @@ def _sha512(data):
 class BasicClient:
     def __init__(self, family_handler, keyfile=PRIV_KEY_FILE):
         self.url = REST_API_URL
-        self._family_handler = family_handler()
+        self._family_handler = family_handler
 
         try:
             with open(keyfile) as fd:

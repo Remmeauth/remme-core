@@ -45,7 +45,7 @@ class CertificateClient(BasicClient):
     def store_certificate(self, certificate_raw, signature_rem, signature_crt):
         payload = self.get_new_certificate_payload(certificate_raw, signature_rem, signature_crt)
         crt_address = self.make_address_from_data(certificate_raw)
-        account_address = TokenHandler().make_address_from_data(self._signer.get_public_key().as_hex())
+        account_address = TokenHandler.make_address_from_data(self._signer.get_public_key().as_hex())
         status = self._send_transaction(CertificateMethod.STORE, payload, [crt_address, account_address])
         return json.loads(status), crt_address
 
