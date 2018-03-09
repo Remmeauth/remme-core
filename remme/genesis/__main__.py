@@ -27,12 +27,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     token_client = TokenClient()
-    token_handler = TokenHandler()
 
-    zero_address = token_handler.make_address('0' * 64)
-    target_address = token_handler.make_address_from_data(token_client.get_signer().get_public_key().as_hex())
+    zero_address = TokenHandler.make_address('0' * 64)
+    target_address = TokenHandler.make_address_from_data(token_client.get_signer().get_public_key().as_hex())
     
-    print('Issuing tokens to address {}'.format(target_address))
+    print('Issuing {} tokens to address {}'.format(args.token_supply, target_address))
 
     addresses_input_output = [zero_address, target_address]
 
