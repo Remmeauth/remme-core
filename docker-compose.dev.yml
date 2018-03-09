@@ -32,7 +32,7 @@ services:
     entrypoint: |
       bash -c "
         sawadm keygen && \
-        sawtooth keygen key
+        sawtooth keygen key && \
         if [ -d "/var/lib/sawtooth" ]; then
           rm /var/lib/sawtooth/*
         fi
