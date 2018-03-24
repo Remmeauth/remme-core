@@ -63,4 +63,4 @@ class CertificateClient(BasicClient):
         data = self.get_value(address)
         storage = CertificateStorage()
         storage.ParseFromString(data)
-        return storage.revoked
+        return storage
