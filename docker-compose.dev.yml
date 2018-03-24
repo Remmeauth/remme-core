@@ -32,7 +32,7 @@ services:
     entrypoint: |
       bash -c "
         sawadm keygen && \
-        sawtooth keygen key && \
+        sawtooth keygen key
         if [ -d "/var/lib/sawtooth" ]; then
           rm /var/lib/sawtooth/*
         fi
@@ -47,6 +47,8 @@ services:
 
   remme-transaction-processor:
     image: remme/remme-core-dev:latest
+    depends_on:
+      - validator
     volumes:
       - .:/root/remme
     entrypoint: |
@@ -73,6 +75,21 @@ services:
       sawtooth-rest-api -vv
         --connect tcp://validator:4004
         --bind rest-api:8008
+
+  remme-rest-api:
+    image: remme/remme-core-dev:latest
+    depends_on:
+      - rest-api
+    ports:
+      - '8080:8080'
+    volumes:
+      - ./keys:/root/.sawtooth/keys
+      - .:/root/remme
+    entrypoint: |
+      bash -c "
+        pip3 install --upgrade /root/remme && \
+        python3 -m remme.rest_api
+      "
 
   shell:
     image: remme/remme-core-dev:latest

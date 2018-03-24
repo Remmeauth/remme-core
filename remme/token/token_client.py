@@ -66,3 +66,7 @@ class TokenClient(BasicClient):
         account = Account()
         account.ParseFromString(self.get_value(address))
         return account
+
+    def get_balance(self, address):
+        account = self.get_account(address)
+        return account.balance
