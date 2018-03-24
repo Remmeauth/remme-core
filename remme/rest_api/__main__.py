@@ -13,8 +13,16 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
+import datetime
+import hashlib
 from flask import Flask
 from flask_restful import Resource, Api, reqparse
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from cryptography.hazmat.backends import default_backend
+from cryptography import x509
+from cryptography.x509.oid import NameOID
+from cryptography.hazmat.primitives import hashes
 
 from remme.token.token_client import TokenClient
 from remme.certificate.certificate_client import CertificateClient
@@ -73,7 +81,80 @@ class Certificate(Resource):
             return {'error': 'No certificate found'}, 404
 
     def post(self):
-        pass
+        client = CertificateClient()
+
+        parser = reqparse.RequestParser(bundle_errors=True)
+        parser.add_argument('country_name', required=True)
+        parser.add_argument('state_name', required=True)
+        parser.add_argument('locality_name', required=True)
+        parser.add_argument('common_name', required=True)
+        parser.add_argument('validity', type=int, required=True)
+        parser.add_argument('passphrase')
+
+        arguments = parser.parse_args()
+
+        encryption_algorithm = None
+        if hasattr(arguments, 'passphrase'):
+            if arguments.passphrase:
+                encryption_algorithm = serialization.BestAvailableEncryption(
+                    arguments.passphrase.encode('utf-8'))
+            else:
+                encryption_algorithm = serialization.NoEncryption()
+
+        key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend()
+        )
+
+        key_export = key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=encryption_algorithm,
+        )
+
+        subject = issuer = x509.Name([
+            x509.NameAttribute(NameOID.COUNTRY_NAME, arguments.country_name),
+            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, arguments.state_name),
+            x509.NameAttribute(NameOID.LOCALITY_NAME, arguments.locality_name),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, 'REMME'),
+            x509.NameAttribute(NameOID.COMMON_NAME, arguments.common_name),
+            x509.NameAttribute(NameOID.USER_ID, client.get_signer_pubkey())
+        ])
+        cert = x509.CertificateBuilder().subject_name(
+            subject
+        ).issuer_name(
+            issuer
+        ).public_key(
+            key.public_key()
+        ).serial_number(
+            x509.random_serial_number()
+        ).not_valid_before(
+            datetime.datetime.utcnow()
+        ).not_valid_after(
+            datetime.datetime.utcnow() + datetime.timedelta(days=arguments.validity)
+        ).sign(key, hashes.SHA256(), default_backend())
+
+        crt_export = cert.public_bytes(serialization.Encoding.PEM)
+
+        crt_bin = cert.public_bytes(serialization.Encoding.DER).hex()
+        crt_hash = hashlib.sha512(crt_bin.encode('utf-8')).hexdigest()
+        rem_sig = client.sign_text(crt_hash)
+
+        crt_sig = key.sign(
+            bytes.fromhex(rem_sig),
+            padding.PSS(
+                mgf=padding.MGF1(hashes.SHA256()),
+                salt_length=padding.PSS.MAX_LENGTH
+            ),
+            hashes.SHA256()
+        )
+
+        status, _ = client.store_certificate(crt_bin, rem_sig, crt_sig.hex())
+
+        return {'certificate': crt_export.decode('utf-8'),
+                'private': key_export.decode('utf-8'),
+                'status_link': status['link']}
 
     def delete(self):
         parser = reqparse.RequestParser(bundle_errors=True)
