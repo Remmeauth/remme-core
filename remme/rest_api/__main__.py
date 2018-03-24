@@ -33,11 +33,6 @@ app = Flask(__name__)
 api = Api(app)
 
 
-class Keys(Resource):
-    def get(self):
-        pass
-
-
 class Token(Resource):
     def get(self):
         parser = reqparse.RequestParser(bundle_errors=True)
@@ -54,13 +49,10 @@ class Token(Resource):
 
     def post(self):
         parser = reqparse.RequestParser(bundle_errors=True)
-        # for future use: multiple keys on a single instance
-        parser.add_argument('pubkey_from', required=True)
         parser.add_argument('pubkey_to', required=True)
         parser.add_argument('amount', type=int, required=True)
         arguments = parser.parse_args()
         client = TokenClient()
-        address_from = client.make_address_from_data(arguments.pubkey_from)
         address_to = client.make_address_from_data(arguments.pubkey_to)
         result = client.transfer(address_to, arguments.amount)
         return result
@@ -172,7 +164,6 @@ class Certificate(Resource):
             return {'error': 'No certificate found'}, 404
 
 
-api.add_resource(Keys, '/keys')
 api.add_resource(Token, '/token')
 api.add_resource(Certificate, '/certificate')
 
