@@ -70,13 +70,25 @@ class Certificate(Resource):
             return {'revoked': certificate_data.revoked,
                     'owner': certificate_data.owner}
         except KeyNotFound:
-            return {'error': 'No certificate found with hash '.format(arguments.crt_hash)}, 404
+            return {'error': 'No certificate found'}, 404
 
     def post(self):
         pass
 
     def delete(self):
-        pass
+        parser = reqparse.RequestParser(bundle_errors=True)
+        parser.add_argument('crt_hash', required=True)
+        arguments = parser.parse_args()
+        client = CertificateClient()
+        address = client.make_address(arguments.crt_hash)
+        try:
+            certificate_data = client.get_status(address)
+            if certificate_data.revoked:
+                return {'error': 'The certificate was already revoked'}, 405
+            client.revoke_certificate(address)
+            return {}
+        except KeyNotFound:
+            return {'error': 'No certificate found'}, 404
 
 
 api.add_resource(Keys, '/keys')
