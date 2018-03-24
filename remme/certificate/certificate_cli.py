@@ -73,7 +73,7 @@ class CertificateCli(BasicCli):
 
     def check_status(self, args):
         try:
-            status = self.client.get_status(args.address)
+            status = self.client.get_status(args.address).revoked
             if status:
                 print('Certificate on address {} is revoked.'.format(args.address))
             else:

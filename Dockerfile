@@ -18,7 +18,8 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 8AA7AF1F10
     echo "deb http://repo.sawtooth.me/ubuntu/1.0/stable xenial universe" >> /etc/apt/sources.list && \
     apt-get update && \
     apt-get install -y sawtooth && \
-    apt-get install -y python3-pip
+    apt-get install -y python3-pip && \
+    apt-get install -y libssl-dev
 WORKDIR /root
 COPY ./requirements.txt .
 RUN pip3 install -r ./requirements.txt

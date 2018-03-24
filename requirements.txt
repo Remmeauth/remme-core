@@ -3,3 +3,5 @@ sawtooth-sdk
 sawtooth-signing
 cryptography
 protobuf
+flask
+flask-restful
