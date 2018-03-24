@@ -27,13 +27,28 @@ from cryptography.hazmat.primitives import hashes
 from remme.token.token_client import TokenClient
 from remme.certificate.certificate_client import CertificateClient
 from remme.shared.exceptions import KeyNotFound
-
+from flask_restful_swagger import swagger
 
 app = Flask(__name__)
-api = Api(app)
+api = swagger.docs(Api(app), apiVersion='0.1', api_spec_url="/api")
 
 
 class Token(Resource):
+    @swagger.operation(
+        notes="""Get balance: </br>
+            returns {</br>
+                'balance': "10000"</br>
+            }""",
+        parameters=[
+            {
+                "name": "pubkey",
+                "description": "Key to get balance",
+                "required": True,
+                "dataType": "string",
+                "paramType": "json"
+            }
+        ]
+    )
     def get(self):
         parser = reqparse.RequestParser(bundle_errors=True)
         parser.add_argument('pubkey', required=True)
@@ -47,6 +62,28 @@ class Token(Resource):
         except KeyNotFound:
             return {'error': 'Key not found'}, 404
 
+    @swagger.operation(
+        notes="""Transfer tokens: </br>
+                returns {</br>
+                    'result': "information about successful transaction."</br>
+                }""",
+        parameters=[
+            {
+                "name": "pubkey_to",
+                "description": "Receiver address",
+                "required": True,
+                "dataType": "string",
+                "paramType": "json"
+            },
+            {
+                "name": "amount",
+                "description": "Amount to transfer",
+                "required": True,
+                "dataType": "string",
+                "paramType": "json"
+            }
+        ]
+    )
     def post(self):
         parser = reqparse.RequestParser(bundle_errors=True)
         parser.add_argument('pubkey_to', required=True)
@@ -59,6 +96,22 @@ class Token(Resource):
 
 
 class Certificate(Resource):
+    @swagger.operation(
+        notes="""Get certificate status: </br>
+                    returns { </br>
+                        'revoked': "Bool value", </br>
+                        'owner': "Owner's address" </br>
+                    }""",
+        parameters=[
+            {
+                "name": "crt_hash",
+                "description": "Certificate hash",
+                "required": True,
+                "dataType": "string",
+                "paramType": "json"
+            }
+        ]
+    )
     def get(self):
         parser = reqparse.RequestParser(bundle_errors=True)
         parser.add_argument('crt_hash', required=True)
@@ -72,6 +125,58 @@ class Certificate(Resource):
         except KeyNotFound:
             return {'error': 'No certificate found'}, 404
 
+    @swagger.operation(
+        notes="""Generate certificate: </br>
+                        returns { </br>
+                            'crt_hash': "Certificate hash", </br>
+                            'private_key': "Private key" </br>
+                            'status_link': "Transaction status link" </br>
+                        }""",
+        parameters=[
+            {
+                "name": "country_name (2 symbols, ex. 'UA')",
+                "description": "Country name",
+                "required": True,
+                "dataType": "string",
+                "paramType": "json"
+            },
+            {
+                "name": "state_name",
+                "description": "State name",
+                "required": True,
+                "dataType": "string",
+                "paramType": "json"
+            },
+            {
+                "name": "locality_name",
+                "description": "Locality name",
+                "required": True,
+                "dataType": "string",
+                "paramType": "json"
+            },
+            {
+                "name": "common_name",
+                "description": "Common name",
+                "required": True,
+                "dataType": "string",
+                "paramType": "json"
+            },
+            {
+                "name": "validity",
+                "description": "Amount of days certificate is valid",
+                "required": True,
+                "dataType": "int",
+                "paramType": "json"
+            },
+            {
+                "name": "passphrase",
+                "description": "passphrase as a second factor encryption",
+                "required": False,
+                "dataType": "string",
+                "paramType": "json"
+            }
+        ]
+    )
     def post(self):
         client = CertificateClient()
 
