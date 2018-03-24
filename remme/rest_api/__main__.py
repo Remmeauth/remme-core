@@ -45,7 +45,7 @@ class Token(Resource):
                 "description": "Key to get balance",
                 "required": True,
                 "dataType": "string",
-                "paramType": "json"
+                "paramType": "form"
             }
         ]
     )
@@ -73,14 +73,14 @@ class Token(Resource):
                 "description": "Receiver address",
                 "required": True,
                 "dataType": "string",
-                "paramType": "json"
+                "paramType": "form"
             },
             {
                 "name": "amount",
                 "description": "Amount to transfer",
                 "required": True,
                 "dataType": "string",
-                "paramType": "json"
+                "paramType": "form"
             }
         ]
     )
@@ -108,7 +108,7 @@ class Certificate(Resource):
                 "description": "Certificate hash",
                 "required": True,
                 "dataType": "string",
-                "paramType": "json"
+                "paramType": "form"
             }
         ]
     )
@@ -138,63 +138,63 @@ class Certificate(Resource):
                 "description": "Amount of days certificate is valid",
                 "required": True,
                 "dataType": "int",
-                "paramType": "json"
+                "paramType": "form"
             },
             {
                 "name": "passphrase",
                 "description": "passphrase as a second factor encryption",
                 "required": False,
                 "dataType": "string",
-                "paramType": "json"
+                "paramType": "form"
             },
             {
                 "name": "country_name (2 symbols, ex. 'UA')",
                 "description": "Country name",
                 "required": False,
                 "dataType": "string",
-                "paramType": "json"
+                "paramType": "form"
             },
             {
                 "name": "state_name",
                 "description": "State name",
                 "required": False,
                 "dataType": "string",
-                "paramType": "json"
+                "paramType": "form"
             },
             {
                 "name": "locality_name",
                 "description": "Locality name",
                 "required": False,
                 "dataType": "string",
-                "paramType": "json"
+                "paramType": "form"
             },
             {
                 "name": "common_name",
                 "description": "Common name",
                 "required": False,
                 "dataType": "string",
-                "paramType": "json"
+                "paramType": "form"
             },
             {
                 "name": "name",
                 "description": "User's given name",
                 "required": False,
                 "dataType": "string",
-                "paramType": "json"
+                "paramType": "form"
             },
             {
                 "name": "surname",
                 "description": "User's surname",
                 "required": False,
                 "dataType": "string",
-                "paramType": "json"
+                "paramType": "form"
             },
             {
                 "name": "email",
                 "description": "User's email",
                 "required": False,
                 "dataType": "email",
-                "paramType": "json"
+                "paramType": "form"
             }
         ]
     )
