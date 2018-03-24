@@ -45,7 +45,7 @@ class Token(Resource):
                 "description": "Key to get balance",
                 "required": True,
                 "dataType": "string",
-                "paramType": "form"
+                "paramType": "query"
             }
         ]
     )
@@ -108,7 +108,7 @@ class Certificate(Resource):
                 "description": "Certificate hash",
                 "required": True,
                 "dataType": "string",
-                "paramType": "form"
+                "paramType": "query"
             }
         ]
     )
