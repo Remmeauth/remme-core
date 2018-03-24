@@ -134,34 +134,6 @@ class Certificate(Resource):
                         }""",
         parameters=[
             {
-                "name": "country_name (2 symbols, ex. 'UA')",
-                "description": "Country name",
-                "required": True,
-                "dataType": "string",
-                "paramType": "json"
-            },
-            {
-                "name": "state_name",
-                "description": "State name",
-                "required": True,
-                "dataType": "string",
-                "paramType": "json"
-            },
-            {
-                "name": "locality_name",
-                "description": "Locality name",
-                "required": True,
-                "dataType": "string",
-                "paramType": "json"
-            },
-            {
-                "name": "common_name",
-                "description": "Common name",
-                "required": True,
-                "dataType": "string",
-                "paramType": "json"
-            },
-            {
                 "name": "validity",
                 "description": "Amount of days certificate is valid",
                 "required": True,
@@ -174,17 +146,72 @@ class Certificate(Resource):
                 "required": False,
                 "dataType": "string",
                 "paramType": "json"
+            },
+            {
+                "name": "country_name (2 symbols, ex. 'UA')",
+                "description": "Country name",
+                "required": False,
+                "dataType": "string",
+                "paramType": "json"
+            },
+            {
+                "name": "state_name",
+                "description": "State name",
+                "required": False,
+                "dataType": "string",
+                "paramType": "json"
+            },
+            {
+                "name": "locality_name",
+                "description": "Locality name",
+                "required": False,
+                "dataType": "string",
+                "paramType": "json"
+            },
+            {
+                "name": "common_name",
+                "description": "Common name",
+                "required": False,
+                "dataType": "string",
+                "paramType": "json"
+            },
+            {
+                "name": "name",
+                "description": "User's given name",
+                "required": False,
+                "dataType": "string",
+                "paramType": "json"
+            },
+            {
+                "name": "surname",
+                "description": "User's surname",
+                "required": False,
+                "dataType": "string",
+                "paramType": "json"
+            },
+            {
+                "name": "email",
+                "description": "User's email",
+                "required": False,
+                "dataType": "email",
+                "paramType": "json"
             }
         ]
     )
     def post(self):
+        parameters = {
+            'country_name': NameOID.COUNTRY_NAME,
+            'state_name': NameOID.STATE_OR_PROVINCE_NAME,
+            'locality_name': NameOID.LOCALITY_NAME,
+            'common_name': NameOID.COMMON_NAME,
+            'name': NameOID.GIVEN_NAME,
+            'surname': NameOID.SURNAME,
+            'email': NameOID.EMAIL_ADDRESS
+        }
+
         client = CertificateClient()
 
         parser = reqparse.RequestParser(bundle_errors=True)
-        parser.add_argument('country_name', required=True)
-        parser.add_argument('state_name', required=True)
-        parser.add_argument('locality_name', required=True)
-        parser.add_argument('common_name', required=True)
         parser.add_argument('validity', type=int, required=True)
         parser.add_argument('passphrase')
 
@@ -210,14 +237,14 @@ class Certificate(Resource):
             encryption_algorithm=encryption_algorithm,
         )
 
-        subject = issuer = x509.Name([
-            x509.NameAttribute(NameOID.COUNTRY_NAME, arguments.country_name),
-            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, arguments.state_name),
-            x509.NameAttribute(NameOID.LOCALITY_NAME, arguments.locality_name),
-            x509.NameAttribute(NameOID.ORGANIZATION_NAME, 'REMME'),
-            x509.NameAttribute(NameOID.COMMON_NAME, arguments.common_name),
-            x509.NameAttribute(NameOID.USER_ID, client.get_signer_pubkey())
-        ])
+        name_oid = [x509.NameAttribute(NameOID.ORGANIZATION_NAME, 'REMME'),
+                    x509.NameAttribute(NameOID.USER_ID, client.get_signer_pubkey())]
+
+        for k, v in parameters.items():
+            if hasattr(arguments, k):
+                name_oid.append(x509.NameAttribute(v, getattr(arguments, k)))
+
+        subject = issuer = x509.Name(name_oid)
         cert = x509.CertificateBuilder().subject_name(
             subject
         ).issuer_name(
