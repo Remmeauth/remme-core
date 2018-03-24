@@ -17,6 +17,7 @@ from flask import Flask
 from flask_restful import Resource, Api, reqparse
 
 from remme.token.token_client import TokenClient
+from remme.certificate.certificate_client import CertificateClient
 from remme.shared.exceptions import KeyNotFound
 
 
@@ -59,7 +60,17 @@ class Token(Resource):
 
 class Certificate(Resource):
     def get(self):
-        pass
+        parser = reqparse.RequestParser(bundle_errors=True)
+        parser.add_argument('crt_hash', required=True)
+        arguments = parser.parse_args()
+        client = CertificateClient()
+        address = client.make_address(arguments.crt_hash)
+        try:
+            certificate_data = client.get_status(address)
+            return {'revoked': certificate_data.revoked,
+                    'owner': certificate_data.owner}
+        except KeyNotFound:
+            return {'error': 'No certificate found with hash '.format(arguments.crt_hash)}, 404
 
     def post(self):
         pass
