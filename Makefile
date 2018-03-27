@@ -18,9 +18,6 @@ PROTO_DST_DIR = ./remme/protos
 
 TOTAL_SUPPLY ?= 10000000000000
 
-run:
-	docker-compose up
-
 run_dev:
 	docker-compose -f docker-compose.dev.yml up
 
