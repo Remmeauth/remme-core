@@ -72,6 +72,8 @@ services:
     image: remme/remme-core:latest
     depends_on:
       - rest-api
+    ports:
+      - '8022:8008'
     volumes:
       - ./remme/genesis:/root/genesis
       - ./keys:/root/.sawtooth/keys

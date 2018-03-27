@@ -5,3 +5,8 @@ cryptography
 protobuf
 connexion
 requests
+flask
+flask-restful
+flask-restful-swagger
+sphinx
+sphinx-autobuild
