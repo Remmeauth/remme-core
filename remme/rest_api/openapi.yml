@@ -151,12 +151,15 @@ paths:
     post:
       summary: Check the status of the provided certificate
       parameters:
-        - name: certificate
+        - name: payload
           description: PEM encoded certificate file
           in: body
           required: true
           schema:
-            type: string
+            properties:
+              certificate:
+                description: PEM encoded certificate file
+                type: string
       responses:
         200:
           description: Certificate is registered on the REMchain
@@ -191,4 +194,7 @@ responses:
   500GeneralError:
     description: Error processing this request
     schema:
-      type: string
+      properties:
+        error:
+          type: string
+          description: Error description
