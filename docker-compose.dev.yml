@@ -95,6 +95,8 @@ services:
     image: remme/remme-core-dev:latest
     depends_on:
       - rest-api
+    ports:
+      - '8000:8000'
     volumes:
       - ./remme/genesis:/root/genesis
       - ./keys:/root/.sawtooth/keys
@@ -108,5 +110,6 @@ services:
           sawtooth keygen
         fi;
         pip3 install --upgrade /root/remme && \
+        sphinx-autobuild -H 0.0.0.0 -p 8000 remme/docs build && \
         tail -f /dev/null
       "

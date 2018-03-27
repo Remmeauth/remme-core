@@ -10,3 +10,5 @@ flask-restful
 flask-restful-swagger
 sphinx
 sphinx-autobuild
+recommonmark
+sphinx_rtd_theme
