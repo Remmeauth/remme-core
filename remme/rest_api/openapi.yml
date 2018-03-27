@@ -74,7 +74,7 @@ paths:
         500:
           $ref: '#/responses/500GeneralError'
   /certificate:
-    post:
+    put:
       summary: Generate and register a new certificate
       parameters:
         - name: payload
@@ -148,7 +148,6 @@ paths:
           $ref: '#/responses/404NoCertificate'
         500:
           $ref: '#/responses/500GeneralError'
-  /certificate/check_status:
     post:
       summary: Check the status of the provided certificate
       parameters:
