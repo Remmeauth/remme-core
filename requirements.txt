@@ -4,3 +4,4 @@ sawtooth-signing
 cryptography
 protobuf
 connexion
+requests
