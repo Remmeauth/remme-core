@@ -178,6 +178,33 @@ paths:
           $ref: '#/responses/404NoCertificate'
         500:
           $ref: '#/responses/500GeneralError'
+  /batch_status/{batch_id}:
+    get:
+      summary: Check the status of the batch sent to the blockchain
+      parameters:
+        - name: batch_id
+          description: The id of the batch to check
+          in: path
+          type: string
+          required: true
+      responses:
+        200:
+          description: Batch status
+          schema:
+            properties:
+              batch_id:
+                description: The id of the batch to check
+                type: string
+              status:
+                description: Batch status
+                type: string
+            required:
+              - batch_id
+              - status
+        404:
+          description: No batch with the given id found
+        500:
+          $ref: '#/responses/500GeneralError'
 
 responses:
   200BatchSubmitted:
