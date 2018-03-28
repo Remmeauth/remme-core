@@ -10,7 +10,7 @@ Welcome to REMME's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
+   generated/modules
 
 Indices and tables
 ==================

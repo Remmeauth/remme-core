@@ -98,6 +98,7 @@ services:
       - '8000:8000'
     entrypoint: |
       bash -c "
+        sphinx-apidoc -f -o remme/docs/generated remme && \
         sphinx-autobuild -H 0.0.0.0 -p 8000 remme/docs build
       "
 

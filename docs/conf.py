@@ -15,8 +15,11 @@
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
+import sys
 from recommonmark.parser import CommonMarkParser
 
+PYTHON_MODULE_LOCATION = "/../.."
+sys.path.insert(0, PYTHON_MODULE_LOCATION)
 
 # -- Project information -----------------------------------------------------
 
