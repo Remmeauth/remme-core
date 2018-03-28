@@ -37,6 +37,7 @@ paths:
               pubkey_to:
                 description: The hex-encoded public key of the user to send tokens to
                 type: string
+                pattern: '^[0-9a-f]{66}$'
               amount:
                 description: The amount of tokens to be sent
                 type: integer
@@ -56,6 +57,7 @@ paths:
           description: The public key of the user to check the amount of tokens
           in: path
           type: string
+          pattern: '^[0-9a-f]{66}$'
           required: true
       responses:
         200:
@@ -65,6 +67,7 @@ paths:
               pubkey:
                 type: string
                 description: The hex-encoded public key of the user
+                pattern: '^[0-9a-f]{66}$'
               balance:
                 type: integer
                 description: The amount of tokens on user's balance
@@ -91,6 +94,7 @@ paths:
               country_name:
                 description: Country code (2 symbols)
                 type: string
+                pattern: '[A-Z]{2}'
               locality_name:
                 description: Locality name
                 type: string
@@ -116,6 +120,7 @@ paths:
               batch_id:
                 type: string
                 description: The hex-encoded identifier of the batch in which the transaction was submitted
+                pattern: '^[0-9a-f]{128}$'
               certificate:
                 type: string
                 description: PEM encoded certificate
@@ -154,6 +159,7 @@ paths:
               owner_pubkey:
                 description: The hex-encoded public key of the certificate owner
                 type: string
+                pattern: '^[0-9a-f]{66}$'
             required:
               - revoked
               - owner_pubkey
@@ -169,6 +175,7 @@ paths:
           description: The id of the batch to check
           in: path
           type: string
+          pattern: '^[0-9a-f]{128}$'
           required: true
       responses:
         200:
@@ -178,6 +185,7 @@ paths:
               batch_id:
                 description: The id of the batch to check
                 type: string
+                pattern: '^[0-9a-f]{128}$'
               status:
                 description: Batch status
                 type: string
@@ -197,6 +205,7 @@ responses:
         batch_id:
           type: string
           description: The hex-encoded identifier of the batch in which the transaction was submitted
+          pattern: '^[0-9a-f]{128}$'
       required:
         - batch_id
   404NoCertificate:

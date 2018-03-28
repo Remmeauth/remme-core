@@ -29,4 +29,4 @@ def post(payload):
     client = TokenClient()
     address_to = client.make_address_from_data(payload['pubkey_to'])
     result = client.transfer(address_to, payload['amount'])
-    return re.search(r'id=([0-9a-f]+)', result['link']).group(1)
+    return {'batch_id': re.search(r'id=([0-9a-f]+)', result['link']).group(1)}
