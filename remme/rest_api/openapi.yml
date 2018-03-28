@@ -131,16 +131,7 @@ paths:
     delete:
       summary: Revoke a certificate
       parameters:
-        - name: payload
-          in: body
-          required: true
-          schema:
-            properties:
-              certificate:
-                description: PEM encoded certificate file
-                type: string
-            required:
-              - certificate
+        - $ref: '#/parameters/certificate_payload'
       responses:
         200:
           $ref: '#/responses/200BatchSubmitted'
@@ -151,15 +142,7 @@ paths:
     post:
       summary: Check the status of the provided certificate
       parameters:
-        - name: payload
-          description: PEM encoded certificate file
-          in: body
-          required: true
-          schema:
-            properties:
-              certificate:
-                description: PEM encoded certificate file
-                type: string
+        - $ref: '#/parameters/certificate_payload'
       responses:
         200:
           description: Certificate is registered on the REMchain
@@ -225,3 +208,15 @@ responses:
         error:
           type: string
           description: Error description
+
+parameters:
+  certificate_payload:
+    name: payload
+    description: PEM encoded certificate file
+    in: body
+    required: true
+    schema:
+      properties:
+        certificate:
+          description: PEM encoded certificate file
+          type: string
