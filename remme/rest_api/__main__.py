@@ -13,11 +13,16 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
+import argparse
 from pkg_resources import resource_filename
 import connexion
 from connexion.resolver import RestyResolver
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--port', type=int, default=8080)
+    parser.add_argument('--bind', default='0.0.0.0')
+    arguments = parser.parse_args()
     app = connexion.App(__name__, specification_dir='.')
     app.add_api(resource_filename(__name__, 'openapi.yml'), resolver=RestyResolver('remme.rest_api'))
-    app.run(port=8080)
+    app.run(port=arguments.port, host=arguments.bind)
