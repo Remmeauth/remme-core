@@ -214,7 +214,8 @@ paths:
                     pubkey:
                       type: string
                       description: hex-encoded public key
-
+        500:
+          $ref: '#/responses/500GeneralError'
 
 responses:
   200BatchSubmitted:
