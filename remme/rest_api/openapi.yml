@@ -118,9 +118,7 @@ paths:
           schema:
             properties:
               batch_id:
-                type: string
-                description: The hex-encoded identifier of the batch in which the transaction was submitted
-                pattern: '^[0-9a-f]{128}$'
+                $ref: '#/definitions/BatchId'
               certificate:
                 type: string
                 description: PEM encoded certificate
@@ -183,9 +181,7 @@ paths:
           schema:
             properties:
               batch_id:
-                description: The id of the batch to check
-                type: string
-                pattern: '^[0-9a-f]{128}$'
+                $ref: '#/definitions/BatchId'
               status:
                 description: Batch status
                 type: string
@@ -207,15 +203,27 @@ paths:
               keys:
                 type: array
                 items:
-                  properties:
-                    name:
-                      type: string
-                      description: The name of the key
-                    pubkey:
-                      type: string
-                      description: hex-encoded public key
-        500:
-          $ref: '#/responses/500GeneralError'
+                  $ref: '#/definitions/PubkeyMeta'
+    put:
+      summary: Generate new key pair
+      parameters:
+        - $ref: '#/parameters/key_name_payload'
+      responses:
+        200:
+          description: Successfully generated a new key
+          schema:
+            $ref: '#/definitions/PubkeyMeta'
+        409:
+          description: A key with such name is already registered in the system
+    delete:
+      summary: Delete the key
+      parameters:
+        - $ref: '#/parameters/key_name_payload'
+      responses:
+        200:
+          description: Successfully deleted a key
+        404:
+          description: No key with the given name found
 
 responses:
   200BatchSubmitted:
@@ -223,9 +231,7 @@ responses:
     schema:
       properties:
         batch_id:
-          type: string
-          description: The hex-encoded identifier of the batch in which the transaction was submitted
-          pattern: '^[0-9a-f]{128}$'
+          $ref: '#/definitions/BatchId'
       required:
         - batch_id
   404NoCertificate:
@@ -249,3 +255,29 @@ parameters:
         certificate:
           description: PEM encoded certificate file
           type: string
+  key_name_payload:
+    name: payload
+    in: body
+    required: true
+    schema:
+      properties:
+        name:
+          type: string
+          description: Suggested name of the key
+      required:
+        - name
+
+definitions:
+  PubkeyMeta:
+    properties:
+      name:
+        type: string
+        description: Key file name
+      pubkey:
+        type: string
+        description: hex-encoded public key
+        pattern: '^[0-9a-f]{128}$'
+  BatchId:
+    type: string
+    description: The hex-encoded identifier of the batch in which the transaction was submitted
+    pattern: '^[0-9a-f]{128}$'

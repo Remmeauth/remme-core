@@ -16,6 +16,9 @@
 from glob import glob
 import os
 import re
+from connexion import NoContent
+from sawtooth_signing import create_context
+
 
 from remme.settings import KEY_DIR
 
@@ -28,3 +31,33 @@ def search():
         keys.append({'name': os.path.splitext(os.path.basename(file))[0],
                      'pubkey': contents})
     return {'keys': keys}
+
+
+def put(payload):
+    name = payload['name']
+    context = create_context('secp256k1')
+    private_key = context.new_random_private_key()
+    public_key = context.get_public_key(private_key)
+    private_key_filename = '{}/{}.priv'.format(KEY_DIR, name)
+    public_key_filename = '{}/{}.pub'.format(KEY_DIR, name)
+    if os.path.exists(private_key_filename) or os.path.exists(public_key_filename):
+        return NoContent, 409
+    with open(private_key_filename, mode='w') as private_key_file:
+        private_key_file.write(private_key.as_hex())
+    with open(public_key_filename, mode='w') as public_key_file:
+        public_key_file.write(public_key.as_hex())
+    return {'name': name,
+            'pubkey': public_key.as_hex()}
+
+
+def delete(payload):
+    name = payload['name']
+    private_key_filename = '{}/{}.priv'.format(KEY_DIR, name)
+    public_key_filename = '{}/{}.pub'.format(KEY_DIR, name)
+    if not (os.path.exists(private_key_filename) or os.path.exists(public_key_filename)):
+        return NoContent, 404
+    if os.path.exists(private_key_filename):
+        os.remove(private_key_filename)
+    if os.path.exists(public_key_filename):
+        os.remove(public_key_filename)
+    return NoContent
