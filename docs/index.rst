@@ -12,6 +12,8 @@ Welcome to REMME's documentation!
 
    sawtooth-overview
    architecture
+   remme-framework
+   remme-client
    generated/modules
 
 .. .openapi:: path/to/openapi.yml

@@ -1,5 +1,5 @@
-Architecture
-===========================
+Node Architecture
+=================
 
 Each node consists of 2 main logical components:
 
@@ -51,6 +51,6 @@ TP may consist of several **Transaction Handlers** which contain business logic 
 We have inherited and encapsulated **TransactionHandler** logic with a shared class basic_handler.py for developer's convenience.
 
 
-def get_state_processor(self):
+
 
 
