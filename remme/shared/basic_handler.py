@@ -83,7 +83,7 @@ class BasicHandler(TransactionHandler):
             signer=signer
         )
 
-
+    def apply(self, transaction, context):
         transaction_payload = TransactionPayload()
         transaction_payload.ParseFromString(transaction.payload)
 

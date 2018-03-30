@@ -10,6 +10,7 @@ Welcome to REMME's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   README
    sawtooth-overview
    architecture
    remme-framework
