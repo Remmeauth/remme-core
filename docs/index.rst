@@ -10,7 +10,11 @@ Welcome to REMME's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   sawtooth-overview
+   architecture
    generated/modules
+
+.. .openapi:: path/to/openapi.yml
 
 Indices and tables
 ==================
