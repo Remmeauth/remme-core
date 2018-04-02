@@ -29,7 +29,7 @@ def search():
         with open(file) as f:
             contents = re.match(r'^[0-9a-f]{66}$', f.read()).group(0)
         keys.append({'name': os.path.splitext(os.path.basename(file))[0],
-                     'pubkey': contents})
+                     'pub_key': contents})
     return {'keys': keys}
 
 
@@ -47,7 +47,7 @@ def put(payload):
     with open(public_key_filename, mode='w') as public_key_file:
         public_key_file.write(public_key.as_hex())
     return {'name': name,
-            'pubkey': public_key.as_hex()}
+            'pub_key': public_key.as_hex()}
 
 
 def delete(payload):

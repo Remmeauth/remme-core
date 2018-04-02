@@ -34,7 +34,7 @@ paths:
           required: true
           schema:
             properties:
-              pubkey_to:
+              pub_key_to:
                 description: The hex-encoded public key of the user to send tokens to
                 type: string
                 pattern: '^[0-9a-f]{66}$'
@@ -42,18 +42,18 @@ paths:
                 description: The amount of tokens to be sent
                 type: integer
             required:
-              - pubkey_to
+              - pub_key_to
               - amount
       responses:
         200:
           $ref: '#/responses/200BatchSubmitted'
         500:
           $ref: '#/responses/500GeneralError'
-  /token/{pubkey_user}:
+  /token/{pub_key_user}:
     get:
       summary: Retrieve the amount of tokens for the specified user
       parameters:
-        - name: pubkey_user
+        - name: pub_key_user
           description: The public key of the user to check the amount of tokens
           in: path
           type: string
@@ -64,7 +64,7 @@ paths:
           description: The amount of tokens for the specified user
           schema:
             properties:
-              pubkey:
+              pub_key:
                 type: string
                 description: The hex-encoded public key of the user
                 pattern: '^[0-9a-f]{66}$'
@@ -72,7 +72,7 @@ paths:
                 type: integer
                 description: The amount of tokens on user's balance
             required:
-              - pubkey
+              - pub_key
               - balance
         500:
           $ref: '#/responses/500GeneralError'
@@ -122,13 +122,13 @@ paths:
               certificate:
                 type: string
                 description: PEM encoded certificate
-              privkey:
+              priv_key:
                 type: string
                 description: PEM encoded private key
             required:
               - batch_id
               - certificate
-              - privkey
+              - priv_key
         500:
           $ref: '#/responses/500GeneralError'
     delete:
@@ -154,13 +154,13 @@ paths:
               revoked:
                 description: Indicates if the certificate was revoked
                 type: boolean
-              owner_pubkey:
+              owner_pub_key:
                 description: The hex-encoded public key of the certificate owner
                 type: string
                 pattern: '^[0-9a-f]{66}$'
             required:
               - revoked
-              - owner_pubkey
+              - owner_pub_key
         404:
           $ref: '#/responses/404NoCertificate'
         500:
@@ -273,7 +273,7 @@ definitions:
       name:
         type: string
         description: Key file name
-      pubkey:
+      pub_key:
         type: string
         description: hex-encoded public key
         pattern: '^[0-9a-f]{128}$'

@@ -92,7 +92,7 @@ def put(payload):
     )
 
     name_oid = [x509.NameAttribute(NameOID.ORGANIZATION_NAME, 'REMME'),
-                x509.NameAttribute(NameOID.USER_ID, client.get_signer_pubkey())]
+                x509.NameAttribute(NameOID.USER_ID, client.get_signer_pub_key())]
 
     for k, v in parameters.items():
         if k in payload.keys():
@@ -131,5 +131,5 @@ def put(payload):
     status, _ = client.store_certificate(crt_bin, rem_sig, crt_sig.hex())
 
     return {'certificate': crt_export.decode('utf-8'),
-            'privkey': key_export.decode('utf-8'),
+            'priv_key': key_export.decode('utf-8'),
             'batch_id': re.search(r'id=([0-9a-f]+)', status['link']).group(1)}
