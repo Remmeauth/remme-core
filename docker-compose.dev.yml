@@ -91,17 +91,6 @@ services:
         python3 -m remme.rest_api
       "
 
-#  remme-proto-docs:
-#    image: pseudomuto/protoc-gen-doc
-#    volumes:
-#      - .protos:/protos
-#      - .docs:/out
-#    entrypoint: |
-#      bash -c "
-#        tail -f /dev/null
-#      "
-#      protoc-gen-doc --doc_opt=markdown,proto-docs.md
-
   remme-docs:
     image: remme/remme-core-dev:latest
     volumes:
