@@ -1,0 +1,283 @@
+# Copyright 2018 REMME
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ------------------------------------------------------------------------
+
+swagger: '2.0'
+
+info:
+  title: 'REMME Core REST API'
+  version: '0.1'
+
+consumes:
+  - application/json
+produces:
+  - application/json
+
+paths:
+  /token:
+    post:
+      summary: Send tokens from the current user to another user
+      parameters:
+        - name: payload
+          in: body
+          required: true
+          schema:
+            properties:
+              pub_key_to:
+                description: The hex-encoded public key of the user to send tokens to
+                type: string
+                pattern: '^[0-9a-f]{66}$'
+              amount:
+                description: The amount of tokens to be sent
+                type: integer
+            required:
+              - pub_key_to
+              - amount
+      responses:
+        200:
+          $ref: '#/responses/200BatchSubmitted'
+        500:
+          $ref: '#/responses/500GeneralError'
+  /token/{pub_key_user}:
+    get:
+      summary: Retrieve the amount of tokens for the specified user
+      parameters:
+        - name: pub_key_user
+          description: The public key of the user to check the amount of tokens
+          in: path
+          type: string
+          pattern: '^[0-9a-f]{66}$'
+          required: true
+      responses:
+        200:
+          description: The amount of tokens for the specified user
+          schema:
+            properties:
+              pub_key:
+                type: string
+                description: The hex-encoded public key of the user
+                pattern: '^[0-9a-f]{66}$'
+              balance:
+                type: integer
+                description: The amount of tokens on user's balance
+            required:
+              - pub_key
+              - balance
+        500:
+          $ref: '#/responses/500GeneralError'
+  /certificate:
+    put:
+      summary: Generate and register a new certificate
+      parameters:
+        - name: payload
+          in: body
+          required: true
+          schema:
+            properties:
+              validity:
+                description: The amount of days certificate is valid for
+                type: integer
+              passphrase:
+                description: passphrase as a second factor encryption
+                type: string
+              country_name:
+                description: Country code (2 symbols)
+                type: string
+                pattern: '[A-Z]{2}'
+              locality_name:
+                description: Locality name
+                type: string
+              common_name:
+                description: Common name
+                type: string
+              name:
+                description: Given name of the certificate user
+                type: string
+              surname:
+                description: Surname of the certificate user
+                type: string
+              email:
+                description: Email of the certificate user
+                type: string
+            required:
+              - validity
+      responses:
+        200:
+          description: A new certificate was generated and the registration transaction was submitted
+          schema:
+            properties:
+              batch_id:
+                $ref: '#/definitions/BatchId'
+              certificate:
+                type: string
+                description: PEM encoded certificate
+              priv_key:
+                type: string
+                description: PEM encoded private key
+            required:
+              - batch_id
+              - certificate
+              - priv_key
+        500:
+          $ref: '#/responses/500GeneralError'
+    delete:
+      summary: Revoke a certificate
+      parameters:
+        - $ref: '#/parameters/certificate_payload'
+      responses:
+        200:
+          $ref: '#/responses/200BatchSubmitted'
+        404:
+          $ref: '#/responses/404NoCertificate'
+        500:
+          $ref: '#/responses/500GeneralError'
+    post:
+      summary: Check the status of the provided certificate
+      parameters:
+        - $ref: '#/parameters/certificate_payload'
+      responses:
+        200:
+          description: Certificate is registered on the REMchain
+          schema:
+            properties:
+              revoked:
+                description: Indicates if the certificate was revoked
+                type: boolean
+              owner_pub_key:
+                description: The hex-encoded public key of the certificate owner
+                type: string
+                pattern: '^[0-9a-f]{66}$'
+            required:
+              - revoked
+              - owner_pub_key
+        404:
+          $ref: '#/responses/404NoCertificate'
+        500:
+          $ref: '#/responses/500GeneralError'
+  /batch_status/{batch_id}:
+    get:
+      summary: Check the status of the batch sent to the blockchain
+      parameters:
+        - name: batch_id
+          description: The id of the batch to check
+          in: path
+          type: string
+          pattern: '^[0-9a-f]{128}$'
+          required: true
+      responses:
+        200:
+          description: Batch status
+          schema:
+            properties:
+              batch_id:
+                $ref: '#/definitions/BatchId'
+              status:
+                description: Batch status
+                type: string
+            required:
+              - batch_id
+              - status
+        404:
+          description: No batch with the given id found
+        500:
+          $ref: '#/responses/500GeneralError'
+  /personal:
+    get:
+      summary: Get the list of public keys
+      responses:
+        200:
+          description: The list of public keys
+          schema:
+            properties:
+              keys:
+                type: array
+                items:
+                  $ref: '#/definitions/PubkeyMeta'
+    put:
+      summary: Generate new key pair
+      parameters:
+        - $ref: '#/parameters/key_name_payload'
+      responses:
+        200:
+          description: Successfully generated a new key
+          schema:
+            $ref: '#/definitions/PubkeyMeta'
+        409:
+          description: A key with such name is already registered in the system
+    delete:
+      summary: Delete the key
+      parameters:
+        - $ref: '#/parameters/key_name_payload'
+      responses:
+        200:
+          description: Successfully deleted a key
+        404:
+          description: No key with the given name found
+
+responses:
+  200BatchSubmitted:
+    description: The transaction was successfully passed to the validator
+    schema:
+      properties:
+        batch_id:
+          $ref: '#/definitions/BatchId'
+      required:
+        - batch_id
+  404NoCertificate:
+    description: This certificate was not registered on REMchain
+  500GeneralError:
+    description: Error processing this request
+    schema:
+      properties:
+        error:
+          type: string
+          description: Error description
+
+parameters:
+  certificate_payload:
+    name: payload
+    description: PEM encoded certificate file
+    in: body
+    required: true
+    schema:
+      properties:
+        certificate:
+          description: PEM encoded certificate file
+          type: string
+  key_name_payload:
+    name: payload
+    in: body
+    required: true
+    schema:
+      properties:
+        name:
+          type: string
+          description: Suggested name of the key
+      required:
+        - name
+
+definitions:
+  PubkeyMeta:
+    properties:
+      name:
+        type: string
+        description: Key file name
+      pub_key:
+        type: string
+        description: hex-encoded public key
+        pattern: '^[0-9a-f]{128}$'
+  BatchId:
+    type: string
+    description: The hex-encoded identifier of the batch in which the transaction was submitted
+    pattern: '^[0-9a-f]{128}$'

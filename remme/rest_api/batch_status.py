@@ -13,16 +13,20 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-import argparse
-from pkg_resources import resource_filename
-import connexion
-from connexion.resolver import RestyResolver
+import requests
+import json
+from connexion import NoContent
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--port', type=int, default=8080)
-    parser.add_argument('--bind', default='0.0.0.0')
-    arguments = parser.parse_args()
-    app = connexion.App(__name__, specification_dir='.')
-    app.add_api(resource_filename(__name__, 'openapi.yml'), resolver=RestyResolver('remme.rest_api'))
-    app.run(port=arguments.port, host=arguments.bind)
+from remme.settings import REST_API_URL
+
+
+def get(batch_id):
+    try:
+        response = requests.get('{}/batch_statuses?id={}'.format(REST_API_URL, batch_id))
+        if response.status_code == 404:
+            return NoContent, 404
+        response_obj = json.loads(response.text)
+        return {'batch_id': batch_id,
+                'status': response_obj['data'][0]['status']}
+    except requests.ConnectionError:
+        return {'error': 'No Sawtooth API connection'}, 500

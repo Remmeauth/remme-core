@@ -13,16 +13,20 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-import argparse
-from pkg_resources import resource_filename
-import connexion
-from connexion.resolver import RestyResolver
+import re
+from remme.token.token_client import TokenClient
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--port', type=int, default=8080)
-    parser.add_argument('--bind', default='0.0.0.0')
-    arguments = parser.parse_args()
-    app = connexion.App(__name__, specification_dir='.')
-    app.add_api(resource_filename(__name__, 'openapi.yml'), resolver=RestyResolver('remme.rest_api'))
-    app.run(port=arguments.port, host=arguments.bind)
+
+def get(pub_key_user):
+    client = TokenClient()
+    address = client.make_address_from_data(pub_key_user)
+    print('Reading from address: {}'.format(address))
+    balance = client.get_balance(address)
+    return {'balance': balance}
+
+
+def post(payload):
+    client = TokenClient()
+    address_to = client.make_address_from_data(payload['pub_key_to'])
+    result = client.transfer(address_to, payload['amount'])
+    return {'batch_id': re.search(r'id=([0-9a-f]+)', result['link']).group(1)}

@@ -3,6 +3,5 @@ sawtooth-sdk
 sawtooth-signing
 cryptography
 protobuf
-flask
-flask-restful
-flask-restful-swagger
+connexion
+requests
