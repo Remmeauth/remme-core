@@ -54,7 +54,7 @@ Handlers
 ********
 
 ==============
-Initialisation
+Initialization
 ==============
 
 It is very important to predefine FAMILY_NAME and a FAMILY_VERSIONS as such:
