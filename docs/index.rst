@@ -5,19 +5,30 @@
 
 Welcome to REMME's documentation!
 =================================
+.. toctree::
+   :maxdepth: 2
+
+   README
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Protocol:
 
-   README
    sawtooth-overview
    architecture
    remme-framework
    remme-client
    generated/modules
 
-.. .openapi:: path/to/openapi.yml
+.. toctree::
+   :maxdepth: 2
+   :caption: Products:
+
+   rest-api
+
+
+
+
 
 Indices and tables
 ==================

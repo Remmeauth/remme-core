@@ -1,5 +1,5 @@
-REMME Client
-=================
+REMME Core: Client
+==================
 
 ========
 Overview

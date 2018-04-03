@@ -1,5 +1,5 @@
-REMME Framework
-=================
+REMME Core: Framework
+=====================
 
 *************
 Serialization
