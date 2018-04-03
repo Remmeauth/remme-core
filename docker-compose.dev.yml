@@ -101,6 +101,8 @@ services:
     entrypoint: |
       bash -c "
         sphinx-apidoc -f -o remme/docs/generated remme && \
+        pip3 install --upgrade setuptools
+        pip3 install --upgrade /root/remme/docs/sphinxcontrib-srclinks && \
         sphinx-autobuild -H 0.0.0.0 -p 8000 remme/docs build
       "
 

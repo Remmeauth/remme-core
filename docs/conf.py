@@ -15,13 +15,16 @@
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
+import os
 import sys
 from recommonmark.parser import CommonMarkParser
 
 PYTHON_MODULE_LOCATION = "/../.."
 sys.path.insert(0, PYTHON_MODULE_LOCATION)
-
+sys.path.insert(0, os.path.abspath('_ext'))
+sys.path.insert(0, os.path.abspath('_templates'))
 # -- Project information -----------------------------------------------------
+
 
 project = 'REMME Core'
 copyright = '2018, REMME Core Team.'
@@ -51,7 +54,8 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
-    'sphinxcontrib.openapi'
+    'sphinxcontrib.openapi',
+    'sphinxcontrib.srclinks'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -112,7 +116,14 @@ html_static_path = ['_static']
 # default: ``['localtoc.html', 'relations.html', 'sourcelink.html',
 # 'searchbox.html']``.
 #
-# html_sidebars = {}
+html_sidebars = {
+    '**': [
+        'srclinks.html',
+    ],
+    'index': [
+        'srclinks.html',
+    ],
+}
 
 
 # -- Options for HTMLHelp output ---------------------------------------------
@@ -183,3 +194,14 @@ intersphinx_mapping = {'https://docs.python.org/': None}
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
+
+# Edit on Github
+
+srclink_project = 'https://github.com/Remmeauth/remme-core'
+#srclink_project = 'https://bitbucket.org/westurner/sphinxcontrib-srclinks'
+#srclink_project = 'hg@bitbucket.org/westurner/sphinxcontrib-srclinks'
+#srclink_project = 'git@bitbucket.org/westurner/sphinxcontrib-srclinks'
+srclink_src_path = 'docs/'
+#srclink_src_path = ''
+srclink_branch = 'f-docs'
+#srclink_branch = 'develop'
