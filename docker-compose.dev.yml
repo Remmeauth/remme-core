@@ -91,6 +91,19 @@ services:
         python3 -m remme.rest_api
       "
 
+  remme-docs:
+    image: remme/remme-core-dev:latest
+    volumes:
+      - .:/root/remme
+      - ./README.rst:/root/remme/docs/README.rst
+    ports:
+      - '8000:8000'
+    entrypoint: |
+      bash -c "
+        sphinx-apidoc -f -o remme/docs/generated remme && \
+        sphinx-autobuild -H 0.0.0.0 -p 8000 remme/docs build
+      "
+
   shell:
     image: remme/remme-core-dev:latest
     depends_on:

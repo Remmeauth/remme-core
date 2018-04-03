@@ -49,6 +49,9 @@ def is_address(address):
 
 
 class BasicHandler(TransactionHandler):
+    """
+        BasicHandler contains shared logic...
+    """
     def __init__(self, name, versions):
         self._family_name = name
         self._family_versions = versions
@@ -56,6 +59,9 @@ class BasicHandler(TransactionHandler):
 
     @property
     def family_name(self):
+        """
+           BasicHandler contains shared logic...
+        """
         return self._family_name
 
     @property

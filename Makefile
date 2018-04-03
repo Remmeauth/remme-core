@@ -18,14 +18,11 @@ PROTO_DST_DIR = ./remme/protos
 
 TOTAL_SUPPLY ?= 10000000000000
 
-run:
-	docker-compose up
-
 run_dev:
 	docker-compose -f docker-compose.dev.yml up
 
 shell:
-	docker exec -it $(shell docker-compose ps -q shell) bash
+	docker exec -it $(shell docker-compose -f docker-compose.dev.yml ps -q shell) bash
 
 test:
 	docker-compose -f docker-compose.test.yml up --abort-on-container-exit
