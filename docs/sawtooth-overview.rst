@@ -6,7 +6,7 @@ Such decision was accompanied for several reasons which can be best understood b
 
 "Hyperledger Sawtooth is an enterprise blockchain platform for building distributed ledger applications and networks." - `Hyperledger Sawtooth <https://sawtooth.hyperledger.org/docs/core/releases/latest/introduction.html>`_
 
-REMME is an enterprise-first solution, hence it is given that the private network consists of trusted nodes. Such environment allows us to low security consensus requirements in order to significantly speed up the transactions throughput and processing speed.
+REMME is an enterprise-first solution, hence it is given that the private network consists of trusted nodes. Such environment allows us to lower the requirements for security of consensus in order to significantly speed up the transactions throughput and processing speed.
 
 **Key advantages of the Sawtooth**
 

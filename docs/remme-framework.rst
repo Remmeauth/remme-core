@@ -2,10 +2,10 @@ REMME Framework
 =================
 
 *************
-Serialisation
+Serialization
 *************
 
-When it comes to describing business entities and deterministically serialise our models, we use `Protobuf <https://github.com/google/protobuf>`_ - a language-neutral, platform-neutral, extensible mechanism for serializing structured data.
+When it comes to describing business entities and deterministically serialize our models, we use `Protobuf <https://github.com/google/protobuf>`_ - a language-neutral, platform-neutral, extensible mechanism for serializing structured data.
 
 Transactions supplied to Transaction Processor(TP) have its own **payload** and are universally structured within REMME protocol as follows:
 
@@ -78,7 +78,7 @@ Architecture
 From architecture description, you may have witnessed handler's possible actions.
 However, we decided to limit developer and enforce functional philosophy in order to write high-quality transaction processors.
 
-As a result we provide you with encapsulated :code:`basic_handler.py` that one inherits for own purposes.
+As a result, we provide you with an encapsulated :code:`basic_handler.py` that one inherits for own purposes of building a custom handler.
 
 The key way to enable relevant transaction type processing is to provide a custom handler with a :code:`get_state_processor` method:
 
@@ -100,7 +100,14 @@ The key way to enable relevant transaction type processing is to provide a custo
 Address Formation
 =================
 
-There are few ways to form an address depending on namespace design you choose:
+
+.. note::
+
+    Remember that address must be a **70** hex character long string represention.
+
+There are few helper functions used in **handler** and **client** apps to form an address depending on namespace design you choose:
+
+1. Given a 64 hex characters long suffix, we would like to append it to the prefix defined by our **family of addresses**:
 
 .. code-block:: python
 
@@ -109,6 +116,9 @@ There are few ways to form an address depending on namespace design you choose:
         if not is_address(address):
             raise InternalError('{} is not a valid address'.format(address))
         return address
+2. Before we pass the suffix, we are likely to encode it from unique peace of data of an arbitrary size using hashing algorithm and pasing first 64 characters of the result:
+
+.. code-block:: python
 
     def make_address_from_data(self, data):
         appendix = hashlib.sha512(data.encode('utf-8')).hexdigest()[:64]

@@ -9,7 +9,7 @@ Each node consists of 2 main logical components:
 
 (we have agreed within a team to refer to "Journal" container as a "Validator")
 
-.. image:: https://sawtooth.hyperledger.org/docs/core/releases/latest/_images/journal_organization.svg
+.. image:: img/journal_organization.svg
 
 We will not elaborate on "Journal" construct, you can read more from `the official site <https://sawtooth.hyperledger.org/docs/core/releases/latest/architecture/journal.html>`_.
 
@@ -33,11 +33,11 @@ or `Wikipedia <https://en.wikipedia.org/wiki/Merkle_tree>`_
 
 We are more interested in how one forms an **address** (a hex-encoded **70** character string representing 35 bytes).
 
-.. image:: https://sawtooth.hyperledger.org/docs/core/releases/latest/_images/state_address_format.svg
+.. image:: img/state_address_format.svg
 
 In order to uniquely define the parts of the tree where information is stored, a namespace prefix is suggested which consists of 3 bytes (**6** hex characters). The remaining 32 bytes (**64** hex characters) are encoded based on the specifications of the designer of the namespace.
 
-A namespace prefix defines a **family** (which is described in **handler**) that helps process relevant transactions with **address reference** to a given **family address**.
+A namespace prefix defines a **family** (which is described in **handler**) that helps process relevant transactions provided **address reference** to a given **family address**.
 It is worth to note that **family** may have **many** prefixes.
 
 .. warning:: When it comes to serialisation and deserialisation, make sure to use **deterministic** approach to storing data across the network. At REMME we use **protobuf** which is described later.

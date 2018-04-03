@@ -95,7 +95,7 @@ services:
     image: remme/remme-core-dev:latest
     volumes:
       - .:/root/remme
-      - ./README.md:/root/remme/docs/README.md
+      - ./README.rst:/root/remme/docs/README.rst
     ports:
       - '8000:8000'
     entrypoint: |
