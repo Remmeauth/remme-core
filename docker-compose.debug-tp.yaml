@@ -16,18 +16,5 @@
 version: '2.1'
 
 services:
-  genesis:
-    image: remme/remme-core:latest
-    volumes:
-      - ./remme/genesis:/root/genesis
-      - ./keys:/root/.sawtooth/keys
-    entrypoint: |
-      bash -c "
-        if [ ! -f /root/.sawtooth/keys/key.priv ]; then
-          sawtooth keygen key
-        fi;
-        if [ ! -e /root/genesis/batch ]; then
-          mkdir /root/genesis/batch
-        fi;
-        python3 -m remme.genesis $${REM_TOKEN_SUPPLY}
-      "
+  remme-rest-api:
+    entrypoint: python3 -m remme.rest_api
