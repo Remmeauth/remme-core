@@ -1,5 +1,7 @@
 **/__pycache__
-.idea/
+.idea/*
+!.idea/runConfigurations/
+!.idea/runConfigurations/*
 keys/
 *.pyc
 *.DS_Store
