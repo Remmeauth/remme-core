@@ -18,7 +18,6 @@ version: '2.1'
 services:
   remme-tp:
     depends_on:
-      - validator
       - remme-rest-api
 
   remme-rest-api:

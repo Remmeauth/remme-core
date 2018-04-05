@@ -20,6 +20,7 @@ services:
     image: hyperledger/sawtooth-validator:1.0.1
     depends_on:
       - remme-genesis
+      - settings-tp
     expose:
       - 4004
     volumes:
@@ -42,8 +43,6 @@ services:
 
   settings-tp:
     image: hyperledger/sawtooth-settings-tp:1.0.1
-    depends_on:
-      - validator
     entrypoint: settings-tp -vv -C tcp://validator:4004
 
   rest-api:
@@ -82,8 +81,6 @@ services:
   remme-tp:
     build: .
     image: remme/remme-core:latest
-    depends_on:
-      - validator
 
   remme-rest-api:
     build: .
