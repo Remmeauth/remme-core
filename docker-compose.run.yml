@@ -13,23 +13,16 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-PROTO_SRC_DIR = ./protos
-PROTO_DST_DIR = ./remme/protos
+version: '2.1'
 
-TOTAL_SUPPLY ?= 10000000000000
-export TOTAL_SUPPLY
+services:
+  remme-tp:
+    depends_on:
+      - validator
+    entrypoint: python3 -m remme tcp://validator:4004
 
-run_dev:
-	docker-compose -f docker-compose.dev.yml -f docker-compose.run.yml up
-
-test:
-	docker-compose -f docker-compose.test.yml -f docker-compose.run-test.yml up --abort-on-container-exit
-
-build_protobuf:
-	protoc -I=$(PROTO_SRC_DIR) --python_out=$(PROTO_DST_DIR) $(PROTO_SRC_DIR)/*.proto
-
-build_docker:
-	docker-compose -f docker-compose.dev.yml build
-
-rebuild_docker:
-	docker-compose -f docker-compose.dev.yml build --no-cache
+  remme-rest-api:
+    depends_on:
+      - validator
+      - remme-tp
+    entrypoint: python3 -m remme.rest_api

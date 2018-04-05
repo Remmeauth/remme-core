@@ -73,7 +73,7 @@ services:
         if [ ! -e /genesis/batch ]; then
           mkdir /genesis/batch
         fi;
-        if [ -z "$var" ]; then
+        if [ -z "$$REM_TOKEN_SUPPLY" ]; then
           export REM_TOKEN_SUPPLY=1000000000
         fi;
         python3 -m remme.genesis $${REM_TOKEN_SUPPLY}
@@ -90,7 +90,6 @@ services:
     image: remme/remme-core:latest
     depends_on:
       - rest-api
-      - remme-tp
     volumes:
       - user_keys:/root/.sawtooth/keys
     ports:
