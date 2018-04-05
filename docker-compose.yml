@@ -63,6 +63,8 @@ services:
     volumes:
       - user_keys:/root/.sawtooth/keys
       - genesis_data:/genesis/batch
+    environment:
+      REM_TOKEN_SUPPLY: ${TOTAL_SUPPLY}
     entrypoint: |
       bash -c "
         if [ ! -f /root/.sawtooth/keys/key.priv ]; then
@@ -70,6 +72,9 @@ services:
         fi;
         if [ ! -e /genesis/batch ]; then
           mkdir /genesis/batch
+        fi;
+        if [ -z "$var" ]; then
+          export REM_TOKEN_SUPPLY=1000000000
         fi;
         python3 -m remme.genesis $${REM_TOKEN_SUPPLY}
       "

@@ -17,6 +17,7 @@ PROTO_SRC_DIR = ./protos
 PROTO_DST_DIR = ./remme/protos
 
 TOTAL_SUPPLY ?= 10000000000000
+export TOTAL_SUPPLY
 
 run_dev:
 	docker-compose -f docker-compose.yml -f docker-compose.debug-rest.yml -f docker-compose.debug-tp.yml up

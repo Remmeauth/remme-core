@@ -17,4 +17,4 @@ version: '2.1'
 
 services:
   remme-tp:
-    entrypoint: python3 -m remme
+    entrypoint: python3 -m remme tcp://validator:4004
