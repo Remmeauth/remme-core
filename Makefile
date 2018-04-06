@@ -16,11 +16,13 @@
 PROTO_SRC_DIR = ./protos
 PROTO_DST_DIR = ./remme/protos
 
-TOTAL_SUPPLY ?= 10000000000000
-export TOTAL_SUPPLY
+include .env
+
+run_dev_no_genesis:
+	docker-compose -f docker-compose.dev.yml -f docker-compose.run.yml up
 
 run_dev:
-	docker-compose -f docker-compose.dev.yml -f docker-compose.run.yml up
+	docker-compose -f docker-compose.dev.yml -f docker-compose.genesis.yml -f docker-compose.run.yml up
 
 test:
 	docker-compose -f docker-compose.test.yml -f docker-compose.run-test.yml up --abort-on-container-exit
