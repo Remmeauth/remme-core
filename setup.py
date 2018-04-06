@@ -8,10 +8,13 @@ setup(
     url='https://remme.io',
     packages=find_packages(),
     install_requires=[
+        'requests',
+        'protobuf',
         'colorlog',
-        'cryptography',
         'sawtooth-sdk',
-        'sawtooth-signing'
+        'sawtooth-signing',
+        'cryptography',
+        'connexion'
     ],
     entry_points={
         'console_scripts': [

@@ -13,22 +13,19 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-# TODO: Start to connect to an existing network
-
 version: '2.1'
 
 services:
   validator:
-    image: hyperledger/sawtooth-validator:1.0
+    image: hyperledger/sawtooth-validator:1.0.1
+    depends_on:
+      - remme-genesis
+      - settings-tp
     expose:
       - 4004
-    ports:
-      - '4020:4004'
-    environment:
-      - GENESIS=true
     volumes:
-      - ./remme/genesis/batch:/genesis/batch
-      - ./keys:/root/.sawtooth/keys
+      - user_keys:/root/.sawtooth/keys
+      - genesis_data:/genesis/batch
     entrypoint: |
       bash -c "
         sawadm keygen && \
@@ -38,37 +35,20 @@ services:
         fi
         sawset genesis -k /root/.sawtooth/keys/key.priv && \
         sawadm genesis config-genesis.batch /genesis/batch/token-proposal.batch && \
-
         sawtooth-validator -vv \
           --endpoint tcp://validator:8800 \
           --bind component:tcp://eth0:4004 \
           --bind network:tcp://eth0:8800
       "
 
-  remme-transaction-processor:
-    image: remme/remme-core-dev:latest
-    depends_on:
-      - validator
-    volumes:
-      - .:/root/remme
-    entrypoint: |
-      bash -c "
-        pip3 install --upgrade /root/remme && \
-        python3 -m remme tcp://validator:4004
-      "
-
   settings-tp:
-    image: hyperledger/sawtooth-settings-tp:1.0
-    depends_on:
-      - validator
+    image: hyperledger/sawtooth-settings-tp:1.0.1
     entrypoint: settings-tp -vv -C tcp://validator:4004
 
   rest-api:
-    image: hyperledger/sawtooth-rest-api:1.0
+    image: hyperledger/sawtooth-rest-api:1.0.1
     expose:
       - 8008
-    ports:
-      - '8022:8008'
     depends_on:
       - validator
     entrypoint: |
@@ -76,50 +56,42 @@ services:
         --connect tcp://validator:4004
         --bind rest-api:8008
 
+  remme-genesis:
+    build: .
+    image: remme/remme-core:latest
+    volumes:
+      - user_keys:/root/.sawtooth/keys
+      - genesis_data:/genesis/batch
+    environment:
+      REM_TOKEN_SUPPLY: ${TOTAL_SUPPLY}
+    entrypoint: |
+      bash -c "
+        if [ ! -f /root/.sawtooth/keys/key.priv ]; then
+          sawtooth keygen key
+        fi;
+        if [ ! -e /genesis/batch ]; then
+          mkdir /genesis/batch
+        fi;
+        if [ -z "$$REM_TOKEN_SUPPLY" ]; then
+          export REM_TOKEN_SUPPLY=1000000000
+        fi;
+        python3 -m remme.genesis $${REM_TOKEN_SUPPLY}
+      "
+
+  remme-tp:
+    build: .
+    image: remme/remme-core:latest
+
   remme-rest-api:
-    image: remme/remme-core-dev:latest
+    build: .
+    image: remme/remme-core:latest
     depends_on:
       - rest-api
+    volumes:
+      - user_keys:/root/.sawtooth/keys
     ports:
       - '8080:8080'
-    volumes:
-      - ./keys:/root/.sawtooth/keys
-      - .:/root/remme
-    entrypoint: |
-      bash -c "
-        pip3 install --upgrade /root/remme && \
-        python3 -m remme.rest_api
-      "
 
-  remme-docs:
-    image: remme/remme-core-dev:latest
-    volumes:
-      - .:/root/remme
-      - ./README.rst:/root/remme/docs/README.rst
-    ports:
-      - '8000:8000'
-    entrypoint: |
-      bash -c "
-        sphinx-apidoc -f -o remme/docs/generated remme && \
-        sphinx-autobuild -H 0.0.0.0 -p 8000 remme/docs build
-      "
-
-  shell:
-    image: remme/remme-core-dev:latest
-    depends_on:
-      - rest-api
-    volumes:
-      - ./remme/genesis:/root/genesis
-      - ./keys:/root/.sawtooth/keys
-      - .:/root/remme
-      - ./bash/.bashrc:/root/.bashrc
-    stdin_open: true
-    tty: true
-    entrypoint: |
-      bash -c "
-        if [ ! -f /root/.sawtooth/keys/root.priv ]; then
-          sawtooth keygen
-        fi;
-        pip3 install --upgrade /root/remme && \
-        tail -f /dev/null
-      "
+volumes:
+  genesis_data:
+  user_keys:

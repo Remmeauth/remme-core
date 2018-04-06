@@ -21,12 +21,8 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 8AA7AF1F10
     apt-get install -y python3-pip && \
     apt-get install -y libssl-dev
 WORKDIR /root
-COPY ./requirements.txt .
-RUN pip3 install -r ./requirements.txt
-
-FROM remme/remme-core-dev:latest AS production
-WORKDIR /root
-RUN mkdir remme
 COPY ./bash/.bashrc /root/.bashrc
+RUN mkdir remme
 COPY . ./remme
+RUN pip3 install -r ./remme/requirements.txt
 RUN pip3 install ./remme

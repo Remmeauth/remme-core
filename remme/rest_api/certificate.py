@@ -92,7 +92,7 @@ def put(payload):
     )
 
     name_oid = [x509.NameAttribute(NameOID.ORGANIZATION_NAME, 'REMME'),
-                x509.NameAttribute(NameOID.USER_ID, client.get_signer_pub_key())]
+                x509.NameAttribute(NameOID.USER_ID, client.get_signer_pubkey())]
 
     for k, v in parameters.items():
         if k in payload.keys():

@@ -39,9 +39,7 @@ jobs:
           command: |
             docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD && \
             docker tag remme/remme-core:latest remme/remme-core:$CIRCLE_TAG && \
-            docker tag remme/remme-core-dev:latest remme/remme-core-dev:$CIRCLE_TAG && \
-            docker push remme/remme-core && \
-            docker push remme/remme-core-dev
+            docker push remme/remme-core
 
 workflows:
   version: 2
