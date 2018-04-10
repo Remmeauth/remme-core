@@ -26,7 +26,7 @@ from remme.rest_api.certificate_api_decorator import certificate_put_request,\
 from remme.shared.exceptions import KeyNotFound
 
 
-@http_payload_required('certificate')
+@http_payload_required
 @certificate_address_request
 def post(certificate_address):
     client = CertificateClient()
@@ -38,7 +38,7 @@ def post(certificate_address):
         return NoContent, 404
 
 
-@http_payload_required('certificate')
+@http_payload_required
 @certificate_address_request
 def delete(certificate_address):
     client = CertificateClient()
@@ -52,7 +52,7 @@ def delete(certificate_address):
         return NoContent, 404
 
 
-@http_payload_required()
+@http_payload_required
 @certificate_put_request
 def put(cert, key, key_export):
     certificate_client = CertificateClient()

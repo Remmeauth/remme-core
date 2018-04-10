@@ -46,22 +46,17 @@ def certificate_address_request(func):
     return validation_logic
 
 
-def http_payload_required(tag_name=None):
-    def method_decorator(func):
-        def func_wrapper(payload):
-            if payload is None:
-                return {'error': 'Http request body can not be empty'}, 422
-            if tag_name:
-                try:
-                    payload[tag_name]
-                except KeyError:
-                    return {'error': 'Http request body should contain {} parameter'.format(tag_name)}, 422
+# hot fix - as far as connexion has a bug inside it is
+# temp solution for null body cases
+# https://github.com/zalando/connexion/issues/579
+def http_payload_required(func):
+    def func_wrapper(payload):
+        if payload is None:
+            return {'error': 'Http request body can not be empty'}, 422
 
-            return func(payload)
+        return func(payload)
 
-        return func_wrapper
-
-    return method_decorator
+    return func_wrapper
 
 
 # endregion

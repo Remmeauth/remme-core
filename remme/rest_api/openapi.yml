@@ -255,6 +255,8 @@ parameters:
         certificate:
           description: PEM encoded certificate file
           type: string
+      required:
+        - certificate
   key_name_payload:
     name: payload
     in: body
