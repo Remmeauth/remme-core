@@ -41,7 +41,7 @@ services:
           ADDITIONAL_ARGS=\"$$ADDITIONAL_ARGS --seeds $$REMME_SEEDS_LIST\"
         fi
         sawtooth-validator -vv \
-          --endpoint tcp://validator:8800 \
+          --endpoint tcp://$$REMME_VALIDATOR_IP:$$REMME_VALIDATOR_PORT \
           --bind component:tcp://eth0:4004 \
           --bind network:tcp://eth0:8800 \
           --scheduler parallel \
