@@ -47,7 +47,7 @@ def delete(certificate_address):
         if certificate_data.revoked:
             return {'error': 'The certificate was already revoked'}, 409
         client.revoke_certificate(certificate_address)
-        return NoContent, 204
+        return NoContent, 200
     except KeyNotFound:
         return NoContent, 404
 

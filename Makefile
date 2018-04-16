@@ -43,6 +43,7 @@ release:
 	mkdir $(RELEASE_NUMBER)-release
 	cp {run,genesis}.sh ./$(RELEASE_NUMBER)-release
 	cp docker-compose.{dev,run,genesis}.yml ./$(RELEASE_NUMBER)-release
+	cp .env ./$(RELEASE_NUMBER)-release
 	find ./$(RELEASE_NUMBER)-release -type f -name "docker-compose.{dev,run,genesis}.yml" | xargs sed -i "/.*build: \..*/d"
 	zip -r $(RELEASE_NUMBER)-release.zip $(RELEASE_NUMBER)-release
 	rm -rf $(RELEASE_NUMBER)-release
