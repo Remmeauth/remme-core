@@ -18,6 +18,8 @@ PROTO_DST_DIR = ./remme/protos
 
 include .env
 
+.PHONY: release
+
 run_dev_no_genesis:
 	docker-compose -f docker-compose.dev.yml -f docker-compose.run.yml up
 
@@ -35,3 +37,11 @@ build_docker:
 
 rebuild_docker:
 	docker-compose -f docker-compose.dev.yml build --no-cache
+
+release:
+	mkdir $(RELEASE_NUMBER)-release
+	cp {run,genesis}.sh ./$(RELEASE_NUMBER)-release
+	cp docker-compose.{dev,run,genesis}.yml ./$(RELEASE_NUMBER)-release
+	find ./$(RELEASE_NUMBER)-release -type f -name "docker-compose.{dev,run,genesis}.yml" | xargs sed -i "/.*build: \..*/d"
+	zip -r $(RELEASE_NUMBER)-release.zip $(RELEASE_NUMBER)-release
+	rm -rf $(RELEASE_NUMBER)-release
