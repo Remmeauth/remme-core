@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [0.3.0-alpha] - 2018-04-16
+### Added
+- REST API implementation based on OpenAPI specification and [Connexion](https://github.com/zalando/connexion).
+**NOTE**: this API is not suitable for public usage (use it only for clients on a local machine) for now and is a demo
+version. Better API will be rolled out in the next release.
+ - Certificate handling: registration, revocation and status checks.
+ - Token handling: transfers and balance view.
+ - Key pairs management.
+- Sphinx-based documentation for source code and overall architecture.
+- Capable of running a network of masternodes with DevMode consensus. The next release will contain setup for running it
+ with PoET (Proof of elapsed time).
+### Changed
+- Updated file hierarchy for Docker Compose.
+- All configuration was moved out to `.env` file.
+- No directories generated from Docker mounts. Now all mounts are done to named volumes.
+
 ## [0.2.1-alpha] - 2018-03-09
 ### Added
 - Enter parameters for certificate from CLI.
