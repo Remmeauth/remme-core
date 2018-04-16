@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - REST API implementation based on OpenAPI specification and [Connexion](https://github.com/zalando/connexion).
 **NOTE**: this API is not suitable for public usage (use it only for clients on a local machine) for now and is a demo
 version. Better API will be rolled out in the next release.
- - Certificate handling: registration, revocation and status checks.
- - Token handling: transfers and balance view.
- - Key pairs management.
+  - Certificate handling: registration, revocation and status checks.
+  - Token handling: transfers and balance view.
+  - Key pairs management.
 - Sphinx-based documentation for source code and overall architecture.
 - Capable of running a network of masternodes with DevMode consensus. The next release will contain setup for running it
  with [PoET (Proof of elapsed time)](https://sawtooth.hyperledger.org/docs/core/releases/1.0.1/architecture/poet.html).
