@@ -14,7 +14,7 @@ version. Better API will be rolled out in the next release.
  - Key pairs management.
 - Sphinx-based documentation for source code and overall architecture.
 - Capable of running a network of masternodes with DevMode consensus. The next release will contain setup for running it
- with PoET (Proof of elapsed time).
+ with [PoET (Proof of elapsed time)](https://sawtooth.hyperledger.org/docs/core/releases/1.0.1/architecture/poet.html).
 ### Changed
 - Updated file hierarchy for Docker Compose.
 - All configuration was moved out to `.env` file.
