@@ -14,7 +14,6 @@ from cryptography.hazmat.primitives.asymmetric import rsa, padding
 import datetime
 
 
-# region Certificate HTTP API attributes
 def certificate_put_request(func):
     def validation_logic(payload):
         cert, key, key_export = create_certificate(payload)
@@ -59,10 +58,6 @@ def http_payload_required(func):
     return func_wrapper
 
 
-# endregion
-
-# region Certificate Creation
-
 def create_certificate(payload):
     parameters = get_params()
     encryption_algorithm = get_encryption_algorithm(payload)
@@ -99,9 +94,6 @@ def build_certificate(parameters, payload, key):
     ).sign(key, hashes.SHA256(), default_backend())
 
 
-# endregion
-
-# region Helpers
 def get_params():
     return {
         'country_name': NameOID.COUNTRY_NAME,
@@ -139,9 +131,6 @@ def generate_key_export(key, encryption_algorithm):
     )
 
 
-# endregion
-
-# region Validation Methods
 def is_valid_token_balance():
     token_client = TokenClient()
     signer_pub_key = token_client.get_signer().get_public_key().as_hex()
@@ -157,4 +146,3 @@ def certificate_already_exist(cert):
     except KeyNotFound:
         return False
     return True
-# endregion
