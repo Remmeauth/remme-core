@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - REST API implementation based on OpenAPI specification and [Connexion](https://github.com/zalando/connexion).
 **NOTE**: this API is not suitable for public usage (use it only for clients on a local machine) for now and is a demo
-version. Better API will be rolled out in the next release.
+version. New version of API suitable for public use will be rolled out in the next release.
   - Certificate handling: registration, revocation and status checks.
   - Token handling: transfers and balance view.
   - Key pairs management.
