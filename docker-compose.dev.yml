@@ -19,26 +19,33 @@ services:
   validator:
     image: hyperledger/sawtooth-validator:1.0.1
     depends_on:
-      - remme-genesis
       - settings-tp
+    volumes:
+      - validator_keys:/etc/sawtooth/keys
     expose:
       - 4004
-    volumes:
-      - user_keys:/root/.sawtooth/keys
-      - genesis_data:/genesis/batch
+    ports:
+      - '${REMME_VALIDATOR_PORT:-8800}:8800'
+    env_file:
+      - .env
     entrypoint: |
       bash -c "
-        sawadm keygen && \
-        sawtooth keygen key
-        if [ -d "/var/lib/sawtooth" ]; then
-          rm /var/lib/sawtooth/*
+        if [ ! -f /etc/sawtooth/keys/validator.priv ]; then
+          sawadm keygen
         fi
-        sawset genesis -k /root/.sawtooth/keys/key.priv && \
-        sawadm genesis config-genesis.batch /genesis/batch/token-proposal.batch && \
+        ADDITIONAL_ARGS=\"--peering $$REMME_PEERING_MODE\"
+        if [ ! -z \"$$REMME_PEERS_LIST\" ]; then
+          ADDITIONAL_ARGS=\"$$ADDITIONAL_ARGS --peers $$REMME_PEERS_LIST\"
+        fi
+        if [ ! -z \"$$REMME_SEEDS_LIST\" ]; then
+          ADDITIONAL_ARGS=\"$$ADDITIONAL_ARGS --seeds $$REMME_SEEDS_LIST\"
+        fi
         sawtooth-validator -vv \
-          --endpoint tcp://validator:8800 \
+          --endpoint tcp://$$REMME_VALIDATOR_IP:$$REMME_VALIDATOR_PORT \
           --bind component:tcp://eth0:4004 \
-          --bind network:tcp://eth0:8800
+          --bind network:tcp://eth0:8800 \
+          --scheduler parallel \
+          $$ADDITIONAL_ARGS
       "
 
   settings-tp:
@@ -47,36 +54,14 @@ services:
 
   rest-api:
     image: hyperledger/sawtooth-rest-api:1.0.1
-    expose:
-      - 8008
     depends_on:
       - validator
+    expose:
+      - 8080
     entrypoint: |
       sawtooth-rest-api -vv
         --connect tcp://validator:4004
-        --bind rest-api:8008
-
-  remme-genesis:
-    build: .
-    image: remme/remme-core:latest
-    volumes:
-      - user_keys:/root/.sawtooth/keys
-      - genesis_data:/genesis/batch
-    environment:
-      REM_TOKEN_SUPPLY: ${TOTAL_SUPPLY}
-    entrypoint: |
-      bash -c "
-        if [ ! -f /root/.sawtooth/keys/key.priv ]; then
-          sawtooth keygen key
-        fi;
-        if [ ! -e /genesis/batch ]; then
-          mkdir /genesis/batch
-        fi;
-        if [ -z "$$REM_TOKEN_SUPPLY" ]; then
-          export REM_TOKEN_SUPPLY=1000000000
-        fi;
-        python3 -m remme.genesis $${REM_TOKEN_SUPPLY}
-      "
+        --bind rest-api:8080
 
   remme-tp:
     build: .
@@ -90,8 +75,8 @@ services:
     volumes:
       - user_keys:/root/.sawtooth/keys
     ports:
-      - '8080:8080'
+      - '${REMME_REST_API_PORT:-8080}:8080'
 
 volumes:
-  genesis_data:
   user_keys:
+  validator_keys:
