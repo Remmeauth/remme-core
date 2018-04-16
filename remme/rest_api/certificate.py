@@ -14,111 +14,53 @@
 # ------------------------------------------------------------------------
 
 import re
-import datetime
 import hashlib
 from connexion import NoContent
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
-from cryptography.hazmat.backends import default_backend
-from cryptography import x509
-from cryptography.x509.oid import NameOID
+from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes
 
 from remme.certificate.certificate_client import CertificateClient
+from remme.rest_api.certificate_api_decorator import certificate_put_request,\
+    http_payload_required, certificate_address_request
 from remme.shared.exceptions import KeyNotFound
 
 
-def _make_address_from_pem(client, certificate_pem):
-    certificate = x509.load_pem_x509_certificate(certificate_pem.encode('utf-8'),
-                                                 default_backend())
-    crt_bin = certificate.public_bytes(serialization.Encoding.DER).hex()
-    address = client.make_address_from_data(crt_bin)
-    return address
-
-
-def post(payload):
+@http_payload_required
+@certificate_address_request
+def post(certificate_address):
     client = CertificateClient()
-    address = _make_address_from_pem(client, payload['certificate'])
     try:
-        certificate_data = client.get_status(address)
+        certificate_data = client.get_status(certificate_address)
         return {'revoked': certificate_data.revoked,
                 'owner': certificate_data.owner}
     except KeyNotFound:
         return NoContent, 404
 
 
-def delete(payload):
+@http_payload_required
+@certificate_address_request
+def delete(certificate_address):
     client = CertificateClient()
-    address = _make_address_from_pem(client, payload['certificate'])
     try:
-        certificate_data = client.get_status(address)
+        certificate_data = client.get_status(certificate_address)
         if certificate_data.revoked:
-            return {'error': 'The certificate was already revoked'}, 500
-        client.revoke_certificate(address)
-        return {}
+            return {'error': 'The certificate was already revoked'}, 409
+        client.revoke_certificate(certificate_address)
+        return NoContent, 204
     except KeyNotFound:
         return NoContent, 404
 
 
-def put(payload):
-    parameters = {
-        'country_name': NameOID.COUNTRY_NAME,
-        'state_name': NameOID.STATE_OR_PROVINCE_NAME,
-        'locality_name': NameOID.LOCALITY_NAME,
-        'common_name': NameOID.COMMON_NAME,
-        'name': NameOID.GIVEN_NAME,
-        'surname': NameOID.SURNAME,
-        'email': NameOID.EMAIL_ADDRESS
-    }
-
-    client = CertificateClient()
-
-    encryption_algorithm = serialization.NoEncryption()
-    if 'passphrase' in payload.keys():
-        if payload['passphrase']:
-            encryption_algorithm = serialization.BestAvailableEncryption(
-                payload['passphrase'].encode('utf-8'))
-
-    key = rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=2048,
-        backend=default_backend()
-    )
-
-    key_export = key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.TraditionalOpenSSL,
-        encryption_algorithm=encryption_algorithm
-    )
-
-    name_oid = [x509.NameAttribute(NameOID.ORGANIZATION_NAME, 'REMME'),
-                x509.NameAttribute(NameOID.USER_ID, client.get_signer_pubkey())]
-
-    for k, v in parameters.items():
-        if k in payload.keys():
-            name_oid.append(x509.NameAttribute(v, payload[k]))
-
-    subject = issuer = x509.Name(name_oid)
-    cert = x509.CertificateBuilder().subject_name(
-        subject
-    ).issuer_name(
-        issuer
-    ).public_key(
-        key.public_key()
-    ).serial_number(
-        x509.random_serial_number()
-    ).not_valid_before(
-        datetime.datetime.utcnow()
-    ).not_valid_after(
-        datetime.datetime.utcnow() + datetime.timedelta(days=payload['validity'])
-    ).sign(key, hashes.SHA256(), default_backend())
+@http_payload_required
+@certificate_put_request
+def put(cert, key, key_export):
+    certificate_client = CertificateClient()
 
     crt_export = cert.public_bytes(serialization.Encoding.PEM)
-
     crt_bin = cert.public_bytes(serialization.Encoding.DER).hex()
     crt_hash = hashlib.sha512(crt_bin.encode('utf-8')).hexdigest()
-    rem_sig = client.sign_text(crt_hash)
-
+    rem_sig = certificate_client.sign_text(crt_hash)
     crt_sig = key.sign(
         bytes.fromhex(rem_sig),
         padding.PSS(
@@ -128,7 +70,7 @@ def put(payload):
         hashes.SHA256()
     )
 
-    status, _ = client.store_certificate(crt_bin, rem_sig, crt_sig.hex())
+    status, _ = certificate_client.store_certificate(crt_bin, rem_sig, crt_sig.hex())
 
     return {'certificate': crt_export.decode('utf-8'),
             'priv_key': key_export.decode('utf-8'),
