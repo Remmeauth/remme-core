@@ -15,6 +15,7 @@
 
 PROTO_SRC_DIR = ./protos
 PROTO_DST_DIR = ./remme/protos
+RELEASE_NUMBER ?= $(shell git describe --abbrev=0 --tags)
 
 include .env
 
