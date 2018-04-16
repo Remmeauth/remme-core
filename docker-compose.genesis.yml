@@ -16,18 +16,47 @@
 version: '2.1'
 
 services:
-  genesis:
+  validator:
+    depends_on:
+      - remme-genesis
+    volumes:
+      - genesis_data:/genesis/batch
+      - user_keys:/root/.sawtooth/keys
+    entrypoint: |
+      bash -c "
+        if [ -d "/var/lib/sawtooth" ]; then
+          rm /var/lib/sawtooth/*
+        fi
+        if [ ! -f /etc/sawtooth/keys/validator.priv ]; then
+          sawadm keygen
+        fi
+        sawset genesis -k /root/.sawtooth/keys/key.priv && \
+        sawadm genesis config-genesis.batch /genesis/batch/token-proposal.batch && \
+        sawtooth-validator -vv \
+          --endpoint tcp://$$REMME_VALIDATOR_IP:$$REMME_VALIDATOR_PORT \
+          --bind component:tcp://eth0:4004 \
+          --bind network:tcp://eth0:8800 \
+          --scheduler parallel
+      "
+
+  remme-genesis:
+    build: .
     image: remme/remme-core:latest
     volumes:
-      - ./remme/genesis:/root/genesis
-      - ./keys:/root/.sawtooth/keys
+      - user_keys:/root/.sawtooth/keys
+      - genesis_data:/genesis/batch
+    env_file:
+      - .env
     entrypoint: |
       bash -c "
         if [ ! -f /root/.sawtooth/keys/key.priv ]; then
           sawtooth keygen key
         fi;
-        if [ ! -e /root/genesis/batch ]; then
-          mkdir /root/genesis/batch
+        if [ ! -e /genesis/batch ]; then
+          mkdir /genesis/batch
         fi;
-        python3 -m remme.genesis $${REM_TOKEN_SUPPLY}
+        python3 -m remme.genesis $${REMME_TOKEN_SUPPLY}
       "
+
+volumes:
+  genesis_data:

@@ -1,7 +1,11 @@
 **/__pycache__
-.idea/
+.idea/*
+!.idea/runConfigurations/
+!.idea/runConfigurations/*
 keys/
 *.pyc
 *.DS_Store
 remme/genesis/data
 remme/genesis/batch/token-proposal.batch
+docs/generated
+docs/README.rst

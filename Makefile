@@ -15,34 +15,35 @@
 
 PROTO_SRC_DIR = ./protos
 PROTO_DST_DIR = ./remme/protos
+RELEASE_NUMBER ?= $(shell git describe --abbrev=0 --tags)
 
-TOTAL_SUPPLY ?= 10000000000000
+include .env
 
-run:
-	docker-compose up
+.PHONY: release
+
+run_dev_no_genesis:
+	docker-compose -f docker-compose.dev.yml -f docker-compose.run.yml up
 
 run_dev:
-	docker-compose -f docker-compose.dev.yml up
-
-shell:
-	docker exec -it $(shell docker-compose ps -q shell) bash
+	docker-compose -f docker-compose.dev.yml -f docker-compose.genesis.yml -f docker-compose.run.yml up
 
 test:
-	docker-compose -f docker-compose.test.yml up --abort-on-container-exit
-
-genesis:
-	docker-compose -f docker-compose.genesis.yml run -e REM_TOKEN_SUPPLY=$(TOTAL_SUPPLY) genesis
-
-reload_module:
-	pip3 install --upgrade /remme
+	docker-compose -f docker-compose.test.yml -f docker-compose.run-test.yml up --abort-on-container-exit
 
 build_protobuf:
 	protoc -I=$(PROTO_SRC_DIR) --python_out=$(PROTO_DST_DIR) $(PROTO_SRC_DIR)/*.proto
 
 build_docker:
-	docker build --target development --tag remme/remme-core-dev:latest .
-	docker build --target production --tag remme/remme-core:latest .
+	docker-compose -f docker-compose.dev.yml build
 
 rebuild_docker:
-	docker build --target development --tag remme/remme-core-dev:latest --no-cache .
-	docker build --target production --tag remme/remme-core:latest --no-cache .
+	docker-compose -f docker-compose.dev.yml build --no-cache
+
+release:
+	mkdir $(RELEASE_NUMBER)-release
+	cp {run,genesis}.sh ./$(RELEASE_NUMBER)-release
+	cp docker-compose.{dev,run,genesis}.yml ./$(RELEASE_NUMBER)-release
+	cp .env ./$(RELEASE_NUMBER)-release
+	find ./$(RELEASE_NUMBER)-release -type f -name "docker-compose.{dev,run,genesis}.yml" | xargs sed -i "/.*build: \..*/d"
+	zip -r $(RELEASE_NUMBER)-release.zip $(RELEASE_NUMBER)-release
+	rm -rf $(RELEASE_NUMBER)-release

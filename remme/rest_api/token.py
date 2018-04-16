@@ -13,20 +13,20 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-version: '2.1'
+import re
+from remme.token.token_client import TokenClient
 
-services:
-  tests:
-    build: .
-    image: remme/remme-core:latest
-    depends_on:
-      - remme-tp
-    expose:
-      - 4004
-    environment:
-      TEST_BIND: "tcp://eth0:4004"
 
-  remme-tp:
-    build: .
-    image: remme/remme-core:latest
-    entrypoint: python3 -m remme tcp://tests:4004
+def get(pub_key_user):
+    client = TokenClient()
+    address = client.make_address_from_data(pub_key_user)
+    print('Reading from address: {}'.format(address))
+    balance = client.get_balance(address)
+    return {'balance': balance}
+
+
+def post(payload):
+    client = TokenClient()
+    address_to = client.make_address_from_data(payload['pub_key_to'])
+    result = client.transfer(address_to, payload['amount'])
+    return {'batch_id': re.search(r'id=([0-9a-f]+)', result['link']).group(1)}

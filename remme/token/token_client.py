@@ -18,6 +18,7 @@ import json
 from remme.protos.token_pb2 import TokenMethod, GenesisPayload, TransferPayload
 from remme.shared.basic_client import BasicClient
 from remme.token.token_handler import TokenHandler
+from remme.shared.exceptions import KeyNotFound
 
 from remme.protos.token_pb2 import Account
 
@@ -66,3 +67,10 @@ class TokenClient(BasicClient):
         account = Account()
         account.ParseFromString(self.get_value(address))
         return account
+
+    def get_balance(self, address):
+        try:
+            account = self.get_account(address)
+            return account.balance
+        except KeyNotFound:
+            return 0

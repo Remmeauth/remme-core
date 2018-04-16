@@ -3,3 +3,10 @@ sawtooth-sdk
 sawtooth-signing
 cryptography
 protobuf
+connexion
+requests
+sphinx
+sphinx-autobuild
+recommonmark
+sphinx_rtd_theme
+sphinxcontrib-openapi

@@ -13,20 +13,20 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-version: '2.1'
+import requests
+import json
+from connexion import NoContent
 
-services:
-  tests:
-    build: .
-    image: remme/remme-core:latest
-    depends_on:
-      - remme-tp
-    expose:
-      - 4004
-    environment:
-      TEST_BIND: "tcp://eth0:4004"
+from remme.settings import REST_API_URL
 
-  remme-tp:
-    build: .
-    image: remme/remme-core:latest
-    entrypoint: python3 -m remme tcp://tests:4004
+
+def get(batch_id):
+    try:
+        response = requests.get('{}/batch_statuses?id={}'.format(REST_API_URL, batch_id))
+        if response.status_code == 404:
+            return NoContent, 404
+        response_obj = json.loads(response.text)
+        return {'batch_id': batch_id,
+                'status': response_obj['data'][0]['status']}
+    except requests.ConnectionError:
+        return {'error': 'No Sawtooth API connection'}, 500

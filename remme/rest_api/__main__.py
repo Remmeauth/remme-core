@@ -13,20 +13,16 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-version: '2.1'
+import argparse
+from pkg_resources import resource_filename
+import connexion
+from connexion.resolver import RestyResolver
 
-services:
-  tests:
-    build: .
-    image: remme/remme-core:latest
-    depends_on:
-      - remme-tp
-    expose:
-      - 4004
-    environment:
-      TEST_BIND: "tcp://eth0:4004"
-
-  remme-tp:
-    build: .
-    image: remme/remme-core:latest
-    entrypoint: python3 -m remme tcp://tests:4004
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--port', type=int, default=8080)
+    parser.add_argument('--bind', default='0.0.0.0')
+    arguments = parser.parse_args()
+    app = connexion.App(__name__, specification_dir='.')
+    app.add_api(resource_filename(__name__, 'openapi.yml'), resolver=RestyResolver('remme.rest_api'))
+    app.run(port=arguments.port, host=arguments.bind)

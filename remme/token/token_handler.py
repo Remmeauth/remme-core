@@ -51,6 +51,8 @@ class TokenHandler(BasicHandler):
     def get_account_by_pub_key(self, context, pub_key):
         address = self.make_address_from_data(pub_key)
         account = get_data(context, Account, address)
+        if account is None:
+            return address, Account()
         return address, account
 
     def _genesis(self, context, pub_key, genesis_payload):

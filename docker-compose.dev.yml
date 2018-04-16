@@ -13,83 +13,70 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-# TODO: Start to connect to an existing network
-
 version: '2.1'
 
 services:
   validator:
-    image: hyperledger/sawtooth-validator:1.0
+    image: hyperledger/sawtooth-validator:1.0.1
+    depends_on:
+      - settings-tp
+    volumes:
+      - validator_keys:/etc/sawtooth/keys
     expose:
       - 4004
     ports:
-      - '4020:4004'
-    environment:
-      - GENESIS=true
-    volumes:
-      - ./remme/genesis/batch:/genesis/batch
-      - ./keys:/root/.sawtooth/keys
+      - '${REMME_VALIDATOR_PORT:-8800}:8800'
+    env_file:
+      - .env
     entrypoint: |
       bash -c "
-        sawadm keygen && \
-        sawtooth keygen key && \
-        if [ -d "/var/lib/sawtooth" ]; then
-          rm /var/lib/sawtooth/*
+        if [ ! -f /etc/sawtooth/keys/validator.priv ]; then
+          sawadm keygen
         fi
-        sawset genesis -k /root/.sawtooth/keys/key.priv && \
-        sawadm genesis config-genesis.batch /genesis/batch/token-proposal.batch && \
-
+        ADDITIONAL_ARGS=\"--peering $$REMME_PEERING_MODE\"
+        if [ ! -z \"$$REMME_PEERS_LIST\" ]; then
+          ADDITIONAL_ARGS=\"$$ADDITIONAL_ARGS --peers $$REMME_PEERS_LIST\"
+        fi
+        if [ ! -z \"$$REMME_SEEDS_LIST\" ]; then
+          ADDITIONAL_ARGS=\"$$ADDITIONAL_ARGS --seeds $$REMME_SEEDS_LIST\"
+        fi
         sawtooth-validator -vv \
-          --endpoint tcp://validator:8800 \
+          --endpoint tcp://$$REMME_VALIDATOR_IP:$$REMME_VALIDATOR_PORT \
           --bind component:tcp://eth0:4004 \
-          --bind network:tcp://eth0:8800
-      "
-
-  remme-transaction-processor:
-    image: remme/remme-core-dev:latest
-    volumes:
-      - .:/root/remme
-    entrypoint: |
-      bash -c "
-        pip3 install --upgrade /root/remme && \
-        python3 -m remme tcp://validator:4004
+          --bind network:tcp://eth0:8800 \
+          --scheduler parallel \
+          $$ADDITIONAL_ARGS
       "
 
   settings-tp:
-    image: hyperledger/sawtooth-settings-tp:1.0
-    depends_on:
-      - validator
+    image: hyperledger/sawtooth-settings-tp:1.0.1
     entrypoint: settings-tp -vv -C tcp://validator:4004
 
   rest-api:
-    image: hyperledger/sawtooth-rest-api:1.0
-    expose:
-      - 8008
-    ports:
-      - '8022:8008'
+    image: hyperledger/sawtooth-rest-api:1.0.1
     depends_on:
       - validator
+    expose:
+      - 8080
     entrypoint: |
       sawtooth-rest-api -vv
         --connect tcp://validator:4004
-        --bind rest-api:8008
+        --bind rest-api:8080
 
-  shell:
-    image: remme/remme-core-dev:latest
+  remme-tp:
+    build: .
+    image: remme/remme-core:latest
+
+  remme-rest-api:
+    build: .
+    image: remme/remme-core:latest
     depends_on:
       - rest-api
     volumes:
-      - ./remme/genesis:/root/genesis
-      - ./keys:/root/.sawtooth/keys
-      - .:/root/remme
-      - ./bash/.bashrc:/root/.bashrc
-    stdin_open: true
-    tty: true
-    entrypoint: |
-      bash -c "
-        if [ ! -f /root/.sawtooth/keys/root.priv ]; then
-          sawtooth keygen
-        fi;
-        pip3 install --upgrade /root/remme && \
-        tail -f /dev/null
-      "
+      - user_keys:/root/.sawtooth/keys
+    ports:
+      - '${REMME_REST_API_PORT:-8080}:8080'
+
+volumes:
+  user_keys:
+  validator_keys:
