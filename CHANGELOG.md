@@ -31,12 +31,16 @@ version. Better API will be rolled out in the next release.
 - A fixed amount of token is burnt on a certificate issuance.
 ### Changed
 - Transactions: unified data structures and transaction processors.
-- Faster startup in Docker containers for end users and separate Docker container for development purposes (instant source code updates).
+- Faster startup in Docker containers for end users and separate Docker container for development purposes (instant
+source code updates).
 ### Security
 - Reviewed and fixed security issues on token operations.
 
 ## [0.1.0-alpha] – 2018-02-22
 ### Added
-- The architecture and high-level logic of working with SSL / TLS certificates have been developed: issuing and revoked certificates on the REMME blockchain (REMchain) level;
-- The basic elements of the economy of the REM token have been integrated in the form of a mechanism for the token emission and the possibility of their transfer between users at the REMchain level;
-- A command-line interface (CLI) for convenient access to the core functionality (issuing and revoking certificates, transferring REM tokens between users) has been incorporated.
+- The architecture and high-level logic of working with SSL / TLS certificates have been developed: issuing and revoked
+certificates on the REMME blockchain (REMchain) level;
+- The basic elements of the economy of the REM token have been integrated in the form of a mechanism for the token
+emission and the possibility of their transfer between users at the REMchain level;
+- A command-line interface (CLI) for convenient access to the core functionality (issuing and revoking certificates,
+transferring REM tokens between users) has been incorporated.
