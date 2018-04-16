@@ -35,7 +35,7 @@ services:
         fi
         ADDITIONAL_ARGS=\"--peering $$REMME_PEERING_MODE\"
         if [ ! -z \"$$REMME_PEERS_LIST\" ]; then
-          ADDITIONAL_ARGS=\"$$ADDITIONAL_ARGS --seeds $$REMME_PEERS_LIST\"
+          ADDITIONAL_ARGS=\"$$ADDITIONAL_ARGS --peers $$REMME_PEERS_LIST\"
         fi
         if [ ! -z \"$$REMME_SEEDS_LIST\" ]; then
           ADDITIONAL_ARGS=\"$$ADDITIONAL_ARGS --seeds $$REMME_SEEDS_LIST\"
