@@ -165,6 +165,31 @@ paths:
           $ref: '#/responses/404NoCertificate'
         500:
           $ref: '#/responses/500GeneralError'
+  /certificate/store:
+    put:
+      operationId: remme.rest_api.certificate.store
+      summary: Signes and stores provided certificate to REMchain
+      parameters:
+        - $ref: '#/parameters/certificate_payload'
+      responses:
+        200:
+          description: Certificate is registered on the REMchain
+          schema:
+            properties:
+              revoked:
+                description: Indicates if the certificate was revoked
+                type: boolean
+              owner_pub_key:
+                description: The hex-encoded public key of the certificate owner
+                type: string
+                pattern: '^[0-9a-f]{66}$'
+            required:
+              - revoked
+              - owner_pub_key
+        404:
+          $ref: '#/responses/404NoCertificate'
+        500:
+          $ref: '#/responses/500GeneralError'
   /batch_status/{batch_id}:
     get:
       summary: Check the status of the batch sent to the blockchain
