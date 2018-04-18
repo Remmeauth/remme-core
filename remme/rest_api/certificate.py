@@ -17,13 +17,15 @@ import re
 import hashlib
 from connexion import NoContent
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.primitives import hashes
 
 from remme.certificate.certificate_client import CertificateClient
-from remme.rest_api.certificate_api_decorator import certificate_put_request,\
-    http_payload_required, certificate_address_request
+from remme.rest_api.certificate_api_decorator import certificate_put_request, \
+    http_payload_required, certificate_address_request, certificate_sign_request
 from remme.shared.exceptions import KeyNotFound
+
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from cryptography.hazmat.backends import default_backend
 
 
 @http_payload_required
@@ -61,7 +63,41 @@ def put(cert, key, key_export):
     crt_bin = cert.public_bytes(serialization.Encoding.DER).hex()
     crt_hash = hashlib.sha512(crt_bin.encode('utf-8')).hexdigest()
     rem_sig = certificate_client.sign_text(crt_hash)
-    crt_sig = key.sign(
+    crt_sig = get_certificate_signature(key, rem_sig)
+
+    status, _ = certificate_client.store_certificate(crt_bin, rem_sig, crt_sig.hex())
+
+    return {'certificate': crt_export.decode('utf-8'),
+            'priv_key': key_export.decode('utf-8'),
+            'batch_id': re.search(r'id=([0-9a-f]+)', status['link']).group(1)}
+
+
+@certificate_sign_request
+def store(cert_request):
+    certificate_client = CertificateClient()
+
+    key = get_keys_to_sign()
+    cert = certificate_client.process_csr(cert_request, key)
+
+    crt_export = cert.public_bytes(serialization.Encoding.PEM)
+    crt_bin = cert.public_bytes(serialization.Encoding.DER).hex()
+    crt_hash = hashlib.sha512(crt_bin.encode('utf-8')).hexdigest()
+    rem_sig = certificate_client.sign_text(crt_hash)
+    crt_sig = get_certificate_signature(key, rem_sig)
+
+    certificate_public_key = key.public_key().public_bytes(encoding=serialization.Encoding.PEM,
+                                           format=serialization.PublicFormat.SubjectPublicKeyInfo)
+    status, _ = certificate_client.store_certificate(crt_bin,
+                                                     rem_sig,
+                                                     crt_sig.hex(),
+                                                     certificate_public_key)
+
+    return {'certificate': crt_export.decode('utf-8'),
+            'batch_id': re.search(r'id=([0-9a-f]+)', status['link']).group(1)}
+
+
+def get_certificate_signature(key, rem_sig):
+    return key.sign(
         bytes.fromhex(rem_sig),
         padding.PSS(
             mgf=padding.MGF1(hashes.SHA256()),
@@ -70,8 +106,11 @@ def put(cert, key, key_export):
         hashes.SHA256()
     )
 
-    status, _ = certificate_client.store_certificate(crt_bin, rem_sig, crt_sig.hex())
 
-    return {'certificate': crt_export.decode('utf-8'),
-            'priv_key': key_export.decode('utf-8'),
-            'batch_id': re.search(r'id=([0-9a-f]+)', status['link']).group(1)}
+# TODO change this method to return node keys (ECDSA)
+def get_keys_to_sign():
+    return rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=1024,
+        backend=default_backend()
+    )

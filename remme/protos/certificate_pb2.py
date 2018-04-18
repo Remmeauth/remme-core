@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='certificate.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\x11\x63\x65rtificate.proto\"4\n\x11\x43\x65rtificateMethod\"\x1f\n\x06Method\x12\t\n\x05STORE\x10\x00\x12\n\n\x06REVOKE\x10\x01\"^\n\x15NewCertificatePayload\x12\x17\n\x0f\x63\x65rtificate_raw\x18\x01 \x01(\t\x12\x15\n\rsignature_rem\x18\x02 \x01(\t\x12\x15\n\rsignature_crt\x18\x03 \x01(\t\"+\n\x18RevokeCertificatePayload\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"B\n\x12\x43\x65rtificateStorage\x12\x0c\n\x04hash\x18\x01 \x01(\t\x12\r\n\x05owner\x18\x02 \x01(\t\x12\x0f\n\x07revoked\x18\x03 \x01(\x08\x62\x06proto3')
+  serialized_pb=_b('\n\x11\x63\x65rtificate.proto\"4\n\x11\x43\x65rtificateMethod\"\x1f\n\x06Method\x12\t\n\x05STORE\x10\x00\x12\n\n\x06REVOKE\x10\x01\"~\n\x15NewCertificatePayload\x12\x17\n\x0f\x63\x65rtificate_raw\x18\x01 \x01(\t\x12\x15\n\rsignature_rem\x18\x02 \x01(\t\x12\x15\n\rsignature_crt\x18\x03 \x01(\t\x12\x1e\n\x16\x63\x65rt_signer_public_key\x18\x04 \x01(\t\"+\n\x18RevokeCertificatePayload\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"B\n\x12\x43\x65rtificateStorage\x12\x0c\n\x04hash\x18\x01 \x01(\t\x12\r\n\x05owner\x18\x02 \x01(\t\x12\x0f\n\x07revoked\x18\x03 \x01(\x08\x62\x06proto3')
 )
 
 
@@ -100,6 +100,13 @@ _NEWCERTIFICATEPAYLOAD = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='cert_signer_public_key', full_name='NewCertificatePayload.cert_signer_public_key', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -113,7 +120,7 @@ _NEWCERTIFICATEPAYLOAD = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=75,
-  serialized_end=169,
+  serialized_end=201,
 )
 
 
@@ -143,8 +150,8 @@ _REVOKECERTIFICATEPAYLOAD = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=171,
-  serialized_end=214,
+  serialized_start=203,
+  serialized_end=246,
 )
 
 
@@ -188,8 +195,8 @@ _CERTIFICATESTORAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=216,
-  serialized_end=282,
+  serialized_start=248,
+  serialized_end=314,
 )
 
 _CERTIFICATEMETHOD_METHOD.containing_type = _CERTIFICATEMETHOD

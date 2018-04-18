@@ -22,6 +22,7 @@ from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 from sawtooth_signing.secp256k1 import Secp256k1PublicKey, Secp256k1Context
 
@@ -67,9 +68,15 @@ class CertificateHandler(BasicHandler):
 
         certificate = x509.load_der_x509_certificate(bytes.fromhex(transaction_payload.certificate_raw),
                                                      default_backend())
-        certificate_pubkey = certificate.public_key()
+
+        if transaction_payload.cert_signer_public_key:
+            cert_signer_pubkey = load_pem_public_key(transaction_payload.cert_signer_public_key.encode('utf-8'),
+                                                     backend=default_backend())
+        else:
+            cert_signer_pubkey = certificate.public_key()
+
         try:
-            certificate_pubkey.verify(bytes.fromhex(transaction_payload.signature_crt),
+            cert_signer_pubkey.verify(bytes.fromhex(transaction_payload.signature_crt),
                                       bytes.fromhex(transaction_payload.signature_rem),
                                       padding.PSS(mgf=padding.MGF1(hashes.SHA256()),
                                                   salt_length=padding.PSS.MAX_LENGTH),
@@ -88,8 +95,10 @@ class CertificateHandler(BasicHandler):
             raise InvalidTransaction('signature_rem mismatch with signer key {}'.format(signer_pubkey))
 
         subject = certificate.subject
-        organization = subject.get_attributes_for_oid(NameOID.ORGANIZATION_NAME)[0].value
-        uid = subject.get_attributes_for_oid(NameOID.USER_ID)[0].value
+        issuer = certificate.issuer
+
+        organization = issuer.get_attributes_for_oid(NameOID.ORGANIZATION_NAME)[0].value
+        uid = issuer.get_attributes_for_oid(NameOID.USER_ID)[0].value
         valid_from = certificate.not_valid_before
         valid_until = certificate.not_valid_after
 
@@ -99,8 +108,7 @@ class CertificateHandler(BasicHandler):
         if uid != signer_pubkey:
             raise InvalidTransaction('The certificate should be sent by its signer. Certificate signed by {}. '
                                      'Transaction sent by {}.'.format(uid, signer_pubkey))
-        if subject != certificate.issuer:
-            raise InvalidTransaction('Expecting a self-signed certificate.')
+
         if valid_until - valid_from > CERT_MAX_VALIDITY:
             raise InvalidTransaction('The certificate validity exceeds the maximum value.')
 

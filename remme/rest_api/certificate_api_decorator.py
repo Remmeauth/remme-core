@@ -45,6 +45,21 @@ def certificate_address_request(func):
     return validation_logic
 
 
+def certificate_sign_request(func):
+    def validation_logic(payload):
+        try:
+            certificate = x509.load_pem_x509_csr(payload['certificate'].encode('utf-8'),
+                                                         default_backend())
+            if not is_valid_token_balance():
+                return {'error': 'You have no tokens to issue certificate'}, 402
+        except ValueError:
+            return {'error': 'Unable to load certificate request entity'}, 422
+
+        return func(certificate)
+
+    return validation_logic
+
+
 # hot fix - as far as connexion has a bug inside it is
 # temp solution for null body cases
 # https://github.com/zalando/connexion/issues/579
