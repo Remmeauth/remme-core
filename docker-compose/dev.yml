@@ -64,11 +64,11 @@ services:
         --bind rest-api:8080
 
   remme-tp:
-    build: .
+    build: ..
     image: remme/remme-core:latest
 
   remme-rest-api:
-    build: .
+    build: ..
     image: remme/remme-core:latest
     depends_on:
       - rest-api

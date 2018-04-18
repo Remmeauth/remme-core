@@ -17,7 +17,7 @@ version: '2.1'
 
 services:
   tests:
-    build: .
+    build: ..
     image: remme/remme-core:latest
     depends_on:
       - remme-tp
@@ -27,6 +27,6 @@ services:
       TEST_BIND: "tcp://eth0:4004"
 
   remme-tp:
-    build: .
+    build: ..
     image: remme/remme-core:latest
     entrypoint: python3 -m remme tcp://tests:4004

@@ -13,20 +13,16 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-version: '2.1'
-
-services:
-  remme-docs:
-    image: remme/remme-core-dev:latest
-    volumes:
-      - .:/root/remme
-      - ./README.rst:/root/remme/docs/README.rst
-    ports:
-      - '${REMME_DOCS_SERVER_PORT:-8000}:8000'
-    env_file:
-      - .env
-    entrypoint: |
-      bash -c "
-        sphinx-apidoc -f -o remme/docs/generated remme && \
-        sphinx-autobuild -H 0.0.0.0 -p 8000 remme/docs build
-      "
+FROM ubuntu:xenial
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 8AA7AF1F1091A5FD && \
+    echo "deb http://repo.sawtooth.me/ubuntu/1.0/stable xenial universe" >> /etc/apt/sources.list && \
+    apt-get update && \
+    apt-get install -y sawtooth && \
+    apt-get install -y python3-pip && \
+    apt-get install -y libssl-dev
+WORKDIR /root
+COPY ./bash/.bashrc /root/.bashrc
+RUN mkdir remme
+COPY . ./remme
+RUN pip3 install -r ./remme/requirements.txt
+RUN pip3 install ./remme

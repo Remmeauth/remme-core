@@ -59,7 +59,7 @@ services:
     entrypoint: poet-validator-registry-tp -vv -C tcp://validator:4004
 
   remme-genesis:
-    build: .
+    build: ..
     image: remme/remme-core:latest
     volumes:
       - user_keys:/root/.sawtooth/keys
