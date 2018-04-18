@@ -27,7 +27,7 @@ services:
     ports:
       - '${REMME_VALIDATOR_PORT:-8800}:8800'
     env_file:
-      - .env
+      - ../.env
     entrypoint: |
       bash -c "
         if [ ! -f /etc/sawtooth/keys/validator.priv ]; then
