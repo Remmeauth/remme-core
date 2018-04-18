@@ -168,7 +168,7 @@ paths:
   /certificate/store:
     put:
       operationId: remme.rest_api.certificate.store
-      summary: Signes and stores provided certificate to REMchain
+      summary: Signs and stores provided certificate to REMchain
       parameters:
         - $ref: '#/parameters/certificate_payload'
       responses:
