@@ -16,7 +16,7 @@
 import argparse
 from pkg_resources import resource_filename
 import connexion
-from connexion.resolver import RestyResolver
+from remme.rest_api.api_methods_validator import CustomResolver
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -24,5 +24,5 @@ if __name__ == '__main__':
     parser.add_argument('--bind', default='0.0.0.0')
     arguments = parser.parse_args()
     app = connexion.App(__name__, specification_dir='.')
-    app.add_api(resource_filename(__name__, 'openapi.yml'), resolver=RestyResolver('remme.rest_api'))
+    app.add_api(resource_filename(__name__, 'openapi.yml'), resolver=CustomResolver('remme.rest_api'))
     app.run(port=arguments.port, host=arguments.bind)
