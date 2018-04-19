@@ -20,6 +20,7 @@ services:
     image: hyperledger/sawtooth-validator:1.0.1
     depends_on:
       - settings-tp
+      - poet-validator-registry
     volumes:
       - validator_keys:/etc/sawtooth/keys
     expose:
@@ -46,6 +47,17 @@ services:
           --bind network:tcp://eth0:8800 \
           --scheduler parallel \
           $$ADDITIONAL_ARGS
+      "
+
+  poet-validator-registry:
+    image: hyperledger/sawtooth-poet-validator-registry-tp:1.0.1
+    env_file:
+      - ../.env
+    entrypoint: |
+      bash -c "
+        if [ \"$$REMME_CONSENSUS\" = \"poet-simulator\" ]; then
+          poet-validator-registry-tp -vv -C tcp://validator:4004
+        fi
       "
 
   settings-tp:
