@@ -2,17 +2,24 @@ import os
 from connexion.resolver import RestyResolver
 from connexion.resolver import Resolution
 
+REST_METHODS_ENV_KEY = 'REMME_REST_API_AVAILABLE_METHODS'
+
 
 def access_denied_function(*args, **kwargs):
     return {'error': 'This API method is disabled by node admin'}, 403
 
 
-class CustomResolver(RestyResolver):
+class RestMethodsSwitcherResolver(RestyResolver):
 
     def __init__(self, default_module_name, collection_endpoint_name='search'):
-        rules = os.environ['REMME_REST_API_AVAILABLE_METHODS']
-        self.allowed_operations = get_allowed_operations(rules)
-        self.allow_all_methods = rules == '*'
+        rules = os.getenv(REST_METHODS_ENV_KEY)
+        self.allow_all_methods = rules == '*' \
+                              or rules == None
+        if not self.allow_all_methods:
+            try:
+                self.allowed_operations = get_allowed_operations(rules)
+            except IndexError:
+                raise ValueError('Could not parse {} env var value'.format(REST_METHODS_ENV_KEY))
 
         super().__init__(default_module_name, collection_endpoint_name)
 
@@ -25,7 +32,7 @@ class CustomResolver(RestyResolver):
         request_path = get_clear_method_path(operation.path)
         request_method = operation.method.upper()
 
-        if not request_path in self.allowed_operations:
+        if request_path not in self.allowed_operations:
             return False
 
         return '*' in self.allowed_operations[request_path] \
@@ -46,6 +53,7 @@ def get_allowed_methods(enviroment_var):
 
 def get_clear_method_path(path):
     return path.split('/{')[0]
+
 
 def get_allowed_operations(rules):
     methods = get_allowed_methods(rules)
