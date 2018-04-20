@@ -13,6 +13,8 @@ class RestMethodsSwitcherResolver(RestyResolver):
 
     def __init__(self, default_module_name, collection_endpoint_name='search'):
         rules = os.getenv(REST_METHODS_ENV_KEY)
+        self.request_path = None
+        self.request_method = None
         self.allow_all_requests = rules == '*' \
                                   or rules == None
         if not self.allow_all_requests:
@@ -29,24 +31,24 @@ class RestMethodsSwitcherResolver(RestyResolver):
         return Resolution(access_denied_function, operation.path + operation.method)
 
     def is_allowed_operation(self, operation):
-        request_path = get_clear_method_path(operation.path)
-        request_method = operation.method.upper()
+        self.request_path = get_clear_method_path(operation.path)
+        self.request_method = operation.method.upper()
 
-        return self.allow_all_requests or self.path_and_method_allowed(request_path, request_method)
+        return self.allow_all_requests or self.path_and_method_allowed()
 
-    def path_and_method_allowed(self, request_path, request_method):
-        return self.request_path_allowed(request_path) \
-               and (self.method_allowed_in_path(request_path, request_method))
+    def path_and_method_allowed(self):
+        return self.request_path_allowed() \
+               and (self.method_allowed_in_path())
 
-    def method_allowed_in_path(self, request_path, request_method):
-        return self.all_methods_allowed_in_path(request_path) \
-               or request_method in self.allowed_operations[request_path]
+    def method_allowed_in_path(self):
+        return self.all_methods_allowed_in_path() \
+               or self.request_method in self.allowed_operations[self.request_path]
 
-    def all_methods_allowed_in_path(self, request_path):
-        return '*' in self.allowed_operations[request_path]
+    def all_methods_allowed_in_path(self):
+        return '*' in self.allowed_operations[self.request_path]
 
-    def request_path_allowed(self, request_path):
-        return request_path in self.allowed_operations
+    def request_path_allowed(self):
+        return self.request_path in self.allowed_operations
 
 
 def get_allowed_method(method_str):
