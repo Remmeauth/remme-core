@@ -86,10 +86,8 @@ services:
       - rest-api
     volumes:
       - user_keys:/root/.sawtooth/keys
-    ports:
-      - '${REMME_REST_API_PORT:-8080}:8080'
     env_file:
-      - .env
+      - ../.env
 
 volumes:
   user_keys:
