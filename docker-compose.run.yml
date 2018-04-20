@@ -23,4 +23,6 @@ services:
     depends_on:
       - rest-api
       - remme-tp
+    env_file:
+      - .env
     entrypoint: python3 -m remme.rest_api
