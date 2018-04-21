@@ -16,17 +16,11 @@
 version: '2.1'
 
 services:
-  tests:
-    build: .
-    image: remme/remme-core:latest
-    depends_on:
-      - remme-tp
-    expose:
-      - 4004
-    environment:
-      TEST_BIND: "tcp://eth0:4004"
-
   remme-tp:
-    build: .
-    image: remme/remme-core:latest
-    entrypoint: python3 -m remme tcp://tests:4004
+    entrypoint: python3 -m remme tcp://validator:4004
+
+  remme-rest-api:
+    depends_on:
+      - rest-api
+      - remme-tp
+    entrypoint: python3 -m remme.rest_api
