@@ -17,7 +17,6 @@ import datetime
 def certificate_put_request(func):
     def validation_logic(payload):
         cert, key, key_export = create_certificate(payload)
-
         if not is_valid_token_balance():
             return {'error': 'You have no tokens to issue certificate'}, 402
         if certificate_already_exist(cert):
@@ -25,7 +24,8 @@ def certificate_put_request(func):
         if cert.not_valid_after - cert.not_valid_before > CERT_MAX_VALIDITY:
             return {'error': 'The certificate validity exceeds the maximum value'}, 400
 
-        return func(cert, key, key_export)
+        path_to_save = payload['path_to_save'] if 'path_to_save' in payload else None
+        return func(cert, key, key_export, path_to_save)
 
     return validation_logic
 

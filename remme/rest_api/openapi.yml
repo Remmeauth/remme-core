@@ -140,6 +140,9 @@ paths:
               email:
                 description: Email of the certificate user
                 type: string
+              path_to_save:
+                description: Local path where .p12 file can be saved. For local use only
+                type: string
             required:
               - validity
       responses:

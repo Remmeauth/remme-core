@@ -26,6 +26,9 @@ from remme.shared.exceptions import KeyNotFound
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.backends import default_backend
+from OpenSSL.crypto import PKCS12, X509, PKey
+
+PATH_TO_EXPORTS_FOLDER = '/root/container_exports'
 
 
 @http_payload_required
@@ -56,7 +59,7 @@ def delete(certificate_address):
 
 @http_payload_required
 @certificate_put_request
-def put(cert, key, key_export):
+def put(cert, key, key_export, path_to_save):
     certificate_client = CertificateClient()
 
     crt_export = cert.public_bytes(serialization.Encoding.PEM)
@@ -65,11 +68,26 @@ def put(cert, key, key_export):
     rem_sig = certificate_client.sign_text(crt_hash)
     crt_sig = get_certificate_signature(key, rem_sig)
 
+    save_p12(cert, key, path_to_save)
     status, _ = certificate_client.store_certificate(crt_bin, rem_sig, crt_sig.hex())
 
     return {'certificate': crt_export.decode('utf-8'),
             'priv_key': key_export.decode('utf-8'),
             'batch_id': re.search(r'id=([0-9a-f]+)', status['link']).group(1)}
+
+
+def save_p12(cert, private, path):
+    if path:
+        openssl_cert = X509.from_cryptography(cert)
+        openssl_priv_key = PKey.from_cryptography_key(private)
+
+        p12 = PKCS12()
+        p12.set_privatekey(openssl_priv_key)
+        p12.set_certificate(openssl_cert)
+
+        p12bin = p12.export()
+        with open(PATH_TO_EXPORTS_FOLDER + '/{}'.format(path), 'wb') as f:
+            f.write(p12bin)
 
 
 @certificate_sign_request
@@ -86,7 +104,7 @@ def store(cert_request):
     crt_sig = get_certificate_signature(key, rem_sig)
 
     certificate_public_key = key.public_key().public_bytes(encoding=serialization.Encoding.PEM,
-                                           format=serialization.PublicFormat.SubjectPublicKeyInfo)
+                                                           format=serialization.PublicFormat.SubjectPublicKeyInfo)
     status, _ = certificate_client.store_certificate(crt_bin,
                                                      rem_sig,
                                                      crt_sig.hex(),
