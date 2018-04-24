@@ -24,8 +24,10 @@ def certificate_put_request(func):
         if cert.not_valid_after - cert.not_valid_before > CERT_MAX_VALIDITY:
             return {'error': 'The certificate validity exceeds the maximum value'}, 400
 
-        path_to_save = payload['path_to_save'] if 'path_to_save' in payload else None
-        return func(cert, key, key_export, path_to_save)
+        name_to_save = payload['name_to_save'] if 'name_to_save' in payload else None
+        passphrase = payload['passphrase'] if 'passphrase' in payload else None
+
+        return func(cert, key, key_export, name_to_save, passphrase)
 
     return validation_logic
 

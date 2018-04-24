@@ -13,6 +13,7 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
+import os
 import re
 import hashlib
 from connexion import NoContent
@@ -28,8 +29,8 @@ from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.backends import default_backend
 from OpenSSL.crypto import PKCS12, X509, PKey
 
-PATH_TO_EXPORTS_FOLDER = '/root/container_exports'
-
+PATH_TO_EXPORTS_FOLDER = '/root/usr/share'
+HOST_FOLDER_EXPORTS_PATH_ENV_KEY = 'REMME_CONTAINER_EXPORTS_FOLDER'
 
 @http_payload_required
 @certificate_address_request
@@ -59,7 +60,7 @@ def delete(certificate_address):
 
 @http_payload_required
 @certificate_put_request
-def put(cert, key, key_export, path_to_save):
+def put(cert, key, key_export, name_to_save=None, passphrase=None):
     certificate_client = CertificateClient()
 
     crt_export = cert.public_bytes(serialization.Encoding.PEM)
@@ -68,7 +69,7 @@ def put(cert, key, key_export, path_to_save):
     rem_sig = certificate_client.sign_text(crt_hash)
     crt_sig = get_certificate_signature(key, rem_sig)
 
-    save_p12(cert, key, path_to_save)
+    save_p12(cert, key, name_to_save, passphrase)
     status, _ = certificate_client.store_certificate(crt_bin, rem_sig, crt_sig.hex())
 
     return {'certificate': crt_export.decode('utf-8'),
@@ -76,8 +77,10 @@ def put(cert, key, key_export, path_to_save):
             'batch_id': re.search(r'id=([0-9a-f]+)', status['link']).group(1)}
 
 
-def save_p12(cert, private, path):
-    if path:
+def save_p12(cert, private, file_name, passphrase=None):
+    host_folder_defined = os.getenv(HOST_FOLDER_EXPORTS_PATH_ENV_KEY)
+
+    if file_name and host_folder_defined:
         openssl_cert = X509.from_cryptography(cert)
         openssl_priv_key = PKey.from_cryptography_key(private)
 
@@ -85,8 +88,8 @@ def save_p12(cert, private, path):
         p12.set_privatekey(openssl_priv_key)
         p12.set_certificate(openssl_cert)
 
-        p12bin = p12.export()
-        with open(PATH_TO_EXPORTS_FOLDER + '/{}'.format(path), 'wb') as f:
+        p12bin = p12.export(passphrase)
+        with open(PATH_TO_EXPORTS_FOLDER + '/{}'.format(file_name), 'wb') as f:
             f.write(p12bin)
 
 

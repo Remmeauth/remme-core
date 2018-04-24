@@ -80,71 +80,7 @@ paths:
     put:
       summary: Generate and register a new certificate
       parameters:
-        - name: payload
-          in: body
-          required: true
-          schema:
-            properties:
-              validity_after:
-                description: The amount of days after what certificate will be valid
-                type: integer
-              validity:
-                description: The amount of days certificate is valid for
-                type: integer
-              serial:
-                description: serial number of the certificate
-                type: string
-              passphrase:
-                description: passphrase as a second factor encryption
-                type: string
-              country_name:
-                description: Country code (2 symbols)
-                type: string
-                pattern: '[A-Z]{2}'
-              state_name:
-                description: State or province name
-                type: string
-              street_address:
-                description: Street address
-                type: string
-              postal_address:
-                description: Postal address
-                type: string
-              business_category:
-                description: Business category
-                type: string
-              postal_code:
-                description: Postal code
-                type: string
-              locality_name:
-                description: Locality name
-                type: string
-              common_name:
-                description: Common name
-                type: string
-              name:
-                description: Given name of the certificate user
-                type: string
-              surname:
-                description: Surname of the certificate user
-                type: string
-              title:
-                description: Certificate title
-                type: string
-              pseudonym:
-                description: Pseudonym of the certificate user
-                type: string
-              generation_qualifier:
-                description: Generation qualifier
-                type: string
-              email:
-                description: Email of the certificate user
-                type: string
-              path_to_save:
-                description: Local path where .p12 file can be saved. For local use only
-                type: string
-            required:
-              - validity
+        - $ref: '#/parameters/certificate_create_payload'
       responses:
         200:
           description: A new certificate was generated and the registration transaction was submitted
@@ -315,6 +251,73 @@ parameters:
           type: string
       required:
         - certificate
+  certificate_create_payload:
+    name: payload
+    description: Certificate fields required for certificate creation
+    in: body
+    required: true
+    schema:
+      properties:
+        validity_after:
+          description: The amount of days after what certificate will be valid
+          type: integer
+        validity:
+          description: The amount of days certificate is valid for
+          type: integer
+        serial:
+          description: serial number of the certificate
+          type: string
+        passphrase:
+          description: passphrase as a second factor encryption
+          type: string
+        country_name:
+          description: Country code (2 symbols)
+          type: string
+          pattern: '[A-Z]{2}'
+        state_name:
+          description: State or province name
+          type: string
+        street_address:
+          description: Street address
+          type: string
+        postal_address:
+          description: Postal address
+          type: string
+        business_category:
+          description: Business category
+          type: string
+        postal_code:
+          description: Postal code
+          type: string
+        locality_name:
+          description: Locality name
+          type: string
+        common_name:
+          description: Common name
+          type: string
+        name:
+          description: Given name of the certificate user
+          type: string
+        surname:
+          description: Surname of the certificate user
+          type: string
+        title:
+          description: Certificate title
+          type: string
+        pseudonym:
+          description: Pseudonym of the certificate user
+          type: string
+        generation_qualifier:
+          description: Generation qualifier
+          type: string
+        email:
+          description: Email of the certificate user
+          type: string
+        name_to_save:
+          description: Name of the .p12 file wich should be exported
+          type: string
+      required:
+        - validity
   key_name_payload:
     name: payload
     in: body

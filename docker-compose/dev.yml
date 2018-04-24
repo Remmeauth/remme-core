@@ -86,7 +86,7 @@ services:
       - rest-api
     volumes:
       - user_keys:/root/.sawtooth/keys
-      - container_exports:/root/container_exports
+      - ${REMME_CONTAINER_EXPORTS_FOLDER:-./default_export}:/root/usr/share
     ports:
       - '${REMME_REST_API_PORT:-8080}:8080'
     env_file:
@@ -95,4 +95,3 @@ services:
 volumes:
   user_keys:
   validator_keys:
-  container_exports:
