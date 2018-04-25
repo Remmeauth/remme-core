@@ -109,13 +109,20 @@ def execute_put(cert, key, key_export, name_to_save=None, passphrase=None):
     rem_sig = certificate_client.sign_text(crt_hash)
     crt_sig = get_certificate_signature(key, rem_sig)
 
-    saved_to = save_p12(cert, key, name_to_save, passphrase)
+    try:
+        saved_to = save_p12(cert, key, name_to_save, passphrase)
+    except ValueError:
+        return {'error': 'The file already exists in specified location'}, 409
+
     status, _ = certificate_client.store_certificate(crt_bin, rem_sig, crt_sig.hex())
 
-    return {'certificate': crt_export.decode('utf-8'),
-            'priv_key': key_export.decode('utf-8'),
-            'batch_id': re.search(r'id=([0-9a-f]+)', status['link']).group(1),
-            'saved_to': saved_to}
+    response = {'certificate': crt_export.decode('utf-8'),
+                'priv_key': key_export.decode('utf-8'),
+                'batch_id': re.search(r'id=([0-9a-f]+)', status['link']).group(1)}
+    if saved_to:
+        response['saved_to'] = saved_to
+
+    return response
 
 
 def execute_store(cert_request):
@@ -157,10 +164,13 @@ def save_p12(cert, private, file_name, passphrase=None):
         p12.set_certificate(openssl_cert)
 
         p12bin = p12.export(passphrase)
-        file_path = PATH_TO_EXPORTS_FOLDER + '/{}'.format(file_name)
+        file_path = PATH_TO_EXPORTS_FOLDER + '/{}.p12'.format(file_name)
+
+        if os.path.isfile(file_path):
+            raise ValueError
         with open(file_path, 'wb') as f:
             f.write(p12bin)
-        return host_folder + '/{}'.format(file_name)
+        return host_folder + '/{}.p12'.format(file_name)
 
 
 def get_certificate_signature(key, rem_sig):
