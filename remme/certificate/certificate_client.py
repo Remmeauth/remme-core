@@ -69,7 +69,7 @@ class CertificateClient(BasicClient):
         ).not_valid_before(
             datetime.datetime.utcnow()
         ).not_valid_after(
-            datetime.datetime.utcnow() + datetime.timedelta(days=CERT_MAX_VALIDITY)
+            datetime.datetime.utcnow() + CERT_MAX_VALIDITY
         ).sign(key, hashes.SHA256(), default_backend())
 
     def store_certificate(self, certificate_raw, signature_rem, signature_crt, cert_signer_public_key=None):

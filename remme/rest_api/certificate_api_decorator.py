@@ -13,6 +13,9 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 import datetime
 
+from OpenSSL import crypto
+from OpenSSL.crypto import PKCS12, X509, PKey
+
 
 def certificate_put_request(func):
     def validation_logic(payload):
@@ -41,6 +44,23 @@ def certificate_address_request(func):
             address = CertificateClient().make_address_from_data(crt_bin)
         except ValueError:
             return {'error': 'Unable to load certificate entity'}, 422
+
+        return func(address)
+
+    return validation_logic
+
+
+def p12_certificate_address_request(func):
+    def validation_logic(certificate, passphrase=''):
+        try:
+            p12 = crypto.load_pkcs12(certificate.read(), passphrase)
+            pub_cert = p12.get_certificate().to_cryptography()
+            crt_bin = pub_cert.public_bytes(serialization.Encoding.DER).hex()
+            address = CertificateClient().make_address_from_data(crt_bin)
+        except ValueError:
+            return {'error': 'Unable to load certificate entity'}, 422
+        except crypto.Error:
+            return {'error': 'Incorrect passphrase'}, 403
 
         return func(address)
 
@@ -122,7 +142,7 @@ def get_dates_from_payload(payload):
     if 'validity' in payload:
         not_valid_after = not_valid_before + datetime.timedelta(days=payload['validity'])
     else:
-        not_valid_after = not_valid_before + datetime.timedelta(days=CERT_MAX_VALIDITY)
+        not_valid_after = not_valid_before + CERT_MAX_VALIDITY
 
     return not_valid_before, not_valid_after
 

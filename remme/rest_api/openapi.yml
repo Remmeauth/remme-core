@@ -76,6 +76,92 @@ paths:
               - balance
         500:
           $ref: '#/responses/500GeneralError'
+  /certificate/p12:
+    put:
+      operationId: remme.rest_api.certificate.put_p12
+      summary: Generate and register a new certificate
+      parameters:
+        - $ref: '#/parameters/certificate_create_payload'
+      responses:
+        200:
+          description: A new certificate was generated and the registration transaction was submitted
+          schema:
+            properties:
+              batch_id:
+                $ref: '#/definitions/BatchId'
+              certificate:
+                type: string
+                description: PEM encoded certificate
+              priv_key:
+                type: string
+                description: PEM encoded private key
+              saved_to:
+                type: string
+                description: Path where .p12 file was saved
+            required:
+              - batch_id
+              - certificate
+              - priv_key
+        500:
+          $ref: '#/responses/500GeneralError'
+    post:
+      operationId: remme.rest_api.certificate.post_p12
+      summary: Check the status of the provided p12 certificate
+      consumes:
+      - multipart/form-data
+      parameters:
+        - in: formData
+          name: certificate
+          type: file
+          required: true
+          description: The file to upload.
+        - in: formData
+          name: passphrase
+          type: string
+          required: false
+          description: Description of file contents.
+      responses:
+        200:
+          description: Certificate is registered on the REMchain
+          schema:
+            properties:
+              revoked:
+                description: Indicates if the certificate was revoked
+                type: boolean
+              owner_pub_key:
+                description: The hex-encoded public key of the certificate owner
+                type: string
+                pattern: '^[0-9a-f]{66}$'
+            required:
+              - revoked
+              - owner_pub_key
+        404:
+          $ref: '#/responses/404NoCertificate'
+        500:
+          $ref: '#/responses/500GeneralError'
+    delete:
+      operationId: remme.rest_api.certificate.delete_p12
+      summary: Revoke a certificate for p12 format.
+      consumes:
+      - multipart/form-data
+      parameters:
+        - in: formData
+          name: certificate
+          type: file
+          required: true
+          description: The file to upload.
+        - in: formData
+          name: passphrase
+          type: string
+          required: false
+          description: Description of file contents.
+      responses:
+        200:
+          $ref: '#/responses/200BatchSubmitted'
+        404:
+          $ref: '#/responses/404NoCertificate'
+        500:
+          $ref: '#/responses/500GeneralError'
   /certificate:
     put:
       summary: Generate and register a new certificate
@@ -94,6 +180,9 @@ paths:
               priv_key:
                 type: string
                 description: PEM encoded private key
+              saved_to:
+                type: string
+                description: Path where .p12 file was saved
             required:
               - batch_id
               - certificate
