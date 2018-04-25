@@ -18,6 +18,7 @@ swagger: '2.0'
 info:
   title: 'REMME Core REST API'
   version: '0.1'
+basePath: "/api/v1"
 
 consumes:
   - application/json
@@ -76,42 +77,97 @@ paths:
               - balance
         500:
           $ref: '#/responses/500GeneralError'
+  /certificate/p12:
+    put:
+      operationId: remme.rest_api.certificate.put_p12
+      summary: Generate and register a new certificate
+      parameters:
+        - $ref: '#/parameters/certificate_p12_create_payload'
+      responses:
+        200:
+          description: A new certificate was generated and the registration transaction was submitted
+          schema:
+            properties:
+              batch_id:
+                $ref: '#/definitions/BatchId'
+              certificate:
+                type: string
+                description: PEM encoded certificate
+              priv_key:
+                type: string
+                description: PEM encoded private key
+              saved_to:
+                type: string
+                description: Path where .p12 file was saved
+            required:
+              - batch_id
+              - certificate
+              - priv_key
+        500:
+          $ref: '#/responses/500GeneralError'
+    post:
+      operationId: remme.rest_api.certificate.post_p12
+      summary: Check the status of the provided p12 certificate
+      consumes:
+      - multipart/form-data
+      parameters:
+        - in: formData
+          name: certificate
+          type: file
+          required: true
+          description: The file to upload.
+        - in: formData
+          name: passphrase
+          type: string
+          required: false
+          description: Description of file contents.
+      responses:
+        200:
+          description: Certificate is registered on the REMchain
+          schema:
+            properties:
+              revoked:
+                description: Indicates if the certificate was revoked
+                type: boolean
+              owner_pub_key:
+                description: The hex-encoded public key of the certificate owner
+                type: string
+                pattern: '^[0-9a-f]{66}$'
+            required:
+              - revoked
+              - owner_pub_key
+        404:
+          $ref: '#/responses/404NoCertificate'
+        500:
+          $ref: '#/responses/500GeneralError'
+    delete:
+      operationId: remme.rest_api.certificate.delete_p12
+      summary: Revoke a certificate for p12 format.
+      consumes:
+      - multipart/form-data
+      parameters:
+        - in: formData
+          name: certificate
+          type: file
+          required: true
+          description: The file to upload.
+        - in: formData
+          name: passphrase
+          type: string
+          required: false
+          description: Description of file contents.
+      responses:
+        200:
+          $ref: '#/responses/200BatchSubmitted'
+        404:
+          $ref: '#/responses/404NoCertificate'
+        500:
+          $ref: '#/responses/500GeneralError'
   /certificate:
     put:
       summary: Generate and register a new certificate
       parameters:
-        - name: payload
-          in: body
-          required: true
-          schema:
-            properties:
-              validity:
-                description: The amount of days certificate is valid for
-                type: integer
-              passphrase:
-                description: passphrase as a second factor encryption
-                type: string
-              country_name:
-                description: Country code (2 symbols)
-                type: string
-                pattern: '[A-Z]{2}'
-              locality_name:
-                description: Locality name
-                type: string
-              common_name:
-                description: Common name
-                type: string
-              name:
-                description: Given name of the certificate user
-                type: string
-              surname:
-                description: Surname of the certificate user
-                type: string
-              email:
-                description: Email of the certificate user
-                type: string
-            required:
-              - validity
+        - $ref: '#/parameters/certificate_create_payload'
       responses:
         200:
           description: A new certificate was generated and the registration transaction was submitted
@@ -282,6 +338,139 @@ parameters:
           type: string
       required:
         - certificate
+  certificate_create_payload:
+    name: payload
+    description: Certificate fields required for certificate creation
+    in: body
+    required: true
+    schema:
+      properties:
+        validity_after:
+          description: The amount of days after what certificate will be valid
+          type: integer
+        validity:
+          description: The amount of days certificate is valid for
+          type: integer
+        serial:
+          description: serial number of the certificate
+          type: string
+        passphrase:
+          description: passphrase as a second factor encryption
+          type: string
+        country_name:
+          description: Country code (2 symbols)
+          type: string
+          pattern: '[A-Z]{2}'
+        state_name:
+          description: State or province name
+          type: string
+        street_address:
+          description: Street address
+          type: string
+        postal_address:
+          description: Postal address
+          type: string
+        business_category:
+          description: Business category
+          type: string
+        postal_code:
+          description: Postal code
+          type: string
+        locality_name:
+          description: Locality name
+          type: string
+        common_name:
+          description: Common name
+          type: string
+        name:
+          description: Given name of the certificate user
+          type: string
+        surname:
+          description: Surname of the certificate user
+          type: string
+        title:
+          description: Certificate title
+          type: string
+        pseudonym:
+          description: Pseudonym of the certificate user
+          type: string
+        generation_qualifier:
+          description: Generation qualifier
+          type: string
+        email:
+          description: Email of the certificate user
+          type: string
+      required:
+        - validity
+  certificate_p12_create_payload:
+    name: payload
+    description: Certificate fields required for certificate creation
+    in: body
+    required: true
+    # TODO Get rid of copy-paste here
+    schema:
+      properties:
+        validity_after:
+          description: The amount of days after what certificate will be valid
+          type: integer
+        validity:
+          description: The amount of days certificate is valid for
+          type: integer
+        serial:
+          description: serial number of the certificate
+          type: string
+        passphrase:
+          description: passphrase as a second factor encryption
+          type: string
+        country_name:
+          description: Country code (2 symbols)
+          type: string
+          pattern: '[A-Z]{2}'
+        state_name:
+          description: State or province name
+          type: string
+        street_address:
+          description: Street address
+          type: string
+        postal_address:
+          description: Postal address
+          type: string
+        business_category:
+          description: Business category
+          type: string
+        postal_code:
+          description: Postal code
+          type: string
+        locality_name:
+          description: Locality name
+          type: string
+        common_name:
+          description: Common name
+          type: string
+        name:
+          description: Given name of the certificate user
+          type: string
+        surname:
+          description: Surname of the certificate user
+          type: string
+        title:
+          description: Certificate title
+          type: string
+        pseudonym:
+          description: Pseudonym of the certificate user
+          type: string
+        generation_qualifier:
+          description: Generation qualifier
+          type: string
+        email:
+          description: Email of the certificate user
+          type: string
+        name_to_save:
+          description: Name of the .p12 file wich should be exported
+          type: string
+      required:
+        - validity
+        - name_to_save
   key_name_payload:
     name: payload
     in: body
