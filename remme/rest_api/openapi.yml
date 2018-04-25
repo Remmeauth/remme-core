@@ -407,6 +407,7 @@ parameters:
     description: Certificate fields required for certificate creation
     in: body
     required: true
+    # TODO Get rid of copy-paste here
     schema:
       properties:
         validity_after:
