@@ -56,7 +56,7 @@ def put(cert, key, key_export, name_to_save=None, passphrase=None):
 
 @certificate_sign_request
 def store(cert_request):
-    return execute_store
+    return execute_store(cert_request)
 
 
 @p12_certificate_address_request
