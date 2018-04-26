@@ -98,32 +98,6 @@ class AtomicSwapHandler(BasicHandler):
         if SecretLockOptionalBob is provided, Bob uses _swap_init to respond to requested swap
         Otherwise, Alice uses _swap_init to request a swap and thus, Bob can't receive funds until Alice "approves".
 
-        1. Verify if Alice or Bob is requesting(using settings_tp matching)
-        2. if Bob: add funds from genesis and lock for 48 hours
-        message AtomicSwapInitPayload {
-            string receiver_address = 1;
-            string sender_address_non_local = 7;
-            uint64 amount = 2;
-            string swap_id = 3;
-            string secret_lock_optional_bob = 4;
-            string email_address_encrypted_optional_alice = 5;
-            uint32 timestamp = 6;
-        }
-
-        message AtomicSwapInfo {
-            bool is_closed = 1;
-            bool is_approved = 11;
-            string sender_address = 2;
-            string sender_address_non_local = 12;
-            string receiver_address = 3;
-            uint64 amount = 4;
-            string email_address_encrypted_optional = 5;
-            string swap_id = 6;
-            string secret_lock = 7;
-            string secret_key = 8;
-            uint32 created_at = 9;
-            bool is_initiator = 10; // isAlice
-        }
         """
 
         # 0. Check if swap ID already exists
@@ -134,7 +108,6 @@ class AtomicSwapHandler(BasicHandler):
         swap_info = AtomicSwapInfo()
         swap_info.swap_id = swap_init_payload.swap_id
         swap_info.is_closed = False
-        swap_info.is_approved = False
         swap_info.amount = swap_init_payload.amount
         swap_info.created_at = swap_init_payload.created_at
         swap_info.email_address_encrypted_optional = swap_init_payload.email_address_encrypted_optional_alice
@@ -159,7 +132,8 @@ class AtomicSwapHandler(BasicHandler):
         genesis_members_list = genesis_members_str.split()
         sender_address = self.make_address_from_data(signer_pubkey)
 
-        swap_info.isInitiator = sender_address not in genesis_members_list
+        swap_info.is_initiator = sender_address not in genesis_members_list
+        swap_info.is_approved = not swap_info.is_initiator
         # END
 
         # 3. Transfer funds to zero address.
@@ -222,16 +196,43 @@ class AtomicSwapHandler(BasicHandler):
 
     def _swap_set_lock(self, context, signer_pubkey, swap_set_lock_payload):
         """
+        Bob sets secret lock if Alice is initiator for REMchain => ETH transaction
 
-        :param context:
-        :param signer_pubkey:
-        :param swap_set_lock_payload:
-        :return:
         """
         swap_info = self.get_swap_info_from_swap_id(context, swap_set_lock_payload.swap_id)
 
+        if swap_info.secret_lock:
+            raise InvalidTransaction('Secret lock is already added for {}.'.format(swap_info.swap_id))
 
+        swap_info.secret_lock = swap_set_lock_payload.secret_lock
+
+        return self.get_state_update(swap_info)
 
     def _swap_close(self, context, signer_pubkey, swap_close_payload):
-        pass
+        """
+        Bob or Alice closes the swap by providing the secret key which matches secret lock.
+        Requires "is_approved = True"
+        Requires hash of secret key to match secret lock
 
+        """
+        swap_info = self.get_swap_info_from_swap_id(context, swap_close_payload.swap_id)
+
+        if not swap_info.secret_lock:
+            raise InvalidTransaction('Secret lock is required to close the swap!')
+
+        if hashlib.sha512(swap_close_payload.secret_key).hexdigest() != swap_info.secret_lock:
+            raise InvalidTransaction('Secret key doesn\'t match specified secret lock!')
+
+        if not swap_info.is_approved:
+            raise InvalidTransaction('Transaction cannot be closed before it\'s approved.')
+
+        transfer_payload = TransferPayload()
+        transfer_payload.address_to = swap_info.receiver_address
+        transfer_payload.amount = swap_info.amount
+        token_updated_state = TokenHandler()._transfer_from_address(context,
+                                                                    self.zero_address,
+                                                                    transfer_payload)
+
+        swap_info.is_closed = True
+
+        return self.get_state_update(swap_info).update(token_updated_state)
