@@ -26,7 +26,8 @@ from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 from sawtooth_signing.secp256k1 import Secp256k1PublicKey, Secp256k1Context
 
-from remme.protos.atomic_swap_pb2 import AtomicSwapMethod, AtomicSwapInitPayload, AtomicSwapInfo
+from remme.protos.atomic_swap_pb2 import AtomicSwapMethod, AtomicSwapInitPayload, AtomicSwapInfo, \
+    AtomicSwapApprovePayload, AtomicSwapExpirePayload, AtomicSwapSetSecretLockPayload, AtomicSwapClosePayload
 from remme.protos.token_pb2 import TransferPayload
 from remme.settings import SETTINGS_KEY_PUB_ENCRYPTION_KEY, SETTINGS_KEY_ALLOWED_GENESIS_MEMBERS
 from remme.settings_tp.handler import _make_settings_key, _get_setting_value
@@ -44,6 +45,13 @@ FAMILY_VERSIONS = ['0.1']
 
 RANGE_ACCEPTANCE = 1
 
+# hours
+INTIATOR_TIME_LOCK = 24
+NON_INTIATOR_TIME_LOCK = 48
+
+INITIATOR_TIME_DELTA_LOCK = datetime.timedelta(hours=INTIATOR_TIME_LOCK)
+NON_INITIATOR_TIME_DELTA_LOCK = datetime.timedelta(hours=NON_INTIATOR_TIME_LOCK)
+
 @singleton
 class AtomicSwapHandler(BasicHandler):
     def __init__(self):
@@ -54,8 +62,36 @@ class AtomicSwapHandler(BasicHandler):
             AtomicSwapMethod.INIT: {
                 'pb_class': AtomicSwapInitPayload,
                 'processor': self._swap_init
-            }
+            },
+            AtomicSwapMethod.APPROVE: {
+                'pb_class': AtomicSwapApprovePayload,
+                'processor': self._swap_approve
+            },
+            AtomicSwapMethod.EXPIRE: {
+                'pb_class': AtomicSwapExpirePayload,
+                'processor': self._swap_expire
+            },
+            AtomicSwapMethod.SET_SECRET_LOCK: {
+                'pb_class': AtomicSwapSetSecretLockPayload,
+                'processor': self._swap_set_lock
+            },
+            AtomicSwapMethod.CLOSE: {
+                'pb_class': AtomicSwapClosePayload,
+                'processor': self._swap_close
+            },
         }
+
+    def get_swap_info_from_swap_id(self, context, swap_id, to_raise_exception=True):
+        swap_info = get_data(context, AtomicSwapInfo, self.make_address(swap_id))
+        if to_raise_exception and not swap_info:
+            raise InvalidTransaction('Atomic swap was not initiated for {} swap id!'.format(swap_id))
+        return swap_info
+
+    def get_state_update(self, swap_info):
+        return {self.make_address(swap_info.swap_id): swap_info}
+
+    def get_datetime_from_timestamp(self, timestamp):
+        return datetime.datetime.fromtimestamp(timestamp)
 
     def _swap_init(self, context, signer_pubkey, swap_init_payload):
         """
@@ -65,56 +101,57 @@ class AtomicSwapHandler(BasicHandler):
         1. Verify if Alice or Bob is requesting(using settings_tp matching)
         2. if Bob: add funds from genesis and lock for 48 hours
         message AtomicSwapInitPayload {
-            string receiverAddress = 1;
-            string senderAddressNonLocal = 7;
+            string receiver_address = 1;
+            string sender_address_non_local = 7;
             uint64 amount = 2;
-            string swapID = 3;
-            string secretLockOptionalBob = 4;
-            string emailAddressEncryptedOptionalAlice = 5;
+            string swap_id = 3;
+            string secret_lock_optional_bob = 4;
+            string email_address_encrypted_optional_alice = 5;
+            uint32 timestamp = 6;
         }
 
         message AtomicSwapInfo {
-            bool isClosed = 1;
-            bool isApproved = 11;
-            string senderAddress = 2;
-            string receiverAddress = 3;
+            bool is_closed = 1;
+            bool is_approved = 11;
+            string sender_address = 2;
+            string sender_address_non_local = 12;
+            string receiver_address = 3;
             uint64 amount = 4;
-            string emailAddressEncryptedOptional = 5;
-            string swapID = 6;
-            string secretLock = 7;
-            string secretKey = 8;
+            string email_address_encrypted_optional = 5;
+            string swap_id = 6;
+            string secret_lock = 7;
+            string secret_key = 8;
             uint32 created_at = 9;
-            bool isInitiator = 10; // isAlice
+            bool is_initiator = 10; // isAlice
         }
         """
-        # TODO validate payloads
-        atomic_swap_info = AtomicSwapInfo()
 
-        atomic_swap_info.swapID = swap_init_payload.swapID
-        atomic_swap_info.isClosed = False
-        atomic_swap_info.isApproved = False
-        atomic_swap_info.amount = swap_init_payload.amount
-        atomic_swap_info.created_at = swap_init_payload.created_at
-        atomic_swap_info.emailAddressEncryptedOptional = swap_init_payload.emailAddressEncryptedOptional
-        atomic_swap_info.senderAddress = self.make_address_from_data(signer_pubkey)
-        atomic_swap_info.senderAddressNonLocal = swap_init_payload.senderAddressNonLocal
-        atomic_swap_info.receiverAddress = swap_init_payload.receiverAddress
-        swap_address = self.make_address(atomic_swap_info.swapID)
-        # Check if swap ID is already exist
-        if get_data(context, AtomicSwapInfo, swap_address):
+        # 0. Check if swap ID already exists
+        if self.get_swap_info_from_swap_id(context, swap_init_payload.swap_id, to_raise_exception=False):
             raise InvalidTransaction('Atomic swap ID is already taken, please use a different one!')
-        # end
+        # END
 
-        # 1. Ensure transaction was within an hour
-        atomic_swap_info.secretLock = swap_init_payload.secretLockOptionalBob
-        created_at = datetime.datetime.fromtimestamp(atomic_swap_info.timestamp)
+        swap_info = AtomicSwapInfo()
+        swap_info.swap_id = swap_init_payload.swap_id
+        swap_info.is_closed = False
+        swap_info.is_approved = False
+        swap_info.amount = swap_init_payload.amount
+        swap_info.created_at = swap_init_payload.created_at
+        swap_info.email_address_encrypted_optional = swap_init_payload.email_address_encrypted_optional_alice
+        swap_info.sender_address = self.make_address_from_data(signer_pubkey)
+        swap_info.sender_addressNonLocal = swap_init_payload.sender_address_non_local
+        swap_info.receiver_address = swap_init_payload.receiver_address
+
+        # 1. Ensure transaction initiated within an hour
+        swap_info.secretLock = swap_init_payload.secret_lock_optional_bob
+        created_at = self.get_datetime_from_timestamp(swap_info.timestamp)
         now = datetime.datetime.now()
 
         if not (now - datetime.timedelta(hours=1) < created_at < now):
             raise InvalidTransaction('Transaction is created a long time ago or timestamp is assigned set.')
         # END
 
-        # 2. check weather the sender is Alice:
+        # 2. Check weather the sender is Alice:
         genesis_members_str = _get_setting_value(context, SETTINGS_KEY_ALLOWED_GENESIS_MEMBERS)
         if not genesis_members_str:
             raise InvalidTransaction('REMchain is not configured to process atomic swaps.')
@@ -122,17 +159,79 @@ class AtomicSwapHandler(BasicHandler):
         genesis_members_list = genesis_members_str.split()
         sender_address = self.make_address_from_data(signer_pubkey)
 
-        atomic_swap_info.isInitiator = sender_address not in genesis_members_list
+        swap_info.isInitiator = sender_address not in genesis_members_list
         # END
 
+        # 3. Transfer funds to zero address.
         transfer_payload = TransferPayload()
-        transfer_payload.address_to = atomic_swap_info.receiverAddress
-        transfer_payload.amount = atomic_swap_info.amount
-        token_updated_state = TokenHandler()._transfer_from_address(context, atomic_swap_info.senderAddress, transfer_payload)
+        transfer_payload.address_to = self.zero_address
+        transfer_payload.amount = swap_info.amount
+        token_updated_state = TokenHandler()._transfer_from_address(context,
+                                                                    swap_info.sender_address,
+                                                                    transfer_payload)
 
-        return {
-            swap_address: atomic_swap_info
-        }.update(token_updated_state)
+        return self.get_state_update(swap_info).update(token_updated_state)
+
+    def _swap_approve(self, context, signer_pubkey, swap_approve_payload):
+        """
+        Only called by Alice to approve REMchain => other transaction for Bob to close it.
+
+        """
+
+        swap_info = self.get_swap_info_from_swap_id(context, swap_approve_payload.swap_id)
+
+        if not swap_info.secret_lock:
+            raise InvalidTransaction('Secret Lock is needed for Bob to provide a secret key.')
+
+        if not swap_info.is_closed:
+            raise InvalidTransaction('Swap id {} is already closed.'.format(swap_info.swap_id))
+
+        swap_info.is_approved = True
+
+        return self.get_state_update(swap_info)
+
+    def _swap_expire(self, context, signer_pubkey, swap_expire_payload):
+        """
+        Trasanction initiator (Alice) decides to withdraw deposit in 24 hours, or Bob in 48 hours
+
+        """
+
+        swap_info = self.get_swap_info_from_swap_id(context, swap_expire_payload.swap_id)
+
+        if self.make_address_from_data(signer_pubkey) != swap_info.sender_address:
+            raise InvalidTransaction('Sender account is not allowed to expire the swap.')
+
+        now = datetime.datetime.now()
+        created_at = self.get_datetime_from_timestamp(swap_info.timestamp)
+        time_delta = INITIATOR_TIME_DELTA_LOCK if swap_info.is_initiator else NON_INITIATOR_TIME_DELTA_LOCK
+        if not (created_at + time_delta < now):
+            intiator_name = "initiator" if swap_info.is_initiator else "non initiator"
+            raise InvalidTransaction('Swap {} needs to wait {} hours since timestamp: {} to withdraw.'.format(
+                                        intiator_name, INTIATOR_TIME_LOCK, swap_info.timestamp))
+
+        swap_info.closed = True
+
+        transfer_payload = TransferPayload()
+        transfer_payload.address_to = swap_info.sender_address
+        transfer_payload.amount = swap_info.amount
+        token_updated_state = TokenHandler()._transfer_from_address(context,
+                                                                    self.zero_address,
+                                                                    transfer_payload)
+
+        return self.get_state_update(swap_info).update(token_updated_state)
+
+    def _swap_set_lock(self, context, signer_pubkey, swap_set_lock_payload):
+        """
+
+        :param context:
+        :param signer_pubkey:
+        :param swap_set_lock_payload:
+        :return:
+        """
+        swap_info = self.get_swap_info_from_swap_id(context, swap_set_lock_payload.swap_id)
 
 
+
+    def _swap_close(self, context, signer_pubkey, swap_close_payload):
+        pass
 

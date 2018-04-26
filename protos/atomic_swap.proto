@@ -26,44 +26,44 @@ message AtomicSwapMethod {
 }
 
 message AtomicSwapInitPayload {
-    string receiverAddress = 1;
-    string senderAddressNonLocal = 7;
+    string receiver_address = 1;
+    string sender_address_non_local = 7;
     uint64 amount = 2;
-    string swapID = 3;
-    string secretLockOptionalBob = 4;
-    string emailAddressEncryptedOptionalAlice = 5;
+    string swap_id = 3;
+    string secret_lock_optional_bob = 4;
+    string email_address_encrypted_optional_alice = 5;
     uint32 timestamp = 6;
 }
 
 message AtomicSwapApprovePayload {
-    string swapID = 1;
+    string swap_id = 1;
 }
 
 message AtomicSwapExpirePayload {
-    string swapID = 1;
+    string swap_id = 1;
 }
 
 message AtomicSwapSetSecretLockPayload {
-    string swapID = 1;
-    string secretLock = 2;
+    string swap_id = 1;
+    string secret_lock = 2;
 }
 
 message AtomicSwapClosePayload {
-    string swapID = 1;
-    string secretKey = 2;
+    string swap_id = 1;
+    string secret_key = 2;
 }
 
 message AtomicSwapInfo {
-    bool isClosed = 1;
-    bool isApproved = 11;
-    string senderAddress = 2;
-    string senderAddressNonLocal = 12;
-    string receiverAddress = 3;
+    bool is_closed = 1;
+    bool is_approved = 11;
+    string sender_address = 2;
+    string sender_address_non_local = 12;
+    string receiver_address = 3;
     uint64 amount = 4;
-    string emailAddressEncryptedOptional = 5;
-    string swapID = 6;
-    string secretLock = 7;
-    string secretKey = 8;
+    string email_address_encrypted_optional = 5;
+    string swap_id = 6;
+    string secret_lock = 7;
+    string secret_key = 8;
     uint32 created_at = 9;
-    bool isInitiator = 10; // isAlice
+    bool is_initiator = 10; // isAlice
 }
