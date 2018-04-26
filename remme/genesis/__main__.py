@@ -18,7 +18,8 @@ from remme.protos.account_pb2 import AccountMethod
 from remme.account.client import AccountClient
 from remme.account.handler import AccountHandler, TransactionPayload
 
-OUTPUT_BATCH = '/genesis/batch/token-proposal.batch'
+
+OUTPUT_BATCH = '/genesis/batch/token_tp-proposal.batch'
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='File with a public key to assign initial supply.')

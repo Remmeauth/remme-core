@@ -34,7 +34,7 @@ from remme.shared.singleton import singleton
 
 LOGGER = logging.getLogger(__name__)
 
-FAMILY_NAME = 'certificate'
+FAMILY_NAME = 'certificate_tp'
 FAMILY_VERSIONS = ['0.1']
 
 CERT_ORGANIZATION = 'REMME'
@@ -64,7 +64,7 @@ class CertificateHandler(BasicHandler):
         address = self.make_address_from_data(transaction_payload.certificate_raw)
         data = get_data(context, CertificateStorage, address)
         if data:
-            raise InvalidTransaction('This certificate is already registered.')
+            raise InvalidTransaction('This certificate_tp is already registered.')
 
         certificate = x509.load_der_x509_certificate(bytes.fromhex(transaction_payload.certificate_raw),
                                                      default_backend())
@@ -106,11 +106,11 @@ class CertificateHandler(BasicHandler):
             raise InvalidTransaction('The organization name should be set to REMME. The actual name is {}'
                                      .format(organization))
         if uid != signer_pubkey:
-            raise InvalidTransaction('The certificate should be sent by its signer. Certificate signed by {}. '
+            raise InvalidTransaction('The certificate_tp should be sent by its signer. Certificate signed by {}. '
                                      'Transaction sent by {}.'.format(uid, signer_pubkey))
 
         if valid_until - valid_from > CERT_MAX_VALIDITY:
-            raise InvalidTransaction('The certificate validity exceeds the maximum value.')
+            raise InvalidTransaction('The certificate_tp validity exceeds the maximum value.')
 
         fingerprint = certificate.fingerprint(hashes.SHA512()).hex()[:64]
         data = CertificateStorage()
@@ -120,7 +120,7 @@ class CertificateHandler(BasicHandler):
 
         account_address, account = AccountHandler.get_account_by_pub_key(context, signer_pubkey)
         if account.balance < CERT_STORE_PRICE:
-            raise InvalidTransaction('Not enough tokens to register a new certificate. Current balance: {}'
+            raise InvalidTransaction('Not enough tokens to register a new certificate_tp. Current balance: {}'
                                      .format(account.balance))
         account.balance -= CERT_STORE_PRICE
 
@@ -135,13 +135,13 @@ class CertificateHandler(BasicHandler):
     def _revoke_certificate(self, context, signer_pubkey, transaction_payload):
         data = get_data(context, CertificateStorage, transaction_payload.address)
         if data is None:
-            raise InvalidTransaction('No such certificate.')
+            raise InvalidTransaction('No such certificate_tp.')
         if signer_pubkey != data.owner:
-            raise InvalidTransaction('Only owner can revoke the certificate.')
+            raise InvalidTransaction('Only owner can revoke the certificate_tp.')
         if data.revoked:
-            raise InvalidTransaction('The certificate is already revoked.')
+            raise InvalidTransaction('The certificate_tp is already revoked.')
         data.revoked = True
 
-        LOGGER.info('Revoked the certificate on address {}'.format(transaction_payload.address))
+        LOGGER.info('Revoked the certificate_tp on address {}'.format(transaction_payload.address))
 
         return {transaction_payload.address: data}
