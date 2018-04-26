@@ -229,26 +229,22 @@ paths:
   /certificate/store:
     put:
       operationId: remme.rest_api.certificate.store
-      summary: Signs and stores provided certificate to REMchain
+      summary: Signs and stores provided certificate signing request(CSR) to REMchain
       parameters:
         - $ref: '#/parameters/certificate_payload'
       responses:
         200:
-          description: Certificate is registered on the REMchain
+          description: Certificate signing request (csr) is signed and certificate data registered on the REMchain
           schema:
             properties:
-              revoked:
-                description: Indicates if the certificate was revoked
-                type: boolean
-              owner_pub_key:
-                description: The hex-encoded public key of the certificate owner
+              batch_id:
+                $ref: '#/definitions/BatchId'
+              certificate:
                 type: string
-                pattern: '^[0-9a-f]{66}$'
+                description: PEM encoded created certificate signed by node
             required:
               - revoked
               - owner_pub_key
-        404:
-          $ref: '#/responses/404NoCertificate'
         500:
           $ref: '#/responses/500GeneralError'
   /batch_status/{batch_id}:
