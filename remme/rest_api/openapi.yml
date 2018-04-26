@@ -13,6 +13,11 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
+# TODO better resolver (remover operationId)
+
+# Generate documentation:
+# docker run -v $HOME/Projects/Work/Remme/remme-core/remme/rest_api:/docs swaggerapi/swagger-codegen-cli generate -i /docs/openapi.yml -l html2 -o /docs
+
 swagger: '2.0'
 
 info:
