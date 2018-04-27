@@ -23,6 +23,7 @@ services:
       - poet-validator-registry
     volumes:
       - validator_keys:/etc/sawtooth/keys
+      - chain_data:/var/lib/sawtooth/
     expose:
       - 4004
     ports:
@@ -96,3 +97,4 @@ services:
 volumes:
   user_keys:
   validator_keys:
+  chain_data:
