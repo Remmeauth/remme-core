@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [0.3.1-alpha] - 2018-04-16
 ### Added
 - REST API:
-  - Support for certificate signing requests. Now key pairs for repositories can be generated on the client side.
+  - Support for certificate signing requests. Now key pairs for certificates can be generated on the client side.
   - Support for enabling and disabling methods and endpoints on API server start up.
   - Local p12 file generation (to generate certificates on the same machine a node is running on).
 - Network:
