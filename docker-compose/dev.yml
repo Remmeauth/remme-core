@@ -46,6 +46,7 @@ services:
           --bind component:tcp://eth0:4004 \
           --bind network:tcp://eth0:8800 \
           --scheduler parallel \
+          --minimum-peer-connectivity $$REMME_MINIMUM_PEERS_CONNECTIVITY \
           $$ADDITIONAL_ARGS
       "
 
