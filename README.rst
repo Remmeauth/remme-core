@@ -44,7 +44,7 @@ You can run ``make test`` to run automated tests.
 License
 -------
 
-REMME software and documentation are licensed under [Apache License Version 2.0](LICENSE).
+REMME software and documentation are licensed under `Apache License Version 2.0 <LICENCE>`_.
 
 .. _Releases: https://github.com/Remmeauth/remme-core/releases
 
