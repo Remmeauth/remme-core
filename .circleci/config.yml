@@ -30,9 +30,6 @@ jobs:
             rm -rf protoc3
       - checkout
       - run:
-          name: Build Docker images
-          command: make build_docker
-      - run:
           name: Run tests
           command: make test
   deploy:
