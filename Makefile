@@ -22,28 +22,33 @@ include .env
 .PHONY: release
 
 run_dev_no_genesis:
-	docker-compose -f docker-compose.dev.yml -f docker-compose.run.yml up
+	docker-compose -f docker-compose/dev.yml -f docker-compose/run.yml up
 
 run_dev:
-	docker-compose -f docker-compose.dev.yml -f docker-compose.genesis.yml -f docker-compose.run.yml up
+	docker-compose -f docker-compose/dev.yml -f docker-compose/genesis.yml -f docker-compose/run.yml up
+
+poet_enroll_validators_list:
+	docker exec -it $(shell docker-compose -f docker-compose/dev.yml ps -q validator) bash -c "poet registration \
+	create -k /etc/sawtooth/keys/validator.priv -o enroll_poet.batch && sawtooth batch submit -f enroll_poet.batch --url http://rest-api:8080"
 
 test:
-	docker-compose -f docker-compose.test.yml -f docker-compose.run-test.yml up --abort-on-container-exit
+	docker-compose -f docker-compose/test.yml -f docker-compose/run-test.yml up --abort-on-container-exit
 
 build_protobuf:
 	protoc -I=$(PROTO_SRC_DIR) --python_out=$(PROTO_DST_DIR) $(PROTO_SRC_DIR)/*.proto
 
 build_docker:
-	docker-compose -f docker-compose.dev.yml build
+	docker-compose -f docker-compose/dev.yml build
 
 rebuild_docker:
-	docker-compose -f docker-compose.dev.yml build --no-cache
+	docker-compose -f docker-compose/dev.yml build --no-cache
 
 release:
 	mkdir $(RELEASE_NUMBER)-release
+	mkdir $(RELEASE_NUMBER)-release/docker-compose
 	cp {run,genesis}.sh ./$(RELEASE_NUMBER)-release
-	cp docker-compose.{dev,run,genesis}.yml ./$(RELEASE_NUMBER)-release
+	cp docker-compose/{dev,run,genesis}.yml ./$(RELEASE_NUMBER)-release/docker-compose
 	cp .env ./$(RELEASE_NUMBER)-release
-	find ./$(RELEASE_NUMBER)-release -type f -name "docker-compose.{dev,run,genesis}.yml" | xargs sed -i "/.*build: \..*/d"
+	find ./$(RELEASE_NUMBER)-release -type f -name "docker-compose/{dev,run,genesis}.yml" | xargs sed -i "/.*build: ..*/d"
 	zip -r $(RELEASE_NUMBER)-release.zip $(RELEASE_NUMBER)-release
 	rm -rf $(RELEASE_NUMBER)-release

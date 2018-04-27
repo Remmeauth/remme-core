@@ -31,6 +31,10 @@ message NewCertificatePayload {
     // verify, that the user actually owns the provided certificate.
     string signature_rem = 2;
     string signature_crt = 3;
+    // TODO: Should be removed when we switch to node ECDSA keys
+    // for certificate signing. As far as public key will be
+    // a part of transaction payload
+    string cert_signer_public_key = 4;
 }
 
 message RevokeCertificatePayload {

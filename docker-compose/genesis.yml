@@ -24,14 +24,34 @@ services:
       - user_keys:/root/.sawtooth/keys
     entrypoint: |
       bash -c "
-        if [ -d "/var/lib/sawtooth" ]; then
+        if [ -d /var/lib/sawtooth ]; then
           rm /var/lib/sawtooth/*
         fi
         if [ ! -f /etc/sawtooth/keys/validator.priv ]; then
           sawadm keygen
         fi
-        sawset genesis -k /root/.sawtooth/keys/key.priv && \
-        sawadm genesis config-genesis.batch /genesis/batch/token-proposal.batch && \
+
+        sawset genesis -k /etc/sawtooth/keys/validator.priv && \
+
+        GENESIS_BATCHES=\"config-genesis.batch /genesis/batch/token-proposal.batch\"
+
+        if [ \"$$REMME_CONSENSUS\" = \"poet-simulator\" ]; then
+          sawset proposal create -k /etc/sawtooth/keys/validator.priv \
+            sawtooth.consensus.algorithm=poet \
+            \"sawtooth.poet.report_public_key_pem=$$(cat /etc/sawtooth/simulator_rk_pub.pem)\" \
+            \"sawtooth.poet.valid_enclave_measurements=$$(poet enclave --enclave-module simulator measurement)\" \
+            \"sawtooth.poet.valid_enclave_basenames=$$(poet enclave --enclave-module simulator basename)\" \
+            sawtooth.poet.enclave_module_name=sawtooth_poet_simulator.poet_enclave_simulator.poet_enclave_simulator \
+            -o poet_config.batch && \
+
+          poet registration create -k /etc/sawtooth/keys/validator.priv \
+            --enclave-module simulator -o poet_genesis.batch
+
+          GENESIS_BATCHES=\"$$GENESIS_BATCHES poet_config.batch poet_genesis.batch\"
+        fi
+
+        sawadm genesis $$GENESIS_BATCHES && \
+
         sawtooth-validator -vv \
           --endpoint tcp://$$REMME_VALIDATOR_IP:$$REMME_VALIDATOR_PORT \
           --bind component:tcp://eth0:4004 \
@@ -40,13 +60,13 @@ services:
       "
 
   remme-genesis:
-    build: .
+    build: ..
     image: remme/remme-core:latest
     volumes:
       - user_keys:/root/.sawtooth/keys
       - genesis_data:/genesis/batch
     env_file:
-      - .env
+      - ../.env
     entrypoint: |
       bash -c "
         if [ ! -f /root/.sawtooth/keys/key.priv ]; then

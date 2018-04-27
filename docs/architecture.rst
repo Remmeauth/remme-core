@@ -9,7 +9,10 @@ Each node consists of 2 main logical components:
 
 (we have agreed within a team to refer to "Journal" container as a "Validator")
 
-.. image:: img/journal_organization.svg
+.. figure:: img/journal_organization.svg
+
+   This image by `Intel Corporation <https://www.intel.com/>`_ is licenced under
+   `CC BY 4.0 <https://creativecommons.org/licenses/by/4.0/>`_
 
 We will not elaborate on "Journal" construct, you can read more from `the official site <https://sawtooth.hyperledger.org/docs/core/releases/latest/architecture/journal.html>`_.
 
@@ -33,7 +36,10 @@ or `Wikipedia <https://en.wikipedia.org/wiki/Merkle_tree>`_
 
 We are more interested in how one forms an **address** (a hex-encoded **70** character string representing 35 bytes).
 
-.. image:: img/state_address_format.svg
+.. figure:: img/state_address_format.svg
+
+   This image by `Intel Corporation <https://www.intel.com/>`_ is licenced under
+   `CC BY 4.0 <https://creativecommons.org/licenses/by/4.0/>`_
 
 In order to uniquely define the parts of the tree where information is stored, a namespace prefix is suggested which consists of 3 bytes (**6** hex characters). The remaining 32 bytes (**64** hex characters) are encoded based on the specifications of the designer of the namespace.
 
@@ -49,8 +55,3 @@ Transaction Processor (TP)
 TP may consist of several **Transaction Handlers** which contain business logic on how to process a certain **family** of a transactions.
 
 We have inherited and encapsulated **TransactionHandler** logic with a shared class basic_handler.py for developer's convenience.
-
-
-
-
-

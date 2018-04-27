@@ -13,11 +13,13 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 import datetime
 
+from OpenSSL import crypto
+from OpenSSL.crypto import PKCS12, X509, PKey
+
 
 def certificate_put_request(func):
     def validation_logic(payload):
         cert, key, key_export = create_certificate(payload)
-
         if not is_valid_token_balance():
             return {'error': 'You have no tokens to issue certificate'}, 402
         if certificate_already_exist(cert):
@@ -25,7 +27,10 @@ def certificate_put_request(func):
         if cert.not_valid_after - cert.not_valid_before > CERT_MAX_VALIDITY:
             return {'error': 'The certificate validity exceeds the maximum value'}, 400
 
-        return func(cert, key, key_export)
+        name_to_save = payload['name_to_save'] if 'name_to_save' in payload else None
+        passphrase = payload['passphrase'] if 'passphrase' in payload else None
+
+        return func(cert, key, key_export, name_to_save, passphrase)
 
     return validation_logic
 
@@ -41,6 +46,38 @@ def certificate_address_request(func):
             return {'error': 'Unable to load certificate entity'}, 422
 
         return func(address)
+
+    return validation_logic
+
+
+def p12_certificate_address_request(func):
+    def validation_logic(certificate, passphrase=''):
+        try:
+            p12 = crypto.load_pkcs12(certificate.read(), passphrase)
+            pub_cert = p12.get_certificate().to_cryptography()
+            crt_bin = pub_cert.public_bytes(serialization.Encoding.DER).hex()
+            address = CertificateClient().make_address_from_data(crt_bin)
+        except ValueError:
+            return {'error': 'Unable to load certificate entity'}, 422
+        except crypto.Error:
+            return {'error': 'Incorrect passphrase'}, 403
+
+        return func(address)
+
+    return validation_logic
+
+
+def certificate_sign_request(func):
+    def validation_logic(payload):
+        try:
+            certificate = x509.load_pem_x509_csr(payload['certificate'].encode('utf-8'),
+                                                 default_backend())
+            if not is_valid_token_balance():
+                return {'error': 'You have no tokens to issue certificate'}, 402
+        except ValueError:
+            return {'error': 'Unable to load certificate request entity'}, 422
+
+        return func(certificate)
 
     return validation_logic
 
@@ -79,6 +116,8 @@ def build_certificate(parameters, payload, key):
 
     subject = issuer = x509.Name(name_oid)
 
+    not_valid_before, not_valid_after = get_dates_from_payload(payload)
+
     return x509.CertificateBuilder().subject_name(
         subject
     ).issuer_name(
@@ -88,21 +127,43 @@ def build_certificate(parameters, payload, key):
     ).serial_number(
         x509.random_serial_number()
     ).not_valid_before(
-        datetime.datetime.utcnow()
+        not_valid_before
     ).not_valid_after(
-        datetime.datetime.utcnow() + datetime.timedelta(days=payload['validity'])
+        not_valid_after
     ).sign(key, hashes.SHA256(), default_backend())
+
+
+def get_dates_from_payload(payload):
+    if 'validity_after' in payload:
+        not_valid_before = datetime.datetime.utcnow() + datetime.timedelta(days=payload['validity_after'])
+    else:
+        not_valid_before = datetime.datetime.utcnow()
+
+    if 'validity' in payload:
+        not_valid_after = not_valid_before + datetime.timedelta(days=payload['validity'])
+    else:
+        not_valid_after = not_valid_before + CERT_MAX_VALIDITY
+
+    return not_valid_before, not_valid_after
 
 
 def get_params():
     return {
         'country_name': NameOID.COUNTRY_NAME,
         'state_name': NameOID.STATE_OR_PROVINCE_NAME,
+        'street_address': NameOID.STREET_ADDRESS,
+        'postal_address': NameOID.POSTAL_ADDRESS,
+        'postal_code': NameOID.POSTAL_CODE,
         'locality_name': NameOID.LOCALITY_NAME,
         'common_name': NameOID.COMMON_NAME,
         'name': NameOID.GIVEN_NAME,
         'surname': NameOID.SURNAME,
-        'email': NameOID.EMAIL_ADDRESS
+        'pseudonym': NameOID.PSEUDONYM,
+        'business_category': NameOID.BUSINESS_CATEGORY,
+        'title': NameOID.TITLE,
+        'email': NameOID.EMAIL_ADDRESS,
+        'serial': NameOID.SERIAL_NUMBER,
+        'generation_qualifier': NameOID.GENERATION_QUALIFIER
     }
 
 

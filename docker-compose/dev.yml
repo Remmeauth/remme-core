@@ -20,6 +20,7 @@ services:
     image: hyperledger/sawtooth-validator:1.0.1
     depends_on:
       - settings-tp
+      - poet-validator-registry
     volumes:
       - validator_keys:/etc/sawtooth/keys
     expose:
@@ -27,7 +28,7 @@ services:
     ports:
       - '${REMME_VALIDATOR_PORT:-8800}:8800'
     env_file:
-      - .env
+      - ../.env
     entrypoint: |
       bash -c "
         if [ ! -f /etc/sawtooth/keys/validator.priv ]; then
@@ -48,6 +49,17 @@ services:
           $$ADDITIONAL_ARGS
       "
 
+  poet-validator-registry:
+    image: hyperledger/sawtooth-poet-validator-registry-tp:1.0.1
+    env_file:
+      - ../.env
+    entrypoint: |
+      bash -c "
+        if [ \"$$REMME_CONSENSUS\" = \"poet-simulator\" ]; then
+          poet-validator-registry-tp -vv -C tcp://validator:4004
+        fi
+      "
+
   settings-tp:
     image: hyperledger/sawtooth-settings-tp:1.0.1
     entrypoint: settings-tp -vv -C tcp://validator:4004
@@ -64,18 +76,21 @@ services:
         --bind rest-api:8080
 
   remme-tp:
-    build: .
+    build: ..
     image: remme/remme-core:latest
 
   remme-rest-api:
-    build: .
+    build: ..
     image: remme/remme-core:latest
     depends_on:
       - rest-api
     volumes:
       - user_keys:/root/.sawtooth/keys
+      - ${REMME_CONTAINER_EXPORTS_FOLDER:-./default_export}:/root/usr/share
     ports:
       - '${REMME_REST_API_PORT:-8080}:8080'
+    env_file:
+      - ../.env
 
 volumes:
   user_keys:
