@@ -81,13 +81,13 @@ class CertificateClient(BasicClient):
                                                    cert_signer_public_key)
 
         crt_address = self.make_address_from_data(certificate_raw)
+
         account_address = AccountHandler.make_address_from_data(self._signer.get_public_key().as_hex())
-        status = self._send_transaction(CertificateMethod.STORE, payload, [crt_address, account_address])
-        return json.loads(status), crt_address
+        return self._send_transaction(CertificateMethod.STORE, payload, [crt_address, account_address]), crt_address
 
     def revoke_certificate(self, crt_address):
         payload = self.get_revoke_payload(crt_address)
-        self._send_transaction(CertificateMethod.REVOKE, payload, [crt_address])
+        return self._send_transaction(CertificateMethod.REVOKE, payload, [crt_address])
 
     def get_signer_pubkey(self):
         return self._signer.get_public_key().as_hex()

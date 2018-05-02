@@ -172,10 +172,10 @@ class BasicClient:
 
         batch_list = self.make_batch_list(payload, addresses_input_output)
 
-        return self._send_request(
+        return json.loads(self._send_request(
             "batches", batch_list.SerializeToString(),
             'application/octet-stream',
-        )
+        ))
 
     def _sign_batch_list(self, signer, transactions):
         transaction_signatures = [t.header_signature for t in transactions]

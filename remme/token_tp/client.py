@@ -59,9 +59,7 @@ class TokenClient(BasicClient):
         extra_addresses_input_output = [address_to]
         transfer = self.get_transfer_payload(address_to, value)
 
-        status = self._send_transaction(TokenMethod.TRANSFER, transfer, extra_addresses_input_output)
-
-        return json.loads(status)
+        return self._send_transaction(TokenMethod.TRANSFER, transfer, extra_addresses_input_output)
 
     def get_account(self, address):
         account = Account()

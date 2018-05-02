@@ -16,28 +16,72 @@
 import json
 import datetime
 
+from remme.protos.atomic_swap_pb2 import AtomicSwapInitPayload, AtomicSwapExpirePayload, AtomicSwapClosePayload, \
+    AtomicSwapMethod
 from remme.protos.certificate_pb2 import NewCertificatePayload, CertificateMethod
 from remme.shared.basic_client import BasicClient
 from remme.certificate_tp.handler import CertificateHandler
 
 
-# TODO
+def get_swap_init_payload(self, receiver_address, sender_address_non_local, amount, swap_id,
+                          secret_lock_optional_bob, email_address_encrypted_optional_alice, timestamp):
+    payload = AtomicSwapInitPayload()
+    payload.receiver_address = receiver_address
+    payload.sender_address_non_local = sender_address_non_local
+    payload.amount = amount
+    payload.swap_id = swap_id
+    payload.secret_lock_optional_bob = secret_lock_optional_bob
+    payload.email_address_encrypted_optional_alice = email_address_encrypted_optional_alice
+    payload.timestamp = timestamp
+
+    return payload
+
+def get_swap_approve_payload(swap_id):
+    payload = AtomicSwapInitPayload()
+    payload.swap_id = swap_id
+
+    return payload
+
+
+def get_swap_expire_payload(swap_id):
+    payload = AtomicSwapExpirePayload()
+    payload.swap_id = swap_id
+
+    return payload
+
+
+def get_swap_set_secret_lock_payload(swap_id, secret_lock):
+    payload = AtomicSwapExpirePayload()
+    payload.swap_id = swap_id
+    payload.secret_lock = secret_lock
+
+    return payload
+
+
+def get_swap_close_payload(swap_id, secret_key):
+    payload = AtomicSwapClosePayload()
+    payload.swap_id = swap_id
+    payload.secret_key = secret_key
+
+    return payload
+
+
 class AtomicSwapClient(BasicClient):
     def __init__(self):
         super().__init__(CertificateHandler)
 
-    @classmethod
-    def get_payload(self, certificate_raw, signature_rem, signature_crt, cert_signer_public_key):
-        payload = NewCertificatePayload()
-        payload.certificate_raw = certificate_raw
-        payload.signature_rem = signature_rem
-        payload.signature_crt = signature_crt
-        if cert_signer_public_key:
-            payload.cert_signer_public_key = cert_signer_public_key
 
-        return payload
+    def swap_init(self, swap_init_payload):
+        return self._send_transaction(AtomicSwapMethod.INIT, swap_init_payload, [self.make_address(swap_init_payload.swap_id)])
 
-    def revoke_certificate(self, crt_address):
-        payload = self.get_revoke_payload(crt_address)
-        self._send_transaction(CertificateMethod.REVOKE, payload, [crt_address])
+    def swap_approve(self, swap_approve_payload):
+        return self._send_transaction(AtomicSwapMethod.APPROVE, swap_approve_payload, [self.make_address(swap_approve_payload.swap_id)])
 
+    def swap_expire(self, swap_approve_payload):
+        return self._send_transaction(AtomicSwapMethod.APPROVE, swap_approve_payload, [self.make_address(swap_approve_payload.swap_id)])
+
+    def swap_set_secret_lock(self, swap_approve_payload):
+        return self._send_transaction(AtomicSwapMethod.APPROVE, swap_approve_payload, [self.make_address(swap_approve_payload.swap_id)])
+
+    def swap_set_secret_lock(self, swap_approve_payload):
+        return self._send_transaction(AtomicSwapMethod.APPROVE, swap_approve_payload, [self.make_address(swap_approve_payload.swap_id)])
