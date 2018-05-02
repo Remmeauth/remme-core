@@ -16,6 +16,7 @@
 import json
 import datetime
 
+from remme.atomic_swap_tp.handler import AtomicSwapHandler
 from remme.protos.atomic_swap_pb2 import AtomicSwapInitPayload, AtomicSwapExpirePayload, AtomicSwapClosePayload, \
     AtomicSwapMethod
 from remme.protos.certificate_pb2 import NewCertificatePayload, CertificateMethod
@@ -68,8 +69,7 @@ def get_swap_close_payload(swap_id, secret_key):
 
 class AtomicSwapClient(BasicClient):
     def __init__(self):
-        super().__init__(CertificateHandler)
-
+        super().__init__(AtomicSwapHandler)
 
     def swap_init(self, swap_init_payload):
         return self._send_transaction(AtomicSwapMethod.INIT, swap_init_payload, [self.make_address(swap_init_payload.swap_id)])
@@ -77,11 +77,11 @@ class AtomicSwapClient(BasicClient):
     def swap_approve(self, swap_approve_payload):
         return self._send_transaction(AtomicSwapMethod.APPROVE, swap_approve_payload, [self.make_address(swap_approve_payload.swap_id)])
 
-    def swap_expire(self, swap_approve_payload):
-        return self._send_transaction(AtomicSwapMethod.APPROVE, swap_approve_payload, [self.make_address(swap_approve_payload.swap_id)])
+    def swap_expire(self, swap_expire_payload):
+        return self._send_transaction(AtomicSwapMethod.EXPIRE, swap_expire_payload, [self.make_address(swap_expire_payload.swap_id)])
 
-    def swap_set_secret_lock(self, swap_approve_payload):
-        return self._send_transaction(AtomicSwapMethod.APPROVE, swap_approve_payload, [self.make_address(swap_approve_payload.swap_id)])
+    def swap_set_secret_lock(self, swap_set_secret_lock_payload):
+        return self._send_transaction(AtomicSwapMethod.SET_SECRET_LOCK, swap_set_secret_lock_payload, [self.make_address(swap_set_secret_lock_payload.swap_id)])
 
-    def swap_set_secret_lock(self, swap_approve_payload):
-        return self._send_transaction(AtomicSwapMethod.APPROVE, swap_approve_payload, [self.make_address(swap_approve_payload.swap_id)])
+    def swap_close(self, swap_close_payload):
+        return self._send_transaction(AtomicSwapMethod.CLOSE, swap_close_payload, [self.make_address(swap_close_payload.swap_id)])
