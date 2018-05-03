@@ -151,9 +151,11 @@ class AtomicSwapHandler(BasicHandler):
         Only called by Alice to approve REMchain => other transaction for Bob to close it.
 
         """
-
         swap_info = self.get_swap_info_from_swap_id(context, swap_approve_payload.swap_id)
 
+        if not swap_info.is_initiator and swap_info.receiver_address != self.make_address_from_data(signer_pubkey):
+            raise InvalidTransaction('Only transaction initiator (Alice) may approve the swap, '
+                                     'once Bob provided a secret lock.')
         if not swap_info.secret_lock:
             raise InvalidTransaction('Secret Lock is needed for Bob to provide a secret key.')
 
@@ -196,7 +198,8 @@ class AtomicSwapHandler(BasicHandler):
 
     def _swap_set_lock(self, context, signer_pubkey, swap_set_lock_payload):
         """
-        Bob sets secret lock if Alice is initiator for REMchain => ETH transaction
+        Bob sets secret lock if Alice is initiator for REMchain => ETH transaction.
+        Bob deposits escrow funds to zero address.
 
         """
         swap_info = self.get_swap_info_from_swap_id(context, swap_set_lock_payload.swap_id)
