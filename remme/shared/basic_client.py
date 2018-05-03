@@ -154,6 +154,9 @@ class BasicClient:
 
         return self._sign_batch_list(signer, [transaction])
 
+    def get_user_address(self):
+        return self.make_address_from_data(self._signer.get_public_key().as_hex())
+
     def _send_transaction(self, method, data_pb, addresses_input_output):
         '''
            Signs and sends transaction to the network using rest-api.

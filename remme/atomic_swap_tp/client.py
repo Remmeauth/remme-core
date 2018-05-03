@@ -22,6 +22,7 @@ from remme.protos.atomic_swap_pb2 import AtomicSwapInitPayload, AtomicSwapExpire
 from remme.protos.certificate_pb2 import NewCertificatePayload, CertificateMethod
 from remme.shared.basic_client import BasicClient
 from remme.certificate_tp.handler import CertificateHandler
+from remme.token_tp.handler import TokenHandler
 
 
 def get_swap_init_payload(self, receiver_address, sender_address_non_local, amount, swap_id,
@@ -36,6 +37,7 @@ def get_swap_init_payload(self, receiver_address, sender_address_non_local, amou
     payload.timestamp = timestamp
 
     return payload
+
 
 def get_swap_approve_payload(swap_id):
     payload = AtomicSwapInitPayload()
@@ -66,22 +68,30 @@ def get_swap_close_payload(swap_id, secret_key):
 
     return payload
 
-
+# TODO add addresses for transfers
 class AtomicSwapClient(BasicClient):
     def __init__(self):
         super().__init__(AtomicSwapHandler)
 
     def swap_init(self, swap_init_payload):
-        return self._send_transaction(AtomicSwapMethod.INIT, swap_init_payload, [self.make_address(swap_init_payload.swap_id)])
+        return self._send_transaction(AtomicSwapMethod.INIT, swap_init_payload,
+                                      [self.make_address(swap_init_payload.swap_id),
+                                       self.get_user_address(),
+                                       TokenHandler().zero_address])
 
     def swap_approve(self, swap_approve_payload):
-        return self._send_transaction(AtomicSwapMethod.APPROVE, swap_approve_payload, [self.make_address(swap_approve_payload.swap_id)])
+        return self._send_transaction(AtomicSwapMethod.APPROVE, swap_approve_payload,
+                                      [self.make_address(swap_approve_payload.swap_id)])
 
     def swap_expire(self, swap_expire_payload):
-        return self._send_transaction(AtomicSwapMethod.EXPIRE, swap_expire_payload, [self.make_address(swap_expire_payload.swap_id)])
+        return self._send_transaction(AtomicSwapMethod.EXPIRE, swap_expire_payload,
+                                      [self.make_address(swap_expire_payload.swap_id)])
 
     def swap_set_secret_lock(self, swap_set_secret_lock_payload):
-        return self._send_transaction(AtomicSwapMethod.SET_SECRET_LOCK, swap_set_secret_lock_payload, [self.make_address(swap_set_secret_lock_payload.swap_id)])
+        return self._send_transaction(AtomicSwapMethod.SET_SECRET_LOCK, swap_set_secret_lock_payload,
+                                      [self.make_address(swap_set_secret_lock_payload.swap_id)])
 
-    def swap_close(self, swap_close_payload):
-        return self._send_transaction(AtomicSwapMethod.CLOSE, swap_close_payload, [self.make_address(swap_close_payload.swap_id)])
+    def swap_close(self, swap_close_payload, receiver_address):
+        return self._send_transaction(AtomicSwapMethod.CLOSE, swap_close_payload,
+                                      [self.make_address(swap_close_payload.swap_id),
+                                       receiver_address])

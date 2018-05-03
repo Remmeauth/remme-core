@@ -28,7 +28,7 @@ class TokenClient(BasicClient):
         super().__init__(TokenHandler)
 
     def _send_transaction(self, method, data_pb, extra_addresses_input_output):
-        addresses_input_output = [self.make_address_from_data(self._signer.get_public_key().as_hex())]
+        addresses_input_output = [self.get_user_address()]
         if extra_addresses_input_output:
             addresses_input_output += extra_addresses_input_output
         return super()._send_transaction(method, data_pb, addresses_input_output)
