@@ -702,3 +702,16 @@ definitions:
     type: string
     description: The hex-encoded identifier of the batch in which the transaction was submitted
     pattern: '^[0-9a-f]{128}$'
+  Address:
+    type: string
+    description: User account address
+    pattern: '^[0-9a-f]{128}$'
+  HashString:
+    type: string
+    description: User account address
+    pattern: '^[0-9a-f]{128}$'
+  SwapId:
+    type: string
+    description: User account address
+    pattern: '^[0-9a-f]{128}$'
+
