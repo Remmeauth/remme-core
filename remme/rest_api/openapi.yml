@@ -333,6 +333,77 @@ paths:
           description: Successfully deleted a key
         404:
           description: No key with the given name found
+  /atomic-swap/init:
+    post:
+      summary: Alice may initialize a swap transaction or Bob may follow one as a "non initiator"
+      parameters:
+        - $ref: '#/parameters/swap_init_payload'
+      responses:
+        200:
+          $ref: '#/responses/200BatchSubmitted'
+        500:
+          $ref: '#/responses/500GeneralError'
+
+  /atomic-swap/approve:
+    post:
+      summary: Alice may initialize a swap transaction or Bob may follow one as a "non initiator"
+      parameters:
+        - $ref: '#/parameters/swap_approve_payload'
+      responses:
+        200:
+          $ref: '#/responses/200BatchSubmitted'
+        500:
+          $ref: '#/responses/500GeneralError'
+
+  /atomic-swap/expire:
+    post:
+      summary: Alice may initialize a swap transaction or Bob may follow one as a "non initiator"
+      parameters:
+        - $ref: '#/parameters/swap_approve_payload'
+      responses:
+        200:
+          $ref: '#/responses/200BatchSubmitted'
+        500:
+          $ref: '#/responses/500GeneralError'
+  /atomic-swap/set-secret-lock:
+    post:
+      summary: Set secret lock
+      parameters:
+        - $ref: '#/parameters/swap_set_secret_lock_payload'
+      responses:
+        200:
+          $ref: '#/responses/200BatchSubmitted'
+        500:
+          $ref: '#/responses/500GeneralError'
+  /atomic-swap/close:
+    post:
+      summary: Close the swap by providing a secret key
+      parameters:
+        - $ref: '#/parameters/swap_close_payload'
+      responses:
+        200:
+          $ref: '#/responses/200BatchSubmitted'
+        500:
+          $ref: '#/responses/500GeneralError'
+  /atomic-swap/{swap_id}:
+    get:
+      summary: get information about swap
+      parameters:
+        - name: batch_id
+          description: The id of the batch to check
+          in: path
+          type: string
+          pattern: '^[0-9a-f]{128}$'
+          required: true
+      responses:
+        responses:
+        200:
+          $ref: '#/responses/SwapInfo'
+        404:
+          description: No batch with the given id found
+        500:
+          $ref: '#/responses/500GeneralError'
+
 
 responses:
   200BatchSubmitted:
@@ -352,6 +423,41 @@ responses:
         error:
           type: string
           description: Error description
+
+  SwapInfo:
+    description: Swap info fields
+    schema:
+      properties:
+        is_closed:
+          description: is swap close
+          type: boolean
+        is_approved:
+          description: Receiver address
+          type: boolean
+        sender_address:
+          $ref: '#/definitions/Address'
+        receiver_address:
+          $ref: '#/definitions/Address'
+        sender_address_non_local:
+          $ref: '#/definitions/Address'
+        amount:
+          description: Amount to be transferred
+          type: integer
+        swap_id:
+          $ref: '#/definitions/SwapId'
+        email_address_encrypted_optional:
+          description: Optional encrypted Email address, passed by swap initiator - Alice
+          type: string
+        secret_lock:
+          $ref: '#/definitions/HashString'
+        secret_key:
+          $ref: '#/definitions/HashString'
+        created_at:
+          description: Optional for bob, if he is non initiator - to provide a secret lock
+          type: integer
+        is_initiator:
+          description: Is Alice initiator of a transaction on the REMchain side
+          type: boolean
 
 parameters:
   certificate_payload:

@@ -21,50 +21,49 @@ from remme.protos.atomic_swap_pb2 import AtomicSwapInitPayload, AtomicSwapExpire
     AtomicSwapMethod
 from remme.protos.certificate_pb2 import NewCertificatePayload, CertificateMethod
 from remme.shared.basic_client import BasicClient
-from remme.certificate_tp.handler import CertificateHandler
+from remme.certificate.handler import CertificateHandler
 from remme.token_tp.handler import TokenHandler
 
 
-def get_swap_init_payload(self, receiver_address, sender_address_non_local, amount, swap_id,
-                          secret_lock_optional_bob, email_address_encrypted_optional_alice, timestamp):
+def get_swap_init_payload(args):
     payload = AtomicSwapInitPayload()
-    payload.receiver_address = receiver_address
-    payload.sender_address_non_local = sender_address_non_local
-    payload.amount = amount
-    payload.swap_id = swap_id
-    payload.secret_lock_optional_bob = secret_lock_optional_bob
-    payload.email_address_encrypted_optional_alice = email_address_encrypted_optional_alice
-    payload.timestamp = timestamp
+    payload.receiver_address = args.receiver_address
+    payload.sender_address_non_local = args.sender_address_non_local
+    payload.amount = args.amount
+    payload.swap_id = args.swap_id
+    payload.secret_lock_optional_bob = args.secret_lock_optional_bob
+    payload.email_address_encrypted_optional_alice = args.email_address_encrypted_optional_alice
+    payload.timestamp = args.timestamp
 
     return payload
 
 
-def get_swap_approve_payload(swap_id):
+def get_swap_approve_payload(args):
     payload = AtomicSwapInitPayload()
-    payload.swap_id = swap_id
+    payload.swap_id = args.swap_id
 
     return payload
 
 
-def get_swap_expire_payload(swap_id):
+def get_swap_expire_payload(args):
     payload = AtomicSwapExpirePayload()
-    payload.swap_id = swap_id
+    payload.swap_id = args.swap_id
 
     return payload
 
 
-def get_swap_set_secret_lock_payload(swap_id, secret_lock):
+def get_swap_set_secret_lock_payload(args):
     payload = AtomicSwapExpirePayload()
-    payload.swap_id = swap_id
-    payload.secret_lock = secret_lock
+    payload.swap_id = args.swap_id
+    payload.secret_lock = args.secret_lock
 
     return payload
 
 
-def get_swap_close_payload(swap_id, secret_key):
+def get_swap_close_payload(args):
     payload = AtomicSwapClosePayload()
-    payload.swap_id = swap_id
-    payload.secret_key = secret_key
+    payload.swap_id = args.swap_id
+    payload.secret_key = args.secret_key
 
     return payload
 

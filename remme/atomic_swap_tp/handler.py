@@ -148,6 +148,7 @@ class AtomicSwapHandler(BasicHandler):
 
     def _swap_approve(self, context, signer_pubkey, swap_approve_payload):
         """
+
         Only called by Alice to approve REMchain => other transaction for Bob to close it.
 
         """
