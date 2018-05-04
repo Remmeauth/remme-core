@@ -460,6 +460,77 @@ responses:
           type: boolean
 
 parameters:
+    swap_init_payload:
+    name: payload
+    description: Swap init payload
+    in: body
+    required: true
+    schema:
+      properties:
+        receiver_address:
+          $ref: '#/definitions/Address'
+        sender_address_non_local:
+          $ref: '#/definitions/Address'
+        amount:
+          description: Amount to be transferred
+          type: integer
+        swap_id:
+          $ref: '#/definitions/SwapId'
+        email_address_encrypted_optional_alice:
+          description: Optional encrypted Email address, passed by swap initiator - Alice
+          type: string
+        secret_lock:
+          $ref: '#/definitions/HashString'
+        secret_key:
+          $ref: '#/definitions/HashString'
+        created_at:
+          description: Optional for bob, if he is non initiator - to provide a secret lock
+          type: integer
+        is_initiator:
+          description: Is Alice initiator of a transaction on the REMchain side
+          type: boolean
+  swap_approve_payload:
+    name: payload
+    description: Alice action to approve swap by Bob
+    in: body
+    required: true
+    schema:
+      properties:
+        swap_id:
+          $ref: '#/definitions/SwapId'
+  swap_expire_payload:
+    name: payload
+    description: Expire transaction
+    in: body
+    required: true
+    schema:
+      properties:
+        swap_id:
+          $ref: '#/definitions/SwapId'
+  swap_set_secret_lock_payload:
+    name: payload
+    description: Bob's action to set a secret lock
+    in: body
+    required: true
+    schema:
+      properties:
+        swap_id:
+          $ref: '#/definitions/SwapId'
+        secret_lock:
+          description: Secret lock
+          type: string
+  swap_close_payload:
+    name: payload
+    description: Close the swap by providing a secret key
+    in: body
+    required: true
+    schema:
+      properties:
+        swap_id:
+          $ref: '#/definitions/SwapId'
+        secret_lock:
+          $ref: '#/definitions/SecretLock'
+
   certificate_payload:
     name: payload
     description: PEM encoded certificate file
