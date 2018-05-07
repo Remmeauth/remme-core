@@ -1,10 +1,10 @@
-from remme.certificate.certificate_handler import CERT_STORE_PRICE, CERT_ORGANIZATION, CERT_MAX_VALIDITY
+from remme.certificate_tp.handler import CERT_STORE_PRICE, CERT_ORGANIZATION, CERT_MAX_VALIDITY
 
 from remme.account.client import AccountClient
 from remme.account.handler import AccountHandler
 from remme.shared.exceptions import KeyNotFound
 
-from remme.certificate.certificate_client import CertificateClient
+from remme.certificate_tp.client import CertificateClient
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 from cryptography import x509

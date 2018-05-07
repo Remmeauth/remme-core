@@ -335,6 +335,7 @@ paths:
           description: No key with the given name found
   /atomic-swap/init:
     post:
+      operationId: remme.atomic_swap_tp.rest_api.init
       summary: Alice may initialize a swap transaction or Bob may follow one as a "non initiator"
       parameters:
         - $ref: '#/parameters/swap_init_payload'
@@ -346,6 +347,7 @@ paths:
 
   /atomic-swap/approve:
     post:
+      operationId: remme.atomic_swap_tp.rest_api.approve
       summary: Alice may initialize a swap transaction or Bob may follow one as a "non initiator"
       parameters:
         - $ref: '#/parameters/swap_approve_payload'
@@ -357,6 +359,7 @@ paths:
 
   /atomic-swap/expire:
     post:
+      operationId: remme.atomic_swap_tp.rest_api.expire
       summary: Alice may initialize a swap transaction or Bob may follow one as a "non initiator"
       parameters:
         - $ref: '#/parameters/swap_approve_payload'
@@ -367,6 +370,7 @@ paths:
           $ref: '#/responses/500GeneralError'
   /atomic-swap/set-secret-lock:
     post:
+      operationId: remme.atomic_swap_tp.rest_api.set_secret_lock
       summary: Set secret lock
       parameters:
         - $ref: '#/parameters/swap_set_secret_lock_payload'
@@ -377,6 +381,7 @@ paths:
           $ref: '#/responses/500GeneralError'
   /atomic-swap/close:
     post:
+      operationId: remme.atomic_swap_tp.rest_api.close
       summary: Close the swap by providing a secret key
       parameters:
         - $ref: '#/parameters/swap_close_payload'
@@ -387,16 +392,16 @@ paths:
           $ref: '#/responses/500GeneralError'
   /atomic-swap/{swap_id}:
     get:
+      operationId: remme.atomic_swap_tp.rest_api.get_swap_info
       summary: get information about swap
       parameters:
-        - name: batch_id
+        - name: swap_id
           description: The id of the batch to check
           in: path
           type: string
           pattern: '^[0-9a-f]{128}$'
           required: true
       responses:
-        responses:
         200:
           $ref: '#/responses/SwapInfo'
         404:
@@ -423,7 +428,6 @@ responses:
         error:
           type: string
           description: Error description
-
   SwapInfo:
     description: Swap info fields
     schema:
@@ -459,8 +463,10 @@ responses:
           description: Is Alice initiator of a transaction on the REMchain side
           type: boolean
 
+
+
 parameters:
-    swap_init_payload:
+  swap_init_payload:
     name: payload
     description: Swap init payload
     in: body
@@ -529,7 +535,7 @@ parameters:
         swap_id:
           $ref: '#/definitions/SwapId'
         secret_lock:
-          $ref: '#/definitions/SecretLock'
+          $ref: '#/definitions/HashString'
 
   certificate_payload:
     name: payload

@@ -18,7 +18,7 @@ import datetime
 
 from remme.atomic_swap_tp.handler import AtomicSwapHandler
 from remme.protos.atomic_swap_pb2 import AtomicSwapInitPayload, AtomicSwapExpirePayload, AtomicSwapClosePayload, \
-    AtomicSwapMethod
+    AtomicSwapMethod, AtomicSwapInfo
 from remme.protos.certificate_pb2 import NewCertificatePayload, CertificateMethod
 from remme.shared.basic_client import BasicClient
 from remme.certificate.handler import CertificateHandler
@@ -94,3 +94,11 @@ class AtomicSwapClient(BasicClient):
         return self._send_transaction(AtomicSwapMethod.CLOSE, swap_close_payload,
                                       [self.make_address(swap_close_payload.swap_id),
                                        receiver_address])
+
+    def swap_get(self, swap_id):
+        atomic_swap_info = AtomicSwapInfo()
+        atomic_swap_info.ParseFromString(self.get_value(self.make_address(swap_id)))
+        return atomic_swap_info
+        # return self._send_transaction(AtomicSwapMethod.CLOSE, swap_close_payload,
+        #                               [self.make_address(swap_close_payload.swap_id),
+        #                                receiver_address])

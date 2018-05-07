@@ -66,8 +66,8 @@ class BasicClient:
                 'Failed to read private key: {}'.format(str(err)))
         return private_key_str
 
-    def make_address(self, prefix):
-        return self._family_handler.make_address(prefix)
+    def make_address(self, suffix):
+        return self._family_handler.make_address(suffix)
 
     def make_address_from_data(self, data):
         return self._family_handler.make_address_from_data(data)
