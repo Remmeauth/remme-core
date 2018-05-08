@@ -16,11 +16,5 @@ setup(
         'cryptography',
         'connexion'
     ],
-    entry_points={
-        'console_scripts': [
-            'rem-token=remme.token.token_cli:main',
-            'rem-crt=remme.certificate.certificate_cli:main'
-        ]
-    },
     package_data={'remme.rest_api': ['openapi.yml']}
 )
