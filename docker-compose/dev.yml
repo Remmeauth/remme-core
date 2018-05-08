@@ -23,6 +23,7 @@ services:
       - poet-validator-registry
     volumes:
       - validator_keys:/etc/sawtooth/keys
+      - chain_data:/var/lib/sawtooth/
     expose:
       - 4004
     ports:
@@ -46,6 +47,7 @@ services:
           --bind component:tcp://eth0:4004 \
           --bind network:tcp://eth0:8800 \
           --scheduler parallel \
+          --minimum-peer-connectivity $$REMME_MINIMUM_PEERS_CONNECTIVITY \
           $$ADDITIONAL_ARGS
       "
 
@@ -95,3 +97,4 @@ services:
 volumes:
   user_keys:
   validator_keys:
+  chain_data:

@@ -14,6 +14,7 @@
 # ------------------------------------------------------------------------
 
 import argparse
+from pathlib import Path
 from sawtooth_sdk.processor.core import TransactionProcessor
 from remme.certificate.certificate_handler import CertificateHandler
 from remme.token.token_handler import TokenHandler
@@ -26,7 +27,9 @@ if __name__ == '__main__':
     parser.add_argument('endpoint')
     parser.add_argument('-v', '--verbosity', type=int, default=2)
     args = parser.parse_args()
-    setup_logging('REMME', args.verbosity)
+    Path('/var/log/sawtooth').mkdir(parents=True, exist_ok=True)
+    Path('/var/log/sawtooth/remme-debug.log').touch(exist_ok=True)
+    setup_logging('remme', args.verbosity)
     processor = TransactionProcessor(url=args.endpoint)
     for handler in TP_HANDLERS:
         processor.add_handler(handler)
