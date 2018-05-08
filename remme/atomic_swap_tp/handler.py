@@ -29,7 +29,8 @@ from sawtooth_signing.secp256k1 import Secp256k1PublicKey, Secp256k1Context
 from remme.protos.atomic_swap_pb2 import AtomicSwapMethod, AtomicSwapInitPayload, AtomicSwapInfo, \
     AtomicSwapApprovePayload, AtomicSwapExpirePayload, AtomicSwapSetSecretLockPayload, AtomicSwapClosePayload
 from remme.protos.token_pb2 import TransferPayload
-from remme.settings import SETTINGS_KEY_PUB_ENCRYPTION_KEY, SETTINGS_KEY_ALLOWED_GENESIS_MEMBERS
+from remme.settings import SETTINGS_KEY_PUB_ENCRYPTION_KEY, SETTINGS_KEY_ALLOWED_GENESIS_MEMBERS, \
+                            SETTINGS_SWAP_COMMISSION
 from remme.settings_tp.handler import _make_settings_key, _get_setting_value
 from remme.shared.basic_handler import BasicHandler, get_data
 from remme.shared.utils import hash256
@@ -140,7 +141,10 @@ class AtomicSwapHandler(BasicHandler):
         # 3. Transfer funds to zero address.
         transfer_payload = TransferPayload()
         transfer_payload.address_to = self.zero_address
-        transfer_payload.amount = swap_info.amount
+        commission = int(_get_setting_value(context, SETTINGS_SWAP_COMMISSION))
+        if commission < 0:
+            raise InvalidTransaction('Wrong commission address.')
+        transfer_payload.amount = swap_info.amount + commission
         token_updated_state = TokenHandler()._transfer_from_address(context,
                                                                     swap_info.sender_address,
                                                                     transfer_payload)
