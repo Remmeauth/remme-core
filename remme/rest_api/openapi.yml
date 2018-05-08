@@ -485,7 +485,7 @@ parameters:
         email_address_encrypted_optional_alice:
           description: Optional encrypted Email address, passed by swap initiator - Alice
           type: string
-        secret_lock:
+        secret_lock_optional_bob:
           $ref: '#/definitions/HashString'
         secret_key:
           $ref: '#/definitions/HashString'
