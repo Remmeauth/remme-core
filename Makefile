@@ -21,29 +21,29 @@ include .env
 
 .PHONY: release
 
-run_dev_no_genesis:
+run_dev_no_genesis: build_docker
 	docker-compose -f docker-compose/dev.yml -f docker-compose/run.yml up
 
-run_dev:
+run_dev: build_docker
 	docker-compose -f docker-compose/dev.yml -f docker-compose/genesis.yml -f docker-compose/run.yml up
 
 poet_enroll_validators_list:
 	docker exec -it $(shell docker-compose -f docker-compose/dev.yml ps -q validator) bash -c "poet registration \
 	create -k /etc/sawtooth/keys/validator.priv -o enroll_poet.batch && sawtooth batch submit -f enroll_poet.batch --url http://rest-api:8080"
 
-test:
+test: build_docker
 	docker-compose -f docker-compose/test.yml -f docker-compose/run-test.yml up --abort-on-container-exit
 
 build_protobuf:
 	protoc -I=$(PROTO_SRC_DIR) --python_out=$(PROTO_DST_DIR) $(PROTO_SRC_DIR)/*.proto
 
-build_docker:
+build_docker: build_protobuf
 	docker-compose -f docker-compose/dev.yml build
 
-rebuild_docker:
+rebuild_docker: build_protobuf
 	docker-compose -f docker-compose/dev.yml build --no-cache
 
-release:
+release: build_docker
 	mkdir $(RELEASE_NUMBER)-release
 	mkdir $(RELEASE_NUMBER)-release/docker-compose
 	cp {run,genesis}.sh ./$(RELEASE_NUMBER)-release
