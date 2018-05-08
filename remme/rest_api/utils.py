@@ -10,5 +10,5 @@ def get_random_key():
 
 
 def post_hash256(data):
-    return {'hash': hash256(data)}
+    return {'hash': hash256(int(data, 16))}
 

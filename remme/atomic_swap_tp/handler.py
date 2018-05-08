@@ -202,6 +202,7 @@ class AtomicSwapHandler(BasicHandler):
         """
         Bob sets secret lock if Alice is initiator for REMchain => ETH transaction.
         Bob deposits escrow funds to zero address.
+        Only works for Bob, Alice the only one to approve
 
         """
         swap_info = self.get_swap_info_from_swap_id(context, swap_set_lock_payload.swap_id)
