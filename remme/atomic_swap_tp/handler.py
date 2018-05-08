@@ -32,6 +32,7 @@ from remme.protos.token_pb2 import TransferPayload
 from remme.settings import SETTINGS_KEY_PUB_ENCRYPTION_KEY, SETTINGS_KEY_ALLOWED_GENESIS_MEMBERS
 from remme.settings_tp.handler import _make_settings_key, _get_setting_value
 from remme.shared.basic_handler import BasicHandler, get_data
+from remme.shared.utils import hash256
 from remme.token_tp.handler import TokenHandler
 from remme.protos.certificate_pb2 import CertificateStorage, \
     NewCertificatePayload, RevokeCertificatePayload, CertificateMethod
@@ -224,7 +225,7 @@ class AtomicSwapHandler(BasicHandler):
         if not swap_info.secret_lock:
             raise InvalidTransaction('Secret lock is required to close the swap!')
 
-        if hashlib.sha512(swap_close_payload.secret_key).hexdigest() != swap_info.secret_lock:
+        if hash256(swap_close_payload.secret_key).hexdigest() != swap_info.secret_lock:
             raise InvalidTransaction('Secret key doesn\'t match specified secret lock!')
 
         if not swap_info.is_approved:

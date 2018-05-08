@@ -35,11 +35,7 @@ from remme.settings import REST_API_URL, PRIV_KEY_FILE
 from remme.shared.exceptions import ClientException
 from remme.shared.exceptions import KeyNotFound
 from remme.shared.basic_handler import is_address
-
-
-def _sha512(data):
-    return hashlib.sha512(data).hexdigest()
-
+from remme.shared.utils import hash512
 
 class BasicClient:
     def __init__(self, family_handler):
@@ -139,7 +135,7 @@ class BasicClient:
             inputs=addresses_input_output,
             outputs=addresses_input_output,
             dependencies=[],
-            payload_sha512=_sha512(payload),
+            payload_sha512=hash512(payload),
             batcher_public_key=signer.get_public_key().as_hex(),
             nonce=time.time().hex().encode()
         ).SerializeToString()

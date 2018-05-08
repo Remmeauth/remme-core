@@ -25,7 +25,7 @@ LOGGER = logging.getLogger(__name__)
 
 ZERO_ADDRESS = '0' * 64
 
-FAMILY_NAME = 'token_tp'
+FAMILY_NAME = 'token'
 FAMILY_VERSIONS = ['0.1']
 
 
@@ -55,7 +55,7 @@ class TokenHandler(BasicHandler):
         return address, account
 
     def _genesis(self, context, pub_key, genesis_payload):
-        signer_key, account = self.get_account_by_pub_key(context, self.make_address_from_data(pub_key))
+        signer_key, account = self.get_account_by_address(context, self.make_address_from_data(pub_key))
         genesis_status = get_data(context, GenesisStatus, self.zero_address)
         if not genesis_status:
             genesis_status = GenesisStatus()
@@ -78,7 +78,7 @@ class TokenHandler(BasicHandler):
         self._transfer_from_address(context, address, transfer_payload)
 
     def _transfer_from_address(self, context, address, transfer_payload):
-        signer_key, signer_account = self.get_account_by_pub_key(context, address)
+        signer_key, signer_account = self.get_account_by_address(context, address)
         if self.zero_address in [transfer_payload.address_to, signer_key]:
             raise InvalidTransaction("Zero address cannot involve in any operation.")
         if signer_key == transfer_payload.address_to:

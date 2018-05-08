@@ -360,7 +360,7 @@ paths:
   /atomic-swap/expire:
     post:
       operationId: remme.atomic_swap_tp.rest_api.expire
-      summary: Alice may initialize a swap transaction or Bob may follow one as a "non initiator"
+      summary: Alice or Bob expire the swap and receive the refund
       parameters:
         - $ref: '#/parameters/swap_approve_payload'
       responses:
@@ -371,7 +371,7 @@ paths:
   /atomic-swap/set-secret-lock:
     post:
       operationId: remme.atomic_swap_tp.rest_api.set_secret_lock
-      summary: Set secret lock
+      summary: Bob may set the secret lock
       parameters:
         - $ref: '#/parameters/swap_set_secret_lock_payload'
       responses:
@@ -393,7 +393,7 @@ paths:
   /atomic-swap/{swap_id}:
     get:
       operationId: remme.atomic_swap_tp.rest_api.get_swap_info
-      summary: get information about swap
+      summary: Get information about swap
       parameters:
         - name: swap_id
           description: The id of the batch to check
@@ -409,6 +409,36 @@ paths:
         500:
           $ref: '#/responses/500GeneralError'
 
+  /utils/generate-random-key256:
+    get:
+      operationId: remme.rest_api.utils.get_random_key
+      summary: Generate a random key
+      responses:
+        200:
+          description: Successfully generated a new key
+          schema:
+            properties:
+              random_key:
+                $ref: '#/definitions/HashString'
+  /utils/hash256:
+    post:
+      operationId: remme.rest_api.utils.post_hash256
+      summary: Kecak256 hashing algorithm (sha3_256 in Python)
+      consumes:
+      - multipart/form-data
+      parameters:
+        - in: formData
+          name: data
+          type: string
+          required: true
+          description: Data to be hashed
+      responses:
+        200:
+          description: Hashed data
+          schema:
+            properties:
+              hashed:
+                $ref: '#/definitions/HashString'
 
 responses:
   200BatchSubmitted:
@@ -486,8 +516,6 @@ parameters:
           description: Optional encrypted Email address, passed by swap initiator - Alice
           type: string
         secret_lock_optional_bob:
-          $ref: '#/definitions/HashString'
-        secret_key:
           $ref: '#/definitions/HashString'
         created_at:
           description: Optional for bob, if he is non initiator - to provide a secret lock
@@ -714,7 +742,7 @@ definitions:
     pattern: '^[0-9a-f]{128}$'
   HashString:
     type: string
-    description: User account address
+    description: Hash string
     pattern: '^[0-9a-f]{128}$'
   SwapId:
     type: string
