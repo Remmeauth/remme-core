@@ -15,9 +15,16 @@
 import logging
 import inspect
 
+import datetime
+
+from remme.atomic_swap_tp.client import AtomicSwapClient, get_swap_init_payload
 from remme.atomic_swap_tp.handler import AtomicSwapHandler
+from remme.protos.atomic_swap_pb2 import AtomicSwapMethod, AtomicSwapInfo
 from remme.protos.token_pb2 import TokenMethod, GenesisStatus, Account
+from remme.settings import SETTINGS_SWAP_COMMISSION
+from remme.settings_tp.handler import _make_settings_key
 from remme.shared.logging import test
+from remme.shared.utils import generate_random_key, hash256
 from remme.tests.test_helper import HelperTestCase
 from remme.token_tp.client import TokenClient
 from remme.token_tp.handler import ZERO_ADDRESS, TokenHandler
@@ -30,122 +37,56 @@ class AtomicSwapTestCase(HelperTestCase):
         super().setUpClass(AtomicSwapHandler)
 
     @test
-    def test_swap_success(self):
-        TOTAL = 10000
+    def test_swap_to_local_success(self):
+        # 1. Bob init
+        # 2. Bob close
+
+        AMOUNT = 10000
+        COMMISSION = 100
         zero_address = self.handler.make_address(ZERO_ADDRESS)
+        swap_id = generate_random_key()
+        secret_key = generate_random_key()
+        secret_lock = hash256(secret_key)
+        now = datetime.datetime.now()
+        init_data = {
+            "receiver_address": self.account_address2,
+            "sender_address_non_local": "any address",
+            "amount": AMOUNT,
+            "swap_id": swap_id,
+            "secret_lock_optional_bob": secret_lock,
+            "email_address_encrypted_optional_alice": None,
+            "timestamp": now.timestamp(),
+        }
 
-        self.send_transaction(TokenMethod.GENESIS, TokenClient.get_genesis_payload(TOTAL_SUPPLY),
-                              [zero_address, self.account_address1])
+        self.send_transaction(AtomicSwapMethod.INIT, get_swap_init_payload(init_data),
+                              [swap_id, self.account_address1])
 
-        self.expect_get({self.account_address1: None})
-        self.expect_get({zero_address: None})
+        TOTAL_TRANSFERED = AMOUNT+COMMISSION
 
-        genesis_status = GenesisStatus()
-        genesis_status.status = True
-        account = Account()
-        account.balance = TOTAL_SUPPLY
+        self.expect_get({swap_id: None})
+        self.expect_get({_make_settings_key(SETTINGS_SWAP_COMMISSION): COMMISSION})
+        self.expect_get({self.account_address1: TokenClient.get_account_model(TOTAL_TRANSFERED)})
+
+        self.transfer(self.account_address1, TOTAL_TRANSFERED, zero_address, 0, TOTAL_TRANSFERED)
+
+        swap_info = AtomicSwapInfo()
+        swap_info.swap_id = swap_id
+        swap_info.is_closed = False
+        swap_info.is_approved = True
+        swap_info.amount = AMOUNT
+        swap_info.created_at = now
+        swap_info.email_address_encrypted_optional_alice = None
+        swap_info.sender_address = self.account_address1
+        swap_info.sender_addressNonLocal = 'some'
+        swap_info.receiver_address = self.account_address2
 
         self.expect_set({
-            self.account_address1: account,
-            zero_address: genesis_status
+            swap_id: swap_info,
+            zero_address: TokenClient.get_account_model(TOTAL_TRANSFERED),
+            self.account_address1: TokenClient.get_account_model(0)
         })
+
+        # TODO
 
         self.expect_ok()
 
-    @test
-    def test_genesis_fail(self):
-        TOTAL_SUPPLY = 10000
-        zero_address = self.handler.make_address(ZERO_ADDRESS)
-
-        self.send_transaction(TokenMethod.GENESIS, TokenClient.get_genesis_payload(TOTAL_SUPPLY),
-                              [zero_address, self.account_address1])
-
-        genesis_status = GenesisStatus()
-        genesis_status.status = True
-
-        self.expect_get({self.account_address1: None})
-        self.expect_get({zero_address: genesis_status})
-
-        self.expect_invalid_transaction()
-
-    @test
-    def test_transfer_success(self):
-        ACCOUNT_AMOUNT1 = 1000
-        ACCOUNT_AMOUNT2 = 500
-        TRANSFER_VALUE = ACCOUNT_AMOUNT1
-        self.send_transaction(TokenMethod.TRANSFER,
-                              TokenClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
-                              [self.account_address1, self.account_address2])
-        self.expect_get({self.account_address1: TokenClient.get_account_model(ACCOUNT_AMOUNT1)})
-        self.expect_get({self.account_address2: TokenClient.get_account_model(ACCOUNT_AMOUNT2)})
-
-        self.expect_set({
-            self.account_address1: TokenClient.get_account_model(ACCOUNT_AMOUNT1-TRANSFER_VALUE),
-            self.account_address2: TokenClient.get_account_model(ACCOUNT_AMOUNT2+TRANSFER_VALUE)
-        })
-
-        self.expect_ok()
-
-    @test
-    def test_transfer_fail_no_balance(self):
-        ACCOUNT_AMOUNT1 = 200
-        ACCOUNT_AMOUNT2 = 500
-        TRANSFER_VALUE = ACCOUNT_AMOUNT1 + 1
-        self.send_transaction(TokenMethod.TRANSFER,
-                              TokenClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
-                              [self.account_address1, self.account_address2])
-        self.expect_get({self.account_address1: TokenClient.get_account_model(ACCOUNT_AMOUNT1)})
-        self.expect_get({self.account_address2: TokenClient.get_account_model(ACCOUNT_AMOUNT2)})
-
-        self.expect_invalid_transaction()
-
-    @test
-    def test_transfer_fail_no_state_address1(self):
-        ACCOUNT_AMOUNT2 = 500
-        TRANSFER_VALUE = 200
-        self.send_transaction(TokenMethod.TRANSFER,
-                              TokenClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
-                              [self.account_address1, self.account_address2])
-        self.expect_get({self.account_address1: None})
-        self.expect_get({self.account_address2: TokenClient.get_account_model(ACCOUNT_AMOUNT2)})
-
-        self.expect_invalid_transaction()
-
-    @test
-    def test_transfer_fail_no_state_address2(self):
-        ACCOUNT_AMOUNT1 = 500
-        TRANSFER_VALUE = 200
-        self.send_transaction(TokenMethod.TRANSFER,
-                              TokenClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
-                              [self.account_address1, self.account_address2])
-        self.expect_get({self.account_address1: TokenClient.get_account_model(ACCOUNT_AMOUNT1)})
-        self.expect_get({self.account_address2: None})
-
-        self.expect_set({
-            self.account_address1: TokenClient.get_account_model(ACCOUNT_AMOUNT1 - TRANSFER_VALUE),
-            self.account_address2: TokenClient.get_account_model(0 + TRANSFER_VALUE)
-        })
-
-        self.expect_ok()
-
-    @test
-    def test_transfer_fail_to_oneself(self):
-        ACCOUNT_AMOUNT1 = 500
-        TRANSFER_VALUE = 200
-        self.send_transaction(TokenMethod.TRANSFER,
-                              TokenClient.get_transfer_payload(self.account_address1, TRANSFER_VALUE),
-                              [self.account_address1, self.account_address2])
-        self.expect_get({self.account_address1: TokenClient.get_account_model(ACCOUNT_AMOUNT1)})
-
-        self.expect_invalid_transaction()
-
-    @test
-    def test_transfer_fail_to_zeroaddress(self):
-        ACCOUNT_AMOUNT1 = 500
-        TRANSFER_VALUE = 200
-        self.send_transaction(TokenMethod.TRANSFER,
-                              TokenClient.get_transfer_payload(self.handler.make_address(ZERO_ADDRESS), TRANSFER_VALUE),
-                              [self.account_address1, self.account_address2])
-        self.expect_get({self.account_address1: TokenClient.get_account_model(ACCOUNT_AMOUNT1)})
-
-        self.expect_invalid_transaction()

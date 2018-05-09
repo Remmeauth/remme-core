@@ -16,8 +16,10 @@ import logging
 from sawtooth_signing import create_context
 from sawtooth_signing import CryptoFactory
 
+from remme.protos.token_pb2 import TokenMethod
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.tests.tp_test_case import TransactionProcessorTestCase
+from remme.token_tp.client import TokenClient
 
 LOGGER = logging.getLogger(__name__)
 
@@ -81,3 +83,16 @@ class HelperTestCase(TransactionProcessorTestCase):
 
     def expect_internal_error(self):
         self._expect_tp_response("INTERNAL_ERROR")
+
+    # a short term solution
+    def transfer(self, address1, amount1, address2, amount2, value):
+        self.send_transaction(TokenMethod.TRANSFER,
+                              TokenClient.get_transfer_payload(self.account_address2, value),
+                              [self.account_address1, self.account_address2])
+        self.expect_get({self.account_address1: TokenClient.get_account_model(amount1)})
+        self.expect_get({self.account_address2: TokenClient.get_account_model(amount2)})
+
+        self.expect_set({
+            address1: TokenClient.get_account_model(amount1 - value),
+            address2: TokenClient.get_account_model(amount2 + value)
+        })

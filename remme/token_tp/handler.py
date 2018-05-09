@@ -31,6 +31,12 @@ FAMILY_NAME = 'token'
 FAMILY_VERSIONS = ['0.1']
 
 
+def get_account_by_address(context, address):
+    account = get_data(context, Account, address)
+    if account is None:
+        return address, Account()
+    return address, account
+
 # TODO: ensure receiver_account.balance += transfer_payload.amount is within uint64
 @singleton
 class TokenHandler(BasicHandler):
@@ -50,14 +56,8 @@ class TokenHandler(BasicHandler):
             }
         }
 
-    def get_account_by_address(self, context, address):
-        account = get_data(context, Account, address)
-        if account is None:
-            return address, Account()
-        return address, account
-
     def _genesis(self, context, pub_key, genesis_payload):
-        signer_key, account = self.get_account_by_address(context, self.make_address_from_data(pub_key))
+        signer_key, account = get_account_by_address(context, self.make_address_from_data(pub_key))
         genesis_status = get_data(context, GenesisStatus, self.zero_address)
         if not genesis_status:
             genesis_status = GenesisStatus()
@@ -80,7 +80,7 @@ class TokenHandler(BasicHandler):
         self._transfer_from_address(context, address, transfer_payload)
 
     def _transfer_from_address(self, context, address, transfer_payload):
-        signer_key, signer_account = self.get_account_by_address(context, address)
+        signer_key, signer_account = get_account_by_address(context, address)
         if self.zero_address in [transfer_payload.address_to, signer_key]:
             raise InvalidTransaction("Zero address cannot involve in any operation.")
         if signer_key == transfer_payload.address_to:

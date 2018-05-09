@@ -34,7 +34,7 @@ from remme.settings import SETTINGS_KEY_PUB_ENCRYPTION_KEY, SETTINGS_KEY_GENESIS
 from remme.settings_tp.handler import _make_settings_key, _get_setting_value
 from remme.shared.basic_handler import BasicHandler, get_data
 from remme.shared.utils import hash256
-from remme.token_tp.handler import TokenHandler
+from remme.token_tp.handler import TokenHandler, get_account_by_address
 from remme.protos.certificate_pb2 import CertificateStorage, \
     NewCertificatePayload, RevokeCertificatePayload, CertificateMethod
 from remme.shared.singleton import singleton
@@ -128,6 +128,7 @@ class AtomicSwapHandler(BasicHandler):
 
         # 2. Check weather the sender is Alice:
         swap_info.is_initiator = not swap_init_payload.secret_lock_optional_bob
+        # if Bob
         swap_info.is_approved = not swap_info.is_initiator
         # END
 
@@ -137,7 +138,13 @@ class AtomicSwapHandler(BasicHandler):
         commission = int(_get_setting_value(context, SETTINGS_SWAP_COMMISSION))
         if commission < 0:
             raise InvalidTransaction('Wrong commission address.')
-        transfer_payload.amount = swap_info.amount + commission
+        account = get_account_by_address(context, swap_info.sender_address)
+        total_amount = swap_info.amount + commission
+        if account.balance < total_amount:
+            raise InvalidTransaction('Not enough balance to perform the transaction in '
+                                     'the amount (with a commission) {}.'.format(total_amount))
+
+        transfer_payload.amount = total_amount
         token_updated_state = TokenHandler()._transfer_from_address(context,
                                                                     swap_info.sender_address,
                                                                     transfer_payload)
