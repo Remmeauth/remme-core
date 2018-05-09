@@ -29,7 +29,7 @@ from sawtooth_signing.secp256k1 import Secp256k1PublicKey, Secp256k1Context
 from remme.protos.atomic_swap_pb2 import AtomicSwapMethod, AtomicSwapInitPayload, AtomicSwapInfo, \
     AtomicSwapApprovePayload, AtomicSwapExpirePayload, AtomicSwapSetSecretLockPayload, AtomicSwapClosePayload
 from remme.protos.token_pb2 import TransferPayload
-from remme.settings import SETTINGS_KEY_PUB_ENCRYPTION_KEY, SETTINGS_KEY_ALLOWED_GENESIS_MEMBERS, \
+from remme.settings import SETTINGS_KEY_PUB_ENCRYPTION_KEY, SETTINGS_KEY_GENESIS_OWNERS, \
                             SETTINGS_SWAP_COMMISSION
 from remme.settings_tp.handler import _make_settings_key, _get_setting_value
 from remme.shared.basic_handler import BasicHandler, get_data
@@ -127,7 +127,7 @@ class AtomicSwapHandler(BasicHandler):
         # END
 
         # 2. Check weather the sender is Alice:
-        genesis_members_str = _get_setting_value(context, SETTINGS_KEY_ALLOWED_GENESIS_MEMBERS)
+        genesis_members_str = _get_setting_value(context, SETTINGS_KEY_GENESIS_OWNERS)
         if not genesis_members_str:
             raise InvalidTransaction('REMchain is not configured to process atomic swaps.')
 

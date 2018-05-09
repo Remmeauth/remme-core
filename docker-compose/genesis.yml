@@ -50,7 +50,13 @@ services:
           GENESIS_BATCHES=\"$$GENESIS_BATCHES poet_config.batch poet_genesis.batch\"
         fi
 
-        sawadm genesis $$GENESIS_BATCHES && \
+        sawset proposal create -k /etc/sawtooth/keys/validator.priv \
+            \"SETTINGS_KEY_PUB_ENCRYPTION_KEY=$$(cat /etc/sawtooth/keys/validator.priv)\" \
+            \"SETTINGS_KEY_GENESIS_OWNERS=$$(cat /etc/sawtooth/keys/validator.priv)\" \
+            SETTINGS_SWAP_COMMISSION=100 \
+            -o settings_config.batch
+
+        sawadm genesis $$GENESIS_BATCHES settings_config.batch && \
 
         sawtooth-validator -vv \
           --endpoint tcp://$$REMME_VALIDATOR_IP:$$REMME_VALIDATOR_PORT \

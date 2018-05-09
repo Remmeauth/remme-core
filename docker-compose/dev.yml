@@ -61,10 +61,6 @@ services:
         fi
       "
 
-#  settings-tp:
-#    image: hyperledger/sawtooth-settings-tp:1.0.1
-#    entrypoint: settings-tp -vv -C tcp://validator:4004
-
   rest-api:
     image: hyperledger/sawtooth-rest-api:1.0.1
     depends_on:
