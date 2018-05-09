@@ -18,6 +18,8 @@ from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
 from remme.protos.token_pb2 import Account, GenesisStatus, TokenMethod, GenesisPayload, \
     TransferPayload
+from remme.settings import SETTINGS_KEY_GENESIS_OWNERS
+from remme.settings_tp.handler import _get_setting_value
 from remme.shared.basic_handler import *
 from remme.shared.singleton import singleton
 
@@ -83,6 +85,13 @@ class TokenHandler(BasicHandler):
             raise InvalidTransaction("Zero address cannot involve in any operation.")
         if signer_key == transfer_payload.address_to:
             raise InvalidTransaction("Account cannot send tokens to itself.")
+
+        # TODO transfer from genesis address using SETTINGS_KEY_GENESIS_OWNERS list of allowed addresses(0x0)
+        # genesis_members_str = _get_setting_value(context, SETTINGS_KEY_GENESIS_OWNERS)
+        # if not genesis_members_str:
+        #     raise InvalidTransaction('REMchain is not configured to process genesis transfers.')
+        #
+        # genesis_members_list = genesis_members_str.split()
 
         receiver_account = get_data(context, Account, transfer_payload.address_to)
 

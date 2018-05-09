@@ -131,10 +131,11 @@ class AtomicSwapHandler(BasicHandler):
         if not genesis_members_str:
             raise InvalidTransaction('REMchain is not configured to process atomic swaps.')
 
+
         genesis_members_list = genesis_members_str.split()
         sender_address = self.make_address_from_data(signer_pubkey)
 
-        swap_info.is_initiator = sender_address not in genesis_members_list
+        swap_info.is_initiator = not swap_init_payload.secret_lock_optional_bob
         swap_info.is_approved = not swap_info.is_initiator
         # END
 
@@ -210,6 +211,9 @@ class AtomicSwapHandler(BasicHandler):
 
         """
         swap_info = self.get_swap_info_from_swap_id(context, swap_set_lock_payload.swap_id)
+
+        if swap_info.receiver_address != :
+            raise InvalidTransaction('Secret lock is already added for {}.'.format(swap_info.swap_id))
 
         if swap_info.secret_lock:
             raise InvalidTransaction('Secret lock is already added for {}.'.format(swap_info.swap_id))
