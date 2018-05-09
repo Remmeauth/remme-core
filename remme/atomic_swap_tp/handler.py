@@ -204,9 +204,6 @@ class AtomicSwapHandler(BasicHandler):
         """
         swap_info = self.get_swap_info_from_swap_id(context, swap_set_lock_payload.swap_id)
 
-        if swap_info.receiver_address != :
-            raise InvalidTransaction('Secret lock is already added for {}.'.format(swap_info.swap_id))
-
         if swap_info.secret_lock:
             raise InvalidTransaction('Secret lock is already added for {}.'.format(swap_info.swap_id))
 
