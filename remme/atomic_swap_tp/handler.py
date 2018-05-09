@@ -127,14 +127,6 @@ class AtomicSwapHandler(BasicHandler):
         # END
 
         # 2. Check weather the sender is Alice:
-        genesis_members_str = _get_setting_value(context, SETTINGS_KEY_GENESIS_OWNERS)
-        if not genesis_members_str:
-            raise InvalidTransaction('REMchain is not configured to process atomic swaps.')
-
-
-        genesis_members_list = genesis_members_str.split()
-        sender_address = self.make_address_from_data(signer_pubkey)
-
         swap_info.is_initiator = not swap_init_payload.secret_lock_optional_bob
         swap_info.is_approved = not swap_info.is_initiator
         # END
