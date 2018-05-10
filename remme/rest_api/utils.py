@@ -10,4 +10,4 @@ def get_random_key():
 
 
 def post_hash256(data):
-    return {'hash': hash256(data.encode())}
+    return {'hash': hash256(data)}

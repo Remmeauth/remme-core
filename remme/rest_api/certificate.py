@@ -33,6 +33,9 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from OpenSSL.crypto import PKCS12, X509, PKey
 
+
+from remme.shared.utils import hash512
+
 PATH_TO_EXPORTS_FOLDER = Path('/root/usr/share')
 HOST_FOLDER_EXPORTS_PATH_ENV_KEY = 'REMME_CONTAINER_EXPORTS_FOLDER'
 REMME_CA_KEY_FILE = PATH_TO_EXPORTS_FOLDER.joinpath('REMME_CA_KEY.pem')
@@ -110,7 +113,7 @@ def execute_put(cert, key, key_export, name_to_save=None, passphrase=None):
 
     crt_export = cert.public_bytes(serialization.Encoding.PEM)
     crt_bin = cert.public_bytes(serialization.Encoding.DER).hex()
-    crt_hash = hashlib.sha512(crt_bin.encode('utf-8')).hexdigest()
+    crt_hash = hash512(crt_bin)
     rem_sig = certificate_client.sign_text(crt_hash)
     crt_sig = get_certificate_signature(key, rem_sig)
 
@@ -138,7 +141,7 @@ def execute_store(cert_request):
 
     crt_export = cert.public_bytes(serialization.Encoding.PEM)
     crt_bin = cert.public_bytes(serialization.Encoding.DER).hex()
-    crt_hash = hashlib.sha512(crt_bin.encode('utf-8')).hexdigest()
+    crt_hash = hash512(crt_bin)
     rem_sig = certificate_client.sign_text(crt_hash)
     crt_sig = get_certificate_signature(key, rem_sig)
 

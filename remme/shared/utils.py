@@ -9,9 +9,9 @@ def generate_random_key():
 
 # kecak256
 def hash256(data):
-    return hashlib.sha3_256(data).hexdigest()
+    return hashlib.sha3_256(data.encode('utf-8')).hexdigest()
 
 
 def hash512(data):
-    return hashlib.sha512(data).hexdigest()
+    return hashlib.sha512(data.encode('utf-8')).hexdigest()
 

@@ -28,6 +28,9 @@ from sawtooth_signing.secp256k1 import Secp256k1PublicKey, Secp256k1Context
 
 from remme.shared.basic_handler import BasicHandler, get_data
 from remme.account.handler import AccountHandler
+
+from remme.shared.utils import hash512
+
 from remme.protos.certificate_pb2 import CertificateStorage, \
     NewCertificatePayload, RevokeCertificatePayload, CertificateMethod
 from remme.shared.singleton import singleton
@@ -84,7 +87,7 @@ class CertificateHandler(BasicHandler):
         except InvalidSignature:
             raise InvalidTransaction('signature_crt mismatch')
 
-        crt_hash = hashlib.sha512(transaction_payload.certificate_raw.encode('utf-8')).hexdigest().encode('utf-8')
+        crt_hash = hash512(transaction_payload.certificate_raw).encode('utf-8')
         sawtooth_signing_ctx = Secp256k1Context()
         sawtooth_signing_pubkey = Secp256k1PublicKey.from_hex(signer_pubkey)
         sawtooth_signing_check_res = \

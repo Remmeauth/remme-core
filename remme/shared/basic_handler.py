@@ -21,6 +21,7 @@ from sawtooth_sdk.processor.handler import TransactionHandler
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
 from remme.protos.transaction_pb2 import TransactionPayload
+from remme.shared.utils import hash512
 
 
 def get_data(context, pb_class, address):
@@ -55,7 +56,7 @@ class BasicHandler(TransactionHandler):
     def __init__(self, name, versions):
         self._family_name = name
         self._family_versions = versions
-        self._prefix = hashlib.sha512(self._family_name.encode('utf-8')).hexdigest()[:6]
+        self._prefix = hash512(self._family_name)[:6]
 
     @property
     def family_name(self):
@@ -112,5 +113,5 @@ class BasicHandler(TransactionHandler):
         return address
 
     def make_address_from_data(self, data):
-        appendix = hashlib.sha512(data.encode('utf-8')).hexdigest()[:64]
+        appendix = hash512(data)[:64]
         return self.make_address(appendix)

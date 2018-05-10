@@ -110,4 +110,3 @@ class AtomicSwapTestCase(HelperTestCase):
         })
 
         self.expect_ok()
-
