@@ -85,12 +85,12 @@ class AtomicSwapHandler(BasicHandler):
         }
 
     def get_swap_info_from_swap_id(self, context, swap_id, to_raise_exception=True):
-        swap_info = get_data(context, AtomicSwapInfo, self.make_address(swap_id))
+        LOGGER.info('get_swap_info_from_swap_id {}'.format(self.make_address_from_data(swap_id)))
+        swap_info = get_data(context, AtomicSwapInfo, self.make_address_from_data(swap_id))
         if to_raise_exception and not swap_info:
             raise InvalidTransaction('Atomic swap was not initiated for {} swap id!'.format(swap_id))
         return swap_info
-# add attributes to payload constructors, make zero and genesis address constants, refactor respectivelly, fix trasnfer payloads, change protobuf, add settings payload construct
-    decompose test case, generalise test case transfers, refactor transfer logic,
+
     def get_state_update(self, swap_info):
         return {self.make_address(swap_info.swap_id): swap_info}
 
