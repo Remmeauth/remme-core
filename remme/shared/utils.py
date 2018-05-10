@@ -15,3 +15,16 @@ def hash256(data):
 def hash512(data):
     return hashlib.sha512(data.encode('utf-8')).hexdigest()
 
+
+class AttrDict(dict):
+    def __init__(self, *args, **kwargs):
+        super(AttrDict, self).__init__(*args, **kwargs)
+        self.__dict__ = self
+
+
+def attr_dict(func):
+    def wrapper(data_dict):
+        return func(AttrDict(data_dict))
+
+    return wrapper
+

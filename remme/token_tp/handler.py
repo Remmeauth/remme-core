@@ -18,14 +18,12 @@ from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
 from remme.protos.token_pb2 import Account, GenesisStatus, TokenMethod, GenesisPayload, \
     TransferPayload
-from remme.settings import SETTINGS_KEY_GENESIS_OWNERS
+from remme.settings import SETTINGS_KEY_GENESIS_OWNERS, GENESIS_ADDRESS, ZERO_ADDRESS
 from remme.settings_tp.handler import _get_setting_value
 from remme.shared.basic_handler import *
 from remme.shared.singleton import singleton
 
 LOGGER = logging.getLogger(__name__)
-
-ZERO_ADDRESS = '0' * 64
 
 FAMILY_NAME = 'token'
 FAMILY_VERSIONS = ['0.1']
@@ -34,15 +32,14 @@ FAMILY_VERSIONS = ['0.1']
 def get_account_by_address(context, address):
     account = get_data(context, Account, address)
     if account is None:
-        return address, Account()
-    return address, account
+        return Account()
+    return account
 
 # TODO: ensure receiver_account.balance += transfer_payload.amount is within uint64
 @singleton
 class TokenHandler(BasicHandler):
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
-        self.zero_address = self.make_address(ZERO_ADDRESS)
 
     def get_state_processor(self):
         return {
@@ -57,8 +54,8 @@ class TokenHandler(BasicHandler):
         }
 
     def _genesis(self, context, pub_key, genesis_payload):
-        signer_key, account = get_account_by_address(context, self.make_address_from_data(pub_key))
-        genesis_status = get_data(context, GenesisStatus, self.zero_address)
+        signer_key = self.make_address_from_data(pub_key)
+        genesis_status = get_data(context, GenesisStatus, GENESIS_ADDRESS)
         if not genesis_status:
             genesis_status = GenesisStatus()
         elif genesis_status.status:
@@ -70,19 +67,21 @@ class TokenHandler(BasicHandler):
                     .format(genesis_payload.total_supply, signer_key))
         return {
             signer_key: account,
-            self.zero_address: genesis_status
+            GENESIS_ADDRESS: genesis_status
         }
 
     def _transfer(self, context, pub_key, transfer_payload):
         address = self.make_address_from_data(pub_key)
-        if address == self.zero_address:
-            raise InvalidTransaction("Zero address cannot be used by a transaction signer!")
         return self._transfer_from_address(context, address, transfer_payload)
 
     def _transfer_from_address(self, context, address, transfer_payload):
-        signer_key, signer_account = get_account_by_address(context, address)
-        if self.zero_address in [transfer_payload.address_to, signer_key]:
-            raise InvalidTransaction("Zero address cannot involve in any operation.")
+        signer_key = address
+        signer_account = get_account_by_address(context, address)
+
+        if not transfer_payload.address_to.startswith(self._prefix) \
+                and transfer_payload.address_to not in [ZERO_ADDRESS]:
+            raise InvalidTransaction("Receiver address has to be of an account type")
+
         if signer_key == transfer_payload.address_to:
             raise InvalidTransaction("Account cannot send tokens to itself.")
 

@@ -20,6 +20,7 @@ from remme.protos.token_pb2 import TokenMethod
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.tests.tp_test_case import TransactionProcessorTestCase
 from remme.token_tp.client import TokenClient
+from remme.token_tp.handler import TokenHandler
 
 LOGGER = logging.getLogger(__name__)
 
@@ -30,10 +31,11 @@ class HelperTestCase(TransactionProcessorTestCase):
         super().setUpClass()
         cls.handler = handler
 
+        # generate token account addresses
         account_signer1 = cls.get_new_signer()
-        cls.account_address1 = cls.handler.make_address_from_data(account_signer1.get_public_key().as_hex())
+        cls.account_address1 = TokenHandler.make_address_from_data(account_signer1.get_public_key().as_hex())
         account_signer2 = cls.get_new_signer()
-        cls.account_address2 = cls.handler.make_address_from_data(account_signer2.get_public_key().as_hex())
+        cls.account_address2 = TokenHandler.make_address_from_data(account_signer2.get_public_key().as_hex())
 
         cls._factory = cls.handler.get_message_factory(account_signer1)
 
@@ -58,8 +60,10 @@ class HelperTestCase(TransactionProcessorTestCase):
         LOGGER.info('expect_get create_get_response')
 
         self.validator.respond(
-            self._factory.create_get_response({key: value_pb.SerializeToString() if value_pb else None
-                                              for key, value_pb in key_value.items()}),
+            self._factory.create_get_response(
+                {key: value.SerializeToString() if hasattr(value, 'SerializeToString') else str(value).encode()
+                        if value else None for key, value in key_value.items()
+                }),
             received)
 
     def expect_set(self, key_value):
@@ -87,12 +91,12 @@ class HelperTestCase(TransactionProcessorTestCase):
     # a short term solution
     def transfer(self, address1, amount1, address2, amount2, value):
         self.send_transaction(TokenMethod.TRANSFER,
-                              TokenClient.get_transfer_payload(self.account_address2, value),
-                              [self.account_address1, self.account_address2])
-        self.expect_get({self.account_address1: TokenClient.get_account_model(amount1)})
-        self.expect_get({self.account_address2: TokenClient.get_account_model(amount2)})
+                              TokenClient.get_transfer_payload(address2, value),
+                              [address1, address2])
+        self.expect_get({address1: TokenClient.get_account_model(amount1)})
+        self.expect_get({address2: TokenClient.get_account_model(amount2)})
 
-        self.expect_set({
+        return {
             address1: TokenClient.get_account_model(amount1 - value),
             address2: TokenClient.get_account_model(amount2 + value)
-        })
+        }

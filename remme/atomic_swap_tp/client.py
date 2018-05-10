@@ -22,9 +22,11 @@ from remme.protos.atomic_swap_pb2 import AtomicSwapInitPayload, AtomicSwapExpire
 from remme.protos.certificate_pb2 import NewCertificatePayload, CertificateMethod
 from remme.shared.basic_client import BasicClient
 from remme.certificate.handler import CertificateHandler
+from remme.shared.utils import attr_dict
 from remme.token_tp.handler import TokenHandler
 
 
+@attr_dict
 def get_swap_init_payload(args):
     payload = AtomicSwapInitPayload()
     payload.receiver_address = args.receiver_address
@@ -33,11 +35,12 @@ def get_swap_init_payload(args):
     payload.swap_id = args.swap_id
     payload.secret_lock_optional_bob = args.secret_lock_optional_bob
     payload.email_address_encrypted_optional_alice = args.email_address_encrypted_optional_alice
-    payload.timestamp = args.timestamp
+    payload.created_at = args.created_at
 
     return payload
 
 
+@attr_dict
 def get_swap_approve_payload(args):
     payload = AtomicSwapInitPayload()
     payload.swap_id = args.swap_id
@@ -45,6 +48,7 @@ def get_swap_approve_payload(args):
     return payload
 
 
+@attr_dict
 def get_swap_expire_payload(args):
     payload = AtomicSwapExpirePayload()
     payload.swap_id = args.swap_id
@@ -52,6 +56,7 @@ def get_swap_expire_payload(args):
     return payload
 
 
+@attr_dict
 def get_swap_set_secret_lock_payload(args):
     payload = AtomicSwapExpirePayload()
     payload.swap_id = args.swap_id
@@ -59,7 +64,7 @@ def get_swap_set_secret_lock_payload(args):
 
     return payload
 
-
+@attr_dict
 def get_swap_close_payload(args):
     payload = AtomicSwapClosePayload()
     payload.swap_id = args.swap_id
@@ -76,7 +81,7 @@ class AtomicSwapClient(BasicClient):
         return self._send_transaction(AtomicSwapMethod.INIT, swap_init_payload,
                                       [self.make_address(swap_init_payload.swap_id),
                                        self.get_user_address(),
-                                       TokenHandler().zero_address])
+                                       TokenHandler().GENESIS_ADDRESS])
 
     def swap_approve(self, swap_approve_payload):
         return self._send_transaction(AtomicSwapMethod.APPROVE, swap_approve_payload,

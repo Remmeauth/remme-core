@@ -243,6 +243,13 @@ def _get_setting_value(context, key, default_value=None):
     return default_value
 
 
+def get_setting_from_key_value(key, value):
+    setting = Setting()
+    setting.entries.add(key=key, value=str(value).encode())
+
+    return setting
+
+
 def _set_setting_value(context, key, value):
     address = _make_settings_key(key)
     setting = _get_setting_entry(context, address)

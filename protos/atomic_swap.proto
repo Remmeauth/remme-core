@@ -32,7 +32,7 @@ message AtomicSwapInitPayload {
     string swap_id = 3;
     string secret_lock_optional_bob = 4;
     string email_address_encrypted_optional_alice = 5;
-    uint32 timestamp = 6;
+    uint32 created_at = 6;
 }
 
 message AtomicSwapApprovePayload {
