@@ -98,6 +98,7 @@ class BasicHandler(TransactionHandler):
                                      format(int(transaction_payload.method)))
         except ParseError:
             raise InvalidTransaction('Cannot decode transaction payload')
+        print(self._family_name)
         addresses = context.set_state({k: v.SerializeToString() for k, v in updated_state.items()})
         if len(addresses) < len(updated_state):
             raise InternalError('Failed to update all of states. Updated: {}. '

@@ -17,7 +17,7 @@ import inspect
 
 import datetime
 
-from remme.atomic_swap_tp.client import AtomicSwapClient, get_swap_init_payload
+from remme.atomic_swap_tp.client import AtomicSwapClient, get_swap_init_payload, get_swap_close_payload
 from remme.atomic_swap_tp.handler import AtomicSwapHandler
 from remme.protos.atomic_swap_pb2 import AtomicSwapMethod, AtomicSwapInfo
 from remme.protos.token_pb2 import TokenMethod, GenesisStatus, Account
@@ -31,6 +31,7 @@ from remme.token_tp.handler import ZERO_ADDRESS, TokenHandler
 
 LOGGER = logging.getLogger(__name__)
 
+
 class AtomicSwapTestCase(HelperTestCase):
     @classmethod
     def setUpClass(cls):
@@ -41,6 +42,7 @@ class AtomicSwapTestCase(HelperTestCase):
         # 1. Bob init
         # 2. Bob close
 
+        # to be transferred
         AMOUNT = 10000
         COMMISSION = 100
         zero_address = self.handler.make_address(ZERO_ADDRESS)
@@ -86,7 +88,26 @@ class AtomicSwapTestCase(HelperTestCase):
             self.account_address1: TokenClient.get_account_model(0)
         })
 
-        # TODO
+        # close swap
+
+        data = {
+            "swap_id": swap_id,
+            "secret_key": secret_key
+        }
+
+        self.send_transaction(AtomicSwapMethod.CLOSE, get_swap_close_payload(data),
+                              [swap_id, self.account_address1])
+
+        self.expect_get({swap_id: swap_info})
+        self.transfer(zero_address, AMOUNT, self.account_address2, 0, AMOUNT)
+
+        swap_info.is_closed = True
+
+        self.expect_set({
+            swap_id: swap_info,
+            zero_address: TokenClient.get_account_model(COMMISSION),
+            self.account_address2: TokenClient.get_account_model(AMOUNT)
+        })
 
         self.expect_ok()
 

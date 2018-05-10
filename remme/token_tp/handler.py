@@ -77,7 +77,7 @@ class TokenHandler(BasicHandler):
         address = self.make_address_from_data(pub_key)
         if address == self.zero_address:
             raise InvalidTransaction("Zero address cannot be used by a transaction signer!")
-        self._transfer_from_address(context, address, transfer_payload)
+        return self._transfer_from_address(context, address, transfer_payload)
 
     def _transfer_from_address(self, context, address, transfer_payload):
         signer_key, signer_account = get_account_by_address(context, address)

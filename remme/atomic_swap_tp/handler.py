@@ -149,7 +149,7 @@ class AtomicSwapHandler(BasicHandler):
                                                                     swap_info.sender_address,
                                                                     transfer_payload)
 
-        return self.get_state_update(swap_info).update(token_updated_state)
+        return {**self.get_state_update(swap_info),  **token_updated_state}
 
     def _swap_approve(self, context, signer_pubkey, swap_approve_payload):
         """
@@ -200,7 +200,7 @@ class AtomicSwapHandler(BasicHandler):
                                                                     self.zero_address,
                                                                     transfer_payload)
 
-        return self.get_state_update(swap_info).update(token_updated_state)
+        return {**self.get_state_update(swap_info), **token_updated_state}
 
     def _swap_set_lock(self, context, signer_pubkey, swap_set_lock_payload):
         """
@@ -245,4 +245,4 @@ class AtomicSwapHandler(BasicHandler):
 
         swap_info.is_closed = True
 
-        return self.get_state_update(swap_info).update(token_updated_state)
+        return {**self.get_state_update(swap_info), **token_updated_state}
