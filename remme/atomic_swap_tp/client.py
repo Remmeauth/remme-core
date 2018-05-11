@@ -16,6 +16,8 @@
 import json
 import datetime
 
+import logging
+
 from remme.atomic_swap_tp.handler import AtomicSwapHandler
 from remme.protos.atomic_swap_pb2 import AtomicSwapInitPayload, AtomicSwapExpirePayload, AtomicSwapClosePayload, \
     AtomicSwapMethod, AtomicSwapInfo
@@ -25,10 +27,12 @@ from remme.certificate.handler import CertificateHandler
 from remme.shared.utils import attr_dict
 from remme.token_tp.handler import TokenHandler
 
+LOGGER = logging.getLogger(__name__)
 
 @attr_dict
 def get_swap_init_payload(args):
     payload = AtomicSwapInitPayload()
+    LOGGER.info("get_swap_init_payload: {}".format(args))
     payload.receiver_address = args.receiver_address
     payload.sender_address_non_local = args.sender_address_non_local
     payload.amount = args.amount

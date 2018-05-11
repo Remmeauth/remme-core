@@ -139,3 +139,5 @@ class AccountTestCase(HelperTestCase):
         self.expect_get({self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1)})
 
         self.expect_invalid_transaction()
+
+

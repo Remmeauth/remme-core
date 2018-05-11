@@ -27,4 +27,3 @@ def attr_dict(func):
         return func(AttrDict(data_dict))
 
     return wrapper
-

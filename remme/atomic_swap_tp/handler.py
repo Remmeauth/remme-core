@@ -55,6 +55,7 @@ NON_INTIATOR_TIME_LOCK = 48
 INITIATOR_TIME_DELTA_LOCK = datetime.timedelta(hours=INTIATOR_TIME_LOCK)
 NON_INITIATOR_TIME_DELTA_LOCK = datetime.timedelta(hours=NON_INTIATOR_TIME_LOCK)
 
+
 @singleton
 class AtomicSwapHandler(BasicHandler):
     def __init__(self):
@@ -85,14 +86,13 @@ class AtomicSwapHandler(BasicHandler):
         }
 
     def get_swap_info_from_swap_id(self, context, swap_id, to_raise_exception=True):
-        LOGGER.info('get_swap_info_from_swap_id {}'.format(self.make_address_from_data(swap_id)))
         swap_info = get_data(context, AtomicSwapInfo, self.make_address_from_data(swap_id))
         if to_raise_exception and not swap_info:
             raise InvalidTransaction('Atomic swap was not initiated for {} swap id!'.format(swap_id))
         return swap_info
 
     def get_state_update(self, swap_info):
-        return {self.make_address(swap_info.swap_id): swap_info}
+        return {self.make_address_from_data(swap_info.swap_id): swap_info}
 
     def get_datetime_from_timestamp(self, timestamp):
         return datetime.datetime.fromtimestamp(timestamp)
@@ -104,7 +104,9 @@ class AtomicSwapHandler(BasicHandler):
 
         """
         LOGGER.info("0. Check if swap ID already exists")
+        LOGGER.info("0. swap payload {}".format(swap_init_payload))
         # 0. Check if swap ID already exists
+        LOGGER.info("0. swap_id: {}".format(swap_init_payload.swap_id))
         if self.get_swap_info_from_swap_id(context, swap_init_payload.swap_id, to_raise_exception=False):
             raise InvalidTransaction('Atomic swap ID is already taken, please use a different one!')
         # END
@@ -115,7 +117,7 @@ class AtomicSwapHandler(BasicHandler):
         swap_info.amount = swap_init_payload.amount
         swap_info.created_at = swap_init_payload.created_at
         swap_info.email_address_encrypted_optional = swap_init_payload.email_address_encrypted_optional_alice
-        swap_info.sender_address = self.make_address_from_data(signer_pubkey)
+        swap_info.sender_address = TokenHandler.make_address_from_data(signer_pubkey)
         swap_info.sender_address_non_local = swap_init_payload.sender_address_non_local
         swap_info.receiver_address = swap_init_payload.receiver_address
 
@@ -141,6 +143,7 @@ class AtomicSwapHandler(BasicHandler):
         commission = int(_get_setting_value(context, SETTINGS_SWAP_COMMISSION))
         if commission < 0:
             raise InvalidTransaction('Wrong commission address.')
+        LOGGER.info("4. Get sender's account {}".format(swap_info.sender_address))
         account = get_account_by_address(context, swap_info.sender_address)
         total_amount = swap_info.amount + commission
         if account.balance < total_amount:
