@@ -28,7 +28,6 @@ from remme.shared.basic_client import BasicClient
 from remme.certificate.handler import CertificateHandler
 from remme.shared.utils import attr_dict
 from remme.token_tp.handler import TokenHandler
-from google.protobuf.json_format import MessageToJson
 
 LOGGER = logging.getLogger(__name__)
 
@@ -93,26 +92,29 @@ class AtomicSwapClient(BasicClient):
 
     def swap_approve(self, swap_approve_payload):
         return self._send_transaction(AtomicSwapMethod.APPROVE, swap_approve_payload,
-                                      [self.make_address(swap_approve_payload.swap_id)])
+                                      [self.make_address_from_data(swap_approve_payload.swap_id)])
 
     def swap_expire(self, swap_expire_payload):
         return self._send_transaction(AtomicSwapMethod.EXPIRE, swap_expire_payload,
-                                      [self.make_address(swap_expire_payload.swap_id)])
+                                      [self.make_address_from_data(swap_expire_payload.swap_id),
+                                       ZERO_ADDRESS,
+                                       self.get_user_address()])
 
     def swap_set_secret_lock(self, swap_set_secret_lock_payload):
         return self._send_transaction(AtomicSwapMethod.SET_SECRET_LOCK, swap_set_secret_lock_payload,
-                                      [self.make_address(swap_set_secret_lock_payload.swap_id)])
+                                      [self.make_address_from_data(swap_set_secret_lock_payload.swap_id)])
 
     def swap_close(self, swap_close_payload, receiver_address):
         return self._send_transaction(AtomicSwapMethod.CLOSE, swap_close_payload,
-                                      [self.make_address(swap_close_payload.swap_id),
+                                      [self.make_address_from_data(swap_close_payload.swap_id),
+                                       ZERO_ADDRESS,
                                        receiver_address])
 
     def swap_get(self, swap_id):
         atomic_swap_info = AtomicSwapInfo()
         print(self.make_address_from_data(swap_id))
         atomic_swap_info.ParseFromString(self.get_value(self.make_address_from_data(swap_id)))
-        return MessageToJson(atomic_swap_info)
+        return atomic_swap_info
         # return self._send_transaction(AtomicSwapMethod.CLOSE, swap_close_payload,
         #                               [self.make_address(swap_close_payload.swap_id),
         #                                receiver_address])

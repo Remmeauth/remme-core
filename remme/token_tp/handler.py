@@ -100,7 +100,7 @@ class TokenHandler(BasicHandler):
             signer_account = Account()
 
         if signer_account.balance < transfer_payload.value:
-            raise InvalidTransaction("Not enough transferable balance. Signer's current balance: {}"
+            raise InvalidTransaction("Not enough transferable balance. Sender's current balance: {}"
                                      .format(signer_account.balance))
 
         receiver_account.balance += transfer_payload.value

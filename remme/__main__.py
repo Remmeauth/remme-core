@@ -22,6 +22,7 @@ from remme.account.handler import AccountHandler
 
 from remme.shared.logging import setup_logging
 
+
 TP_HANDLERS = [AccountHandler, CertificateHandler, AtomicSwapHandler]
 
 
@@ -31,6 +32,7 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--verbosity', type=int, default=2)
     args = parser.parse_args()
     setup_logging('remme', args.verbosity)
+
     processor = TransactionProcessor(url=args.endpoint)
     for handler in TP_HANDLERS:
         processor.add_handler(handler)

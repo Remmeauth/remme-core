@@ -1,7 +1,9 @@
+import json
 import logging
 
 from remme.atomic_swap_tp.client import AtomicSwapClient, get_swap_init_payload, get_swap_approve_payload, \
     get_swap_expire_payload, get_swap_set_secret_lock_payload, get_swap_close_payload
+from google.protobuf.json_format import MessageToJson
 
 client = AtomicSwapClient()
 
@@ -33,13 +35,14 @@ def set_secret_lock(**data):
 
 def close(**data):
     data = data['payload']
-    swap_info = get_swap_info(data.swap_id)
+    swap_info = client.swap_get(data['swap_id'])
+    LOGGER.info('swap_info: {}'.format(swap_info))
     payload = get_swap_close_payload(data)
     return client.swap_close(payload, receiver_address=swap_info.receiver_address)
 
 
 def get_swap_info(swap_id):
-    return client.swap_get(swap_id)
+    return json.loads(MessageToJson(client.swap_get(swap_id)))
 
 
 # approve
