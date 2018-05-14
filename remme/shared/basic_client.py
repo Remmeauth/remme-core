@@ -36,6 +36,8 @@ from remme.shared.exceptions import ClientException
 from remme.shared.exceptions import KeyNotFound
 from remme.shared.basic_handler import is_address
 from remme.shared.utils import hash512
+from remme.token_tp.handler import TokenHandler
+
 
 class BasicClient:
     def __init__(self, family_handler):
@@ -151,7 +153,7 @@ class BasicClient:
         return self._sign_batch_list(signer, [transaction])
 
     def get_user_address(self):
-        return self.make_address_from_data(self._signer.get_public_key().as_hex())
+        return TokenHandler.make_address_from_data(self._signer.get_public_key().as_hex())
 
     def _send_transaction(self, method, data_pb, addresses_input_output):
         '''

@@ -33,6 +33,33 @@ from remme.token_tp.handler import ZERO_ADDRESS, TokenHandler
 LOGGER = logging.getLogger(__name__)
 
 
+# MANUAL TEST REST API
+#
+# {
+#   "amount": 10000,
+#   "created_at": 0,
+#   "email_address_encrypted_optional_alice": "string",
+#   "is_initiator": true,
+#   "receiver_address": "string",
+#   "secret_lock_optional_bob": "string",
+#   "sender_address_non_local": "string",
+#   "swap_id": "string"
+# }
+# {
+#   "amount": 10000,
+#   "created_at": 1526293647,
+#   "email_address_encrypted_optional_alice": "",
+#   "is_initiator": false,
+#   "receiver_address": "2265da5c1a648002310b7360b38d82e0b6357e42d49fb1d6b8b33b2fad7a659f2d4e44",
+#   "secret_lock_optional_bob": "8bc9d977e4d5ef40f1a61fb60b687eb1924cd90ed4061f31923f36a057f54ce5",
+#   "sender_address_non_local": "",
+#   "swap_id": "033102e41346242476b15a3a7966eb5249271025fc7fb0b37ed3fdb4bcce482c"
+# }
+# secret key: 747f9238d844e6ae6239df18716bb3dc486e6a9dee7ed6630f8aa6f05946440b
+# secret_lock: 8bc9d977e4d5ef40f1a61fb60b687eb1924cd90ed4061f31923f36a057f54ce5
+
+
+
 
 class AtomicSwapTestCase(HelperTestCase):
     @classmethod
@@ -49,6 +76,7 @@ class AtomicSwapTestCase(HelperTestCase):
         context.swap_address = AtomicSwapHandler.make_address_from_data(context.swap_id)
         context.secret_key = generate_random_key()
         context.secret_lock = hash256(context.secret_key)
+        print('secret key: {}\n secret_lock: {}'.format(context.secret_key, context.secret_lock))
         context.now = datetime.datetime.now()
         context.created_at = int(context.now.timestamp())
         context.email_address = ""

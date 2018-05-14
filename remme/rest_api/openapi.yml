@@ -399,7 +399,7 @@ paths:
           description: The id of the batch to check
           in: path
           type: string
-          pattern: '^[0-9a-f]{128}$'
+          pattern: '^[0-9a-f]{64}$'
           required: true
       responses:
         200:
@@ -473,7 +473,8 @@ responses:
         receiver_address:
           $ref: '#/definitions/Address'
         sender_address_non_local:
-          $ref: '#/definitions/Address'
+          description: Non REMchain agent's address
+          type: string
         amount:
           description: Amount to be transferred
           type: integer
@@ -506,7 +507,8 @@ parameters:
         receiver_address:
           $ref: '#/definitions/Address'
         sender_address_non_local:
-          $ref: '#/definitions/Address'
+          description: Non REMchain agent's address
+          type: string
         amount:
           description: Amount to be transferred
           type: integer
@@ -562,7 +564,7 @@ parameters:
       properties:
         swap_id:
           $ref: '#/definitions/SwapId'
-        secret_lock:
+        secret_key:
           $ref: '#/definitions/HashString'
 
   certificate_payload:
@@ -739,13 +741,13 @@ definitions:
   Address:
     type: string
     description: User account address
-    pattern: '^[0-9a-f]{128}$'
+    pattern: '^[0-9a-f]{70}$'
   HashString:
     type: string
     description: Hash string
-    pattern: '^[0-9a-f]{128}$'
+    pattern: '^[0-9a-f]{64}$'
   SwapId:
     type: string
     description: User account address
-    pattern: '^[0-9a-f]{128}$'
+    pattern: '^[0-9a-f]{64}$'
 

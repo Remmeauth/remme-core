@@ -9,11 +9,11 @@ def generate_random_key():
 
 # kecak256
 def hash256(data):
-    return hashlib.sha3_256(data.encode('utf-8')).hexdigest()
+    return hashlib.sha3_256(data.encode('utf-8') if isinstance(data, str) else data).hexdigest()
 
 
 def hash512(data):
-    return hashlib.sha512(data.encode('utf-8')).hexdigest()
+    return hashlib.sha512(data.encode('utf-8') if isinstance(data, str) else data).hexdigest()
 
 
 class AttrDict(dict):

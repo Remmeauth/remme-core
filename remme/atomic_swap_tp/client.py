@@ -22,10 +22,13 @@ from remme.atomic_swap_tp.handler import AtomicSwapHandler
 from remme.protos.atomic_swap_pb2 import AtomicSwapInitPayload, AtomicSwapExpirePayload, AtomicSwapClosePayload, \
     AtomicSwapMethod, AtomicSwapInfo
 from remme.protos.certificate_pb2 import NewCertificatePayload, CertificateMethod
+from remme.settings import GENESIS_ADDRESS, SETTINGS_SWAP_COMMISSION, ZERO_ADDRESS
+from remme.settings_tp.handler import _make_settings_key
 from remme.shared.basic_client import BasicClient
 from remme.certificate.handler import CertificateHandler
 from remme.shared.utils import attr_dict
 from remme.token_tp.handler import TokenHandler
+from google.protobuf.json_format import MessageToJson
 
 LOGGER = logging.getLogger(__name__)
 
@@ -83,9 +86,10 @@ class AtomicSwapClient(BasicClient):
 
     def swap_init(self, swap_init_payload):
         return self._send_transaction(AtomicSwapMethod.INIT, swap_init_payload,
-                                      [self.make_address(swap_init_payload.swap_id),
+                                      [self.make_address_from_data(swap_init_payload.swap_id),
                                        self.get_user_address(),
-                                       TokenHandler().GENESIS_ADDRESS])
+                                       ZERO_ADDRESS,
+                                       _make_settings_key(SETTINGS_SWAP_COMMISSION)])
 
     def swap_approve(self, swap_approve_payload):
         return self._send_transaction(AtomicSwapMethod.APPROVE, swap_approve_payload,
@@ -106,8 +110,9 @@ class AtomicSwapClient(BasicClient):
 
     def swap_get(self, swap_id):
         atomic_swap_info = AtomicSwapInfo()
-        atomic_swap_info.ParseFromString(self.get_value(self.make_address(swap_id)))
-        return atomic_swap_info
+        print(self.make_address_from_data(swap_id))
+        atomic_swap_info.ParseFromString(self.get_value(self.make_address_from_data(swap_id)))
+        return MessageToJson(atomic_swap_info)
         # return self._send_transaction(AtomicSwapMethod.CLOSE, swap_close_payload,
         #                               [self.make_address(swap_close_payload.swap_id),
         #                                receiver_address])
