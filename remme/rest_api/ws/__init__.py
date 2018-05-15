@@ -85,13 +85,13 @@ class WsApplicationHandler(StateDeltaSubscriberHandler):
             logger.debug('Got update for batch "%s"', batch)
 
             for ws, wsdata in batch['ws'].items():
-                updated = wsdata['updated']
+                updated, id_ = wsdata['updated'], wsdata['id']
                 if updated and batch['state']['sum'] == hash_sum:
                     logger.debug('Already updated state for conn "%s" and batch_id "%s"',
                                  ws, batch_id)
                     continue
 
-                await self._ws_send(ws, Status.BATCH_RESPONSE, None, batch_data, 'message')
+                await self._ws_send(ws, Status.BATCH_RESPONSE, id_, batch_data, 'message')
                 wsdata['updated'] = True
 
             batch['state']['sum'] = hash_sum
@@ -101,9 +101,8 @@ class WsApplicationHandler(StateDeltaSubscriberHandler):
 
         while self._batch_update_started:
             logger.debug('Start list batches fetching...')
-            batch_ids = list(self._batch_ids.keys())
 
-            await asyncio.gather(*(_update_batch(batch_id) for batch_id in batch_ids))
+            await asyncio.gather(*(_update_batch(batch_id) for batch_id in self._batch_ids.keys()))
             await asyncio.sleep(delta)
 
     @staticmethod
@@ -112,7 +111,7 @@ class WsApplicationHandler(StateDeltaSubscriberHandler):
             tr['payload'] = cbor.loads(base64.b64decode(tr['payload']))
             tr['header'] = cbor.loads(base64.b64decode(tr['header']))
 
-    def _handle_subscribe_batches(self, web_sock, batch_ids):
+    def _handle_subscribe_batches(self, web_sock, batch_ids, id_):
         for batch_id in batch_ids:
             batch = self._batch_ids.setdefault(batch_id, {
                 'state': {
@@ -121,7 +120,7 @@ class WsApplicationHandler(StateDeltaSubscriberHandler):
                 },
                 'ws': {}
             })
-            batch['ws'][web_sock] = {'updated': False}
+            batch['ws'][web_sock] = {'updated': False, 'id': id_}
 
     def _handle_unsubscribe_batches(self, web_sock, batch_ids):
         for batch_id in batch_ids:
@@ -160,7 +159,7 @@ class WsApplicationHandler(StateDeltaSubscriberHandler):
                                         payload['id'])
                     return
                 self._subscribers.append((web_sock, {'batch_ids': batch_ids}))
-                self._handle_subscribe_batches(web_sock, batch_ids)
+                self._handle_subscribe_batches(web_sock, batch_ids, payload['id'])
                 logger.info('Subscribed: %s', web_sock)
 
         await self._ws_send(web_sock, Status.SUBSCRIBED, payload['id'])
@@ -218,7 +217,17 @@ class WsApplicationHandler(StateDeltaSubscriberHandler):
         batch = data.setdefault('batch', {})
         batch['header_signature'] = batch_id
 
-        return data, hash_sum
+        prep_resp = {
+            'batch_statuses': {
+                'batch_id': batch['header_signature'],
+                'status': data.get('status', 'UNKNOWN'),
+                'block_number': None
+            }
+        }
+        if batch.get('header'):
+            prep_resp['batch_statuses']['block_number'] = cbor.loads(base64.b64decode(batch['header']))
+
+        return prep_resp, hash_sum
 
     def _validate_ids(self, ids):
         return [_id for _id in ids if not self.valid_resource_id(_id)]
