@@ -101,7 +101,7 @@ class AtomicSwapHandler(BasicHandler):
         """
         if SecretLockOptionalBob is provided, Bob uses _swap_init to respond to requested swap
         Otherwise, Alice uses _swap_init to request a swap and thus, Bob can't receive funds until Alice "approves".
-
+        TODO: check if receiver is a token address.
         """
         LOGGER.info("0. Check if swap ID already exists")
         LOGGER.info("0. swap payload {}".format(swap_init_payload))
@@ -164,15 +164,16 @@ class AtomicSwapHandler(BasicHandler):
         Only called by Alice to approve REMchain => other transaction for Bob to close it.
 
         """
+        LOGGER.info('swap id: {}'.format(swap_approve_payload.swap_id))
         swap_info = self.get_swap_info_from_swap_id(context, swap_approve_payload.swap_id)
 
-        if not swap_info.is_initiator and swap_info.receiver_address != self.make_address_from_data(signer_pubkey):
+        if not swap_info.is_initiator and swap_info.receiver_address != TokenHandler.make_address_from_data(signer_pubkey):
             raise InvalidTransaction('Only transaction initiator (Alice) may approve the swap, '
                                      'once Bob provided a secret lock.')
         if not swap_info.secret_lock:
             raise InvalidTransaction('Secret Lock is needed for Bob to provide a secret key.')
 
-        if not swap_info.is_closed:
+        if swap_info.is_closed:
             raise InvalidTransaction('Swap id {} is already closed.'.format(swap_info.swap_id))
 
         swap_info.is_approved = True
@@ -181,22 +182,22 @@ class AtomicSwapHandler(BasicHandler):
 
     def _swap_expire(self, context, signer_pubkey, swap_expire_payload):
         """
-        Trasanction initiator (Alice) decides to withdraw deposit in 24 hours, or Bob in 48 hours
+        Transaction initiator (Alice) decides to withdraw deposit in 24 hours, or Bob in 48 hours
 
         """
 
         swap_info = self.get_swap_info_from_swap_id(context, swap_expire_payload.swap_id)
 
-        if self.make_address_from_data(signer_pubkey) != swap_info.sender_address:
-            raise InvalidTransaction('Sender account is not allowed to expire the swap.')
+        if TokenHandler.make_address_from_data(signer_pubkey) != swap_info.sender_address:
+            raise InvalidTransaction('Signer is not the one who opened the swap.')
 
         now = datetime.datetime.now()
-        created_at = self.get_datetime_from_timestamp(swap_info.timestamp)
+        created_at = self.get_datetime_from_timestamp(swap_info.created_at)
         time_delta = INITIATOR_TIME_DELTA_LOCK if swap_info.is_initiator else NON_INITIATOR_TIME_DELTA_LOCK
-        if not (created_at + time_delta < now):
+        if (created_at + time_delta) > now:
             intiator_name = "initiator" if swap_info.is_initiator else "non initiator"
             raise InvalidTransaction('Swap {} needs to wait {} hours since timestamp: {} to withdraw.'.format(
-                                        intiator_name, INTIATOR_TIME_LOCK, swap_info.timestamp))
+                                        intiator_name, INTIATOR_TIME_LOCK, swap_info.created_at))
 
         swap_info.closed = True
 

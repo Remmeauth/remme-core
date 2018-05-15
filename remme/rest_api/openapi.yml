@@ -503,6 +503,13 @@ parameters:
     in: body
     required: true
     schema:
+      required:
+        - receiver_address
+        - sender_address_non_local
+        - amount
+        - swap_id
+        - created_at
+        - is_initiator
       properties:
         receiver_address:
           $ref: '#/definitions/Address'
@@ -531,6 +538,8 @@ parameters:
     in: body
     required: true
     schema:
+      required:
+        - swap_id
       properties:
         swap_id:
           $ref: '#/definitions/SwapId'
@@ -540,6 +549,8 @@ parameters:
     in: body
     required: true
     schema:
+      required:
+        - swap_id
       properties:
         swap_id:
           $ref: '#/definitions/SwapId'
@@ -549,6 +560,9 @@ parameters:
     in: body
     required: true
     schema:
+      required:
+        - swap_id
+        - secret_lock
       properties:
         swap_id:
           $ref: '#/definitions/SwapId'
@@ -561,6 +575,9 @@ parameters:
     in: body
     required: true
     schema:
+      required:
+        - swap_id
+        - secret_key
       properties:
         swap_id:
           $ref: '#/definitions/SwapId'
