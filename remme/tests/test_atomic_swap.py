@@ -61,7 +61,7 @@ LOGGER = logging.getLogger(__name__)
 # }
 #
 # 2. REMchain => ETH (Alice Actions)
-
+#
 # init/
 # {
 #   "amount": 10000,
@@ -72,30 +72,30 @@ LOGGER = logging.getLogger(__name__)
 #   "sender_address_non_local": "",
 #   "swap_id": "033102e41346242476b15a3a7966eb5249271025fc7fb0b37ed3fdb4bcce482c"
 # }
-
+#
 # expire/
 # Expected behaviour: wait for 24 hours
 # {
 #   "swap_id": "033102e41346242476b15a3a7966eb5249271025fc7fb0b37ed3fdb4bcce482c"
 # }
-
+#
 # set-secret-lock/
 # {
 #   "secret_lock": "8bc9d977e4d5ef40f1a61fb60b687eb1924cd90ed4061f31923f36a057f54ce5",
 #   "swap_id": "033102e41346242476b15a3a7966eb5249271025fc7fb0b37ed3fdb4bcce482c"
 # }
-
+#
 # approve/
 # {
 #   "swap_id": "033102e41346242476b15a3a7966eb5249271025fc7fb0b37ed3fdb4bcce482c"
 # }
-
+#
 # close/
 # {
 #   "secret_key": "747f9238d844e6ae6239df18716bb3dc486e6a9dee7ed6630f8aa6f05946440b",
 #   "swap_id": "033102e41346242476b15a3a7966eb5249271025fc7fb0b37ed3fdb4bcce482c"
 # }
-
+#
 # {
 #   "secret_key": "747f9238d844e6ae6239df18716bb3dc486e6a9dee7ed6630f8aa6f05946440b",
 #   "swap_id": "033102e41346242476b15a3a7966eb5249271025fc7fb0b37ed3fdb4bcce482c"
