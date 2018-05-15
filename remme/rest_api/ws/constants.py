@@ -55,7 +55,4 @@ class Status(IntEnum):
     # validator connection failed
     NO_VALIDATOR = 110
 
-    # batch error
-    BATCH_ERROR = 200
-
-    BATCH_OK = 201
+    BATCH_RESPONSE = 200

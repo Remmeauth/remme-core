@@ -91,20 +91,11 @@ class WsApplicationHandler(StateDeltaSubscriberHandler):
                                  ws, batch_id)
                     continue
 
-                if not batch_data:
-                    logger.debug('Batch %s not found', batch_id)
-                    await self._ws_send(ws, Status.BATCH_ERROR, None, 'Batch "%s" not found' % batch_id, 'error')
-                else:
-                    logger.debug('Batch found: %s', batch_data)
-                    await self._ws_send(ws, Status.BATCH_OK, None, batch_data, 'message')
-
+                await self._ws_send(ws, Status.BATCH_RESPONSE, None, batch_data, 'message')
                 wsdata['updated'] = True
 
             batch['state']['sum'] = hash_sum
             batch['state']['data'] = batch_data
-
-            if not batch_data:
-                self._safe_rm_batch(batch_id)
 
             logger.debug('Batch update finish')
 
@@ -120,12 +111,6 @@ class WsApplicationHandler(StateDeltaSubscriberHandler):
         for tr in data['batch']['transactions']:
             tr['payload'] = cbor.loads(base64.b64decode(tr['payload']))
             tr['header'] = cbor.loads(base64.b64decode(tr['header']))
-
-    def _safe_rm_batch(self, batch_id):
-        try:
-            del self._batch_ids[batch_id]
-        except KeyError:
-            logger.debug('Batch id "%s" not found when remove', batch_id)
 
     def _handle_subscribe_batches(self, web_sock, batch_ids):
         for batch_id in batch_ids:
@@ -230,10 +215,9 @@ class WsApplicationHandler(StateDeltaSubscriberHandler):
         data = _message_to_dict(batch_resp)
         logger.info('data: %s', data)
 
-        if batch_resp.status != \
-           client_batch_pb2.ClientBatchListResponse.OK:
-            logger.error('Unable to fetch batch')
-            return None, hash_sum
+        batch = data.setdefault('batch', {})
+        batch['header_signature'] = batch_id
+
         return data, hash_sum
 
     def _validate_ids(self, ids):
