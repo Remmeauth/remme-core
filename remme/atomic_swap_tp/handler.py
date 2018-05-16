@@ -107,7 +107,7 @@ class AtomicSwapHandler(BasicHandler):
         # 0. Check if swap ID already exists
         LOGGER.info("0. swap_id: {}".format(swap_init_payload.swap_id))
         if self.get_swap_info_from_swap_id(context, swap_init_payload.swap_id, to_raise_exception=False):
-            raise InvalidTransaction('Atomic swap ID is already taken, please use a different one!')
+            raise InvalidTransaction('Atomic swap ID has already been taken, please use a different one!')
         # END
 
         swap_info = AtomicSwapInfo()
@@ -121,7 +121,7 @@ class AtomicSwapHandler(BasicHandler):
         swap_info.receiver_address = swap_init_payload.receiver_address
 
         if not TokenHandler.is_handler_address(swap_info.receiver_address):
-            raise InvalidTransaction('Receiver address is not a token address.')
+            raise InvalidTransaction('Receiver address is not of a Token type.')
 
         LOGGER.info("1. Ensure transaction initiated within an hour")
         # 1. Ensure transaction initiated within an hour
