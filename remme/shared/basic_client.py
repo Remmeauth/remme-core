@@ -34,9 +34,8 @@ from remme.protos.transaction_pb2 import TransactionPayload
 from remme.settings import REST_API_URL, PRIV_KEY_FILE
 from remme.shared.exceptions import ClientException
 from remme.shared.exceptions import KeyNotFound
-from remme.shared.basic_handler import is_address
 from remme.shared.utils import hash512
-from remme.token_tp.handler import TokenHandler
+from remme.token_tp.handler import TokenHandler, is_address
 
 
 class BasicClient:
@@ -71,7 +70,7 @@ class BasicClient:
         return self._family_handler.make_address_from_data(data)
 
     def is_address(self, address):
-        return is_address(address)
+        return self._family_handler.is_address(address)
 
     def get_value(self, key):
         result = self._send_request("state/{}".format(key))
@@ -168,7 +167,7 @@ class BasicClient:
         payload.data = data_pb.SerializeToString()
 
         for address in addresses_input_output:
-            if not self.is_address(address):
+            if not is_address(address):
                 raise ClientException('one of addresses_input_output {} is not an address'.format(addresses_input_output))
 
         batch_list = self.make_batch_list(payload, addresses_input_output)

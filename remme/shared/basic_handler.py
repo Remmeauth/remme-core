@@ -24,6 +24,15 @@ from remme.protos.transaction_pb2 import TransactionPayload
 from remme.shared.utils import hash512
 
 
+def is_address(address):
+    try:
+        assert isinstance(address, str)
+        assert len(address) == 70
+        int(address, 16)
+        return True
+    except (AssertionError, ValueError):
+        return False
+
 def get_data(context, pb_class, address):
     raw_data = context.get_state([address])
     if raw_data:
@@ -37,16 +46,6 @@ def get_data(context, pb_class, address):
             raise InternalError('Failed to deserialize data')
     else:
         return None
-
-
-def is_address(address):
-    try:
-        assert isinstance(address, str)
-        assert len(address) == 70
-        int(address, 16)
-        return True
-    except (AssertionError, ValueError):
-        return False
 
 
 class BasicHandler(TransactionHandler):
@@ -83,6 +82,9 @@ class BasicHandler(TransactionHandler):
             namespace=self.namespaces[-1],
             signer=signer
         )
+
+    def is_handler_address(self, address):
+        return is_address(address) and address.startswith(self._prefix)
 
     def apply(self, transaction, context):
         transaction_payload = TransactionPayload()

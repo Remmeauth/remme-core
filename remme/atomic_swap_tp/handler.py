@@ -101,7 +101,6 @@ class AtomicSwapHandler(BasicHandler):
         """
         if SecretLockOptionalBob is provided, Bob uses _swap_init to respond to requested swap
         Otherwise, Alice uses _swap_init to request a swap and thus, Bob can't receive funds until Alice "approves".
-        TODO: check if receiver is a token address.
         """
         LOGGER.info("0. Check if swap ID already exists")
         LOGGER.info("0. swap payload {}".format(swap_init_payload))
@@ -120,6 +119,9 @@ class AtomicSwapHandler(BasicHandler):
         swap_info.sender_address = TokenHandler.make_address_from_data(signer_pubkey)
         swap_info.sender_address_non_local = swap_init_payload.sender_address_non_local
         swap_info.receiver_address = swap_init_payload.receiver_address
+
+        if not TokenHandler.is_handler_address(swap_info.receiver_address):
+            raise InvalidTransaction('Receiver address is not a token address.')
 
         LOGGER.info("1. Ensure transaction initiated within an hour")
         # 1. Ensure transaction initiated within an hour

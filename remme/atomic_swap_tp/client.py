@@ -32,45 +32,51 @@ from remme.token_tp.handler import TokenHandler
 LOGGER = logging.getLogger(__name__)
 
 
+@attr_dict
 def get_swap_init_payload(args):
     payload = AtomicSwapInitPayload()
     LOGGER.info(args)
-    payload.receiver_address = args['receiver_address']
-    payload.sender_address_non_local = args['sender_address_non_local']
-    payload.amount = args['amount']
-    payload.swap_id = args['swap_id']
-    payload.secret_lock_optional_bob = args.get('secret_lock_optional_bob', "")
-    payload.email_address_encrypted_optional_alice = args.get('email_address_encrypted_optional_alice', "")
-    payload.created_at = args['created_at']
+    payload.receiver_address = args.receiver_address
+    payload.sender_address_non_local = args.sender_address_non_local
+    payload.amount = args.amount
+    payload.swap_id = args.swap_id
+    payload.secret_lock_optional_bob = getattr(args, 'secret_lock_optional_bob', "")
+    payload.email_address_encrypted_optional_alice = getattr(args, 'email_address_encrypted_optional_alice', "")
+    payload.created_at = args.created_at
 
     return payload
 
 
+@attr_dict
 def get_swap_approve_payload(args):
     payload = AtomicSwapApprovePayload()
-    payload.swap_id = args['swap_id']
+    payload.swap_id = args.swap_id
 
     return payload
 
 
+@attr_dict
 def get_swap_expire_payload(args):
     payload = AtomicSwapExpirePayload()
-    payload.swap_id = args['swap_id']
+    payload.swap_id = args.swap_id
 
     return payload
 
 
+@attr_dict
 def get_swap_set_secret_lock_payload(args):
     payload = AtomicSwapSetSecretLockPayload()
-    payload.swap_id = args['swap_id']
-    payload.secret_lock = args['secret_lock']
+    payload.swap_id = args.swap_id
+    payload.secret_lock = args.secret_lock
 
     return payload
 
+
+@attr_dict
 def get_swap_close_payload(args):
     payload = AtomicSwapClosePayload()
-    payload.swap_id = args['swap_id']
-    payload.secret_key = args['secret_key']
+    payload.swap_id = args.swap_id
+    payload.secret_key = args.secret_key
 
     return payload
 
@@ -113,6 +119,3 @@ class AtomicSwapClient(BasicClient):
         print(self.make_address_from_data(swap_id))
         atomic_swap_info.ParseFromString(self.get_value(self.make_address_from_data(swap_id)))
         return atomic_swap_info
-        # return self._send_transaction(AtomicSwapMethod.CLOSE, swap_close_payload,
-        #                               [self.make_address(swap_close_payload.swap_id),
-        #                                receiver_address])
