@@ -7,15 +7,9 @@ import base64
 
 import cbor
 
-from sawtooth_rest_api.state_delta_subscription_handler import (
-    StateDeltaSubscriberHandler, _message_to_dict)
+from sawtooth_rest_api.state_delta_subscription_handler import (StateDeltaSubscriberHandler, _message_to_dict)
 from sawtooth_rest_api.protobuf.validator_pb2 import Message
-from sawtooth_rest_api.protobuf import (
-    client_event_pb2,
-    client_batch_pb2,
-    client_list_control_pb2,
-    events_pb2,
-)
+from sawtooth_rest_api.protobuf import client_batch_pb2
 
 from .constants import Action, Entity, Status
 from .utils import deserialize, create_res_payload, validate_payload
