@@ -82,10 +82,12 @@ services:
     image: remme/remme-core:latest
 
   remme-ws:
-    build: ..
-    image: remme/remme-core:latest
+    build:
+      context: ..
+      dockerfile: Dockerfile.ws
+    image: remme/remme-core-ws:latest
     depends_on:
-      - rest-api
+      - remme-rest-api
     volumes:
       - user_keys:/root/.sawtooth/keys
       - ${REMME_CONTAINER_EXPORTS_FOLDER:-./default_export}:/root/usr/share

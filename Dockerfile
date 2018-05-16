@@ -13,15 +13,7 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-# FIXME: Need something to do with sdk and remove from here
-FROM hyperledger/sawtooth-rest-api:1.0.1
-RUN apt-get update
-RUN apt-get install -y python3-pip
-RUN apt-get install -y python3 python3-dev \
-     build-essential libssl-dev libffi-dev \
-     libxml2-dev libxslt1-dev zlib1g-dev
-
-# FROM python:3.6
+FROM python:3.6
 WORKDIR /root
 COPY ./requirements.txt .
 RUN pip3 install -r ./requirements.txt
