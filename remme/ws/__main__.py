@@ -3,9 +3,11 @@ import asyncio
 from aiohttp import web
 from zmq.asyncio import ZMQEventLoop
 from sawtooth_rest_api.messaging import Connection
+from remme.shared.logging import setup_logging
 from .ws import WsApplicationHandler
 
 if __name__ == '__main__':
+    setup_logging('remme.ws')
     parser = argparse.ArgumentParser()
     parser.add_argument('--port', type=int, default=8080)
     parser.add_argument('--bind', default='0.0.0.0')

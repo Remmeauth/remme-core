@@ -20,7 +20,5 @@ from remme.shared.logging import setup_logging
 from .test_token import *
 
 if __name__ == '__main__':
-    Path('/var/log/sawtooth').mkdir(parents=True, exist_ok=True)
-    Path('/var/log/sawtooth/remme-debug.log').touch(exist_ok=True)
-    setup_logging('remme', 2)
+    setup_logging('remme.tests', 2)
     unittest.main()
