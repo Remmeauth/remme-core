@@ -81,6 +81,19 @@ services:
     build: ..
     image: remme/remme-core:latest
 
+  remme-ws:
+    build:
+      context: ..
+      dockerfile: Dockerfile.ws
+    image: remme/remme-core-ws:latest
+    depends_on:
+      - remme-rest-api
+    ports:
+      - '${REMME_WS_PORT:-9080}:9080'
+    env_file:
+      - ../.env
+    entrypoint: python3 -m remme.ws --port=9080
+
   remme-rest-api:
     build: ..
     image: remme/remme-core:latest

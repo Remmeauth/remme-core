@@ -21,6 +21,11 @@ include .env
 
 .PHONY: release
 
+restart_dev:
+	docker-compose -f docker-compose/dev.yml -f docker-compose/genesis.yml -f docker-compose/run.yml down
+	docker-compose -f docker-compose/dev.yml -f docker-compose/genesis.yml -f docker-compose/run.yml build
+	docker-compose -f docker-compose/dev.yml -f docker-compose/genesis.yml -f docker-compose/run.yml up -d
+
 run_dev_no_genesis: build_docker
 	docker-compose -f docker-compose/dev.yml -f docker-compose/run.yml up
 

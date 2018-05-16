@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------
+
 import logging
+from pathlib import Path
 from sawtooth_sdk.processor.log import init_console_logging
 from sawtooth_sdk.processor.log import log_configuration
 from sawtooth_sdk.processor.config import get_log_config
@@ -21,6 +23,9 @@ from sawtooth_sdk.processor.config import get_log_dir
 LOGGER = logging.getLogger(__name__)
 
 def setup_logging(name, verbosity=2):
+    Path('/var/log/sawtooth').mkdir(parents=True, exist_ok=True)
+    Path('/var/log/sawtooth/{}-debug.log'.format(name)).touch(exist_ok=True)
+
     log_config = get_log_config(filename='{}_log_config.toml'.format(name))
 
     if log_config is None:
