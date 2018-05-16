@@ -5,8 +5,5 @@
 keys/
 *.pyc
 *.DS_Store
-remme/protos
-remme/genesis/data
-remme/genesis/batch/token-proposal.batch
 docs/generated
 docs/README.rst
