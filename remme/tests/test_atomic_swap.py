@@ -23,7 +23,7 @@ from remme.protos.atomic_swap_pb2 import AtomicSwapMethod, AtomicSwapInfo
 from remme.protos.settings_pb2 import Setting
 from remme.protos.token_pb2 import TokenMethod, GenesisStatus, Account
 from remme.settings import SETTINGS_SWAP_COMMISSION
-from remme.settings_tp.handler import _make_settings_key, get_setting_from_key_value
+from remme.settings.helper import _make_settings_key, get_setting_from_key_value
 from remme.shared.logging import test
 from remme.shared.utils import generate_random_key, hash256, AttrDict
 from remme.tests.test_helper import HelperTestCase

@@ -25,7 +25,6 @@ from remme.shared.logging import setup_logging
 
 TP_HANDLERS = [AccountHandler, CertificateHandler, AtomicSwapHandler]
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Transaction processor.')
     parser.add_argument('endpoint')

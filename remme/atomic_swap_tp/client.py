@@ -23,7 +23,7 @@ from remme.protos.atomic_swap_pb2 import AtomicSwapInitPayload, AtomicSwapExpire
     AtomicSwapMethod, AtomicSwapInfo, AtomicSwapSetSecretLockPayload, AtomicSwapApprovePayload
 from remme.protos.certificate_pb2 import NewCertificatePayload, CertificateMethod
 from remme.settings import GENESIS_ADDRESS, SETTINGS_SWAP_COMMISSION, ZERO_ADDRESS
-from remme.settings_tp.handler import _make_settings_key
+from remme.settings.helper import _make_settings_key
 from remme.shared.basic_client import BasicClient
 from remme.certificate.handler import CertificateHandler
 from remme.shared.utils import attr_dict

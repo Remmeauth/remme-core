@@ -31,7 +31,7 @@ from remme.protos.atomic_swap_pb2 import AtomicSwapMethod, AtomicSwapInitPayload
 from remme.protos.token_pb2 import TransferPayload
 from remme.settings import SETTINGS_KEY_PUB_ENCRYPTION_KEY, SETTINGS_KEY_GENESIS_OWNERS, \
     SETTINGS_SWAP_COMMISSION, ZERO_ADDRESS
-from remme.settings_tp.handler import _make_settings_key, _get_setting_value
+from remme.settings.helper import _make_settings_key, _get_setting_value
 from remme.shared.basic_handler import BasicHandler, get_data
 from remme.shared.utils import hash256
 from remme.token_tp.client import TokenClient

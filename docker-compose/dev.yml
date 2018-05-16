@@ -19,6 +19,7 @@ services:
   validator:
     image: hyperledger/sawtooth-validator:1.0.1
     depends_on:
+      - settings-tp
       - poet-validator-registry
     volumes:
       - validator_keys:/etc/sawtooth/keys
@@ -49,6 +50,10 @@ services:
           --minimum-peer-connectivity $$REMME_MINIMUM_PEERS_CONNECTIVITY \
           $$ADDITIONAL_ARGS
       "
+
+  settings-tp:
+    image: hyperledger/sawtooth-settings-tp:1.0.1
+    entrypoint: settings-tp -vv -C tcp://validator:4004
 
   poet-validator-registry:
     image: hyperledger/sawtooth-poet-validator-registry-tp:1.0.1

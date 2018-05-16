@@ -19,7 +19,7 @@ from sawtooth_sdk.processor.exceptions import InvalidTransaction
 from remme.protos.token_pb2 import Account, GenesisStatus, TokenMethod, GenesisPayload, \
     TransferPayload
 from remme.settings import SETTINGS_KEY_GENESIS_OWNERS, GENESIS_ADDRESS, ZERO_ADDRESS
-from remme.settings_tp.handler import _get_setting_value
+from remme.settings.helper import _get_setting_value
 from remme.shared.basic_handler import *
 from remme.shared.singleton import singleton
 
