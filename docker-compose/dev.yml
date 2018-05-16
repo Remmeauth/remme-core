@@ -88,14 +88,11 @@ services:
     image: remme/remme-core-ws:latest
     depends_on:
       - remme-rest-api
-    volumes:
-      - user_keys:/root/.sawtooth/keys
-      - ${REMME_CONTAINER_EXPORTS_FOLDER:-./default_export}:/root/usr/share
     ports:
       - '${REMME_WS_PORT:-9080}:9080'
     env_file:
       - ../.env
-    entrypoint: python3 -m remme.rest_api --server_type=ws --port=9080
+    entrypoint: python3 -m remme.ws --port=9080
 
   remme-rest-api:
     build: ..
