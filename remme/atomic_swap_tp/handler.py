@@ -127,7 +127,7 @@ class AtomicSwapHandler(BasicHandler):
         # 1. Ensure transaction initiated within an hour
         swap_info.secret_lock = swap_init_payload.secret_lock_optional_bob
         created_at = self.get_datetime_from_timestamp(swap_info.created_at)
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
 
         if not (now - datetime.timedelta(hours=1) < created_at < now):
             raise InvalidTransaction('Transaction is created a long time ago or timestamp is assigned set.')
@@ -193,7 +193,7 @@ class AtomicSwapHandler(BasicHandler):
         if TokenHandler.make_address_from_data(signer_pubkey) != swap_info.sender_address:
             raise InvalidTransaction('Signer is not the one who opened the swap.')
 
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
         created_at = self.get_datetime_from_timestamp(swap_info.created_at)
         time_delta = INITIATOR_TIME_DELTA_LOCK if swap_info.is_initiator else NON_INITIATOR_TIME_DELTA_LOCK
         if (created_at + time_delta) > now:
