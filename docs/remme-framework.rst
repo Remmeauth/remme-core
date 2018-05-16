@@ -22,7 +22,7 @@ Each **family** defines its own transaction types by using "Method" structure as
 
 .. code-block:: java
 
-    message TokenMethod {
+    message AccountMethod {
         enum Method {
             TRANSFER = 0;
             GENESIS = 1;
@@ -61,7 +61,7 @@ It is very important to predefine FAMILY_NAME and a FAMILY_VERSIONS as such:
 
 .. code-block:: python
 
-    FAMILY_NAME = 'token'
+    FAMILY_NAME = 'account'
     FAMILY_VERSIONS = ['0.1'] // helps to keep track of handler updates accross the network
 
 and pass them to parent class :code:`basic_handler.py` as such:
@@ -86,7 +86,7 @@ The key way to enable relevant transaction type processing is to provide a custo
 
     def get_state_processor(self):
         return {
-            TokenMethod.TRANSFER: {
+            AccountMethod.TRANSFER: {
                 'pb_class': TransferPayload,
                 'processor': self._transfer
             }

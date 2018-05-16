@@ -16,7 +16,7 @@
 import logging
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
-from remme.protos.token_pb2 import Account, GenesisStatus, TokenMethod, GenesisPayload, \
+from remme.protos.account_pb2 import Account, GenesisStatus, AccountMethod, GenesisPayload, \
     TransferPayload
 from remme.shared.basic_handler import *
 from remme.shared.singleton import singleton
@@ -25,24 +25,24 @@ LOGGER = logging.getLogger(__name__)
 
 ZERO_ADDRESS = '0' * 64
 
-FAMILY_NAME = 'token'
+FAMILY_NAME = 'account'
 FAMILY_VERSIONS = ['0.1']
 
 
 # TODO: ensure receiver_account.balance += transfer_payload.amount is within uint64
 @singleton
-class TokenHandler(BasicHandler):
+class AccountHandler(BasicHandler):
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
         self.zero_address = self.make_address(ZERO_ADDRESS)
 
     def get_state_processor(self):
         return {
-            TokenMethod.TRANSFER: {
+            AccountMethod.TRANSFER: {
                 'pb_class': TransferPayload,
                 'processor': self._transfer
             },
-            TokenMethod.GENESIS: {
+            AccountMethod.GENESIS: {
                 'pb_class': GenesisPayload,
                 'processor': self._genesis
             }

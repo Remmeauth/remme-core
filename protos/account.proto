@@ -15,7 +15,7 @@
 
 syntax = "proto3";
 
-message TokenMethod {
+message AccountMethod {
     enum Method {
         TRANSFER = 0;
         GENESIS = 1;
@@ -33,6 +33,7 @@ message GenesisPayload {
 
 message Account {
     uint64 balance = 1;
+    repeated string certificates = 2;
 }
 
 message GenesisStatus {

@@ -14,26 +14,26 @@
 # ------------------------------------------------------------------------
 import logging
 import inspect
-from remme.protos.token_pb2 import TokenMethod, GenesisStatus, Account
+from remme.protos.account_pb2 import AccountMethod, GenesisStatus, Account
 from remme.shared.logging import test
 from remme.tests.test_helper import HelperTestCase
-from remme.token.token_client import TokenClient
-from remme.token.token_handler import ZERO_ADDRESS, TokenHandler
+from remme.account.client import AccountClient
+from remme.account.handler import ZERO_ADDRESS, AccountHandler
 
 LOGGER = logging.getLogger(__name__)
 
 
-class TokenTestCase(HelperTestCase):
+class AccountTestCase(HelperTestCase):
     @classmethod
     def setUpClass(cls):
-        super().setUpClass(TokenHandler)
+        super().setUpClass(AccountHandler)
 
     @test
     def test_genesis_empty(self):
         TOTAL_SUPPLY = 10000
         zero_address = self.handler.make_address(ZERO_ADDRESS)
 
-        self.send_transaction(TokenMethod.GENESIS, TokenClient.get_genesis_payload(TOTAL_SUPPLY),
+        self.send_transaction(AccountMethod.GENESIS, AccountClient.get_genesis_payload(TOTAL_SUPPLY),
                               [zero_address, self.account_address1])
 
         self.expect_get({self.account_address1: None})
@@ -56,7 +56,7 @@ class TokenTestCase(HelperTestCase):
         TOTAL_SUPPLY = 10000
         zero_address = self.handler.make_address(ZERO_ADDRESS)
 
-        self.send_transaction(TokenMethod.GENESIS, TokenClient.get_genesis_payload(TOTAL_SUPPLY),
+        self.send_transaction(AccountMethod.GENESIS, AccountClient.get_genesis_payload(TOTAL_SUPPLY),
                               [zero_address, self.account_address1])
 
         genesis_status = GenesisStatus()
@@ -72,15 +72,15 @@ class TokenTestCase(HelperTestCase):
         ACCOUNT_AMOUNT1 = 1000
         ACCOUNT_AMOUNT2 = 500
         TRANSFER_VALUE = ACCOUNT_AMOUNT1
-        self.send_transaction(TokenMethod.TRANSFER,
-                              TokenClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
+        self.send_transaction(AccountMethod.TRANSFER,
+                              AccountClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
                               [self.account_address1, self.account_address2])
-        self.expect_get({self.account_address1: TokenClient.get_account_model(ACCOUNT_AMOUNT1)})
-        self.expect_get({self.account_address2: TokenClient.get_account_model(ACCOUNT_AMOUNT2)})
+        self.expect_get({self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1)})
+        self.expect_get({self.account_address2: AccountClient.get_account_model(ACCOUNT_AMOUNT2)})
 
         self.expect_set({
-            self.account_address1: TokenClient.get_account_model(ACCOUNT_AMOUNT1-TRANSFER_VALUE),
-            self.account_address2: TokenClient.get_account_model(ACCOUNT_AMOUNT2+TRANSFER_VALUE)
+            self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1-TRANSFER_VALUE),
+            self.account_address2: AccountClient.get_account_model(ACCOUNT_AMOUNT2+TRANSFER_VALUE)
         })
 
         self.expect_ok()
@@ -90,11 +90,11 @@ class TokenTestCase(HelperTestCase):
         ACCOUNT_AMOUNT1 = 200
         ACCOUNT_AMOUNT2 = 500
         TRANSFER_VALUE = ACCOUNT_AMOUNT1 + 1
-        self.send_transaction(TokenMethod.TRANSFER,
-                              TokenClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
+        self.send_transaction(AccountMethod.TRANSFER,
+                              AccountClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
                               [self.account_address1, self.account_address2])
-        self.expect_get({self.account_address1: TokenClient.get_account_model(ACCOUNT_AMOUNT1)})
-        self.expect_get({self.account_address2: TokenClient.get_account_model(ACCOUNT_AMOUNT2)})
+        self.expect_get({self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1)})
+        self.expect_get({self.account_address2: AccountClient.get_account_model(ACCOUNT_AMOUNT2)})
 
         self.expect_invalid_transaction()
 
@@ -102,11 +102,11 @@ class TokenTestCase(HelperTestCase):
     def test_transfer_fail_no_state_address1(self):
         ACCOUNT_AMOUNT2 = 500
         TRANSFER_VALUE = 200
-        self.send_transaction(TokenMethod.TRANSFER,
-                              TokenClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
+        self.send_transaction(AccountMethod.TRANSFER,
+                              AccountClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
                               [self.account_address1, self.account_address2])
         self.expect_get({self.account_address1: None})
-        self.expect_get({self.account_address2: TokenClient.get_account_model(ACCOUNT_AMOUNT2)})
+        self.expect_get({self.account_address2: AccountClient.get_account_model(ACCOUNT_AMOUNT2)})
 
         self.expect_invalid_transaction()
 
@@ -114,15 +114,15 @@ class TokenTestCase(HelperTestCase):
     def test_transfer_fail_no_state_address2(self):
         ACCOUNT_AMOUNT1 = 500
         TRANSFER_VALUE = 200
-        self.send_transaction(TokenMethod.TRANSFER,
-                              TokenClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
+        self.send_transaction(AccountMethod.TRANSFER,
+                              AccountClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
                               [self.account_address1, self.account_address2])
-        self.expect_get({self.account_address1: TokenClient.get_account_model(ACCOUNT_AMOUNT1)})
+        self.expect_get({self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1)})
         self.expect_get({self.account_address2: None})
 
         self.expect_set({
-            self.account_address1: TokenClient.get_account_model(ACCOUNT_AMOUNT1 - TRANSFER_VALUE),
-            self.account_address2: TokenClient.get_account_model(0 + TRANSFER_VALUE)
+            self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1 - TRANSFER_VALUE),
+            self.account_address2: AccountClient.get_account_model(0 + TRANSFER_VALUE)
         })
 
         self.expect_ok()
@@ -131,10 +131,10 @@ class TokenTestCase(HelperTestCase):
     def test_transfer_fail_to_oneself(self):
         ACCOUNT_AMOUNT1 = 500
         TRANSFER_VALUE = 200
-        self.send_transaction(TokenMethod.TRANSFER,
-                              TokenClient.get_transfer_payload(self.account_address1, TRANSFER_VALUE),
+        self.send_transaction(AccountMethod.TRANSFER,
+                              AccountClient.get_transfer_payload(self.account_address1, TRANSFER_VALUE),
                               [self.account_address1, self.account_address2])
-        self.expect_get({self.account_address1: TokenClient.get_account_model(ACCOUNT_AMOUNT1)})
+        self.expect_get({self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1)})
 
         self.expect_invalid_transaction()
 
@@ -142,9 +142,9 @@ class TokenTestCase(HelperTestCase):
     def test_transfer_fail_to_zeroaddress(self):
         ACCOUNT_AMOUNT1 = 500
         TRANSFER_VALUE = 200
-        self.send_transaction(TokenMethod.TRANSFER,
-                              TokenClient.get_transfer_payload(self.handler.make_address(ZERO_ADDRESS), TRANSFER_VALUE),
+        self.send_transaction(AccountMethod.TRANSFER,
+                              AccountClient.get_transfer_payload(self.handler.make_address(ZERO_ADDRESS), TRANSFER_VALUE),
                               [self.account_address1, self.account_address2])
-        self.expect_get({self.account_address1: TokenClient.get_account_model(ACCOUNT_AMOUNT1)})
+        self.expect_get({self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1)})
 
         self.expect_invalid_transaction()

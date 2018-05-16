@@ -15,17 +15,17 @@
 
 import json
 
-from remme.protos.token_pb2 import TokenMethod, GenesisPayload, TransferPayload
+from remme.protos.account_pb2 import AccountMethod, GenesisPayload, TransferPayload, Account
 from remme.shared.basic_client import BasicClient
-from remme.token.token_handler import TokenHandler
 from remme.shared.exceptions import KeyNotFound
 
-from remme.protos.token_pb2 import Account
+
+from .handler import AccountHandler
 
 
-class TokenClient(BasicClient):
+class AccountClient(BasicClient):
     def __init__(self):
-        super().__init__(TokenHandler)
+        super().__init__(AccountHandler)
 
     def _send_transaction(self, method, data_pb, extra_addresses_input_output):
         addresses_input_output = [self.make_address_from_data(self._signer.get_public_key().as_hex())]
@@ -59,7 +59,7 @@ class TokenClient(BasicClient):
         extra_addresses_input_output = [address_to]
         transfer = self.get_transfer_payload(address_to, value)
 
-        status = self._send_transaction(TokenMethod.TRANSFER, transfer, extra_addresses_input_output)
+        status = self._send_transaction(AccountMethod.TRANSFER, transfer, extra_addresses_input_output)
 
         return json.loads(status)
 
@@ -67,6 +67,13 @@ class TokenClient(BasicClient):
         account = Account()
         account.ParseFromString(self.get_value(address))
         return account
+
+    def get_certificates(self, address):
+        try:
+            account = self.get_account(address)
+            return list(account.certificates)
+        except KeyNotFound:
+            return []
 
     def get_balance(self, address):
         try:

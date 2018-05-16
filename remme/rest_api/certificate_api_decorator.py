@@ -1,7 +1,7 @@
 from remme.certificate.certificate_handler import CERT_STORE_PRICE, CERT_ORGANIZATION, CERT_MAX_VALIDITY
 
-from remme.token.token_client import TokenClient
-from remme.token.token_handler import TokenHandler
+from remme.account.client import AccountClient
+from remme.account.handler import AccountHandler
 from remme.shared.exceptions import KeyNotFound
 
 from remme.certificate.certificate_client import CertificateClient
@@ -193,17 +193,17 @@ def generate_key_export(key, encryption_algorithm):
 
 
 def is_valid_token_balance():
-    token_client = TokenClient()
-    signer_pub_key = token_client.get_signer().get_public_key().as_hex()
-    signer_balance = token_client.get_balance(TokenHandler.make_address_from_data(signer_pub_key))
+    account_client = AccountClient()
+    signer_pub_key = account_client.get_signer().get_public_key().as_hex()
+    signer_balance = account_client.get_balance(AccountHandler.make_address_from_data(signer_pub_key))
     return signer_balance >= CERT_STORE_PRICE
 
 
 def certificate_already_exist(cert):
-    token_client = TokenClient()
-    address = token_client.make_address_from_data(cert.public_bytes(serialization.Encoding.DER).hex())
+    account_client = AccountClient()
+    address = account_client.make_address_from_data(cert.public_bytes(serialization.Encoding.DER).hex())
     try:
-        value = token_client.get_value(address)
+        value = account_client.get_value(address)
     except KeyNotFound:
         return False
     return True
