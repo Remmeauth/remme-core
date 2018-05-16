@@ -13,3 +13,4 @@ aiohttp==3.2.1
 aiohttp-jinja2==1.0.0
 ujson==1.35
 cbor==1.0.0
+flask-cors==3.0.4
