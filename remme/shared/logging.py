@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------
+
 import logging
 from pathlib import Path
 from sawtooth_sdk.processor.log import init_console_logging
