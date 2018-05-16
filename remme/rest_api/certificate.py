@@ -17,7 +17,6 @@ import os
 import re
 import hashlib
 from connexion import NoContent
-from cryptography.hazmat.primitives import serialization
 
 from remme.certificate.certificate_client import CertificateClient
 from remme.rest_api.certificate_api_decorator import certificate_put_request, \
@@ -28,11 +27,13 @@ from remme.shared.exceptions import KeyNotFound
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from OpenSSL.crypto import PKCS12, X509, PKey
 
 PATH_TO_EXPORTS_FOLDER = '/root/usr/share'
 HOST_FOLDER_EXPORTS_PATH_ENV_KEY = 'REMME_CONTAINER_EXPORTS_FOLDER'
-
+REMME_CA_KEY_FILE = 'REMME_CA_KEY.pem'
 
 # region Endpoints
 
@@ -185,11 +186,35 @@ def get_certificate_signature(key, rem_sig):
 
 
 # TODO change this method to return node keys (ECDSA)
-def get_keys_to_sign():
-    return rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=1024,
-        backend=default_backend()
+
+def save_key(pk, filename):
+    pem = pk.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption()
     )
+    with open(filename, 'wb') as pem_out:
+        pem_out.write(pem)
+
+
+def load_key(filename):
+    if not os.path.isfile(filename):
+        return None
+    with open(filename, 'rb') as pem_in:
+        pemlines = pem_in.read()
+    private_key = load_pem_private_key(pemlines, None, default_backend())
+    return private_key
+
+
+def get_keys_to_sign():
+    pk = load_key(REMME_CA_KEY_FILE)
+    if not pk:
+        pk = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=1024,
+            backend=default_backend()
+        )
+        save_key(pk, REMME_CA_KEY_FILE)
+    return pk
 
 # endregion

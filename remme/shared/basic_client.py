@@ -42,18 +42,11 @@ def _sha512(data):
 
 
 class BasicClient:
-    def __init__(self, family_handler, keyfile=PRIV_KEY_FILE):
+    def __init__(self, family_handler):
         self.url = REST_API_URL
         self._family_handler = family_handler
 
-        try:
-            with open(keyfile) as fd:
-                private_key_str = fd.read().strip()
-                fd.close()
-        except OSError as err:
-            raise ClientException(
-                'Failed to read private key: {}'.format(str(err)))
-
+        private_key_str = self.get_signer_priv_key_from_file()
         try:
             private_key = Secp256k1PrivateKey.from_hex(private_key_str)
         except ParseError as e:
@@ -62,6 +55,16 @@ class BasicClient:
 
         self._signer = CryptoFactory(
             create_context('secp256k1')).new_signer(private_key)
+
+    def get_signer_priv_key_from_file(self, keyfile=PRIV_KEY_FILE):
+        try:
+            with open(keyfile) as fd:
+                private_key_str = fd.read().strip()
+                fd.close()
+        except OSError as err:
+            raise ClientException(
+                'Failed to read private key: {}'.format(str(err)))
+        return private_key_str
 
     def make_address(self, prefix):
         return self._family_handler.make_address(prefix)
