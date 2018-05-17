@@ -13,12 +13,12 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-from pathlib import Path
-import unittest
+from remme.account.client import AccountClient
 
-from remme.shared.logging import setup_logging
-from .test_account import *
 
-if __name__ == '__main__':
-    setup_logging('remme.tests', 2)
-    unittest.main()
+def get(pub_key_user):
+    client = AccountClient()
+    address = client.make_address_from_data(pub_key_user)
+    print('Reading from address: {}'.format(address))
+    certificates = client.get_certificates(address)
+    return {'pubkey': pub_key_user, 'certificates': certificates}

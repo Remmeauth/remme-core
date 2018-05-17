@@ -20,13 +20,14 @@ from remme.protos.certificate_pb2 import CertificateStorage, \
     NewCertificatePayload, RevokeCertificatePayload, CertificateMethod
 from remme.shared.basic_client import BasicClient
 from remme.certificate.certificate_handler import CertificateHandler
-from remme.token.token_handler import TokenHandler
+from remme.account.handler import AccountHandler
 from remme.certificate.certificate_handler import CERT_ORGANIZATION, CERT_MAX_VALIDITY
 
 from cryptography.x509.oid import NameOID
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
+
 
 class CertificateClient(BasicClient):
     def __init__(self):
@@ -79,7 +80,7 @@ class CertificateClient(BasicClient):
                                                    cert_signer_public_key)
 
         crt_address = self.make_address_from_data(certificate_raw)
-        account_address = TokenHandler.make_address_from_data(self._signer.get_public_key().as_hex())
+        account_address = AccountHandler.make_address_from_data(self._signer.get_public_key().as_hex())
         status = self._send_transaction(CertificateMethod.STORE, payload, [crt_address, account_address])
         return json.loads(status), crt_address
 

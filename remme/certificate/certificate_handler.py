@@ -27,7 +27,7 @@ from sawtooth_sdk.processor.exceptions import InvalidTransaction
 from sawtooth_signing.secp256k1 import Secp256k1PublicKey, Secp256k1Context
 
 from remme.shared.basic_handler import BasicHandler, get_data
-from remme.token.token_handler import TokenHandler
+from remme.account.handler import AccountHandler
 from remme.protos.certificate_pb2 import CertificateStorage, \
     NewCertificatePayload, RevokeCertificatePayload, CertificateMethod
 from remme.shared.singleton import singleton
@@ -118,13 +118,16 @@ class CertificateHandler(BasicHandler):
         data.owner = signer_pubkey
         data.revoked = False
 
-        account_address, account = TokenHandler.get_account_by_pub_key(context, signer_pubkey)
+        account_address, account = AccountHandler.get_account_by_pub_key(context, signer_pubkey)
         if account.balance < CERT_STORE_PRICE:
             raise InvalidTransaction('Not enough tokens to register a new certificate. Current balance: {}'
                                      .format(account.balance))
         account.balance -= CERT_STORE_PRICE
 
-        LOGGER.info('Registered a new certificate on address {}. Fingerprint: {}'.format(address, fingerprint))
+        if address not in account.certificates:
+            account.certificates.append(address)
+
+        LOGGER.info('Registered a new certificate on address {}. Fingerprint: {}. Pub key: {}.'.format(address, fingerprint, signer_pubkey))
 
         return {address: data,
                 account_address: account}

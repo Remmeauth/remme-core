@@ -70,7 +70,7 @@ Example usage of :code:`send_transaction` and :code:`get_value`:
         addresses_input_output = [self.address_from, address_to]
         transfer = self.get_transfer_payload(address_to, value)
 
-        status = self.send_transaction(TokenMethod.TRANSFER, transfer, addresses_input_output)
+        status = self.send_transaction(AccountMethod.TRANSFER, transfer, addresses_input_output)
         return json.loads(status)
 
     def get_account(self, address):

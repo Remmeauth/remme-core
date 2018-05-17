@@ -82,6 +82,33 @@ paths:
               - balance
         500:
           $ref: '#/responses/500GeneralError'
+  /user/{pub_key_user}/certificates:
+    get:
+      summary: Retrieve the certificates of the specified user
+      parameters:
+        - name: pub_key_user
+          description: The public key of the user to get the certificates
+          in: path
+          type: string
+          pattern: '^[0-9a-f]{66}$'
+          required: true
+      responses:
+        200:
+          description: The addresses of certificates for the specified user
+          schema:
+            properties:
+              pub_key:
+                type: string
+                description: The hex-encoded public key of the user
+                pattern: '^[0-9a-f]{66}$'
+              certificates:
+                type: array
+                description: The list of addresses of the certificates
+            required:
+              - pub_key
+              - certificates
+        500:
+          $ref: '#/responses/500GeneralError'
   /certificate/p12:
     put:
       operationId: remme.rest_api.certificate.put_p12
