@@ -143,300 +143,375 @@ class AtomicSwapTestCase(HelperTestCase):
         return context
 
     # TEST: INIT
-    # @test
-    # def test_swap_init_success(self):
-    #     # Bob init
-    #
-    #     context = self.get_context()
-    #     init_data = {
-    #         "receiver_address": self.account_address2,
-    #         "sender_address_non_local": context.sender_address_non_local,
-    #         "amount": context.AMOUNT,
-    #         "swap_id": context.swap_id,
-    #         "secret_lock_optional_bob": context.secret_lock,
-    #         "email_address_encrypted_optional_alice": context.email_address,
-    #         "created_at": context.created_at,
-    #     }
-    #
-    #     context.client.swap_init(get_swap_init_payload(init_data))
-    #
-    #     self.expect_get({context.swap_address: None})
-    #
-    #     self.expect_get({
-    #         _make_settings_key(SETTINGS_SWAP_COMMISSION):
-    #             get_setting_from_key_value(SETTINGS_SWAP_COMMISSION, context.COMMISSION)
-    #     })
-    #
-    #     TOTAL_TRANSFERED = context.AMOUNT+context.COMMISSION
-    #     self.expect_get({self.account_address1: TokenClient.get_account_model(TOTAL_TRANSFERED)})
-    #
-    #     updated_state = self.transfer(self.account_address1, TOTAL_TRANSFERED, ZERO_ADDRESS, 0, TOTAL_TRANSFERED)
-    #
-    #     self.expect_set({
-    #         **{context.swap_address: context.swap_info},
-    #         **updated_state
-    #     })
-    #
-    #     self.expect_ok()
-    #
-    # @test
-    # def test_swap_init_fail_swap_exists(self):
-    #     context = self.get_context()
-    #     init_data = {
-    #         "receiver_address": self.account_address2,
-    #         "sender_address_non_local": context.sender_address_non_local,
-    #         "amount": context.AMOUNT,
-    #         "swap_id": context.swap_id,
-    #         "secret_lock_optional_bob": context.secret_lock,
-    #         "email_address_encrypted_optional_alice": context.email_address,
-    #         "created_at": context.created_at,
-    #     }
-    #
-    #     context.client.swap_init(get_swap_init_payload(init_data))
-    #
-    #     self.expect_get({context.swap_address: context.swap_info})
-    #
-    #     self.expect_invalid_transaction()
-    #
-    # @test
-    # def test_swap_init_fail_created_long_time_ago(self):
-    #     context = self.get_context()
-    #     init_data = {
-    #         "receiver_address": self.account_address2,
-    #         "sender_address_non_local": context.sender_address_non_local,
-    #         "amount": context.AMOUNT,
-    #         "swap_id": context.swap_id,
-    #         "secret_lock_optional_bob": context.secret_lock,
-    #         "email_address_encrypted_optional_alice": context.email_address,
-    #         "created_at": int((datetime.datetime.now() - datetime.timedelta(days=2)).timestamp()),
-    #     }
-    #
-    #     context.client.swap_init(get_swap_init_payload(init_data))
-    #
-    #     self.expect_get({context.swap_address: context.swap_info})
-    #
-    #     self.expect_invalid_transaction()
-    #
-    # @test
-    # def test_swap_init_fail_wrong_receiver_address(self):
-    #     context = self.get_context()
-    #     init_data = {
-    #         "receiver_address": context.swap_address,
-    #         "sender_address_non_local": context.sender_address_non_local,
-    #         "amount": context.AMOUNT,
-    #         "swap_id": context.swap_id,
-    #         "secret_lock_optional_bob": context.secret_lock,
-    #         "email_address_encrypted_optional_alice": context.email_address,
-    #         "created_at": int((datetime.datetime.now() - datetime.timedelta(days=2)).timestamp()),
-    #     }
-    #
-    #     context.client.swap_init(get_swap_init_payload(init_data))
-    #
-    #     self.expect_get({context.swap_address: context.swap_info})
-    #
-    #     self.expect_invalid_transaction()
+    @test
+    def test_swap_init_success(self):
+        # Bob init
+
+        context = self.get_context()
+        init_data = {
+            "receiver_address": self.account_address2,
+            "sender_address_non_local": context.sender_address_non_local,
+            "amount": context.AMOUNT,
+            "swap_id": context.swap_id,
+            "secret_lock_optional_bob": context.secret_lock,
+            "email_address_encrypted_optional_alice": context.email_address,
+            "created_at": context.created_at,
+        }
+
+        context.client.swap_init(get_swap_init_payload(init_data))
+
+        self.expect_get({context.swap_address: None})
+
+        self.expect_get({
+            _make_settings_key(SETTINGS_SWAP_COMMISSION):
+                get_setting_from_key_value(SETTINGS_SWAP_COMMISSION, context.COMMISSION)
+        })
+
+        TOTAL_TRANSFERED = context.AMOUNT+context.COMMISSION
+        self.expect_get({self.account_address1: TokenClient.get_account_model(TOTAL_TRANSFERED)})
+
+        updated_state = self.transfer(self.account_address1, TOTAL_TRANSFERED, ZERO_ADDRESS, 0, TOTAL_TRANSFERED)
+
+        self.expect_set({
+            **{context.swap_address: context.swap_info},
+            **updated_state
+        })
+
+        self.expect_ok()
+
+    @test
+    def test_swap_init_fail_swap_exists(self):
+        context = self.get_context()
+        init_data = {
+            "receiver_address": self.account_address2,
+            "sender_address_non_local": context.sender_address_non_local,
+            "amount": context.AMOUNT,
+            "swap_id": context.swap_id,
+            "secret_lock_optional_bob": context.secret_lock,
+            "email_address_encrypted_optional_alice": context.email_address,
+            "created_at": context.created_at,
+        }
+
+        context.client.swap_init(get_swap_init_payload(init_data))
+
+        self.expect_get({context.swap_address: context.swap_info})
+
+        self.expect_invalid_transaction()
+
+    @test
+    def test_swap_init_fail_created_long_time_ago(self):
+        context = self.get_context()
+        init_data = {
+            "receiver_address": self.account_address2,
+            "sender_address_non_local": context.sender_address_non_local,
+            "amount": context.AMOUNT,
+            "swap_id": context.swap_id,
+            "secret_lock_optional_bob": context.secret_lock,
+            "email_address_encrypted_optional_alice": context.email_address,
+            "created_at": int((datetime.datetime.now() - datetime.timedelta(days=2)).timestamp()),
+        }
+
+        context.client.swap_init(get_swap_init_payload(init_data))
+
+        self.expect_get({context.swap_address: context.swap_info})
+
+        self.expect_invalid_transaction()
+
+    @test
+    def test_swap_init_fail_wrong_receiver_address(self):
+        context = self.get_context()
+        init_data = {
+            "receiver_address": context.swap_address,
+            "sender_address_non_local": context.sender_address_non_local,
+            "amount": context.AMOUNT,
+            "swap_id": context.swap_id,
+            "secret_lock_optional_bob": context.secret_lock,
+            "email_address_encrypted_optional_alice": context.email_address,
+            "created_at": int((datetime.datetime.utcnow() - datetime.timedelta(days=2)).timestamp()),
+        }
+
+        context.client.swap_init(get_swap_init_payload(init_data))
+
+        self.expect_get({context.swap_address: context.swap_info})
+
+        self.expect_invalid_transaction()
 
     # END TEST
 
     # TEST: CLOSE
 
-    # @test
-    # def test_swap_close_success(self):
-    #     context = self.get_context()
-    #     close_data = {
-    #         "swap_id": context.swap_id,
-    #         "secret_key": context.secret_key
-    #     }
-    #
-    #     context.client.swap_close(get_swap_close_payload(close_data), context.swap_info.receiver_address)
-    #
-    #     self.expect_get({context.swap_address: context.swap_info})
-    #     updated_state = self.transfer(ZERO_ADDRESS, context.AMOUNT, self.account_address2, 0, context.AMOUNT)
-    #
-    #     swap_info = context.swap_info
-    #     swap_info.is_closed = True
-    #
-    #     self.expect_set({
-    #         **{context.swap_address: swap_info},
-    #         **updated_state
-    #     })
-    #
-    #     self.expect_ok()
-    #
-    # @test
-    # def test_swap_close_fail_no_secret_lock(self):
-    #     context = self.get_context()
-    #     close_data = {
-    #         "swap_id": context.swap_id,
-    #         "secret_key": context.secret_key
-    #     }
-    #
-    #     context.client.swap_close(get_swap_close_payload(close_data), context.swap_info.receiver_address)
-    #
-    #     context.swap_info.secret_lock = ""
-    #     self.expect_get({context.swap_address: context.swap_info})
-    #     self.expect_invalid_transaction()
-    #
-    # @test
-    # def test_swap_close_fail_wrong_secret_key(self):
-    #     context = self.get_context()
-    #     close_data = {
-    #         "swap_id": context.swap_id,
-    #         "secret_key": context.secret_key[:-1] + '1'
-    #     }
-    #
-    #     context.client.swap_close(get_swap_close_payload(close_data), context.swap_info.receiver_address)
-    #
-    #     self.expect_get({context.swap_address: context.swap_info})
-    #
-    #     self.expect_invalid_transaction()
-    #
-    # @test
-    # def test_swap_close_fail_not_approved(self):
-    #     context = self.get_context()
-    #     close_data = {
-    #         "swap_id": context.swap_id,
-    #         "secret_key": context.secret_key
-    #     }
-    #
-    #     context.client.swap_close(get_swap_close_payload(close_data), context.swap_info.receiver_address)
-    #
-    #     context.swap_info.is_approved = False
-    #     self.expect_get({context.swap_address: context.swap_info})
-    #
-    #     self.expect_invalid_transaction()
+    @test
+    def test_swap_close_success(self):
+        context = self.get_context()
+        close_data = {
+            "swap_id": context.swap_id,
+            "secret_key": context.secret_key
+        }
+
+        context.client.swap_close(get_swap_close_payload(close_data), context.swap_info.receiver_address)
+
+        self.expect_get({context.swap_address: context.swap_info})
+        updated_state = self.transfer(ZERO_ADDRESS, context.AMOUNT, self.account_address2, 0, context.AMOUNT)
+
+        swap_info = context.swap_info
+        swap_info.is_closed = True
+
+        self.expect_set({
+            **{context.swap_address: swap_info},
+            **updated_state
+        })
+
+        self.expect_ok()
+
+    @test
+    def test_swap_close_fail_no_secret_lock(self):
+        context = self.get_context()
+        close_data = {
+            "swap_id": context.swap_id,
+            "secret_key": context.secret_key
+        }
+
+        context.client.swap_close(get_swap_close_payload(close_data), context.swap_info.receiver_address)
+
+        context.swap_info.secret_lock = ""
+        self.expect_get({context.swap_address: context.swap_info})
+        self.expect_invalid_transaction()
+
+    @test
+    def test_swap_close_fail_wrong_secret_key(self):
+        context = self.get_context()
+        close_data = {
+            "swap_id": context.swap_id,
+            "secret_key": context.secret_key[:-1] + '1'
+        }
+
+        context.client.swap_close(get_swap_close_payload(close_data), context.swap_info.receiver_address)
+
+        self.expect_get({context.swap_address: context.swap_info})
+
+        self.expect_invalid_transaction()
+
+    @test
+    def test_swap_close_fail_not_approved(self):
+        context = self.get_context()
+        close_data = {
+            "swap_id": context.swap_id,
+            "secret_key": context.secret_key
+        }
+
+        context.client.swap_close(get_swap_close_payload(close_data), context.swap_info.receiver_address)
+
+        context.swap_info.is_approved = False
+        self.expect_get({context.swap_address: context.swap_info})
+
+        self.expect_invalid_transaction()
 
     # END TEST
 
     # TEST: APPROVE
 
-    # @test
-    # def test_swap_approve_success(self):
-    #     context = self.get_context()
-    #     approve_data = {
-    #         "swap_id": context.swap_id,
-    #     }
+    @test
+    def test_swap_approve_success(self):
+        context = self.get_context()
+        approve_data = {
+            "swap_id": context.swap_id,
+        }
+
+        context.client.swap_approve(get_swap_approve_payload(approve_data))
+
+        context.swap_info.is_initiator = True
+
+        self.expect_get({context.swap_address: context.swap_info})
+        context.swap_info.is_approved = True
+
+        self.expect_set({context.swap_address: context.swap_info})
+
+        self.expect_ok()
     #
-    #     context.client.swap_approve(get_swap_approve_payload(approve_data))
-    #
-    #     context.swap_info.is_initiator = True
-    #
-    #     self.expect_get({context.swap_address: context.swap_info})
-    #     context.swap_info.is_approved = True
-    #
-    #     self.expect_set({context.swap_address: context.swap_info})
-    #
-    #     self.expect_ok()
-    # #
-    # @test
-    # def test_swap_approve_fail_not_initiator(self):
-    #     context = self.get_context()
-    #     approve_data = {
-    #         "swap_id": context.swap_id,
-    #     }
-    #
-    #     context.client.swap_approve(get_swap_approve_payload(approve_data))
-    #
-    #     context.swap_info.is_initiator = False
-    #
-    #     self.expect_get({context.swap_address: context.swap_info})
-    #
-    #     self.expect_invalid_transaction()
-    #
-    # @test
-    # def test_swap_approve_fail_no_secret_lock(self):
-    #     context = self.get_context()
-    #     approve_data = {
-    #         "swap_id": context.swap_id,
-    #     }
-    #
-    #     context.client.swap_approve(get_swap_approve_payload(approve_data))
-    #
-    #     context.swap_info.is_initiator = True
-    #     context.swap_info.secret_lock = ""
-    #
-    #     self.expect_get({context.swap_address: context.swap_info})
-    #
-    #     self.expect_invalid_transaction()
-    #
-    # @test
-    # def test_swap_approve_fail_is_closed(self):
-    #     context = self.get_context()
-    #     approve_data = {
-    #         "swap_id": context.swap_id,
-    #     }
-    #
-    #     context.client.swap_approve(get_swap_approve_payload(approve_data))
-    #
-    #     context.swap_info.is_closed = True
-    #
-    #     self.expect_get({context.swap_address: context.swap_info})
-    #
-    #     self.expect_invalid_transaction()
+    @test
+    def test_swap_approve_fail_not_initiator(self):
+        context = self.get_context()
+        approve_data = {
+            "swap_id": context.swap_id,
+        }
+
+        context.client.swap_approve(get_swap_approve_payload(approve_data))
+
+        context.swap_info.is_initiator = False
+
+        self.expect_get({context.swap_address: context.swap_info})
+
+        self.expect_invalid_transaction()
+
+    @test
+    def test_swap_approve_fail_no_secret_lock(self):
+        context = self.get_context()
+        approve_data = {
+            "swap_id": context.swap_id,
+        }
+
+        context.client.swap_approve(get_swap_approve_payload(approve_data))
+
+        context.swap_info.is_initiator = True
+        context.swap_info.secret_lock = ""
+
+        self.expect_get({context.swap_address: context.swap_info})
+
+        self.expect_invalid_transaction()
+
+    @test
+    def test_swap_approve_fail_is_closed(self):
+        context = self.get_context()
+        approve_data = {
+            "swap_id": context.swap_id,
+        }
+
+        context.client.swap_approve(get_swap_approve_payload(approve_data))
+
+        context.swap_info.is_closed = True
+
+        self.expect_get({context.swap_address: context.swap_info})
+
+        self.expect_invalid_transaction()
 
     # END TEST
 
     # TEST: EXPIRE
 
-    # @test
-    # def test_swap_expire_success_initiator(self):
-    #     context = self.get_context()
-    #     expire_data = {
-    #         "swap_id": context.swap_id,
-    #     }
-    #
-    #     context.client.swap_expire(get_swap_expire_payload(expire_data))
-    #
-    #     context.swap_info.created_at = int((datetime.datetime.utcnow() - datetime.timedelta(days=1, minutes=1)).timestamp()),
-    #
-    #     self.expect_get({context.swap_address: context.swap_info})
-    #
-    #     updated_state = self.transfer(ZERO_ADDRESS, context.amount, self.account_address1, 0, context.amount)
-    #     context.swap_info.is_closed = True
-    #
-    #     self.expect_set({
-    #         **{context.swap_address: context.swap_info},
-    #         **updated_state
-    #     })
-    #
-    #     self.expect_ok()
+    @test
+    def test_swap_expire_success_initiator(self):
+        context = self.get_context()
+        expire_data = {
+            "swap_id": context.swap_id,
+        }
+
+        context.client.swap_expire(get_swap_expire_payload(expire_data))
+
+        context.swap_info.created_at = int((datetime.datetime.utcnow() - datetime.timedelta(days=1, minutes=1)).timestamp())
+        context.swap_info.is_initiator = True
+
+        self.expect_get({context.swap_address: context.swap_info})
+
+        updated_state = self.transfer(ZERO_ADDRESS, context.swap_info.amount, self.account_address1, 0, context.swap_info.amount)
+        context.swap_info.is_closed = True
+
+        self.expect_set({
+            **{context.swap_address: context.swap_info},
+            **updated_state
+        })
+
+        self.expect_ok()
+
+    @test
+    def test_swap_expire_success_non_initiator(self):
+        context = self.get_context()
+        expire_data = {
+            "swap_id": context.swap_id,
+        }
+
+        context.client.swap_expire(get_swap_expire_payload(expire_data))
+
+        context.swap_info.created_at = int(
+            (datetime.datetime.utcnow() - datetime.timedelta(days=2, minutes=1)).timestamp())
+        context.swap_info.is_initiator = False
+
+        self.expect_get({context.swap_address: context.swap_info})
+
+        updated_state = self.transfer(ZERO_ADDRESS, context.swap_info.amount, self.account_address1, 0,
+                                      context.swap_info.amount)
+        context.swap_info.is_closed = True
+
+        self.expect_set({
+            **{context.swap_address: context.swap_info},
+            **updated_state
+        })
+
+        self.expect_ok()
+
+    @test
+    def test_swap_expire_fail_wrong_signer(self):
+        context = self.get_context()
+        expire_data = {
+            "swap_id": context.swap_id,
+        }
+
+        context.client.set_signer(self.account_signer2)
+        context.client.swap_expire(get_swap_expire_payload(expire_data))
+
+        self.expect_get({context.swap_address: context.swap_info})
+
+        self.expect_invalid_transaction()
+
+    @test
+    def test_swap_expire_fail_early_non_initiator(self):
+        context = self.get_context()
+        expire_data = {
+            "swap_id": context.swap_id,
+        }
+
+        context.client.swap_expire(get_swap_expire_payload(expire_data))
+
+        context.swap_info.created_at = int(
+            (datetime.datetime.utcnow() - datetime.timedelta(days=1, minutes=1)).timestamp())
+        context.swap_info.is_initiator = False
+
+        self.expect_get({context.swap_address: context.swap_info})
+
+        self.expect_invalid_transaction()
+
+    @test
+    def test_swap_expire_fail_early_initiator(self):
+        context = self.get_context()
+        expire_data = {
+            "swap_id": context.swap_id,
+        }
+
+        context.client.swap_expire(get_swap_expire_payload(expire_data))
+
+        context.swap_info.created_at = int(
+            (datetime.datetime.utcnow() - datetime.timedelta(minutes=1)).timestamp())
+        context.swap_info.is_initiator = True
+
+        self.expect_get({context.swap_address: context.swap_info})
+
+        self.expect_invalid_transaction()
 
     # END TEST
 
     # TEST: SET-LOCK
 
-    # @test
-    # def test_swap_set_lock_success(self):
-    #     context = self.get_context()
-    #     set_secert_lock_data = {
-    #         "swap_id": context.swap_id,
-    #         "secret_lock": context.secret_lock,
-    #     }
-    #
-    #     context.client.swap_set_secret_lock(get_swap_set_secret_lock_payload(set_secert_lock_data))
-    #
-    #     context.swap_info.secret_lock = ""
-    #
-    #     self.expect_get({context.swap_address: context.swap_info})
-    #     context.swap_info.secret_lock = context.secret_lock
-    #
-    #     self.expect_set({context.swap_address: context.swap_info})
-    #
-    #     self.expect_ok()
-    #
-    # @test
-    # def test_swap_set_lock_fail_already_set(self):
-    #     context = self.get_context()
-    #     set_secert_lock_data = {
-    #         "swap_id": context.swap_id,
-    #         "secret_lock": context.secret_lock,
-    #     }
-    #
-    #     context.client.swap_set_secret_lock(get_swap_set_secret_lock_payload(set_secert_lock_data))
-    #
-    #     context.swap_info.secret_lock = context.secret_lock
-    #
-    #     self.expect_get({context.swap_address: context.swap_info})
-    #     self.expect_invalid_transaction()
+    @test
+    def test_swap_set_lock_success(self):
+        context = self.get_context()
+        set_secert_lock_data = {
+            "swap_id": context.swap_id,
+            "secret_lock": context.secret_lock,
+        }
+
+        context.client.swap_set_secret_lock(get_swap_set_secret_lock_payload(set_secert_lock_data))
+
+        context.swap_info.secret_lock = ""
+
+        self.expect_get({context.swap_address: context.swap_info})
+        context.swap_info.secret_lock = context.secret_lock
+
+        self.expect_set({context.swap_address: context.swap_info})
+
+        self.expect_ok()
+
+    @test
+    def test_swap_set_lock_fail_already_set(self):
+        context = self.get_context()
+        set_secert_lock_data = {
+            "swap_id": context.swap_id,
+            "secret_lock": context.secret_lock,
+        }
+
+        context.client.swap_set_secret_lock(get_swap_set_secret_lock_payload(set_secert_lock_data))
+
+        context.swap_info.secret_lock = context.secret_lock
+
+        self.expect_get({context.swap_address: context.swap_info})
+        self.expect_invalid_transaction()
 
     # END TEST

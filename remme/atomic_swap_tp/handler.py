@@ -202,12 +202,10 @@ class AtomicSwapHandler(BasicHandler):
             raise InvalidTransaction('Swap {} needs to wait {} hours since timestamp: {} to withdraw.'.format(
                                         intiator_name, INTIATOR_TIME_LOCK, swap_info.created_at))
 
-        swap_info.closed = True
+        swap_info.is_closed = True
 
-        transfer_payload = TransferPayload()
-        transfer_payload.address_to = swap_info.sender_address
-        transfer_payload.amount = swap_info.amount
-        token_updated_state = TokenHandler()._transfer_from_address(context,
+        transfer_payload = TokenClient.get_transfer_payload(swap_info.sender_address, swap_info.amount)
+        token_updated_state = TokenHandler._transfer_from_address(context,
                                                                     ZERO_ADDRESS,
                                                                     transfer_payload)
 
