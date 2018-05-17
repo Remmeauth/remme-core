@@ -13,11 +13,12 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
+import logging
 import os
+from pathlib import Path
 import re
 import hashlib
 from connexion import NoContent
-from cryptography.hazmat.primitives import serialization
 
 from remme.certificate.certificate_client import CertificateClient
 from remme.rest_api.certificate_api_decorator import certificate_put_request, \
@@ -28,11 +29,15 @@ from remme.shared.exceptions import KeyNotFound
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from OpenSSL.crypto import PKCS12, X509, PKey
 
-PATH_TO_EXPORTS_FOLDER = '/root/usr/share'
+PATH_TO_EXPORTS_FOLDER = Path('/root/usr/share')
 HOST_FOLDER_EXPORTS_PATH_ENV_KEY = 'REMME_CONTAINER_EXPORTS_FOLDER'
+REMME_CA_KEY_FILE = PATH_TO_EXPORTS_FOLDER.joinpath('REMME_CA_KEY.pem')
 
+LOGGER = logging.getLogger(__name__)
 
 # region Endpoints
 
@@ -164,13 +169,13 @@ def save_p12(cert, private, file_name, passphrase=None):
         p12.set_certificate(openssl_cert)
 
         p12bin = p12.export(passphrase)
-        file_path = PATH_TO_EXPORTS_FOLDER + '/{}.p12'.format(file_name)
+        file_path = PATH_TO_EXPORTS_FOLDER.joinpath(f'{file_name}.p12')
 
         if os.path.isfile(file_path):
             raise ValueError
-        with open(file_path, 'wb') as f:
+        with file_path.open('wb') as f:
             f.write(p12bin)
-        return host_folder + '/{}.p12'.format(file_name)
+        return str(Path(host_folder).joinpath(f'{file_name}.p12'))
 
 
 def get_certificate_signature(key, rem_sig):
@@ -185,11 +190,36 @@ def get_certificate_signature(key, rem_sig):
 
 
 # TODO change this method to return node keys (ECDSA)
-def get_keys_to_sign():
-    return rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=1024,
-        backend=default_backend()
+
+def save_key(pk, filename):
+    LOGGER.info(f'Created key {str(filename)}')
+    pem = pk.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption()
     )
+    with filename.open('wb') as pem_out:
+        pem_out.write(pem)
+
+
+def load_key(filename):
+    if not os.path.isfile(filename):
+        return None
+    with filename.open('rb') as pem_in:
+        pemlines = pem_in.read()
+    private_key = load_pem_private_key(pemlines, None, default_backend())
+    return private_key
+
+
+def get_keys_to_sign():
+    pk = load_key(REMME_CA_KEY_FILE)
+    if not pk:
+        pk = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=1024,
+            backend=default_backend()
+        )
+        save_key(pk, REMME_CA_KEY_FILE)
+    return pk
 
 # endregion
