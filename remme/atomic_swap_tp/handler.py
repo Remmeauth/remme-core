@@ -89,6 +89,9 @@ class AtomicSwapHandler(BasicHandler):
         swap_info = get_data(context, AtomicSwapInfo, self.make_address_from_data(swap_id))
         if to_raise_exception and not swap_info:
             raise InvalidTransaction('Atomic swap was not initiated for {} swap id!'.format(swap_id))
+        if swap_info and swap_info.is_closed:
+            raise InvalidTransaction('No operations can be done upon the swap: {} '
+                                     ' as it is already closed.'.format(swap_id))
         return swap_info
 
     def get_state_update(self, swap_info):
@@ -103,9 +106,7 @@ class AtomicSwapHandler(BasicHandler):
         Otherwise, Alice uses _swap_init to request a swap and thus, Bob can't receive funds until Alice "approves".
         """
         LOGGER.info("0. Check if swap ID already exists")
-        LOGGER.info("0. swap payload {}".format(swap_init_payload))
         # 0. Check if swap ID already exists
-        LOGGER.info("0. swap_id: {}".format(swap_init_payload.swap_id))
         if self.get_swap_info_from_swap_id(context, swap_init_payload.swap_id, to_raise_exception=False):
             raise InvalidTransaction('Atomic swap ID has already been taken, please use a different one!')
         # END
@@ -169,7 +170,7 @@ class AtomicSwapHandler(BasicHandler):
         LOGGER.info('swap id: {}'.format(swap_approve_payload.swap_id))
         swap_info = self.get_swap_info_from_swap_id(context, swap_approve_payload.swap_id)
 
-        if not swap_info.is_initiator and swap_info.receiver_address != TokenHandler.make_address_from_data(signer_pubkey):
+        if not swap_info.is_initiator or swap_info.sender_address != TokenHandler.make_address_from_data(signer_pubkey):
             raise InvalidTransaction('Only transaction initiator (Alice) may approve the swap, '
                                      'once Bob provided a secret lock.')
         if not swap_info.secret_lock:

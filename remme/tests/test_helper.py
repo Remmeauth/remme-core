@@ -18,6 +18,7 @@ from sawtooth_signing import CryptoFactory
 
 from remme.protos.token_pb2 import TokenMethod
 from remme.protos.transaction_pb2 import TransactionPayload
+from remme.shared.utils import AttrDict
 from remme.tests.tp_test_case import TransactionProcessorTestCase
 from remme.token_tp.client import TokenClient
 from remme.token_tp.handler import TokenHandler
@@ -27,23 +28,31 @@ LOGGER = logging.getLogger(__name__)
 
 class HelperTestCase(TransactionProcessorTestCase):
     @classmethod
-    def setUpClass(cls, handler):
+    def setUpClass(cls, handler, client_class=None):
         super().setUpClass()
         cls.handler = handler
+        cls.client_class = client_class
 
         # generate token account addresses
-        account_signer1 = cls.get_new_signer()
-        cls.account_address1 = TokenHandler.make_address_from_data(account_signer1.get_public_key().as_hex())
-        account_signer2 = cls.get_new_signer()
-        cls.account_address2 = TokenHandler.make_address_from_data(account_signer2.get_public_key().as_hex())
+        cls.account_signer1 = cls.get_new_signer()
+        cls.account_address1 = TokenHandler.make_address_from_data(cls.account_signer1.get_public_key().as_hex())
+        cls.account_signer2 = cls.get_new_signer()
+        cls.account_address2 = TokenHandler.make_address_from_data(cls.account_signer2.get_public_key().as_hex())
 
-        cls._factory = cls.handler.get_message_factory(account_signer1)
+        cls._factory = cls.handler.get_message_factory(cls.account_signer1)
 
     @classmethod
     def get_new_signer(cls):
         context = create_context('secp256k1')
         return CryptoFactory(context).new_signer(
             context.new_random_private_key())
+
+    def get_context(self):
+        context = AttrDict()
+        context.client = self.client_class(test_helper=self)
+        context.client.set_signer(self.account_signer1)
+
+        return context
 
     def send_transaction(self, method, pb_data, address_access_list):
         payload_pb = TransactionPayload()
@@ -90,9 +99,6 @@ class HelperTestCase(TransactionProcessorTestCase):
 
     # a short term solution
     def transfer(self, address1, amount1, address2, amount2, value):
-        self.send_transaction(TokenMethod.TRANSFER,
-                              TokenClient.get_transfer_payload(address2, value),
-                              [address1, address2])
         self.expect_get({address1: TokenClient.get_account_model(amount1)})
         self.expect_get({address2: TokenClient.get_account_model(amount2)})
 

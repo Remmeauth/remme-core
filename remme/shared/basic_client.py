@@ -39,9 +39,13 @@ from remme.token_tp.handler import TokenHandler, is_address
 
 
 class BasicClient:
-    def __init__(self, family_handler):
+    def __init__(self, family_handler, test_helper=None, keyfile=PRIV_KEY_FILE):
         self.url = REST_API_URL
         self._family_handler = family_handler
+        self.test_helper = test_helper
+
+        if self.test_helper:
+            return
 
         private_key_str = self.get_signer_priv_key_from_file()
         try:
@@ -151,6 +155,9 @@ class BasicClient:
 
         return self._sign_batch_list(signer, [transaction])
 
+    def set_signer(self, new_signer):
+        self._signer = new_signer
+
     def get_user_address(self):
         return TokenHandler.make_address_from_data(self._signer.get_public_key().as_hex())
 
@@ -162,6 +169,11 @@ class BasicClient:
            :param dict data: Dictionary that is required by TP to process the transaction.
            :param str addresses_input_output: list of addresses(keys) for which to get and save state.
         '''
+        # forward transaction to test helper
+        if self.test_helper:
+            self.test_helper.send_transaction(method, data_pb, addresses_input_output)
+            return
+
         payload = TransactionPayload()
         payload.method = method
         payload.data = data_pb.SerializeToString()
