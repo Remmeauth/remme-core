@@ -13,6 +13,7 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
+import logging
 import os
 from pathlib import Path
 import re
@@ -35,6 +36,8 @@ from OpenSSL.crypto import PKCS12, X509, PKey
 PATH_TO_EXPORTS_FOLDER = Path('/root/usr/share')
 HOST_FOLDER_EXPORTS_PATH_ENV_KEY = 'REMME_CONTAINER_EXPORTS_FOLDER'
 REMME_CA_KEY_FILE = PATH_TO_EXPORTS_FOLDER.joinpath('REMME_CA_KEY.pem')
+
+LOGGER = logging.getLogger(__name__)
 
 # region Endpoints
 
@@ -166,13 +169,13 @@ def save_p12(cert, private, file_name, passphrase=None):
         p12.set_certificate(openssl_cert)
 
         p12bin = p12.export(passphrase)
-        file_path = PATH_TO_EXPORTS_FOLDER.joinpath('{}.p12'.format(file_name))
+        file_path = PATH_TO_EXPORTS_FOLDER.joinpath(f'{file_name}.p12')
 
         if os.path.isfile(file_path):
             raise ValueError
         with file_path.open('wb') as f:
             f.write(p12bin)
-        return str(Path(host_folder).joinpath('{}.p12'.format(file_name)))
+        return str(Path(host_folder).joinpath(f'{file_name}.p12'))
 
 
 def get_certificate_signature(key, rem_sig):
@@ -189,6 +192,7 @@ def get_certificate_signature(key, rem_sig):
 # TODO change this method to return node keys (ECDSA)
 
 def save_key(pk, filename):
+    LOGGER.info(f'Created key {str(filename)}')
     pem = pk.private_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PrivateFormat.TraditionalOpenSSL,
@@ -212,7 +216,7 @@ def get_keys_to_sign():
     if not pk:
         pk = rsa.generate_private_key(
             public_exponent=65537,
-            key_size=1024,
+            backend=default_backend()
             backend=default_backend()
         )
         save_key(pk, REMME_CA_KEY_FILE)
