@@ -14,6 +14,7 @@
 # ------------------------------------------------------------------------
 
 import os
+from pathlib import Path
 import re
 import hashlib
 from connexion import NoContent
@@ -31,9 +32,9 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from OpenSSL.crypto import PKCS12, X509, PKey
 
-PATH_TO_EXPORTS_FOLDER = '/root/usr/share'
+PATH_TO_EXPORTS_FOLDER = Path('/root/usr/share')
 HOST_FOLDER_EXPORTS_PATH_ENV_KEY = 'REMME_CONTAINER_EXPORTS_FOLDER'
-REMME_CA_KEY_FILE = 'REMME_CA_KEY.pem'
+REMME_CA_KEY_FILE = PATH_TO_EXPORTS_FOLDER.joinpath('REMME_CA_KEY.pem')
 
 # region Endpoints
 
@@ -165,13 +166,13 @@ def save_p12(cert, private, file_name, passphrase=None):
         p12.set_certificate(openssl_cert)
 
         p12bin = p12.export(passphrase)
-        file_path = PATH_TO_EXPORTS_FOLDER + '/{}.p12'.format(file_name)
+        file_path = PATH_TO_EXPORTS_FOLDER.joinpath('{}.p12'.format(file_name))
 
         if os.path.isfile(file_path):
             raise ValueError
-        with open(file_path, 'wb') as f:
+        with file_path.open('wb') as f:
             f.write(p12bin)
-        return host_folder + '/{}.p12'.format(file_name)
+        return str(Path(host_folder).joinpath('{}.p12'.format(file_name)))
 
 
 def get_certificate_signature(key, rem_sig):
@@ -193,14 +194,14 @@ def save_key(pk, filename):
         format=serialization.PrivateFormat.TraditionalOpenSSL,
         encryption_algorithm=serialization.NoEncryption()
     )
-    with open(filename, 'wb') as pem_out:
+    with filename.open('wb') as pem_out:
         pem_out.write(pem)
 
 
 def load_key(filename):
     if not os.path.isfile(filename):
         return None
-    with open(filename, 'rb') as pem_in:
+    with filename.open('rb') as pem_in:
         pemlines = pem_in.read()
     private_key = load_pem_private_key(pemlines, None, default_backend())
     return private_key
