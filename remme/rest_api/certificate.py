@@ -216,7 +216,7 @@ def get_keys_to_sign():
     if not pk:
         pk = rsa.generate_private_key(
             public_exponent=65537,
-            backend=default_backend()
+            key_size=1024,
             backend=default_backend()
         )
         save_key(pk, REMME_CA_KEY_FILE)
