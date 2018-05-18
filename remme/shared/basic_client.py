@@ -101,10 +101,10 @@ class BasicClient:
         return prefix + pub_key
 
     def _send_request(self, suffix, data=None, content_type=None):
-        url = "{}/{}".format(self.url, suffix)
+        url = f"{self.url}/{suffix}"
 
         if not url.startswith("http://"):
-            url = "http://{}".format(url)
+            url = f"http://{url}"
 
         headers = {}
 

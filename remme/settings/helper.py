@@ -24,7 +24,7 @@ from sawtooth_sdk.messaging.future import FutureTimeoutError
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 from sawtooth_sdk.processor.exceptions import InternalError
 
-from ..protos.settings_pb2 import Setting
+from remme.protos.settings_pb2 import Setting
 
 LOGGER = logging.getLogger(__name__)
 
