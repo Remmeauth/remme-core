@@ -409,37 +409,6 @@ paths:
         500:
           $ref: '#/responses/500GeneralError'
 
-  /utils/generate-random-key256:
-    get:
-      operationId: remme.rest_api.utils.get_random_key
-      summary: Generate a random key
-      responses:
-        200:
-          description: Successfully generated a new key
-          schema:
-            properties:
-              random_key:
-                $ref: '#/definitions/HashString'
-  /utils/hash256:
-    post:
-      operationId: remme.rest_api.utils.post_hash256
-      summary: Kecak256 hashing algorithm (sha3_256 in Python)
-      consumes:
-      - multipart/form-data
-      parameters:
-        - in: formData
-          name: data
-          type: string
-          required: true
-          description: Data to be hashed
-      responses:
-        200:
-          description: Hashed data
-          schema:
-            properties:
-              hashed:
-                $ref: '#/definitions/HashString'
-
 responses:
   200BatchSubmitted:
     description: The transaction was successfully passed to the validator
