@@ -82,7 +82,7 @@ def get_swap_close_payload(args):
 
 # TODO add addresses for transfers
 class AtomicSwapClient(BasicClient):
-    def __init__(self, test_helper):
+    def __init__(self, test_helper=None):
         super().__init__(AtomicSwapHandler, test_helper=test_helper)
 
     def swap_init(self, swap_init_payload):
