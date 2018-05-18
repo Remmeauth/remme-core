@@ -27,7 +27,7 @@ from remme.settings.helper import _make_settings_key
 from remme.shared.basic_client import BasicClient
 from remme.certificate.handler import CertificateHandler
 from remme.shared.utils import attr_dict
-from remme.token_tp.handler import TokenHandler
+from remme.account.handler import TokenHandler
 
 LOGGER = logging.getLogger(__name__)
 

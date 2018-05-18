@@ -19,7 +19,6 @@ from remme.account.client import AccountClient
 from remme.account.handler import AccountHandler, TransactionPayload
 from remme.settings import GENESIS_ADDRESS
 
-
 OUTPUT_BATCH = '/genesis/batch/token-proposal.batch'
 
 if __name__ == '__main__':

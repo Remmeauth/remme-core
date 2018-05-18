@@ -28,8 +28,8 @@ from remme.settings.helper import _make_settings_key, get_setting_from_key_value
 from remme.shared.logging import test
 from remme.shared.utils import generate_random_key, hash256, AttrDict
 from remme.tests.test_helper import HelperTestCase
-from remme.token_tp.client import TokenClient
-from remme.token_tp.handler import ZERO_ADDRESS, TokenHandler
+from remme.account.client import TokenClient
+from remme.account.handler import ZERO_ADDRESS, TokenHandler
 
 LOGGER = logging.getLogger(__name__)
 

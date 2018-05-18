@@ -22,6 +22,7 @@ from remme.tests.test_helper import HelperTestCase
 from remme.account.client import AccountClient
 from remme.account.handler import ZERO_ADDRESS, AccountHandler
 
+
 LOGGER = logging.getLogger(__name__)
 
 

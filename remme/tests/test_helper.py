@@ -20,8 +20,8 @@ from remme.protos.token_pb2 import TokenMethod
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.shared.utils import AttrDict
 from remme.tests.tp_test_case import TransactionProcessorTestCase
-from remme.token_tp.client import TokenClient
-from remme.token_tp.handler import TokenHandler
+from remme.account.client import TokenClient
+from remme.account.handler import TokenHandler
 
 LOGGER = logging.getLogger(__name__)
 

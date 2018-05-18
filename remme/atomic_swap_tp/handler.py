@@ -34,8 +34,8 @@ from remme.settings import SETTINGS_KEY_PUB_ENCRYPTION_KEY, SETTINGS_KEY_GENESIS
 from remme.settings.helper import _make_settings_key, _get_setting_value
 from remme.shared.basic_handler import BasicHandler, get_data
 from remme.shared.utils import hash256
-from remme.token_tp.client import TokenClient
-from remme.token_tp.handler import TokenHandler, get_account_by_address
+from remme.account.client import TokenClient
+from remme.account.handler import TokenHandler, get_account_by_address
 from remme.protos.certificate_pb2 import CertificateStorage, \
     NewCertificatePayload, RevokeCertificatePayload, CertificateMethod
 from remme.shared.singleton import singleton

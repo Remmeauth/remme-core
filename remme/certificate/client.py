@@ -19,9 +19,9 @@ import datetime
 from remme.protos.certificate_pb2 import CertificateStorage, \
     NewCertificatePayload, RevokeCertificatePayload, CertificateMethod
 from remme.shared.basic_client import BasicClient
-from remme.certificate.certificate_handler import CertificateHandler
+from remme.certificate.handler import CertificateHandler
 from remme.account.handler import AccountHandler
-from remme.certificate.certificate_handler import CERT_ORGANIZATION, CERT_MAX_VALIDITY
+from remme.certificate.handler import CERT_ORGANIZATION, CERT_MAX_VALIDITY
 
 
 from cryptography.x509.oid import NameOID

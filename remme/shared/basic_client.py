@@ -35,7 +35,7 @@ from remme.settings import REST_API_URL, PRIV_KEY_FILE
 from remme.shared.exceptions import ClientException
 from remme.shared.exceptions import KeyNotFound
 from remme.shared.utils import hash512
-from remme.token_tp.handler import TokenHandler, is_address
+from remme.account.handler import TokenHandler, is_address
 
 
 class BasicClient:
