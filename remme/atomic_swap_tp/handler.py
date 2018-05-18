@@ -28,14 +28,13 @@ from sawtooth_signing.secp256k1 import Secp256k1PublicKey, Secp256k1Context
 
 from remme.protos.atomic_swap_pb2 import AtomicSwapMethod, AtomicSwapInitPayload, AtomicSwapInfo, \
     AtomicSwapApprovePayload, AtomicSwapExpirePayload, AtomicSwapSetSecretLockPayload, AtomicSwapClosePayload
-from remme.protos.token_pb2 import TransferPayload
 from remme.settings import SETTINGS_KEY_PUB_ENCRYPTION_KEY, SETTINGS_KEY_GENESIS_OWNERS, \
     SETTINGS_SWAP_COMMISSION, ZERO_ADDRESS
 from remme.settings.helper import _make_settings_key, _get_setting_value
 from remme.shared.basic_handler import BasicHandler, get_data
 from remme.shared.utils import hash256
-from remme.account.client import TokenClient
-from remme.account.handler import TokenHandler, get_account_by_address
+from remme.account.client import AccountClient
+from remme.account.handler import AccountHandler, get_account_by_address
 from remme.protos.certificate_pb2 import CertificateStorage, \
     NewCertificatePayload, RevokeCertificatePayload, CertificateMethod
 from remme.shared.singleton import singleton
@@ -117,11 +116,11 @@ class AtomicSwapHandler(BasicHandler):
         swap_info.amount = swap_init_payload.amount
         swap_info.created_at = swap_init_payload.created_at
         swap_info.email_address_encrypted_optional = swap_init_payload.email_address_encrypted_optional_alice
-        swap_info.sender_address = TokenHandler.make_address_from_data(signer_pubkey)
+        swap_info.sender_address = AccountHandler.make_address_from_data(signer_pubkey)
         swap_info.sender_address_non_local = swap_init_payload.sender_address_non_local
         swap_info.receiver_address = swap_init_payload.receiver_address
 
-        if not TokenHandler.is_handler_address(swap_info.receiver_address):
+        if not AccountHandler.is_handler_address(swap_info.receiver_address):
             raise InvalidTransaction('Receiver address is not of a Token type.')
 
         LOGGER.info("1. Ensure transaction initiated within an hour")
@@ -153,8 +152,8 @@ class AtomicSwapHandler(BasicHandler):
             raise InvalidTransaction('Not enough balance to perform the transaction in '
                                      'the amount (with a commission) {}.'.format(total_amount))
 
-        transfer_payload = TokenClient.get_transfer_payload(ZERO_ADDRESS, total_amount)
-        token_updated_state = TokenHandler._transfer_from_address(context,
+        transfer_payload = AccountClient.get_transfer_payload(ZERO_ADDRESS, total_amount)
+        token_updated_state = AccountHandler._transfer_from_address(context,
                                                             swap_info.sender_address,
                                                             transfer_payload)
         LOGGER.info("Save state")
@@ -170,7 +169,7 @@ class AtomicSwapHandler(BasicHandler):
         LOGGER.info('swap id: {}'.format(swap_approve_payload.swap_id))
         swap_info = self.get_swap_info_from_swap_id(context, swap_approve_payload.swap_id)
 
-        if not swap_info.is_initiator or swap_info.sender_address != TokenHandler.make_address_from_data(signer_pubkey):
+        if not swap_info.is_initiator or swap_info.sender_address != AccountHandler.make_address_from_data(signer_pubkey):
             raise InvalidTransaction('Only transaction initiator (Alice) may approve the swap, '
                                      'once Bob provided a secret lock.')
         if not swap_info.secret_lock:
@@ -191,7 +190,7 @@ class AtomicSwapHandler(BasicHandler):
 
         swap_info = self.get_swap_info_from_swap_id(context, swap_expire_payload.swap_id)
 
-        if TokenHandler.make_address_from_data(signer_pubkey) != swap_info.sender_address:
+        if AccountHandler.make_address_from_data(signer_pubkey) != swap_info.sender_address:
             raise InvalidTransaction('Signer is not the one who opened the swap.')
 
         now = datetime.datetime.utcnow()
@@ -204,8 +203,8 @@ class AtomicSwapHandler(BasicHandler):
 
         swap_info.is_closed = True
 
-        transfer_payload = TokenClient.get_transfer_payload(swap_info.sender_address, swap_info.amount)
-        token_updated_state = TokenHandler._transfer_from_address(context,
+        transfer_payload = AccountClient.get_transfer_payload(swap_info.sender_address, swap_info.amount)
+        token_updated_state = AccountHandler._transfer_from_address(context,
                                                                     ZERO_ADDRESS,
                                                                     transfer_payload)
 
@@ -245,8 +244,8 @@ class AtomicSwapHandler(BasicHandler):
         if not swap_info.is_approved:
             raise InvalidTransaction('Transaction cannot be closed before it\'s approved.')
 
-        transfer_payload = TokenClient.get_transfer_payload(swap_info.receiver_address, swap_info.amount)
-        token_updated_state = TokenHandler._transfer_from_address(context,
+        transfer_payload = AccountClient.get_transfer_payload(swap_info.receiver_address, swap_info.amount)
+        token_updated_state = AccountHandler._transfer_from_address(context,
                                                                     ZERO_ADDRESS,
                                                                     transfer_payload)
 

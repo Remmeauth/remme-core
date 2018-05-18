@@ -16,7 +16,7 @@
 import logging
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
-from remme.protos.token_pb2 import Account, GenesisStatus, TokenMethod, GenesisPayload, \
+from remme.protos.account_pb2  import Account, GenesisStatus, AccountMethod, GenesisPayload, \
     TransferPayload
 from remme.settings import SETTINGS_KEY_GENESIS_OWNERS, GENESIS_ADDRESS, ZERO_ADDRESS
 from remme.settings.helper import _get_setting_value
@@ -43,11 +43,11 @@ class AccountHandler(BasicHandler):
 
     def get_state_processor(self):
         return {
-            TokenMethod.TRANSFER: {
+            AccountMethod.TRANSFER: {
                 'pb_class': TransferPayload,
                 'processor': self._transfer
             },
-            TokenMethod.GENESIS: {
+            AccountMethod.GENESIS: {
                 'pb_class': GenesisPayload,
                 'processor': self._genesis
             }

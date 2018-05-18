@@ -22,14 +22,13 @@ from remme.atomic_swap_tp.client import AtomicSwapClient, get_swap_init_payload,
 from remme.atomic_swap_tp.handler import AtomicSwapHandler
 from remme.protos.atomic_swap_pb2 import AtomicSwapMethod, AtomicSwapInfo
 from remme.protos.settings_pb2 import Setting
-from remme.protos.token_pb2 import TokenMethod, GenesisStatus, Account
 from remme.settings import SETTINGS_SWAP_COMMISSION
 from remme.settings.helper import _make_settings_key, get_setting_from_key_value
 from remme.shared.logging import test
 from remme.shared.utils import generate_random_key, hash256, AttrDict
 from remme.tests.test_helper import HelperTestCase
-from remme.account.client import TokenClient
-from remme.account.handler import ZERO_ADDRESS, TokenHandler
+from remme.account.client import AccountClient
+from remme.account.handler import ZERO_ADDRESS, AccountHandler
 
 LOGGER = logging.getLogger(__name__)
 
@@ -94,7 +93,7 @@ class AtomicSwapTestCase(HelperTestCase):
         })
 
         TOTAL_TRANSFERED = context.AMOUNT+context.COMMISSION
-        self.expect_get({self.account_address1: TokenClient.get_account_model(TOTAL_TRANSFERED)})
+        self.expect_get({self.account_address1: AccountClient.get_account_model(TOTAL_TRANSFERED)})
 
         updated_state = self.transfer(self.account_address1, TOTAL_TRANSFERED, ZERO_ADDRESS, 0, TOTAL_TRANSFERED)
 

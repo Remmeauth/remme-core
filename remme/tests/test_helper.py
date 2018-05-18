@@ -16,12 +16,11 @@ import logging
 from sawtooth_signing import create_context
 from sawtooth_signing import CryptoFactory
 
-from remme.protos.token_pb2 import TokenMethod
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.shared.utils import AttrDict
 from remme.tests.tp_test_case import TransactionProcessorTestCase
-from remme.account.client import TokenClient
-from remme.account.handler import TokenHandler
+from remme.account.client import AccountClient
+from remme.account.handler import AccountHandler
 
 LOGGER = logging.getLogger(__name__)
 
@@ -35,9 +34,9 @@ class HelperTestCase(TransactionProcessorTestCase):
 
         # generate token account addresses
         cls.account_signer1 = cls.get_new_signer()
-        cls.account_address1 = TokenHandler.make_address_from_data(cls.account_signer1.get_public_key().as_hex())
+        cls.account_address1 = AccountHandler.make_address_from_data(cls.account_signer1.get_public_key().as_hex())
         cls.account_signer2 = cls.get_new_signer()
-        cls.account_address2 = TokenHandler.make_address_from_data(cls.account_signer2.get_public_key().as_hex())
+        cls.account_address2 = AccountHandler.make_address_from_data(cls.account_signer2.get_public_key().as_hex())
 
         cls._factory = cls.handler.get_message_factory(cls.account_signer1)
 
@@ -99,10 +98,10 @@ class HelperTestCase(TransactionProcessorTestCase):
 
     # a short term solution
     def transfer(self, address1, amount1, address2, amount2, value):
-        self.expect_get({address1: TokenClient.get_account_model(amount1)})
-        self.expect_get({address2: TokenClient.get_account_model(amount2)})
+        self.expect_get({address1: AccountClient.get_account_model(amount1)})
+        self.expect_get({address2: AccountClient.get_account_model(amount2)})
 
         return {
-            address1: TokenClient.get_account_model(amount1 - value),
-            address2: TokenClient.get_account_model(amount2 + value)
+            address1: AccountClient.get_account_model(amount1 - value),
+            address2: AccountClient.get_account_model(amount2 + value)
         }

@@ -72,6 +72,10 @@ class AccountTestCase(HelperTestCase):
         ACCOUNT_AMOUNT2 = 500
         TRANSFER_VALUE = ACCOUNT_AMOUNT1
 
+        self.send_transaction(AccountMethod.TRANSFER,
+                              AccountClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
+                              [self.account_address1, self.account_address2])
+
         self.expect_set(self.transfer(self.account_address1, ACCOUNT_AMOUNT1,
                                       self.account_address2, ACCOUNT_AMOUNT2, TRANSFER_VALUE))
 

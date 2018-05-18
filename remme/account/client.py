@@ -15,17 +15,17 @@
 
 import json
 
-from remme.protos.token_pb2 import TokenMethod, GenesisPayload, TransferPayload
+from remme.protos.account_pb2 import AccountMethod, GenesisPayload, TransferPayload
 from remme.shared.basic_client import BasicClient
-from remme.account.handler import AcountHandler
+from remme.account.handler import AccountHandler
 from remme.shared.exceptions import KeyNotFound
 
-from remme.protos.token_pb2 import Account
+from remme.protos.account_pb2 import Account
 
 
 class AccountClient(BasicClient):
     def __init__(self):
-        super().__init__(AcountHandler)
+        super().__init__(AccountHandler)
 
     def _send_transaction(self, method, data_pb, extra_addresses_input_output):
         addresses_input_output = [self.get_user_address()]
@@ -59,7 +59,7 @@ class AccountClient(BasicClient):
         extra_addresses_input_output = [address_to]
         transfer = self.get_transfer_payload(address_to, value)
 
-        return self._send_transaction(TokenMethod.TRANSFER, transfer, extra_addresses_input_output)
+        return self._send_transaction(AccountMethod.TRANSFER, transfer, extra_addresses_input_output)
 
     def get_account(self, address):
         account = Account()
