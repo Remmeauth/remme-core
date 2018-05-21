@@ -31,6 +31,42 @@ produces:
   - application/json
 
 paths:
+  /node_key:
+    get:
+      operationId: remme.rest_api.node_key.get
+      summary: Retrieve the node public key
+      responses:
+        200:
+          description: The node public key
+          schema:
+            properties:
+              pub_key:
+                type: string
+                description: The hex-encoded public key of the user
+                pattern: '^[0-9a-f]{66}$'
+            required:
+              - pub_key
+        500:
+          $ref: '#/responses/500GeneralError'
+  /transaction:
+    post:
+      summary: Send proto transaction to the node
+      parameters:
+        - name: payload
+          in: body
+          required: true
+          schema:
+            properties:
+              transaction:
+                description: The base64 transaction
+                type: string
+            required:
+              - transaction
+      responses:
+        200:
+          $ref: '#/responses/200BatchSubmitted'
+        500:
+          $ref: '#/responses/500GeneralError'
   /token:
     post:
       summary: Send tokens from the current user to another user
@@ -84,6 +120,7 @@ paths:
           $ref: '#/responses/500GeneralError'
   /user/{pub_key_user}/certificates:
     get:
+      operationId: remme.rest_api.user.get_certificates
       summary: Retrieve the certificates of the specified user
       parameters:
         - name: pub_key_user

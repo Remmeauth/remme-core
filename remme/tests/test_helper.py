@@ -13,11 +13,14 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 import logging
+from unittest import mock
+
 from sawtooth_signing import create_context
 from sawtooth_signing import CryptoFactory
 
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.shared.utils import AttrDict
+from remme.shared.basic_client import BasicClient
 from remme.tests.tp_test_case import TransactionProcessorTestCase
 from remme.account.client import AccountClient
 from remme.account.handler import AccountHandler
@@ -32,6 +35,10 @@ class HelperTestCase(TransactionProcessorTestCase):
         cls.handler = handler
         cls.client_class = client_class
 
+        cls._pk_patcher = mock.patch('remme.shared.basic_client.BasicClient.get_signer_priv_key_from_file',
+                                     return_value=BasicClient.generate_signer())
+        cls._pk_patcher_obj = cls._pk_patcher.start()
+
         # generate token account addresses
         cls.account_signer1 = cls.get_new_signer()
         cls.account_address1 = AccountHandler.make_address_from_data(cls.account_signer1.get_public_key().as_hex())
@@ -39,6 +46,11 @@ class HelperTestCase(TransactionProcessorTestCase):
         cls.account_address2 = AccountHandler.make_address_from_data(cls.account_signer2.get_public_key().as_hex())
 
         cls._factory = cls.handler.get_message_factory(cls.account_signer1)
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        cls._pk_patcher.stop()
 
     @classmethod
     def get_new_signer(cls):
