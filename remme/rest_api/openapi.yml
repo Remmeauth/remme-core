@@ -409,6 +409,19 @@ paths:
         500:
           $ref: '#/responses/500GeneralError'
 
+  /atomic-swap/pub-key-encryption:
+    get:
+      operationId: remme.atomic_swap_tp.rest_api.get_pub_key_encryption
+      summary: Get a public key with which to enсrypt sensitive data during the swap. (e.g email address)
+      responses:
+        200:
+          description: Public key
+          schema:
+            properties:
+              pub_key:
+                description: Public Key
+                type: string
+
 responses:
   200BatchSubmitted:
     description: The transaction was successfully passed to the validator

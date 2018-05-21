@@ -22,7 +22,8 @@ from remme.atomic_swap_tp.handler import AtomicSwapHandler
 from remme.protos.atomic_swap_pb2 import AtomicSwapInitPayload, AtomicSwapExpirePayload, AtomicSwapClosePayload, \
     AtomicSwapMethod, AtomicSwapInfo, AtomicSwapSetSecretLockPayload, AtomicSwapApprovePayload
 from remme.protos.certificate_pb2 import NewCertificatePayload, CertificateMethod
-from remme.settings import GENESIS_ADDRESS, SETTINGS_SWAP_COMMISSION, ZERO_ADDRESS
+from remme.protos.settings_pb2 import Setting
+from remme.settings import GENESIS_ADDRESS, SETTINGS_SWAP_COMMISSION, ZERO_ADDRESS, SETTINGS_PUB_KEY_ENCRYPTION
 from remme.settings.helper import _make_settings_key
 from remme.shared.basic_client import BasicClient
 from remme.certificate.handler import CertificateHandler
@@ -116,6 +117,10 @@ class AtomicSwapClient(BasicClient):
 
     def swap_get(self, swap_id):
         atomic_swap_info = AtomicSwapInfo()
-        print(self.make_address_from_data(swap_id))
         atomic_swap_info.ParseFromString(self.get_value(self.make_address_from_data(swap_id)))
         return atomic_swap_info
+
+    def get_pub_key_encryption(self):
+        setting = Setting()
+        setting.ParseFromString(self.get_value(_make_settings_key(SETTINGS_PUB_KEY_ENCRYPTION)))
+        return setting.entries[0].value

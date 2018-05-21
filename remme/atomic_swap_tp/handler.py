@@ -15,28 +15,16 @@
 
 import datetime
 import logging
-import hashlib
-from cryptography import x509
-from cryptography.hazmat.backends import default_backend
-from cryptography.x509.oid import NameOID
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.exceptions import InvalidSignature
-from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
-from sawtooth_signing.secp256k1 import Secp256k1PublicKey, Secp256k1Context
 
 from remme.protos.atomic_swap_pb2 import AtomicSwapMethod, AtomicSwapInitPayload, AtomicSwapInfo, \
     AtomicSwapApprovePayload, AtomicSwapExpirePayload, AtomicSwapSetSecretLockPayload, AtomicSwapClosePayload
-from remme.settings import SETTINGS_KEY_PUB_ENCRYPTION_KEY, SETTINGS_KEY_GENESIS_OWNERS, \
-    SETTINGS_SWAP_COMMISSION, ZERO_ADDRESS
-from remme.settings.helper import _make_settings_key, _get_setting_value
+from remme.settings import SETTINGS_SWAP_COMMISSION, ZERO_ADDRESS
+from remme.settings.helper import _get_setting_value
 from remme.shared.basic_handler import BasicHandler, get_data
 from remme.shared.utils import hash256
 from remme.account.client import AccountClient
 from remme.account.handler import AccountHandler, get_account_by_address
-from remme.protos.certificate_pb2 import CertificateStorage, \
-    NewCertificatePayload, RevokeCertificatePayload, CertificateMethod
 from remme.shared.singleton import singleton
 
 LOGGER = logging.getLogger(__name__)

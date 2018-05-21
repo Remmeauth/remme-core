@@ -51,8 +51,8 @@ services:
         fi
 
         sawset proposal create -k /etc/sawtooth/keys/validator.priv \
-            \"SETTINGS_KEY_PUB_ENCRYPTION_KEY=$$(cat /etc/sawtooth/keys/validator.priv)\" \
-            \"SETTINGS_KEY_GENESIS_OWNERS=$$(cat /etc/sawtooth/keys/validator.priv)\" \
+            \"SETTINGS_PUB_KEY_ENCRYPTION=$$(cat /etc/sawtooth/keys/validator.pub)\" \
+            \"SETTINGS_KEY_GENESIS_OWNERS=$$(cat /etc/sawtooth/keys/validator.pub)\" \
             SETTINGS_SWAP_COMMISSION=100 \
             -o settings_config.batch
 

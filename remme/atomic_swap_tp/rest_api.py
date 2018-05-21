@@ -45,6 +45,9 @@ def get_swap_info(swap_id):
     return json.loads(MessageToJson(client.swap_get(swap_id)))
 
 
+def get_pub_key_encryption():
+    return {'pub_key': client.get_pub_key_encryption()}
+
 # approve
 # expire
 # set-secret-lock
