@@ -103,7 +103,7 @@ class AtomicSwapHandler(BasicHandler):
         swap_info.is_closed = False
         swap_info.amount = swap_init_payload.amount
         swap_info.created_at = swap_init_payload.created_at
-        swap_info.email_address_encrypted_optional = swap_init_payload.email_address_encrypted_optional_alice
+        swap_info.email_address_encrypted_optional = swap_init_payload.email_address_encrypted_by_initiator
         swap_info.sender_address = AccountHandler.make_address_from_data(signer_pubkey)
         swap_info.sender_address_non_local = swap_init_payload.sender_address_non_local
         swap_info.receiver_address = swap_init_payload.receiver_address
@@ -113,7 +113,7 @@ class AtomicSwapHandler(BasicHandler):
 
         LOGGER.info("1. Ensure transaction initiated within an hour")
         # 1. Ensure transaction initiated within an hour
-        swap_info.secret_lock = swap_init_payload.secret_lock_optional_bob
+        swap_info.secret_lock = swap_init_payload.secret_lock_by_solicitor
         created_at = self.get_datetime_from_timestamp(swap_info.created_at)
         now = datetime.datetime.utcnow()
 
@@ -123,7 +123,7 @@ class AtomicSwapHandler(BasicHandler):
 
         LOGGER.info("2. Check weather the sender is Alice")
         # 2. Check weather the sender is Alice:
-        swap_info.is_initiator = not swap_init_payload.secret_lock_optional_bob
+        swap_info.is_initiator = not swap_init_payload.secret_lock_by_solicitor
         # if Bob
         swap_info.is_approved = not swap_info.is_initiator
         # END

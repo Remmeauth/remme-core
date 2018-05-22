@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='atomic_swap.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\x11\x61tomic_swap.proto\"_\n\x10\x41tomicSwapMethod\"K\n\x06Method\x12\x08\n\x04INIT\x10\x00\x12\x0b\n\x07\x41PPROVE\x10\x01\x12\n\n\x06\x45XPIRE\x10\x02\x12\x13\n\x0fSET_SECRET_LOCK\x10\x03\x12\t\n\x05\x43LOSE\x10\x04\"\xda\x01\n\x15\x41tomicSwapInitPayload\x12\x18\n\x10receiver_address\x18\x01 \x01(\t\x12 \n\x18sender_address_non_local\x18\x07 \x01(\t\x12\x0e\n\x06\x61mount\x18\x02 \x01(\x04\x12\x0f\n\x07swap_id\x18\x03 \x01(\t\x12 \n\x18secret_lock_optional_bob\x18\x04 \x01(\t\x12.\n&email_address_encrypted_optional_alice\x18\x05 \x01(\t\x12\x12\n\ncreated_at\x18\x06 \x01(\r\"+\n\x18\x41tomicSwapApprovePayload\x12\x0f\n\x07swap_id\x18\x01 \x01(\t\"*\n\x17\x41tomicSwapExpirePayload\x12\x0f\n\x07swap_id\x18\x01 \x01(\t\"F\n\x1e\x41tomicSwapSetSecretLockPayload\x12\x0f\n\x07swap_id\x18\x01 \x01(\t\x12\x13\n\x0bsecret_lock\x18\x02 \x01(\t\"=\n\x16\x41tomicSwapClosePayload\x12\x0f\n\x07swap_id\x18\x01 \x01(\t\x12\x12\n\nsecret_key\x18\x02 \x01(\t\"\xaa\x02\n\x0e\x41tomicSwapInfo\x12\x11\n\tis_closed\x18\x01 \x01(\x08\x12\x13\n\x0bis_approved\x18\x0b \x01(\x08\x12\x16\n\x0esender_address\x18\x02 \x01(\t\x12 \n\x18sender_address_non_local\x18\x0c \x01(\t\x12\x18\n\x10receiver_address\x18\x03 \x01(\t\x12\x0e\n\x06\x61mount\x18\x04 \x01(\x04\x12(\n email_address_encrypted_optional\x18\x05 \x01(\t\x12\x0f\n\x07swap_id\x18\x06 \x01(\t\x12\x13\n\x0bsecret_lock\x18\x07 \x01(\t\x12\x12\n\nsecret_key\x18\x08 \x01(\t\x12\x12\n\ncreated_at\x18\t \x01(\r\x12\x14\n\x0cis_initiator\x18\n \x01(\x08\x62\x06proto3')
+  serialized_pb=_b('\n\x11\x61tomic_swap.proto\"_\n\x10\x41tomicSwapMethod\"K\n\x06Method\x12\x08\n\x04INIT\x10\x00\x12\x0b\n\x07\x41PPROVE\x10\x01\x12\n\n\x06\x45XPIRE\x10\x02\x12\x13\n\x0fSET_SECRET_LOCK\x10\x03\x12\t\n\x05\x43LOSE\x10\x04\"\xd8\x01\n\x15\x41tomicSwapInitPayload\x12\x18\n\x10receiver_address\x18\x01 \x01(\t\x12 \n\x18sender_address_non_local\x18\x07 \x01(\t\x12\x0e\n\x06\x61mount\x18\x02 \x01(\x04\x12\x0f\n\x07swap_id\x18\x03 \x01(\t\x12 \n\x18secret_lock_by_solicitor\x18\x04 \x01(\t\x12,\n$email_address_encrypted_by_initiator\x18\x05 \x01(\t\x12\x12\n\ncreated_at\x18\x06 \x01(\r\"+\n\x18\x41tomicSwapApprovePayload\x12\x0f\n\x07swap_id\x18\x01 \x01(\t\"*\n\x17\x41tomicSwapExpirePayload\x12\x0f\n\x07swap_id\x18\x01 \x01(\t\"F\n\x1e\x41tomicSwapSetSecretLockPayload\x12\x0f\n\x07swap_id\x18\x01 \x01(\t\x12\x13\n\x0bsecret_lock\x18\x02 \x01(\t\"=\n\x16\x41tomicSwapClosePayload\x12\x0f\n\x07swap_id\x18\x01 \x01(\t\x12\x12\n\nsecret_key\x18\x02 \x01(\t\"\xaa\x02\n\x0e\x41tomicSwapInfo\x12\x11\n\tis_closed\x18\x01 \x01(\x08\x12\x13\n\x0bis_approved\x18\x0b \x01(\x08\x12\x16\n\x0esender_address\x18\x02 \x01(\t\x12 \n\x18sender_address_non_local\x18\x0c \x01(\t\x12\x18\n\x10receiver_address\x18\x03 \x01(\t\x12\x0e\n\x06\x61mount\x18\x04 \x01(\x04\x12(\n email_address_encrypted_optional\x18\x05 \x01(\t\x12\x0f\n\x07swap_id\x18\x06 \x01(\t\x12\x13\n\x0bsecret_lock\x18\x07 \x01(\t\x12\x12\n\nsecret_key\x18\x08 \x01(\t\x12\x12\n\ncreated_at\x18\t \x01(\r\x12\x14\n\x0cis_initiator\x18\n \x01(\x08\x62\x06proto3')
 )
 
 
@@ -120,14 +120,14 @@ _ATOMICSWAPINITPAYLOAD = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='secret_lock_optional_bob', full_name='AtomicSwapInitPayload.secret_lock_optional_bob', index=4,
+      name='secret_lock_by_solicitor', full_name='AtomicSwapInitPayload.secret_lock_by_solicitor', index=4,
       number=4, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='email_address_encrypted_optional_alice', full_name='AtomicSwapInitPayload.email_address_encrypted_optional_alice', index=5,
+      name='email_address_encrypted_by_initiator', full_name='AtomicSwapInitPayload.email_address_encrypted_by_initiator', index=5,
       number=5, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -153,7 +153,7 @@ _ATOMICSWAPINITPAYLOAD = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=119,
-  serialized_end=337,
+  serialized_end=335,
 )
 
 
@@ -183,8 +183,8 @@ _ATOMICSWAPAPPROVEPAYLOAD = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=339,
-  serialized_end=382,
+  serialized_start=337,
+  serialized_end=380,
 )
 
 
@@ -214,8 +214,8 @@ _ATOMICSWAPEXPIREPAYLOAD = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=384,
-  serialized_end=426,
+  serialized_start=382,
+  serialized_end=424,
 )
 
 
@@ -252,8 +252,8 @@ _ATOMICSWAPSETSECRETLOCKPAYLOAD = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=428,
-  serialized_end=498,
+  serialized_start=426,
+  serialized_end=496,
 )
 
 
@@ -290,8 +290,8 @@ _ATOMICSWAPCLOSEPAYLOAD = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=500,
-  serialized_end=561,
+  serialized_start=498,
+  serialized_end=559,
 )
 
 
@@ -398,8 +398,8 @@ _ATOMICSWAPINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=564,
-  serialized_end=862,
+  serialized_start=562,
+  serialized_end=860,
 )
 
 _ATOMICSWAPMETHOD_METHOD.containing_type = _ATOMICSWAPMETHOD

@@ -41,8 +41,8 @@ def get_swap_init_payload(args):
     payload.sender_address_non_local = args.sender_address_non_local
     payload.amount = args.amount
     payload.swap_id = args.swap_id
-    payload.secret_lock_optional_bob = getattr(args, 'secret_lock_optional_bob', "")
-    payload.email_address_encrypted_optional_alice = getattr(args, 'email_address_encrypted_optional_alice', "")
+    payload.secret_lock_by_solicitor = getattr(args, 'secret_lock_by_solicitor', "")
+    payload.email_address_encrypted_by_initiator = getattr(args, 'email_address_encrypted_by_initiator', "")
     payload.created_at = args.created_at
 
     return payload

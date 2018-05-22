@@ -77,8 +77,8 @@ class AtomicSwapTestCase(HelperTestCase):
             "sender_address_non_local": context.sender_address_non_local,
             "amount": context.AMOUNT,
             "swap_id": context.swap_id,
-            "secret_lock_optional_bob": context.secret_lock,
-            "email_address_encrypted_optional_alice": context.email_address,
+            "secret_lock_by_solicitor": context.secret_lock,
+            "email_address_encrypted_by_initiator": context.email_address,
             "created_at": context.created_at,
         }
 
@@ -111,8 +111,8 @@ class AtomicSwapTestCase(HelperTestCase):
             "sender_address_non_local": context.sender_address_non_local,
             "amount": context.AMOUNT,
             "swap_id": context.swap_id,
-            "secret_lock_optional_bob": context.secret_lock,
-            "email_address_encrypted_optional_alice": context.email_address,
+            "secret_lock_by_solicitor": context.secret_lock,
+            "email_address_encrypted_by_initiator": context.email_address,
             "created_at": context.created_at,
         }
 
@@ -130,8 +130,8 @@ class AtomicSwapTestCase(HelperTestCase):
             "sender_address_non_local": context.sender_address_non_local,
             "amount": context.AMOUNT,
             "swap_id": context.swap_id,
-            "secret_lock_optional_bob": context.secret_lock,
-            "email_address_encrypted_optional_alice": context.email_address,
+            "secret_lock_by_solicitor": context.secret_lock,
+            "email_address_encrypted_by_initiator": context.email_address,
             "created_at": int((datetime.datetime.now() - datetime.timedelta(days=2)).timestamp()),
         }
 
@@ -149,8 +149,8 @@ class AtomicSwapTestCase(HelperTestCase):
             "sender_address_non_local": context.sender_address_non_local,
             "amount": context.AMOUNT,
             "swap_id": context.swap_id,
-            "secret_lock_optional_bob": context.secret_lock,
-            "email_address_encrypted_optional_alice": context.email_address,
+            "secret_lock_by_solicitor": context.secret_lock,
+            "email_address_encrypted_by_initiator": context.email_address,
             "created_at": int((datetime.datetime.utcnow() - datetime.timedelta(days=2)).timestamp()),
         }
 

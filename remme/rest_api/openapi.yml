@@ -503,10 +503,10 @@ parameters:
           type: integer
         swap_id:
           $ref: '#/definitions/SwapId'
-        email_address_encrypted_optional_alice:
+        email_address_encrypted_by_initiator:
           description: Optional encrypted Email address, passed by swap initiator - Alice
           type: string
-        secret_lock_optional_bob:
+        secret_lock_by_solicitor:
           $ref: '#/definitions/HashString'
         created_at:
           description: Optional for bob, if he is non initiator - to provide a secret lock
