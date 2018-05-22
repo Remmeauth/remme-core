@@ -26,13 +26,13 @@ message AtomicSwapMethod {
 }
 
 message AtomicSwapInitPayload {
-    string receiver_address = 1;
-    string sender_address_non_local = 7;
-    uint64 amount = 2;
-    string swap_id = 3;
-    string secret_lock_optional_bob = 4;
-    string email_address_encrypted_optional_alice = 5;
-    uint32 created_at = 6;
+    string receiver_address = 1; // REMchain agent to receive funds
+    string sender_address_non_local = 7; // Address to receive arranged equivalent on the other chain (non local one)
+    uint64 amount = 2; // The amount to be transferred
+    string swap_id = 3; // Swap unique id
+    string secret_lock_optional_bob = 4; // A secret lock, provided during initialisation, only if REMchain side is a solicitor (non initiator)
+    string email_address_encrypted_optional_alice = 5; // An email address provided by swap initiator (Alice) to be notified of the next step
+    uint32 created_at = 6; // Creation date in a timestamp format
 }
 
 message AtomicSwapApprovePayload {
@@ -54,16 +54,16 @@ message AtomicSwapClosePayload {
 }
 
 message AtomicSwapInfo {
-    bool is_closed = 1;
-    bool is_approved = 11;
-    string sender_address = 2;
-    string sender_address_non_local = 12;
-    string receiver_address = 3;
-    uint64 amount = 4;
-    string email_address_encrypted_optional = 5;
-    string swap_id = 6;
-    string secret_lock = 7;
-    string secret_key = 8;
-    uint32 created_at = 9;
-    bool is_initiator = 10; // isAlice
+    bool is_closed = 1; // if the swap is closed and unavailable for actions upon it
+    bool is_approved = 11; // if Alice approved the swap, initiated by herself
+    string sender_address = 2; // Address of the agent on the REMchain side soliciting the exchange
+    string sender_address_non_local = 12; // Address to receive arranged equivalent on the other chain (non local one)
+    string receiver_address = 3; // REMchain agent to receive funds
+    uint64 amount = 4; // The amount to be transferred
+    string email_address_encrypted_optional = 5; // email address for solicitor (Bob) to notify the swap initiator (Alice)
+    string swap_id = 6; // Swap unique id
+    string secret_lock = 7; // A secret lock to successfuly match with a secret_key and close the swap
+    string secret_key = 8; // Last step information, provided to as a secret for solicitor
+    uint32 created_at = 9; // Creation date in a timestamp format
+    bool is_initiator = 10; // check weather REMchain side initiated the swap (not a solicitor)
 }
