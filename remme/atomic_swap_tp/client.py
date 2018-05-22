@@ -22,7 +22,7 @@ from remme.atomic_swap_tp.handler import AtomicSwapHandler
 from remme.protos.atomic_swap_pb2 import AtomicSwapInitPayload, AtomicSwapExpirePayload, AtomicSwapClosePayload, \
     AtomicSwapMethod, AtomicSwapInfo, AtomicSwapSetSecretLockPayload, AtomicSwapApprovePayload
 from remme.protos.certificate_pb2 import NewCertificatePayload, CertificateMethod
-from remme.protos.settings_pb2 import Setting
+from sawtooth_sdk.protobuf.setting_pb2 import Setting
 from remme.settings import GENESIS_ADDRESS, SETTINGS_SWAP_COMMISSION, ZERO_ADDRESS, SETTINGS_PUB_KEY_ENCRYPTION
 from remme.settings.helper import _make_settings_key
 from remme.shared.basic_client import BasicClient
