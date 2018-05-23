@@ -24,10 +24,10 @@ from remme.protos.atomic_swap_pb2 import AtomicSwapMethod, AtomicSwapInfo
 from remme.settings import SETTINGS_SWAP_COMMISSION
 from remme.settings.helper import _make_settings_key, get_setting_from_key_value
 from remme.shared.logging import test
-from remme.shared.utils import generate_random_key, hash256, AttrDict
+from remme.shared.utils import generate_random_key, hash256
 from remme.tests.test_helper import HelperTestCase
 from remme.account.client import AccountClient
-from remme.account.handler import ZERO_ADDRESS, AccountHandler
+from remme.account.handler import ZERO_ADDRESS
 
 LOGGER = logging.getLogger(__name__)
 
