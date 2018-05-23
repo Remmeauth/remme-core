@@ -93,14 +93,28 @@ class WsApplicationHandler(StateDeltaSubscriberHandler):
 
             logger.debug('Got update for batch "%s"', batch)
 
-            for ws, wsdata in batch['ws'].items():
+            for ws in list(batch['ws']):
+                wsdata = batch['ws'][ws]
+                if ws.closed:
+                    logger.debug('Clear dead connection: %s', ws)
+                    self._handle_unsubscribe_batches(ws, [batch_id])
+                    await self._handle_unsubscribe(ws)
+                    continue
+
                 updated, id_ = wsdata['updated'], wsdata['id']
                 if updated and batch['state']['sum'] == hash_sum:
                     logger.debug('Already updated state for conn "%s" and batch_id "%s"',
                                  ws, batch_id)
                     continue
 
-                await self._ws_send(ws, Status.BATCH_RESPONSE, id_, batch_data, 'message')
+                try:
+                    await self._ws_send(ws, Status.BATCH_RESPONSE, id_, batch_data, 'message')
+                except Exception as e:
+                    logger.error('Send sock err: %s', e)
+                    self._handle_unsubscribe_batches(ws, [batch_id])
+                    await self._handle_unsubscribe(ws)
+                    continue
+
                 wsdata['updated'] = True
 
             batch['state']['sum'] = hash_sum
@@ -144,6 +158,9 @@ class WsApplicationHandler(StateDeltaSubscriberHandler):
             except KeyError:
                 logger.debug('Ws not found in batch %s', batch_id)
                 continue
+
+            if not batch['ws']:
+                del self._batch_ids[batch_id]
 
     async def _handle_subscribe(self, web_sock, payload):
         logger.info('Sending initial most recent event to new subscriber')
@@ -215,13 +232,13 @@ class WsApplicationHandler(StateDeltaSubscriberHandler):
 
         batch_resp = client_batch_pb2.ClientBatchGetResponse()
         batch_resp.ParseFromString(resp.content)
-        logger.info('Batch: %s', resp)
+        logger.debug('Batch: %s', resp)
         logger.info('Batch parsed: %s', batch_resp)
 
         hash_sum = hashlib.sha256(batch_resp.SerializeToString()).hexdigest()
 
         data = _message_to_dict(batch_resp)
-        logger.info('data: %s', data)
+        logger.debug('data: %s', data)
 
         batch = data.setdefault('batch', {})
         batch['header_signature'] = batch_id
