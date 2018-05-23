@@ -82,7 +82,7 @@ class AtomicSwapTestCase(HelperTestCase):
             "created_at": context.created_at,
         }
 
-        context.client.swap_init(get_swap_init_payload(init_data))
+        context.client.swap_init(get_swap_init_payload(**init_data))
 
         self.expect_get({context.swap_address: None})
 
@@ -116,7 +116,7 @@ class AtomicSwapTestCase(HelperTestCase):
             "created_at": context.created_at,
         }
 
-        context.client.swap_init(get_swap_init_payload(init_data))
+        context.client.swap_init(get_swap_init_payload(**init_data))
 
         self.expect_get({context.swap_address: context.swap_info})
 
@@ -135,7 +135,7 @@ class AtomicSwapTestCase(HelperTestCase):
             "created_at": int((datetime.datetime.now() - datetime.timedelta(days=2)).timestamp()),
         }
 
-        context.client.swap_init(get_swap_init_payload(init_data))
+        context.client.swap_init(get_swap_init_payload(**init_data))
 
         self.expect_get({context.swap_address: context.swap_info})
 
@@ -154,7 +154,7 @@ class AtomicSwapTestCase(HelperTestCase):
             "created_at": int((datetime.datetime.utcnow() - datetime.timedelta(days=2)).timestamp()),
         }
 
-        context.client.swap_init(get_swap_init_payload(init_data))
+        context.client.swap_init(get_swap_init_payload(**init_data))
 
         self.expect_get({context.swap_address: context.swap_info})
 
@@ -172,7 +172,7 @@ class AtomicSwapTestCase(HelperTestCase):
             "secret_key": context.secret_key
         }
 
-        context.client.swap_close(get_swap_close_payload(close_data), context.swap_info.receiver_address)
+        context.client.swap_close(get_swap_close_payload(**close_data), context.swap_info.receiver_address)
 
         self.expect_get({context.swap_address: context.swap_info})
         updated_state = self.transfer(ZERO_ADDRESS, context.AMOUNT, self.account_address2, 0, context.AMOUNT)
@@ -195,7 +195,7 @@ class AtomicSwapTestCase(HelperTestCase):
             "secret_key": context.secret_key
         }
 
-        context.client.swap_close(get_swap_close_payload(close_data), context.swap_info.receiver_address)
+        context.client.swap_close(get_swap_close_payload(**close_data), context.swap_info.receiver_address)
 
         context.swap_info.secret_lock = ""
         self.expect_get({context.swap_address: context.swap_info})
@@ -209,7 +209,7 @@ class AtomicSwapTestCase(HelperTestCase):
             "secret_key": context.secret_key[:-1] + '1'
         }
 
-        context.client.swap_close(get_swap_close_payload(close_data), context.swap_info.receiver_address)
+        context.client.swap_close(get_swap_close_payload(**close_data), context.swap_info.receiver_address)
 
         self.expect_get({context.swap_address: context.swap_info})
 
@@ -223,7 +223,7 @@ class AtomicSwapTestCase(HelperTestCase):
             "secret_key": context.secret_key
         }
 
-        context.client.swap_close(get_swap_close_payload(close_data), context.swap_info.receiver_address)
+        context.client.swap_close(get_swap_close_payload(**close_data), context.swap_info.receiver_address)
 
         context.swap_info.is_approved = False
         self.expect_get({context.swap_address: context.swap_info})
@@ -241,7 +241,7 @@ class AtomicSwapTestCase(HelperTestCase):
             "swap_id": context.swap_id,
         }
 
-        context.client.swap_approve(get_swap_approve_payload(approve_data))
+        context.client.swap_approve(get_swap_approve_payload(**approve_data))
 
         context.swap_info.is_initiator = True
 
@@ -259,7 +259,7 @@ class AtomicSwapTestCase(HelperTestCase):
             "swap_id": context.swap_id,
         }
 
-        context.client.swap_approve(get_swap_approve_payload(approve_data))
+        context.client.swap_approve(get_swap_approve_payload(**approve_data))
 
         context.swap_info.is_initiator = False
 
@@ -274,7 +274,7 @@ class AtomicSwapTestCase(HelperTestCase):
             "swap_id": context.swap_id,
         }
 
-        context.client.swap_approve(get_swap_approve_payload(approve_data))
+        context.client.swap_approve(get_swap_approve_payload(**approve_data))
 
         context.swap_info.is_initiator = True
         context.swap_info.secret_lock = ""
@@ -290,7 +290,7 @@ class AtomicSwapTestCase(HelperTestCase):
             "swap_id": context.swap_id,
         }
 
-        context.client.swap_approve(get_swap_approve_payload(approve_data))
+        context.client.swap_approve(get_swap_approve_payload(**approve_data))
 
         context.swap_info.is_closed = True
 
@@ -309,7 +309,7 @@ class AtomicSwapTestCase(HelperTestCase):
             "swap_id": context.swap_id,
         }
 
-        context.client.swap_expire(get_swap_expire_payload(expire_data))
+        context.client.swap_expire(get_swap_expire_payload(**expire_data))
 
         context.swap_info.created_at = int((datetime.datetime.utcnow() - datetime.timedelta(days=1, minutes=1)).timestamp())
         context.swap_info.is_initiator = True
@@ -333,7 +333,7 @@ class AtomicSwapTestCase(HelperTestCase):
             "swap_id": context.swap_id,
         }
 
-        context.client.swap_expire(get_swap_expire_payload(expire_data))
+        context.client.swap_expire(get_swap_expire_payload(**expire_data))
 
         context.swap_info.created_at = int(
             (datetime.datetime.utcnow() - datetime.timedelta(days=2, minutes=1)).timestamp())
@@ -360,7 +360,7 @@ class AtomicSwapTestCase(HelperTestCase):
         }
 
         context.client.set_signer(self.account_signer2)
-        context.client.swap_expire(get_swap_expire_payload(expire_data))
+        context.client.swap_expire(get_swap_expire_payload(**expire_data))
 
         self.expect_get({context.swap_address: context.swap_info})
 
@@ -373,7 +373,7 @@ class AtomicSwapTestCase(HelperTestCase):
             "swap_id": context.swap_id,
         }
 
-        context.client.swap_expire(get_swap_expire_payload(expire_data))
+        context.client.swap_expire(get_swap_expire_payload(**expire_data))
 
         context.swap_info.created_at = int(
             (datetime.datetime.utcnow() - datetime.timedelta(days=1, minutes=1)).timestamp())
@@ -390,7 +390,7 @@ class AtomicSwapTestCase(HelperTestCase):
             "swap_id": context.swap_id,
         }
 
-        context.client.swap_expire(get_swap_expire_payload(expire_data))
+        context.client.swap_expire(get_swap_expire_payload(**expire_data))
 
         context.swap_info.created_at = int(
             (datetime.datetime.utcnow() - datetime.timedelta(minutes=1)).timestamp())
@@ -412,7 +412,7 @@ class AtomicSwapTestCase(HelperTestCase):
             "secret_lock": context.secret_lock,
         }
 
-        context.client.swap_set_secret_lock(get_swap_set_secret_lock_payload(set_secert_lock_data))
+        context.client.swap_set_secret_lock(get_swap_set_secret_lock_payload(**set_secert_lock_data))
 
         context.swap_info.secret_lock = ""
 
@@ -431,7 +431,7 @@ class AtomicSwapTestCase(HelperTestCase):
             "secret_lock": context.secret_lock,
         }
 
-        context.client.swap_set_secret_lock(get_swap_set_secret_lock_payload(set_secert_lock_data))
+        context.client.swap_set_secret_lock(get_swap_set_secret_lock_payload(**set_secert_lock_data))
 
         context.swap_info.secret_lock = context.secret_lock
 

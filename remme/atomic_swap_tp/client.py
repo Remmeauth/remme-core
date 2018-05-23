@@ -27,61 +27,56 @@ from remme.settings import GENESIS_ADDRESS, SETTINGS_SWAP_COMMISSION, ZERO_ADDRE
 from remme.settings.helper import _make_settings_key
 from remme.shared.basic_client import BasicClient
 from remme.certificate.handler import CertificateHandler
-from remme.shared.utils import attr_dict
 from remme.account.handler import AccountHandler
 
 LOGGER = logging.getLogger(__name__)
 
 
-@attr_dict
-def get_swap_init_payload(args):
+def get_swap_init_payload(receiver_address, sender_address_non_local, amount,
+                          swap_id, created_at, secret_lock_by_solicitor="",
+                          email_address_encrypted_by_initiator=""):
     payload = AtomicSwapInitPayload()
-    LOGGER.info(args)
-    payload.receiver_address = args.receiver_address
-    payload.sender_address_non_local = args.sender_address_non_local
-    payload.amount = args.amount
-    payload.swap_id = args.swap_id
-    payload.secret_lock_by_solicitor = getattr(args, 'secret_lock_by_solicitor', "")
-    payload.email_address_encrypted_by_initiator = getattr(args, 'email_address_encrypted_by_initiator', "")
-    payload.created_at = args.created_at
+    payload.receiver_address = receiver_address
+    payload.sender_address_non_local = sender_address_non_local
+    payload.amount = amount
+    payload.swap_id = swap_id
+    payload.secret_lock_by_solicitor = secret_lock_by_solicitor
+    payload.email_address_encrypted_by_initiator = email_address_encrypted_by_initiator
+    payload.created_at = created_at
 
     return payload
 
 
-@attr_dict
-def get_swap_approve_payload(args):
+def get_swap_approve_payload(swap_id):
     payload = AtomicSwapApprovePayload()
-    payload.swap_id = args.swap_id
+    payload.swap_id = swap_id
 
     return payload
 
 
-@attr_dict
-def get_swap_expire_payload(args):
+def get_swap_expire_payload(swap_id):
     payload = AtomicSwapExpirePayload()
-    payload.swap_id = args.swap_id
+    payload.swap_id = swap_id
 
     return payload
 
 
-@attr_dict
-def get_swap_set_secret_lock_payload(args):
+def get_swap_set_secret_lock_payload(swap_id, secret_lock):
     payload = AtomicSwapSetSecretLockPayload()
-    payload.swap_id = args.swap_id
-    payload.secret_lock = args.secret_lock
+    payload.swap_id = swap_id
+    payload.secret_lock = secret_lock
 
     return payload
 
 
-@attr_dict
-def get_swap_close_payload(args):
+def get_swap_close_payload(swap_id, secret_key):
     payload = AtomicSwapClosePayload()
-    payload.swap_id = args.swap_id
-    payload.secret_key = args.secret_key
+    payload.swap_id = swap_id
+    payload.secret_key = secret_key
 
     return payload
 
-# TODO add addresses for transfers
+
 class AtomicSwapClient(BasicClient):
     def __init__(self, test_helper=None):
         super().__init__(AtomicSwapHandler, test_helper=test_helper)
