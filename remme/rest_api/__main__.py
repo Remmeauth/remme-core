@@ -18,8 +18,10 @@ from pkg_resources import resource_filename
 import connexion
 from flask_cors import CORS
 from remme.rest_api.api_methods_switcher import RestMethodsSwitcherResolver
+from remme.shared.logging import setup_logging, set_up_logging
 
 if __name__ == '__main__':
+    set_up_logging()
     parser = argparse.ArgumentParser()
     parser.add_argument('--port', type=int, default=8080)
     parser.add_argument('--bind', default='0.0.0.0')

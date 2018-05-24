@@ -121,7 +121,7 @@ There are few helper functions used in **handler** and **client** apps to form a
 .. code-block:: python
 
     def make_address_from_data(self, data):
-        appendix = hashlib.sha512(data.encode('utf-8')).hexdigest()[:64]
+        appendix = hash512(data)[:64]
         return self.make_address(appendix)
 
 They can be found in :code:`basic_handler.py` - parent class of our custom handlers and are used across the project.

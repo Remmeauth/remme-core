@@ -333,6 +333,94 @@ paths:
           description: Successfully deleted a key
         404:
           description: No key with the given name found
+  /atomic-swap/init:
+    post:
+      operationId: remme.atomic_swap_tp.rest_api.init
+      summary: Alice may initialize a swap transaction or Bob may follow one as a "non initiator"
+      parameters:
+        - $ref: '#/parameters/swap_init_payload'
+      responses:
+        200:
+          $ref: '#/responses/200BatchSubmitted'
+        500:
+          $ref: '#/responses/500GeneralError'
+
+  /atomic-swap/approve:
+    post:
+      operationId: remme.atomic_swap_tp.rest_api.approve
+      summary: Alice may initialize a swap transaction or Bob may follow one as a "non initiator"
+      parameters:
+        - $ref: '#/parameters/swap_approve_payload'
+      responses:
+        200:
+          $ref: '#/responses/200BatchSubmitted'
+        500:
+          $ref: '#/responses/500GeneralError'
+
+  /atomic-swap/expire:
+    post:
+      operationId: remme.atomic_swap_tp.rest_api.expire
+      summary: Alice or Bob expire the swap and receive the refund
+      parameters:
+        - $ref: '#/parameters/swap_approve_payload'
+      responses:
+        200:
+          $ref: '#/responses/200BatchSubmitted'
+        500:
+          $ref: '#/responses/500GeneralError'
+  /atomic-swap/set-secret-lock:
+    post:
+      operationId: remme.atomic_swap_tp.rest_api.set_secret_lock
+      summary: Bob may set the secret lock
+      parameters:
+        - $ref: '#/parameters/swap_set_secret_lock_payload'
+      responses:
+        200:
+          $ref: '#/responses/200BatchSubmitted'
+        500:
+          $ref: '#/responses/500GeneralError'
+  /atomic-swap/close:
+    post:
+      operationId: remme.atomic_swap_tp.rest_api.close
+      summary: Close the swap by providing a secret key
+      parameters:
+        - $ref: '#/parameters/swap_close_payload'
+      responses:
+        200:
+          $ref: '#/responses/200BatchSubmitted'
+        500:
+          $ref: '#/responses/500GeneralError'
+  /atomic-swap/{swap_id}:
+    get:
+      operationId: remme.atomic_swap_tp.rest_api.get_swap_info
+      summary: Get information about swap
+      parameters:
+        - name: swap_id
+          description: The id of the batch to check
+          in: path
+          type: string
+          pattern: '^[0-9a-f]{64}$'
+          required: true
+      responses:
+        200:
+          $ref: '#/responses/SwapInfo'
+        404:
+          description: No batch with the given id found
+        500:
+          $ref: '#/responses/500GeneralError'
+
+  /atomic-swap/pub-key-encryption:
+    get:
+      operationId: remme.atomic_swap_tp.rest_api.get_pub_key_encryption
+      summary: Get a public key with which to enсrypt sensitive data during the swap. (e.g email address)
+      responses:
+        200:
+          description: Public key
+          schema:
+            properties:
+              pub_key:
+                description: Public Key
+                type: string
 
 responses:
   200BatchSubmitted:
@@ -352,8 +440,132 @@ responses:
         error:
           type: string
           description: Error description
+  SwapInfo:
+    description: Swap info fields
+    schema:
+      properties:
+        is_closed:
+          description: is swap close
+          type: boolean
+        is_approved:
+          description: Receiver address
+          type: boolean
+        sender_address:
+          $ref: '#/definitions/Address'
+        receiver_address:
+          $ref: '#/definitions/Address'
+        sender_address_non_local:
+          description: Non REMchain agent's address
+          type: string
+        amount:
+          description: Amount to be transferred
+          type: integer
+        swap_id:
+          $ref: '#/definitions/SwapId'
+        email_address_encrypted_optional:
+          description: Optional encrypted Email address, passed by swap initiator - Alice
+          type: string
+        secret_lock:
+          $ref: '#/definitions/HashString'
+        secret_key:
+          $ref: '#/definitions/HashString'
+        created_at:
+          description: Optional for bob, if he is non initiator - to provide a secret lock
+          type: integer
+        is_initiator:
+          description: Is Alice initiator of a transaction on the REMchain side
+          type: boolean
+
+
 
 parameters:
+  swap_init_payload:
+    name: payload
+    description: Swap init payload
+    in: body
+    required: true
+    schema:
+      required:
+        - receiver_address
+        - sender_address_non_local
+        - amount
+        - swap_id
+        - created_at
+        - is_initiator
+      properties:
+        receiver_address:
+          $ref: '#/definitions/Address'
+        sender_address_non_local:
+          description: Non REMchain agent's address
+          type: string
+        amount:
+          description: Amount to be transferred
+          type: integer
+        swap_id:
+          $ref: '#/definitions/SwapId'
+        email_address_encrypted_by_initiator:
+          description: Optional encrypted Email address, passed by swap initiator - Alice
+          type: string
+        secret_lock_by_solicitor:
+          $ref: '#/definitions/HashString'
+        created_at:
+          description: Optional for bob, if he is non initiator - to provide a secret lock
+          type: integer
+        is_initiator:
+          description: Is Alice initiator of a transaction on the REMchain side
+          type: boolean
+  swap_approve_payload:
+    name: payload
+    description: Alice action to approve swap by Bob
+    in: body
+    required: true
+    schema:
+      required:
+        - swap_id
+      properties:
+        swap_id:
+          $ref: '#/definitions/SwapId'
+  swap_expire_payload:
+    name: payload
+    description: Expire transaction
+    in: body
+    required: true
+    schema:
+      required:
+        - swap_id
+      properties:
+        swap_id:
+          $ref: '#/definitions/SwapId'
+  swap_set_secret_lock_payload:
+    name: payload
+    description: Bob's action to set a secret lock
+    in: body
+    required: true
+    schema:
+      required:
+        - swap_id
+        - secret_lock
+      properties:
+        swap_id:
+          $ref: '#/definitions/SwapId'
+        secret_lock:
+          description: Secret lock
+          type: string
+  swap_close_payload:
+    name: payload
+    description: Close the swap by providing a secret key
+    in: body
+    required: true
+    schema:
+      required:
+        - swap_id
+        - secret_key
+      properties:
+        swap_id:
+          $ref: '#/definitions/SwapId'
+        secret_key:
+          $ref: '#/definitions/HashString'
+
   certificate_payload:
     name: payload
     description: PEM encoded certificate file
@@ -525,3 +737,16 @@ definitions:
     type: string
     description: The hex-encoded identifier of the batch in which the transaction was submitted
     pattern: '^[0-9a-f]{128}$'
+  Address:
+    type: string
+    description: User account address
+    pattern: '^[0-9a-f]{70}$'
+  HashString:
+    type: string
+    description: Hash string
+    pattern: '^[0-9a-f]{64}$'
+  SwapId:
+    type: string
+    description: User account address
+    pattern: '^[0-9a-f]{64}$'
+

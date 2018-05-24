@@ -50,6 +50,14 @@ services:
           GENESIS_BATCHES=\"$$GENESIS_BATCHES poet_config.batch poet_genesis.batch\"
         fi
 
+        sawset proposal create -k /etc/sawtooth/keys/validator.priv \
+            \"SETTINGS_PUB_KEY_ENCRYPTION=$$(cat /etc/sawtooth/keys/validator.pub)\" \
+            \"SETTINGS_KEY_GENESIS_OWNERS=$$(cat /etc/sawtooth/keys/validator.pub)\" \
+            SETTINGS_SWAP_COMMISSION=100 \
+            -o settings_config.batch
+
+        GENESIS_BATCHES=\"$$GENESIS_BATCHES settings_config.batch\"
+
         sawadm genesis $$GENESIS_BATCHES && \
 
         sawtooth-validator -vv \

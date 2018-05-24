@@ -19,8 +19,11 @@ from sawtooth_sdk.processor.log import init_console_logging
 from sawtooth_sdk.processor.log import log_configuration
 from sawtooth_sdk.processor.config import get_log_config
 from sawtooth_sdk.processor.config import get_log_dir
+from pathlib import Path
 
 LOGGER = logging.getLogger(__name__)
+
+# TODO move to f-strings after websockets move to 3.6
 
 def setup_logging(name, verbosity=2):
     Path('/var/log/sawtooth').mkdir(parents=True, exist_ok=True)

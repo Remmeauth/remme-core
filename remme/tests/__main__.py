@@ -19,6 +19,8 @@ import unittest
 from remme.shared.logging import setup_logging
 from .test_account import *
 
+from .test_atomic_swap import *
+
 if __name__ == '__main__':
     setup_logging('remme.tests', 2)
     unittest.main()

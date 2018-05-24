@@ -15,10 +15,13 @@
 import logging
 import inspect
 from remme.protos.account_pb2 import AccountMethod, GenesisStatus, Account
+
+from remme.settings import GENESIS_ADDRESS
 from remme.shared.logging import test
 from remme.tests.test_helper import HelperTestCase
 from remme.account.client import AccountClient
 from remme.account.handler import ZERO_ADDRESS, AccountHandler
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -31,13 +34,11 @@ class AccountTestCase(HelperTestCase):
     @test
     def test_genesis_empty(self):
         TOTAL_SUPPLY = 10000
-        zero_address = self.handler.make_address(ZERO_ADDRESS)
 
         self.send_transaction(AccountMethod.GENESIS, AccountClient.get_genesis_payload(TOTAL_SUPPLY),
-                              [zero_address, self.account_address1])
+                              [GENESIS_ADDRESS, self.account_address1])
 
-        self.expect_get({self.account_address1: None})
-        self.expect_get({zero_address: None})
+        self.expect_get({GENESIS_ADDRESS: None})
 
         genesis_status = GenesisStatus()
         genesis_status.status = True
@@ -46,7 +47,7 @@ class AccountTestCase(HelperTestCase):
 
         self.expect_set({
             self.account_address1: account,
-            zero_address: genesis_status
+            GENESIS_ADDRESS: genesis_status
         })
 
         self.expect_ok()
@@ -54,16 +55,14 @@ class AccountTestCase(HelperTestCase):
     @test
     def test_genesis_fail(self):
         TOTAL_SUPPLY = 10000
-        zero_address = self.handler.make_address(ZERO_ADDRESS)
 
         self.send_transaction(AccountMethod.GENESIS, AccountClient.get_genesis_payload(TOTAL_SUPPLY),
-                              [zero_address, self.account_address1])
+                              [GENESIS_ADDRESS, self.account_address1])
 
         genesis_status = GenesisStatus()
         genesis_status.status = True
 
-        self.expect_get({self.account_address1: None})
-        self.expect_get({zero_address: genesis_status})
+        self.expect_get({GENESIS_ADDRESS: genesis_status})
 
         self.expect_invalid_transaction()
 
@@ -72,16 +71,13 @@ class AccountTestCase(HelperTestCase):
         ACCOUNT_AMOUNT1 = 1000
         ACCOUNT_AMOUNT2 = 500
         TRANSFER_VALUE = ACCOUNT_AMOUNT1
+
         self.send_transaction(AccountMethod.TRANSFER,
                               AccountClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
                               [self.account_address1, self.account_address2])
-        self.expect_get({self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1)})
-        self.expect_get({self.account_address2: AccountClient.get_account_model(ACCOUNT_AMOUNT2)})
 
-        self.expect_set({
-            self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1-TRANSFER_VALUE),
-            self.account_address2: AccountClient.get_account_model(ACCOUNT_AMOUNT2+TRANSFER_VALUE)
-        })
+        self.expect_set(self.transfer(self.account_address1, ACCOUNT_AMOUNT1,
+                                      self.account_address2, ACCOUNT_AMOUNT2, TRANSFER_VALUE))
 
         self.expect_ok()
 
@@ -143,8 +139,10 @@ class AccountTestCase(HelperTestCase):
         ACCOUNT_AMOUNT1 = 500
         TRANSFER_VALUE = 200
         self.send_transaction(AccountMethod.TRANSFER,
-                              AccountClient.get_transfer_payload(self.handler.make_address(ZERO_ADDRESS), TRANSFER_VALUE),
+                              AccountClient.get_transfer_payload(GENESIS_ADDRESS, TRANSFER_VALUE),
                               [self.account_address1, self.account_address2])
         self.expect_get({self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1)})
 
         self.expect_invalid_transaction()
+
+

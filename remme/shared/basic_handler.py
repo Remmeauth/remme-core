@@ -21,7 +21,17 @@ from sawtooth_sdk.processor.handler import TransactionHandler
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
 from remme.protos.transaction_pb2 import TransactionPayload
+from remme.shared.utils import hash512
 
+
+def is_address(address):
+    try:
+        assert isinstance(address, str)
+        assert len(address) == 70
+        int(address, 16)
+        return True
+    except (AssertionError, ValueError):
+        return False
 
 def get_data(context, pb_class, address):
     raw_data = context.get_state([address])
@@ -38,16 +48,6 @@ def get_data(context, pb_class, address):
         return None
 
 
-def is_address(address):
-    try:
-        assert isinstance(address, str)
-        assert len(address) == 70
-        int(address, 16)
-        return True
-    except (AssertionError, ValueError):
-        return False
-
-
 class BasicHandler(TransactionHandler):
     """
         BasicHandler contains shared logic...
@@ -55,7 +55,7 @@ class BasicHandler(TransactionHandler):
     def __init__(self, name, versions):
         self._family_name = name
         self._family_versions = versions
-        self._prefix = hashlib.sha512(self._family_name.encode('utf-8')).hexdigest()[:6]
+        self._prefix = hash512(self._family_name)[:6]
 
     @property
     def family_name(self):
@@ -83,6 +83,9 @@ class BasicHandler(TransactionHandler):
             signer=signer
         )
 
+    def is_handler_address(self, address):
+        return is_address(address) and address.startswith(self._prefix)
+
     def apply(self, transaction, context):
         transaction_payload = TransactionPayload()
         transaction_payload.ParseFromString(transaction.payload)
@@ -98,6 +101,7 @@ class BasicHandler(TransactionHandler):
                                      format(int(transaction_payload.method)))
         except ParseError:
             raise InvalidTransaction('Cannot decode transaction payload')
+        print(self._family_name)
         addresses = context.set_state({k: v.SerializeToString() for k, v in updated_state.items()})
         if len(addresses) < len(updated_state):
             raise InternalError('Failed to update all of states. Updated: {}. '
@@ -111,5 +115,5 @@ class BasicHandler(TransactionHandler):
         return address
 
     def make_address_from_data(self, data):
-        appendix = hashlib.sha512(data.encode('utf-8')).hexdigest()[:64]
+        appendix = hash512(data)[:64]
         return self.make_address(appendix)

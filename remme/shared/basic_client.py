@@ -34,17 +34,18 @@ from remme.protos.transaction_pb2 import TransactionPayload
 from remme.settings import REST_API_URL, PRIV_KEY_FILE
 from remme.shared.exceptions import ClientException
 from remme.shared.exceptions import KeyNotFound
-from remme.shared.basic_handler import is_address
-
-
-def _sha512(data):
-    return hashlib.sha512(data).hexdigest()
+from remme.shared.utils import hash512
+from remme.account.handler import AccountHandler, is_address
 
 
 class BasicClient:
-    def __init__(self, family_handler):
+    def __init__(self, family_handler, test_helper=None, keyfile=PRIV_KEY_FILE):
         self.url = REST_API_URL
         self._family_handler = family_handler
+        self.test_helper = test_helper
+
+        if self.test_helper:
+            return
 
         private_key_str = self.get_signer_priv_key_from_file()
         try:
@@ -66,14 +67,14 @@ class BasicClient:
                 'Failed to read private key: {}'.format(str(err)))
         return private_key_str
 
-    def make_address(self, prefix):
-        return self._family_handler.make_address(prefix)
+    def make_address(self, suffix):
+        return self._family_handler.make_address(suffix)
 
     def make_address_from_data(self, data):
         return self._family_handler.make_address_from_data(data)
 
     def is_address(self, address):
-        return is_address(address)
+        return self._family_handler.is_address(address)
 
     def get_value(self, key):
         result = self._send_request("state/{}".format(key))
@@ -100,10 +101,10 @@ class BasicClient:
         return prefix + pub_key
 
     def _send_request(self, suffix, data=None, content_type=None):
-        if self.url.startswith("http://"):
-            url = "{}/{}".format(self.url, suffix)
-        else:
-            url = "http://{}/{}".format(self.url, suffix)
+        url = f"{self.url}/{suffix}"
+
+        if not url.startswith("http://"):
+            url = f"http://{url}"
 
         headers = {}
 
@@ -139,7 +140,7 @@ class BasicClient:
             inputs=addresses_input_output,
             outputs=addresses_input_output,
             dependencies=[],
-            payload_sha512=_sha512(payload),
+            payload_sha512=hash512(payload),
             batcher_public_key=signer.get_public_key().as_hex(),
             nonce=time.time().hex().encode()
         ).SerializeToString()
@@ -154,6 +155,12 @@ class BasicClient:
 
         return self._sign_batch_list(signer, [transaction])
 
+    def set_signer(self, new_signer):
+        self._signer = new_signer
+
+    def get_user_address(self):
+        return AccountHandler.make_address_from_data(self._signer.get_public_key().as_hex())
+
     def _send_transaction(self, method, data_pb, addresses_input_output):
         '''
            Signs and sends transaction to the network using rest-api.
@@ -162,20 +169,25 @@ class BasicClient:
            :param dict data: Dictionary that is required by TP to process the transaction.
            :param str addresses_input_output: list of addresses(keys) for which to get and save state.
         '''
+        # forward transaction to test helper
+        if self.test_helper:
+            self.test_helper.send_transaction(method, data_pb, addresses_input_output)
+            return
+
         payload = TransactionPayload()
         payload.method = method
         payload.data = data_pb.SerializeToString()
 
         for address in addresses_input_output:
-            if not self.is_address(address):
+            if not is_address(address):
                 raise ClientException('one of addresses_input_output {} is not an address'.format(addresses_input_output))
 
         batch_list = self.make_batch_list(payload, addresses_input_output)
 
-        return self._send_request(
+        return json.loads(self._send_request(
             "batches", batch_list.SerializeToString(),
             'application/octet-stream',
-        )
+        ))
 
     def _sign_batch_list(self, signer, transactions):
         transaction_signatures = [t.header_signature for t in transactions]

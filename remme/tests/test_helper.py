@@ -17,29 +17,41 @@ from sawtooth_signing import create_context
 from sawtooth_signing import CryptoFactory
 
 from remme.protos.transaction_pb2 import TransactionPayload
+from remme.shared.utils import AttrDict
 from remme.tests.tp_test_case import TransactionProcessorTestCase
+from remme.account.client import AccountClient
+from remme.account.handler import AccountHandler
 
 LOGGER = logging.getLogger(__name__)
 
 
 class HelperTestCase(TransactionProcessorTestCase):
     @classmethod
-    def setUpClass(cls, handler):
+    def setUpClass(cls, handler, client_class=None):
         super().setUpClass()
         cls.handler = handler
+        cls.client_class = client_class
 
-        account_signer1 = cls.get_new_signer()
-        cls.account_address1 = cls.handler.make_address_from_data(account_signer1.get_public_key().as_hex())
-        account_signer2 = cls.get_new_signer()
-        cls.account_address2 = cls.handler.make_address_from_data(account_signer2.get_public_key().as_hex())
+        # generate token account addresses
+        cls.account_signer1 = cls.get_new_signer()
+        cls.account_address1 = AccountHandler.make_address_from_data(cls.account_signer1.get_public_key().as_hex())
+        cls.account_signer2 = cls.get_new_signer()
+        cls.account_address2 = AccountHandler.make_address_from_data(cls.account_signer2.get_public_key().as_hex())
 
-        cls._factory = cls.handler.get_message_factory(account_signer1)
+        cls._factory = cls.handler.get_message_factory(cls.account_signer1)
 
     @classmethod
     def get_new_signer(cls):
         context = create_context('secp256k1')
         return CryptoFactory(context).new_signer(
             context.new_random_private_key())
+
+    def get_context(self):
+        context = AttrDict()
+        context.client = self.client_class(test_helper=self)
+        context.client.set_signer(self.account_signer1)
+
+        return context
 
     def send_transaction(self, method, pb_data, address_access_list):
         payload_pb = TransactionPayload()
@@ -56,8 +68,10 @@ class HelperTestCase(TransactionProcessorTestCase):
         LOGGER.info('expect_get create_get_response')
 
         self.validator.respond(
-            self._factory.create_get_response({key: value_pb.SerializeToString() if value_pb else None
-                                              for key, value_pb in key_value.items()}),
+            self._factory.create_get_response(
+                {key: value.SerializeToString() if hasattr(value, 'SerializeToString') else str(value).encode()
+                        if value else None for key, value in key_value.items()
+                }),
             received)
 
     def expect_set(self, key_value):
@@ -81,3 +95,13 @@ class HelperTestCase(TransactionProcessorTestCase):
 
     def expect_internal_error(self):
         self._expect_tp_response("INTERNAL_ERROR")
+
+    # a short term solution
+    def transfer(self, address1, amount1, address2, amount2, value):
+        self.expect_get({address1: AccountClient.get_account_model(amount1)})
+        self.expect_get({address2: AccountClient.get_account_model(amount2)})
+
+        return {
+            address1: AccountClient.get_account_model(amount1 - value),
+            address2: AccountClient.get_account_model(amount2 + value)
+        }

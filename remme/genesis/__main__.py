@@ -17,6 +17,7 @@ import argparse
 from remme.protos.account_pb2 import AccountMethod
 from remme.account.client import AccountClient
 from remme.account.handler import AccountHandler, TransactionPayload
+from remme.settings import GENESIS_ADDRESS
 
 OUTPUT_BATCH = '/genesis/batch/token-proposal.batch'
 
@@ -32,7 +33,7 @@ if __name__ == '__main__':
 
     print('Issuing {} tokens to address {}'.format(args.token_supply, target_address))
 
-    addresses_input_output = [zero_address, target_address]
+    addresses_input_output = [GENESIS_ADDRESS, target_address]
 
     payload = TransactionPayload()
     payload.method = AccountMethod.GENESIS
