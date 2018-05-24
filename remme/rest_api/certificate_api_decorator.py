@@ -14,6 +14,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 import datetime
 
+
 from OpenSSL import crypto
 from OpenSSL.crypto import PKCS12, X509, PKey
 
@@ -75,10 +76,28 @@ def certificate_sign_request(func):
                                                  default_backend())
             if not is_valid_token_balance():
                 return {'error': 'You have no tokens to issue certificate'}, 402
+
+            not_valid_before = payload.get('not_valid_before', None)
+            not_valid_after = payload.get('not_valid_after', None)
+
+            if bool(not_valid_before) != bool(not_valid_after):
+                return {'error': 'Either both valid dates should be specified, or none.'}, 400
+
+            if not_valid_before and not_valid_after:
+                not_valid_before = datetime.datetime.fromtimestamp(not_valid_before)
+                not_valid_after = datetime.datetime.fromtimestamp(not_valid_after)
+                if not_valid_before < datetime.datetime.utcnow():
+                    return {'error': 'not_valid_before certificate property cannot occur before the current datetime'}, 400
+                if not_valid_before >= not_valid_after:
+                    return {'error': 'not_valid_before certificate property has to occur before the not_valid_after'}, 400
+
+                if not_valid_after - not_valid_before > CERT_MAX_VALIDITY:
+                    return {'error': 'The certificate validity exceeds the maximum value.'}, 400
+
         except ValueError:
             return {'error': 'Unable to load certificate request entity'}, 422
 
-        return func(certificate)
+        return func(certificate, not_valid_before, not_valid_after)
 
     return validation_logic
 

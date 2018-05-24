@@ -63,8 +63,8 @@ def put(cert, key, key_export, name_to_save=None, passphrase=None):
 
 
 @certificate_sign_request
-def store(cert_request):
-    return execute_store(cert_request)
+def store(cert_request, not_valid_before, not_valid_after):
+    return execute_store(cert_request, not_valid_before, not_valid_after)
 
 
 @p12_certificate_address_request
@@ -133,11 +133,11 @@ def execute_put(cert, key, key_export, name_to_save=None, passphrase=None):
     return response
 
 
-def execute_store(cert_request):
+def execute_store(cert_request, not_valid_before, not_valid_after):
     certificate_client = CertificateClient()
 
     key = get_keys_to_sign()
-    cert = certificate_client.process_csr(cert_request, key)
+    cert = certificate_client.process_csr(cert_request, key, not_valid_before, not_valid_after)
 
     crt_export = cert.public_bytes(serialization.Encoding.PEM)
     crt_bin = cert.public_bytes(serialization.Encoding.DER).hex()
