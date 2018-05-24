@@ -23,12 +23,7 @@ from pathlib import Path
 
 LOGGER = logging.getLogger(__name__)
 
-
-def set_up_logging(verbosity=2):
-    Path('/var/log/sawtooth').mkdir(parents=True, exist_ok=True)
-    Path('/var/log/sawtooth/remme-debug.log').touch(exist_ok=True)
-    setup_logging('remme', verbosity)
-
+# TODO move to f-strings after websockets move to 3.6
 
 def setup_logging(name, verbosity=2):
     Path('/var/log/sawtooth').mkdir(parents=True, exist_ok=True)
