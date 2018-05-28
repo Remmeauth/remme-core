@@ -80,17 +80,12 @@ def certificate_sign_request(func):
             not_valid_before = payload.get('not_valid_before', None)
             not_valid_after = payload.get('not_valid_after', None)
 
-            if bool(not_valid_before) != bool(not_valid_after):
-                return {'error': 'Either both valid dates should be specified, or none.'}, 400
+            not_valid_before = datetime.datetime.fromtimestamp(not_valid_before) if not_valid_before else datetime.datetime.utcnow()
+            not_valid_after = datetime.datetime.fromtimestamp(not_valid_after) if not_valid_after else not_valid_before + CERT_MAX_VALIDITY
 
-            if not_valid_before and not_valid_after:
-                not_valid_before = datetime.datetime.fromtimestamp(not_valid_before)
-                not_valid_after = datetime.datetime.fromtimestamp(not_valid_after)
-                if not_valid_before < datetime.datetime.utcnow():
-                    return {'error': 'not_valid_before certificate property cannot occur before the current datetime'}, 400
+            if not_valid_after:
                 if not_valid_before >= not_valid_after:
                     return {'error': 'not_valid_before certificate property has to occur before the not_valid_after'}, 400
-
                 if not_valid_after - not_valid_before > CERT_MAX_VALIDITY:
                     return {'error': 'The certificate validity exceeds the maximum value.'}, 400
 
