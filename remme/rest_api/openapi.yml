@@ -576,6 +576,12 @@ parameters:
         certificate:
           description: PEM encoded certificate file
           type: string
+        not_valid_before:
+          description: The timestamp of a certificate validity starting date
+          type: integer
+        not_valid_after:
+          description: The timestamp of a certificate validity end date
+          type: integer
       required:
         - certificate
   certificate_create_payload:

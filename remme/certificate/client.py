@@ -52,13 +52,16 @@ class CertificateClient(BasicClient):
 
         return payload
 
-    def process_csr(self, certificate_request, key):
+    def process_csr(self, certificate_request, key, not_valid_before=None, not_valid_after=None):
         public_key = certificate_request.public_key()
         subject = certificate_request.subject
         issuer = x509.Name([
             x509.NameAttribute(NameOID.ORGANIZATION_NAME, CERT_ORGANIZATION),
             x509.NameAttribute(NameOID.USER_ID, self.get_signer_pubkey())
         ])
+
+        not_valid_before = not_valid_before if not_valid_before else datetime.datetime.utcnow()
+        not_valid_after = not_valid_after if not_valid_after else not_valid_before + CERT_MAX_VALIDITY
 
         return x509.CertificateBuilder().subject_name(
             subject
@@ -69,9 +72,9 @@ class CertificateClient(BasicClient):
         ).serial_number(
             x509.random_serial_number()
         ).not_valid_before(
-            datetime.datetime.utcnow()
+            not_valid_before
         ).not_valid_after(
-            datetime.datetime.utcnow() + CERT_MAX_VALIDITY
+            not_valid_after
         ).sign(key, hashes.SHA256(), default_backend())
 
     def store_certificate(self, certificate_raw, signature_rem, signature_crt, cert_signer_public_key=None):
