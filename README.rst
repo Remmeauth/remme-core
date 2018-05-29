@@ -41,6 +41,8 @@ following commands:
 
 You can run ``make test`` to run automated tests.
 
+This project uses git submodules. To initialize them run ``git submodule init`` and then ``git submodule update``.
+
 License
 -------
 
