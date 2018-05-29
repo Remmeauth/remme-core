@@ -38,6 +38,11 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Clone submodules
+          command: |
+            git submodule init && \
+            git submodule update
+      - run:
           name: Build Docker images
           command: make build_docker
       - run:
