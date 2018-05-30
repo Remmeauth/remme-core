@@ -70,10 +70,10 @@ paths:
           description: The amount of tokens for the specified user
           schema:
             properties:
-              pub_key:
+              address:
                 type: string
                 description: The hex-encoded public key of the user
-                pattern: '^[0-9a-f]{66}$'
+#                pattern: '^[0-9a-f]{66}$'
               balance:
                 type: integer
                 description: The amount of tokens on user's balance
