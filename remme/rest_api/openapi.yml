@@ -491,7 +491,6 @@ parameters:
         - amount
         - swap_id
         - created_at
-        - is_initiator
       properties:
         receiver_address:
           $ref: '#/definitions/Address'
@@ -511,9 +510,6 @@ parameters:
         created_at:
           description: Optional for bob, if he is non initiator - to provide a secret lock
           type: integer
-        is_initiator:
-          description: Is Alice initiator of a transaction on the REMchain side
-          type: boolean
   swap_approve_payload:
     name: payload
     description: Alice action to approve swap by Bob
