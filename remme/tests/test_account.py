@@ -145,4 +145,3 @@ class AccountTestCase(HelperTestCase):
 
         self.expect_invalid_transaction()
 
-

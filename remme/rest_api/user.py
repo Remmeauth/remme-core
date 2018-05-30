@@ -16,7 +16,7 @@
 from remme.account.client import AccountClient
 
 
-def get(pub_key_user):
+def get_certificates(pub_key_user):
     client = AccountClient()
     address = client.make_address_from_data(pub_key_user)
     print('Reading from address: {}'.format(address))

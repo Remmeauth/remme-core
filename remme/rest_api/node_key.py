@@ -13,14 +13,9 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-from pathlib import Path
-import unittest
+from remme.certificate.client import CertificateClient
 
-from remme.shared.logging import setup_logging
-from .test_account import *
-from .test_atomic_swap import *
-from .test_rest_api import *
 
-if __name__ == '__main__':
-    setup_logging('remme.tests', 2)
-    unittest.main()
+def get():
+    client = CertificateClient()
+    return {'pubkey': client.get_public_key()}

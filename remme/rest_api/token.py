@@ -17,7 +17,6 @@ import re
 from remme.account.client import AccountClient
 
 
-
 def get(pub_key_user):
     client = AccountClient()
     address = client.make_address_from_data(pub_key_user)
