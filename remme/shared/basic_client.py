@@ -51,14 +51,13 @@ class BasicClient:
             self._signer = self.get_signer_priv_key_from_file(keyfile)
         except ClientException as e:
             LOGGER.warn('Could not set up signer from file, detailed: %s', e)
-            self._signer = self.generate_signer()
+            self._signer = self.generate_signer(keyfile)
 
     @staticmethod
     def get_signer_priv_key_from_file(keyfile):
         try:
             with open(keyfile) as fd:
                 private_key_str = fd.read().strip()
-                fd.close()
         except OSError as err:
             raise ClientException(
                 'Failed to read private key: {}'.format(str(err)))
@@ -73,9 +72,16 @@ class BasicClient:
         return CryptoFactory(context).new_signer(private_key)
 
     @staticmethod
-    def generate_signer():
+    def generate_signer(keyfile=None):
         context = create_context('secp256k1')
-        return CryptoFactory(context).new_signer(context.new_random_private_key())
+        private_key = context.new_random_private_key()
+        if keyfile:
+            try:
+                with open(keyfile, 'w') as fd:
+                    fd.write(private_key.as_hex())
+            except OSError as err:
+                raise ClientException('Failed to write private key: {0}'.format(err))
+        return CryptoFactory(context).new_signer(private_key)
 
     def make_address(self, suffix):
         return self._family_handler.make_address(suffix)
