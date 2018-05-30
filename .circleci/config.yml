@@ -30,6 +30,11 @@ jobs:
             rm -rf protoc3
       - checkout
       - run:
+          name: Clone submodules
+          command: |
+            git submodule init && \
+            git submodule update
+      - run:
           name: Run tests
           command: make test
   deploy:
