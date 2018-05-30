@@ -72,6 +72,9 @@ class AccountHandler(BasicHandler):
 
     def _transfer(self, context, pub_key, transfer_payload):
         address = self.make_address_from_data(pub_key)
+        if address == ZERO_ADDRESS:
+            raise InvalidTransaction("Public transfers are not allowed from ZERO_ADDRESS"
+                                     " (which is used for internal transactions")
         return self._transfer_from_address(context, address, transfer_payload)
 
     def _transfer_from_address(self, context, address, transfer_payload):
