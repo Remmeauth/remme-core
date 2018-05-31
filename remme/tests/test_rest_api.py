@@ -15,7 +15,7 @@ from remme.shared.utils import hash512
 from remme.shared.logging import test
 from remme.protos.account_pb2 import AccountMethod, TransferPayload, Account
 from remme.protos.transaction_pb2 import TransactionPayload
-from remme.account.client import AccountClient
+from remme.clients.account import AccountClient
 from remme.tp.account import AccountHandler
 from remme.tests.test_helper import HelperTestCase
 

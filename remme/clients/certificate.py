@@ -17,7 +17,7 @@ import datetime
 
 from remme.protos.certificate_pb2 import CertificateStorage, \
     NewCertificatePayload, RevokeCertificatePayload, CertificateMethod
-from remme.shared.basic_client import BasicClient
+from remme.clients.basic import BasicClient
 from remme.tp.certificate import CertificateHandler
 from remme.tp.account import AccountHandler
 from remme.tp.certificate import CERT_ORGANIZATION, CERT_MAX_VALIDITY

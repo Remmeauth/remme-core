@@ -17,10 +17,9 @@ import logging
 import os
 from pathlib import Path
 import re
-import hashlib
 from connexion import NoContent
 
-from remme.certificate.client import CertificateClient
+from remme.clients.certificate import CertificateClient
 from remme.rest_api.certificate_api_decorator import certificate_put_request, \
     http_payload_required, certificate_address_request, certificate_sign_request, \
     p12_certificate_address_request

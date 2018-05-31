@@ -22,7 +22,7 @@ from sawtooth_signing.secp256k1 import Secp256k1PrivateKey
 from remme.settings import GENESIS_ADDRESS
 from remme.shared.logging import test
 from remme.tests.test_helper import HelperTestCase
-from remme.account.client import AccountClient
+from remme.clients.account import AccountClient
 from remme.tp.account import AccountHandler
 
 

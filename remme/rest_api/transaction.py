@@ -18,7 +18,7 @@ from contextlib import suppress
 from google.protobuf.message import DecodeError
 from sawtooth_sdk.protobuf.transaction_pb2 import Transaction
 
-from remme.certificate.client import CertificateClient
+from remme.clients.certificate import CertificateClient
 
 
 def post(payload):

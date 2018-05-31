@@ -16,7 +16,7 @@ import logging
 
 import datetime
 
-from remme.atomic_swap_tp.client import AtomicSwapClient, get_swap_init_payload, get_swap_close_payload, \
+from remme.clients.atomic_swap import AtomicSwapClient, get_swap_init_payload, get_swap_close_payload, \
     get_swap_approve_payload, get_swap_expire_payload, get_swap_set_secret_lock_payload
 from remme.tp.atomic_swap import AtomicSwapHandler
 from remme.protos.atomic_swap_pb2 import AtomicSwapInfo
@@ -25,7 +25,7 @@ from remme.settings.helper import _make_settings_key, get_setting_from_key_value
 from remme.shared.logging import test
 from remme.shared.utils import generate_random_key, hash256
 from remme.tests.test_helper import HelperTestCase
-from remme.account.client import AccountClient
+from remme.clients.account import AccountClient
 from remme.tp.account import ZERO_ADDRESS
 
 LOGGER = logging.getLogger(__name__)

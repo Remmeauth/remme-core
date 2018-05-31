@@ -21,7 +21,7 @@ from remme.protos.atomic_swap_pb2 import AtomicSwapInitPayload, AtomicSwapExpire
 from sawtooth_sdk.protobuf.setting_pb2 import Setting
 from remme.settings import SETTINGS_SWAP_COMMISSION, ZERO_ADDRESS, SETTINGS_PUB_KEY_ENCRYPTION
 from remme.settings.helper import _make_settings_key
-from remme.shared.basic_client import BasicClient
+from remme.clients.basic import BasicClient
 
 LOGGER = logging.getLogger(__name__)
 
