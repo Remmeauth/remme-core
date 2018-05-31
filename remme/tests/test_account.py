@@ -14,7 +14,10 @@
 # ------------------------------------------------------------------------
 import logging
 import inspect
+import secp256k1
 from remme.protos.account_pb2 import AccountMethod, GenesisStatus, Account
+from sawtooth_signing import create_context, CryptoFactory
+from sawtooth_signing.secp256k1 import Secp256k1PrivateKey
 
 from remme.settings import GENESIS_ADDRESS
 from remme.shared.logging import test
@@ -32,7 +35,7 @@ class AccountTestCase(HelperTestCase):
         super().setUpClass(AccountHandler)
 
     @test
-    def test_genesis_empty(self):
+    def test_genesis_success(self):
         TOTAL_SUPPLY = 10000
 
         self.send_transaction(AccountMethod.GENESIS, AccountClient.get_genesis_payload(TOTAL_SUPPLY),
@@ -144,5 +147,17 @@ class AccountTestCase(HelperTestCase):
         self.expect_get({self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1)})
 
         self.expect_invalid_transaction()
+
+    # Commented due to failure secp256k1 package not allowing to create a zero private key
+    # @test
+    # def test_transfer_fail_from_zeroaddress(self):
+    #     ACCOUNT_AMOUNT1 = 500
+    #     TRANSFER_VALUE = 200
+    #     context = create_context('secp256k1')
+    #     self.send_transaction(AccountMethod.TRANSFER,
+    #                           AccountClient.get_transfer_payload(GENESIS_ADDRESS, TRANSFER_VALUE),
+    #                           [self.account_address1, self.account_address2], CryptoFactory(context).new_signer(Secp256k1PrivateKey.from_hex(ZERO_ADDRESS[:-6])))
+    #
+    #     self.expect_invalid_transaction()
 
 

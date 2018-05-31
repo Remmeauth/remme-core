@@ -108,7 +108,7 @@ def execute_post(certificate_address):
         return NoContent, 404
 
 
-def execute_put(cert, key, key_export, name_to_save=None, passphrase=None):
+def get_crt_export_bin_sig_rem_sig(cert, key):
     certificate_client = CertificateClient()
 
     crt_export = cert.public_bytes(serialization.Encoding.PEM)
@@ -117,12 +117,18 @@ def execute_put(cert, key, key_export, name_to_save=None, passphrase=None):
     rem_sig = certificate_client.sign_text(crt_hash)
     crt_sig = get_certificate_signature(key, rem_sig)
 
+    return crt_export, crt_bin, crt_sig, rem_sig
+
+
+def execute_put(cert, key, key_export, name_to_save=None, passphrase=None):
+    crt_export, crt_bin, crt_sig, rem_sig = get_crt_export_bin_sig_rem_sig(cert, key)
+
     try:
         saved_to = save_p12(cert, key, name_to_save, passphrase)
     except ValueError:
         return {'error': 'The file already exists in specified location'}, 409
 
-    status, _ = certificate_client.store_certificate(crt_bin, rem_sig, crt_sig.hex())
+    status, _ = CertificateClient().store_certificate(crt_bin, rem_sig, crt_sig.hex())
 
     response = {'certificate': crt_export.decode('utf-8'),
                 'priv_key': key_export.decode('utf-8'),
@@ -139,11 +145,7 @@ def execute_store(cert_request, not_valid_before, not_valid_after):
     key = get_keys_to_sign()
     cert = certificate_client.process_csr(cert_request, key, not_valid_before, not_valid_after)
 
-    crt_export = cert.public_bytes(serialization.Encoding.PEM)
-    crt_bin = cert.public_bytes(serialization.Encoding.DER).hex()
-    crt_hash = hash512(crt_bin)
-    rem_sig = certificate_client.sign_text(crt_hash)
-    crt_sig = get_certificate_signature(key, rem_sig)
+    crt_export, crt_bin, crt_sig, rem_sig = get_crt_export_bin_sig_rem_sig(cert, key)
 
     certificate_public_key = key.public_key().public_bytes(encoding=serialization.Encoding.PEM,
                                                            format=serialization.PublicFormat.SubjectPublicKeyInfo)
