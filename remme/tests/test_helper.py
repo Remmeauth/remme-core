@@ -36,7 +36,7 @@ class HelperTestCase(TransactionProcessorTestCase):
         cls.handler = handler
         cls.client_class = client_class
 
-        cls._pk_patcher = mock.patch('remme.shared.basic_client.BasicClient.get_signer_priv_key_from_file',
+        cls._pk_patcher = mock.patch('remme.clients.basic.BasicClient.get_signer_priv_key_from_file',
                                      return_value=BasicClient.generate_signer())
         cls._pk_patcher_obj = cls._pk_patcher.start()
 
