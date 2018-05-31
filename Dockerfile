@@ -13,6 +13,7 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
+# TODO check if it works with a newer versio of Debian
 FROM python:3.6.5-jessie
 WORKDIR /root
 COPY ./requirements.txt .
