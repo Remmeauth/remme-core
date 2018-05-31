@@ -371,7 +371,7 @@ paths:
           description: No key with the given name found
   /atomic-swap/init:
     post:
-      operationId: remme.atomic_swap_tp.rest_api.init
+      operationId: remme.rest_api.atomic_swap.init
       summary: Alice may initialize a swap transaction or Bob may follow one as a "non initiator"
       parameters:
         - $ref: '#/parameters/swap_init_payload'
@@ -383,7 +383,7 @@ paths:
 
   /atomic-swap/approve:
     post:
-      operationId: remme.atomic_swap_tp.rest_api.approve
+      operationId: remme.rest_api.atomic_swap.approve
       summary: Alice may initialize a swap transaction or Bob may follow one as a "non initiator"
       parameters:
         - $ref: '#/parameters/swap_approve_payload'
@@ -395,7 +395,7 @@ paths:
 
   /atomic-swap/expire:
     post:
-      operationId: remme.atomic_swap_tp.rest_api.expire
+      operationId: remme.rest_api.atomic_swap.expire
       summary: Alice or Bob expire the swap and receive the refund
       parameters:
         - $ref: '#/parameters/swap_approve_payload'
@@ -406,7 +406,7 @@ paths:
           $ref: '#/responses/500GeneralError'
   /atomic-swap/set-secret-lock:
     post:
-      operationId: remme.atomic_swap_tp.rest_api.set_secret_lock
+      operationId: remme.rest_api.atomic_swap.set_secret_lock
       summary: Bob may set the secret lock
       parameters:
         - $ref: '#/parameters/swap_set_secret_lock_payload'
@@ -417,7 +417,7 @@ paths:
           $ref: '#/responses/500GeneralError'
   /atomic-swap/close:
     post:
-      operationId: remme.atomic_swap_tp.rest_api.close
+      operationId: remme.rest_api.atomic_swap.close
       summary: Close the swap by providing a secret key
       parameters:
         - $ref: '#/parameters/swap_close_payload'
@@ -428,7 +428,7 @@ paths:
           $ref: '#/responses/500GeneralError'
   /atomic-swap/{swap_id}:
     get:
-      operationId: remme.atomic_swap_tp.rest_api.get_swap_info
+      operationId: remme.rest_api.atomic_swap.get_swap_info
       summary: Get information about swap
       parameters:
         - name: swap_id
@@ -447,7 +447,7 @@ paths:
 
   /atomic-swap/pub-key-encryption:
     get:
-      operationId: remme.atomic_swap_tp.rest_api.get_pub_key_encryption
+      operationId: remme.rest_api.atomic_swap.get_pub_key_encryption
       summary: Get a public key with which to enсrypt sensitive data during the swap. (e.g email address)
       responses:
         200:
