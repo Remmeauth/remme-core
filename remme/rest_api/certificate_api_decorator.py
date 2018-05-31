@@ -1,7 +1,7 @@
-from remme.certificate.handler import CERT_STORE_PRICE, CERT_ORGANIZATION, CERT_MAX_VALIDITY
+from remme.tp.certificate import CERT_STORE_PRICE, CERT_ORGANIZATION, CERT_MAX_VALIDITY
 
 from remme.account.client import AccountClient
-from remme.account.handler import AccountHandler
+from remme.tp.account import AccountHandler
 
 from remme.shared.exceptions import KeyNotFound
 
@@ -11,12 +11,11 @@ from cryptography.hazmat.backends import default_backend
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from cryptography.hazmat.primitives.asymmetric import rsa
 import datetime
 
 
 from OpenSSL import crypto
-from OpenSSL.crypto import PKCS12, X509, PKey
 
 
 def certificate_put_request(func):

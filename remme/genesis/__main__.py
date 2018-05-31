@@ -16,7 +16,7 @@
 import argparse
 from remme.protos.account_pb2 import AccountMethod
 from remme.account.client import AccountClient
-from remme.account.handler import AccountHandler, TransactionPayload
+from remme.tp.account import AccountHandler, TransactionPayload
 from remme.settings import GENESIS_ADDRESS
 
 OUTPUT_BATCH = '/genesis/batch/token-proposal.batch'

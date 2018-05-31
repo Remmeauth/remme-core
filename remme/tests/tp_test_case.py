@@ -5,7 +5,7 @@ from contextlib import suppress
 
 from sawtooth_processor_test.mock_validator import MockValidator
 
-from remme.__main__ import TP_HANDLERS
+from remme.tp.__main__ import TP_HANDLERS
 
 
 class RemmeMockValidator(MockValidator):

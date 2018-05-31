@@ -16,10 +16,9 @@
 import argparse
 from sawtooth_sdk.processor.core import TransactionProcessor
 
-from remme.atomic_swap_tp.handler import AtomicSwapHandler
-from remme.certificate.handler import CertificateHandler
-from remme.account.handler import AccountHandler
-
+from remme.tp.atomic_swap import AtomicSwapHandler
+from remme.tp.certificate import CertificateHandler
+from remme.tp.account import AccountHandler
 
 from remme.shared.logging import setup_logging
 

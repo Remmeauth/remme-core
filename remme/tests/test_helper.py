@@ -24,7 +24,7 @@ from remme.shared.utils import AttrDict
 from remme.shared.basic_client import BasicClient
 from remme.tests.tp_test_case import TransactionProcessorTestCase
 from remme.account.client import AccountClient
-from remme.account.handler import AccountHandler
+from remme.tp.account import AccountHandler
 
 LOGGER = logging.getLogger(__name__)
 

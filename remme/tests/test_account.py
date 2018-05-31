@@ -23,7 +23,7 @@ from remme.settings import GENESIS_ADDRESS
 from remme.shared.logging import test
 from remme.tests.test_helper import HelperTestCase
 from remme.account.client import AccountClient
-from remme.account.handler import ZERO_ADDRESS, AccountHandler
+from remme.tp.account import AccountHandler
 
 
 LOGGER = logging.getLogger(__name__)

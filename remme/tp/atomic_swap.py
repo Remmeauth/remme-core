@@ -24,7 +24,7 @@ from remme.settings.helper import _get_setting_value
 from remme.shared.basic_handler import BasicHandler, get_data
 from remme.shared.utils import hash256
 from remme.account.client import AccountClient
-from remme.account.handler import AccountHandler, get_account_by_address
+from remme.tp.account import AccountHandler, get_account_by_address
 from remme.shared.singleton import singleton
 
 LOGGER = logging.getLogger(__name__)
