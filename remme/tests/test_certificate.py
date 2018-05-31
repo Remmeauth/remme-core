@@ -24,8 +24,8 @@ from remme.certificate.client import CertificateClient
 from remme.certificate.handler import CertificateHandler
 from remme.protos.atomic_swap_pb2 import AtomicSwapMethod, AtomicSwapInfo
 from remme.protos.certificate_pb2 import CertificateMethod
-from remme.rest_api.certificate import get_certificate_signature
-from remme.rest_api.certificate_api_decorator import certificate_put_request
+from remme.rest_api.certificate import get_certificate_signature, get_crt_export_bin_sig_rem_sig
+from remme.rest_api.certificate_api_decorator import certificate_put_request, create_certificate
 from remme.settings import SETTINGS_SWAP_COMMISSION
 from remme.settings.helper import _make_settings_key, get_setting_from_key_value
 from remme.shared.logging import test
@@ -93,43 +93,30 @@ class AtomicSwapTestCase(HelperTestCase):
     @test
     def test_store_success(self):
         context = self.get_context()
+        signer_pub_key = self.account_signer1.get_public_key().as_hex()
 
-        TOTAL_SUPPLY = 10000
+        cert, key, key_export = create_certificate(context.certificate_payload, signer=signer_pub_key)
+        crt_export, crt_bin, crt_sig, rem_sig = get_crt_export_bin_sig_rem_sig(cert, key)
 
-        certificate_client = CertificateClient()
-        def store_certificate(cert, key, key_export, name_to_save, passphrase):
+        context.client.store_certificate(crt_bin, rem_sig, crt_sig.hex())
 
-        func(cert, key, key_export, name_to_save, passphrase)
-        certificate_put_request()
-        crt_export = cert.public_bytes(serialization.Encoding.PEM)
-        crt_bin = cert.public_bytes(serialization.Encoding.DER).hex()
-        crt_hash = hash512(crt_bin)
-        rem_sig = certificate_client.sign_text(crt_hash)
-        crt_sig = get_certificate_signature(key, rem_sig)
 
-        try:
-            saved_to = save_p12(cert, key, name_to_save, passphrase)
-        except ValueError:
-            return {'error': 'The file already exists in specified location'}, 409
-
-        status, _ = certificate_client.store_certificate(crt_bin, rem_sig, crt_sig.hex())
-
-        def get_new_certificate_payload(self, certificate_raw, signature_rem, signature_crt, cert_signer_public_key):
-
-        self.send_transaction(CertificateMethod.STORE, CertificateClient.get_new_certificate_payload(TOTAL_SUPPLY),
-                              [GENESIS_ADDRESS, self.account_address1])
-
-        self.expect_get({GENESIS_ADDRESS: None})
-
-        genesis_status = GenesisStatus()
-        genesis_status.status = True
-        account = Account()
-        account.balance = TOTAL_SUPPLY
-
-        self.expect_set({
-            self.account_address1: account,
-            GENESIS_ADDRESS: genesis_status
-        })
-
-        self.expect_ok()
+        # def get_new_certificate_payload(self, certificate_raw, signature_rem, signature_crt, cert_signer_public_key):
+        #
+        # self.send_transaction(CertificateMethod.STORE, CertificateClient.get_new_certificate_payload(TOTAL_SUPPLY),
+        #                       [GENESIS_ADDRESS, self.account_address1])
+        #
+        # self.expect_get({GENESIS_ADDRESS: None})
+        #
+        # genesis_status = GenesisStatus()
+        # genesis_status.status = True
+        # account = Account()
+        # account.balance = TOTAL_SUPPLY
+        #
+        # self.expect_set({
+        #     self.account_address1: account,
+        #     GENESIS_ADDRESS: genesis_status
+        # })
+        #
+        # self.expect_ok()
 
