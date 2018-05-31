@@ -13,7 +13,8 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-FROM python:3.6
+# TODO check if it works with a newer versio of Debian
+FROM python:3.6.5-jessie
 WORKDIR /root
 COPY ./requirements.txt .
 RUN pip3 install -r ./requirements.txt
