@@ -13,7 +13,7 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-import re
+from remme.shared.utils import get_batch_id
 from remme.account.client import AccountClient
 
 
@@ -29,4 +29,5 @@ def get(pub_key_user):
 def post(payload):
     client = AccountClient()
     address_to = client.make_address_from_data(payload['pub_key_to'])
-    return client.transfer(address_to, payload['amount'])
+    result = client.transfer(address_to, payload['amount'])
+    return {'batch_id': get_batch_id(result)}

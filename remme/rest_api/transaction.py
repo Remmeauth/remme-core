@@ -13,13 +13,12 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 import base64
-import re
-import json
 from contextlib import suppress
 
 from google.protobuf.message import DecodeError
 from sawtooth_sdk.protobuf.transaction_pb2 import Transaction
 
+from remme.shared.utils import get_batch_id
 from remme.certificate.client import CertificateClient
 
 
@@ -41,8 +40,7 @@ def post(payload):
 
     client = CertificateClient()
     try:
-        response = client._send_raw_transaction(tr_pb)
-        print(f'response {response}')
-        return response, 200
+        result = client._send_raw_transaction(tr_pb)
+        return {'batch_id': get_batch_id(result)}, 200
     except Exception as e:
         return {'error': 'Send batch with transaction failed: %s' % e}, 400

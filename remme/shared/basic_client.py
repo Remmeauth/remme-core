@@ -16,23 +16,36 @@ import logging
 import base64
 import time
 import json
+from contextlib import suppress
 
 import requests
-import yaml
-from sawtooth_sdk.protobuf.batch_pb2 import Batch
-from sawtooth_sdk.protobuf.batch_pb2 import BatchHeader
-from sawtooth_sdk.protobuf.batch_pb2 import BatchList
-from sawtooth_sdk.protobuf.transaction_pb2 import Transaction
-from sawtooth_sdk.protobuf.transaction_pb2 import TransactionHeader
-from sawtooth_signing import CryptoFactory
-from sawtooth_signing import ParseError
-from sawtooth_signing import create_context
+from google.protobuf.message import DecodeError
+from google.protobuf.json_format import MessageToDict
+from sawtooth_sdk.protobuf.block_pb2 import BlockHeader
+from sawtooth_sdk.protobuf.batch_pb2 import Batch, BatchHeader, BatchList
+from sawtooth_sdk.protobuf.client_list_control_pb2 import ClientPagingControls
+from sawtooth_sdk.protobuf.client_block_pb2 import (
+    ClientBlockListResponse, ClientBlockListRequest
+)
+from sawtooth_sdk.protobuf.client_state_pb2 import (
+    ClientStateGetResponse, ClientStateGetRequest
+)
+from sawtooth_sdk.protobuf.transaction_pb2 import (
+    Transaction, TransactionHeader
+)
+from sawtooth_sdk.messaging.stream import Stream
+from sawtooth_sdk.protobuf.client_batch_submit_pb2 import (
+    ClientBatchSubmitRequest, ClientBatchSubmitResponse,
+    ClientBatchStatusRequest, ClientBatchStatusResponse,
+)
+from sawtooth_sdk.protobuf.validator_pb2 import Message
+from sawtooth_sdk.messaging.exceptions import ValidatorConnectionError
+from sawtooth_signing import CryptoFactory, ParseError, create_context
 from sawtooth_signing.secp256k1 import Secp256k1PrivateKey
 
 from remme.protos.transaction_pb2 import TransactionPayload
-from remme.settings import REST_API_URL, PRIV_KEY_FILE
-from remme.shared.exceptions import ClientException
-from remme.shared.exceptions import KeyNotFound
+from remme.settings import REST_API_URL, PRIV_KEY_FILE, ZMQ_URL
+from remme.shared.exceptions import ClientException, KeyNotFound
 from remme.shared.utils import hash512
 from remme.account.handler import AccountHandler, is_address
 
@@ -52,6 +65,7 @@ class BasicClient:
         self.url = REST_API_URL
         self._family_handler = family_handler
         self.test_helper = test_helper
+        self._stream = Stream(ZMQ_URL)
 
         try:
             self._signer = self.get_signer_priv_key_from_file(keyfile)
@@ -98,23 +112,19 @@ class BasicClient:
     def is_address(self, address):
         return self._family_handler.is_address(address)
 
-    def get_value(self, key):
-        result = self._send_request("state/{}".format(key))
+    def get_value(self, address):
+        result = self._send_request("state/{}".format(address), conn_protocol='socket')
         return base64.b64decode(result['data'])
+
+    def get_batch(self, batch_id):
+        result = self._send_request("batch_statuses?id={}".format(batch_id), conn_protocol='socket')
+        return result['data'][0]
 
     def get_signer(self):
         return self._signer
 
     def get_public_key(self):
         return self.get_signer().get_public_key().as_hex()
-
-    def _get_status(self, batch_id, wait):
-        try:
-            result = self._send_request(
-                'batch_statuses?id={}&wait={}'.format(batch_id, wait),)
-            return yaml.safe_load(result)['data'][0]['status']
-        except BaseException as err:
-            raise ClientException(err)
 
     def _get_prefix(self):
         return self._family_handler.namespaces[-1]
@@ -125,19 +135,36 @@ class BasicClient:
         prefix = self._get_prefix()
         return prefix + pub_key
 
-    def _send_request(self, suffix, data=None, content_type=None):
+    @staticmethod
+    def _message_to_dict(message):
+        return MessageToDict(
+            message,
+            including_default_value_fields=True,
+            preserving_proto_field_name=True)
+
+    def _send_request(self, suffix, data=None, conn_protocol='text', **kwargs):
+        if conn_protocol == 'text':
+            return self._text_request(suffix, data, **kwargs)
+        elif conn_protocol == 'socket':
+            return self._socket_request(suffix, data, **kwargs)
+        raise ClientException(
+            'Unsupported connection protocol "%s"' % conn_protocol)
+
+    def _text_request(self, suffix, data=None, content_type=None):
         url = f"{self.url}/{suffix}"
 
         if not url.startswith("http://"):
             url = f"http://{url}"
 
         headers = {}
-
         if content_type is not None:
             headers['Content-Type'] = content_type
 
         try:
             if data is not None:
+                with suppress(AttributeError):
+                    data = data.SerializeToString()
+
                 result = requests.post(url, headers=headers, data=data)
             else:
                 result = requests.get(url, headers=headers)
@@ -154,6 +181,96 @@ class BasicClient:
                 'Failed to connect to REST API: {}'.format(err))
 
         return json.loads(result.text)
+
+    def _socket_request(self, suffix, data=None):
+        if suffix == 'batches':
+            return self.submit_batches({'batches': data.batches})
+        elif 'batch_statuses?id=' in suffix:
+            _, batch_id = suffix.split('?id=')
+            return self.get_batch_statuses({'batch_ids': [batch_id]})
+        elif 'state/' in suffix:
+            _, address = suffix.split('/')
+            _, root = self.get_root_block()
+            return self.fetch_state({'state_root': root, 'address': address})
+        else:
+            raise ClientException('Suffix "%s" not supported' % suffix)
+
+    def _handle_response(self, msg_type, resp_proto, req):
+        self._stream.wait_for_ready()
+        future = self._stream.send(
+            message_type=msg_type,
+            content=req.SerializeToString())
+
+        resp = resp_proto()
+        try:
+            resp.ParseFromString(future.result().content)
+        except (DecodeError, AttributeError):
+            raise ClientException(
+                'Failed to parse "content" string from validator')
+        except ValidatorConnectionError as vce:
+            LOGGER.error('Error: %s' % vce)
+            raise ClientException(
+                'Failed with ZMQ interaction: {0}'.format(vce))
+
+        data = self._message_to_dict(resp)
+
+        # NOTE: Not all protos have this status
+        with suppress(AttributeError):
+            if resp.status == resp_proto.NO_RESOURCE:
+                raise KeyNotFound("404")
+
+        if resp.status != resp_proto.OK:
+            raise ClientException("Error: %s" % data)
+
+        return data
+
+    def get_root_block(self):
+        resp = self._handle_response(Message.CLIENT_BLOCK_LIST_REQUEST,
+                                     ClientBlockListResponse,
+                                     ClientBlockListRequest(
+                                         paging=ClientPagingControls(limit=1)))
+        block = resp['blocks'][0]
+        header = BlockHeader()
+        try:
+            header_bytes = base64.b64decode(block['header'])
+            header.ParseFromString(header_bytes)
+        except (KeyError, TypeError, ValueError, DecodeError):
+            header = block.get('header', None)
+            LOGGER.error(
+                'The validator sent a resource with %s %s',
+                'a missing header' if header is None else 'an invalid header:',
+                header or '')
+            raise ClientException()
+
+        block['header'] = self._message_to_dict(header)
+
+        return (
+            block['header_signature'],
+            block['header']['state_root_hash'],
+        )
+
+    def submit_batches(self, data):
+        self._handle_response(Message.CLIENT_BATCH_SUBMIT_REQUEST,
+                              ClientBatchSubmitResponse,
+                              ClientBatchSubmitRequest(batches=data['batches']))
+
+        id_string = ','.join(b.header_signature for b in data['batches'])
+        link = f"{self.url}/batch_statuses?id={id_string}"
+        return {'link': link}
+
+    def fetch_state(self, data):
+        resp = self._handle_response(Message.CLIENT_STATE_GET_REQUEST,
+                                     ClientStateGetResponse,
+                                     ClientStateGetRequest(state_root=data['state_root'],
+                                                           address=data['address']))
+
+        return {'data': resp['value']}
+
+    def get_batch_statuses(self, data):
+        resp = self._handle_response(Message.CLIENT_BATCH_STATUS_REQUEST,
+                                     ClientBatchStatusResponse,
+                                     ClientBatchStatusRequest(batch_ids=data['batch_ids']))
+        return {'data': resp['batch_statuses']}
 
     def make_batch_list(self, payload_pb, addresses_input_output):
         payload = payload_pb.SerializeToString()
@@ -209,19 +326,12 @@ class BasicClient:
 
         batch_list = self.make_batch_list(payload, addresses_input_output)
 
-        return get_batch_id(self._send_request(
-            "batches", batch_list.SerializeToString(),
-            'application/octet-stream',
-        ))
+        return get_batch_id(self._send_request('batches', batch_list, 'socket'))
 
     def _send_raw_transaction(self, transaction_pb):
         batch_list = self._sign_batch_list(self._signer, [transaction_pb])
 
-        return get_batch_id(self._send_request(
-            "batches", batch_list.SerializeToString(),
-            'application/octet-stream',
-        ))
-
+        return get_batch_id(self._send_request('batches', batch_list, 'socket'))
 
     def _sign_batch_list(self, signer, transactions):
         transaction_signatures = [t.header_signature for t in transactions]
