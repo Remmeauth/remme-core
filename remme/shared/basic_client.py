@@ -147,7 +147,11 @@ class BasicClient:
             raise ClientException(
                 'Failed to connect to REST API: {}'.format(err))
 
-        return result.text
+        batch_response = json.loads(result.text)
+        link = batch_response['link']
+        batch_id = link.split('id=')[1]
+
+        return {'batch_id': batch_id}
 
     def make_batch_list(self, payload_pb, addresses_input_output):
         payload = payload_pb.SerializeToString()
@@ -202,11 +206,10 @@ class BasicClient:
                 raise ClientException('one of addresses_input_output {} is not an address'.format(addresses_input_output))
 
         batch_list = self.make_batch_list(payload, addresses_input_output)
-
-        return json.loads(self._send_request(
+        return self._send_request(
             "batches", batch_list.SerializeToString(),
             'application/octet-stream',
-        ))
+        )
 
     def _send_raw_transaction(self, transaction_pb):
         batch_list = self._sign_batch_list(self._signer, [transaction_pb])
