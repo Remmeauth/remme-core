@@ -13,50 +13,23 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 import logging
-import inspect
 
 import datetime
 
-from remme.atomic_swap_tp.client import AtomicSwapClient, get_swap_init_payload, get_swap_close_payload, \
-    get_swap_approve_payload, get_swap_expire_payload, get_swap_set_secret_lock_payload
-from remme.atomic_swap_tp.handler import AtomicSwapHandler
 from remme.certificate.client import CertificateClient
-from remme.certificate.handler import CertificateHandler, CERT_STORE_PRICE
-from remme.protos.atomic_swap_pb2 import AtomicSwapMethod, AtomicSwapInfo
-from remme.protos.certificate_pb2 import CertificateMethod
+from remme.certificate.handler import CertificateHandler, CERT_STORE_PRICE, CERT_MAX_VALIDITY, CERT_MAX_VALIDITY_DAYS
+from remme.protos.certificate_pb2 import CertificateStorage
 from remme.rest_api.certificate import get_certificate_signature, get_crt_export_bin_sig_rem_sig
 from remme.rest_api.certificate_api_decorator import certificate_put_request, create_certificate
-from remme.settings import SETTINGS_SWAP_COMMISSION
-from remme.settings.helper import _make_settings_key, get_setting_from_key_value
 from remme.shared.logging import test
-from remme.shared.utils import generate_random_key, hash256, hash512
 from remme.tests.test_helper import HelperTestCase
 from remme.account.client import AccountClient
-from remme.account.handler import ZERO_ADDRESS
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.serialization import load_pem_private_key
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
 
 LOGGER = logging.getLogger(__name__)
 
-
-# def get_params():
-#     return {
-#         'country_name': NameOID.COUNTRY_NAME,
-#         'state_name': NameOID.STATE_OR_PROVINCE_NAME,
-#         'street_address': NameOID.STREET_ADDRESS,
-#         'postal_address': NameOID.POSTAL_ADDRESS,
-#         'postal_code': NameOID.POSTAL_CODE,
-#         'locality_name': NameOID.LOCALITY_NAME,
-#         'common_name': NameOID.COMMON_NAME,
-#         'name': NameOID.GIVEN_NAME,
-#         'surname': NameOID.SURNAME,
-#         'pseudonym': NameOID.PSEUDONYM,
-#         'business_category': NameOID.BUSINESS_CATEGORY,
-#         'title': NameOID.TITLE,
-#         'email': NameOID.EMAIL_ADDRESS,
-#         'serial': NameOID.SERIAL_NUMBER,
-#         'generation_qualifier': NameOID.GENERATION_QUALIFIER
-#     }
 
 class AtomicSwapTestCase(HelperTestCase):
     @classmethod
@@ -65,7 +38,6 @@ class AtomicSwapTestCase(HelperTestCase):
 
     def get_context(self):
         context = super().get_context()
-
         context.certificate_payload = {
           "business_category": "UA",
           "common_name": "UA",
@@ -89,46 +61,121 @@ class AtomicSwapTestCase(HelperTestCase):
 
         return context
 
-
     @test
     def test_store_success(self):
         context = self.get_context()
 
         cert, key, key_export = create_certificate(context.certificate_payload, signer=context.client.get_signer())
         crt_export, crt_bin, crt_sig, rem_sig = get_crt_export_bin_sig_rem_sig(cert, key, context.client)
-
         context.client.store_certificate(crt_bin, rem_sig, crt_sig.hex())
+
         cert_address = CertificateHandler.make_address_from_data(crt_bin)
-        print('certificate address: {}'.format(cert_address))
         self.expect_get({cert_address: None})
-        self.expect_get({self.account_address1: AccountClient.get_account_model(CERT_STORE_PRICE)})
+
+        account = AccountClient.get_account_model(CERT_STORE_PRICE)
+        self.expect_get({self.account_address1: account})
+
+        certificate = x509.load_der_x509_certificate(bytes.fromhex(crt_bin), default_backend())
 
         data = CertificateStorage()
+        fingerprint = certificate.fingerprint(hashes.SHA512()).hex()[:64]
         data.hash = fingerprint
-        data.owner = signer_pubkey
+        data.owner = self.account_signer1.get_public_key().as_hex()
         data.revoked = False
 
-        account.certificates.append(address)
+        account.balance -= CERT_STORE_PRICE
+        account.certificates.append(cert_address)
 
         self.expect_set({
             self.account_address1: account,
-            GENESIS_ADDRESS: genesis_status
+            cert_address: data
         })
 
         self.expect_ok()
-        # def get_new_certificate_payload(self, certificate_raw, signature_rem, signature_crt, cert_signer_public_key):
-        #
-        # self.send_transaction(CertificateMethod.STORE, CertificateClient.get_new_certificate_payload(TOTAL_SUPPLY),
-        #                       [GENESIS_ADDRESS, self.account_address1])
-        #
-        # self.expect_get({GENESIS_ADDRESS: None})
-        #
-        # genesis_status = GenesisStatus()
-        # genesis_status.status = True
-        # account = Account()
-        # account.balance = TOTAL_SUPPLY
-        #
 
-        #
-        # self.expect_ok()
+    @test
+    def test_store_fail_invalid_validity_date(self):
+        context = self.get_context()
 
+        context.certificate_payload['validity'] = CERT_MAX_VALIDITY_DAYS + 1
+        cert, key, key_export = create_certificate(context.certificate_payload, signer=context.client.get_signer())
+        crt_export, crt_bin, crt_sig, rem_sig = get_crt_export_bin_sig_rem_sig(cert, key, context.client)
+        context.client.store_certificate(crt_bin, rem_sig, crt_sig.hex())
+        cert_address = CertificateHandler.make_address_from_data(crt_bin)
+        self.expect_get({cert_address: None})
+
+        self.expect_invalid_transaction()
+
+    @test
+    def test_store_fail_invalid_org_name(self):
+        context = self.get_context()
+
+        cert, key, key_export = create_certificate(context.certificate_payload,
+                                                   org_name='different',
+                                                   signer=context.client.get_signer())
+        crt_export, crt_bin, crt_sig, rem_sig = get_crt_export_bin_sig_rem_sig(cert, key, context.client)
+        context.client.store_certificate(crt_bin, rem_sig, crt_sig.hex())
+        cert_address = CertificateHandler.make_address_from_data(crt_bin)
+        self.expect_get({cert_address: None})
+
+        self.expect_invalid_transaction()
+
+    @test
+    def test_store_fail_invalid_signer(self):
+        context = self.get_context()
+
+        cert, key, key_export = create_certificate(context.certificate_payload,
+                                                   org_name='different',
+                                                   signer=self.account_signer2)
+        crt_export, crt_bin, crt_sig, rem_sig = get_crt_export_bin_sig_rem_sig(cert, key, context.client)
+        context.client.store_certificate(crt_bin, rem_sig, crt_sig.hex())
+        cert_address = CertificateHandler.make_address_from_data(crt_bin)
+        self.expect_get({cert_address: None})
+
+        self.expect_invalid_transaction()
+
+    @test
+    def test_revoke_success(self):
+        context = self.get_context()
+
+        cert, key, key_export = create_certificate(context.certificate_payload,
+                                                   org_name='different',
+                                                   signer=self.account_signer2)
+        crt_export, crt_bin, crt_sig, rem_sig = get_crt_export_bin_sig_rem_sig(cert, key, context.client)
+
+        cert_address = CertificateHandler.make_address_from_data(crt_bin)
+        context.client.revoke_certificate(cert_address)
+
+        data = CertificateStorage()
+        data.owner = context.client.get_signer().get_public_key().as_hex()
+        data.revoked = False
+
+        self.expect_get({cert_address: data})
+
+        data.revoked = True
+
+        self.expect_set({
+            cert_address: data
+        })
+
+        self.expect_ok()
+
+    @test
+    def test_revoke_fail_wrong_signer(self):
+        context = self.get_context()
+
+        cert, key, key_export = create_certificate(context.certificate_payload,
+                                                   org_name='different',
+                                                   signer=self.account_signer2)
+        crt_export, crt_bin, crt_sig, rem_sig = get_crt_export_bin_sig_rem_sig(cert, key, context.client)
+
+        cert_address = CertificateHandler.make_address_from_data(crt_bin)
+        context.client.revoke_certificate(cert_address)
+
+        data = CertificateStorage()
+        data.owner = self.account_signer2.get_public_key().as_hex()
+        data.revoked = False
+
+        self.expect_get({cert_address: data})
+
+        self.expect_invalid_transaction()
