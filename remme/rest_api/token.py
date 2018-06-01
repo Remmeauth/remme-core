@@ -28,5 +28,4 @@ def get(pub_key_user):
 def post(payload):
     client = AccountClient()
     address_to = client.make_address_from_data(payload['pub_key_to'])
-    result = client.transfer(address_to, payload['amount'])
-    return {'batch_id': re.search(r'id=([0-9a-f]+)', result['link']).group(1)}
+    return client.transfer(address_to, payload['amount'])

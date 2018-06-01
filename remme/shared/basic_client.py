@@ -40,6 +40,12 @@ from remme.account.handler import AccountHandler, is_address
 LOGGER = logging.getLogger(__name__)
 
 
+def get_batch_id(response_dict):
+    link = response_dict['link']
+    batch_id = link.split('id=')[1]
+    return {'batch_id': batch_id}
+
+
 class BasicClient:
 
     def __init__(self, family_handler, test_helper=None, keyfile=PRIV_KEY_FILE):
@@ -147,11 +153,7 @@ class BasicClient:
             raise ClientException(
                 'Failed to connect to REST API: {}'.format(err))
 
-        batch_response = json.loads(result.text)
-        link = batch_response['link']
-        batch_id = link.split('id=')[1]
-
-        return {'batch_id': batch_id}
+        return json.loads(result.text)
 
     def make_batch_list(self, payload_pb, addresses_input_output):
         payload = payload_pb.SerializeToString()
@@ -206,18 +208,20 @@ class BasicClient:
                 raise ClientException('one of addresses_input_output {} is not an address'.format(addresses_input_output))
 
         batch_list = self.make_batch_list(payload, addresses_input_output)
-        return self._send_request(
+
+        return get_batch_id(self._send_request(
             "batches", batch_list.SerializeToString(),
             'application/octet-stream',
-        )
+        ))
 
     def _send_raw_transaction(self, transaction_pb):
         batch_list = self._sign_batch_list(self._signer, [transaction_pb])
 
-        return self._send_request(
+        return get_batch_id(self._send_request(
             "batches", batch_list.SerializeToString(),
             'application/octet-stream',
-        )
+        ))
+
 
     def _sign_batch_list(self, signer, transactions):
         transaction_signatures = [t.header_signature for t in transactions]
