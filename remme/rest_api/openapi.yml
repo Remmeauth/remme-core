@@ -73,7 +73,6 @@ paths:
               address:
                 type: string
                 description: The hex-encoded public key of the user
-#                pattern: '^[0-9a-f]{66}$'
               balance:
                 type: integer
                 description: The amount of tokens on user's balance
