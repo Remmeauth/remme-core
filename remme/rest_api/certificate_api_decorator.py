@@ -110,16 +110,16 @@ def http_payload_required(func):
     return func_wrapper
 
 
-def create_certificate(payload, signer_pub_key=None):
+def create_certificate(payload, signer=None):
     parameters = get_params()
     encryption_algorithm = get_encryption_algorithm(payload)
 
     key = generate_key()
     key_export = generate_key_export(key, encryption_algorithm)
 
-    if not signer_pub_key:
-        signer_pub_key = CertificateClient().get_signer_pubkey()
-    cert = build_certificate(parameters, payload, key, signer_pub_key)
+    if not signer:
+        signer = CertificateClient().get_signer()
+    cert = build_certificate(parameters, payload, key, signer.get_public_key().as_hex())
 
     return cert, key, key_export
 

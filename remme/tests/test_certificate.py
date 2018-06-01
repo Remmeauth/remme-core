@@ -21,7 +21,7 @@ from remme.atomic_swap_tp.client import AtomicSwapClient, get_swap_init_payload,
     get_swap_approve_payload, get_swap_expire_payload, get_swap_set_secret_lock_payload
 from remme.atomic_swap_tp.handler import AtomicSwapHandler
 from remme.certificate.client import CertificateClient
-from remme.certificate.handler import CertificateHandler
+from remme.certificate.handler import CertificateHandler, CERT_STORE_PRICE
 from remme.protos.atomic_swap_pb2 import AtomicSwapMethod, AtomicSwapInfo
 from remme.protos.certificate_pb2 import CertificateMethod
 from remme.rest_api.certificate import get_certificate_signature, get_crt_export_bin_sig_rem_sig
@@ -93,14 +93,29 @@ class AtomicSwapTestCase(HelperTestCase):
     @test
     def test_store_success(self):
         context = self.get_context()
-        signer_pub_key = self.account_signer1.get_public_key().as_hex()
 
-        cert, key, key_export = create_certificate(context.certificate_payload, signer=signer_pub_key)
-        crt_export, crt_bin, crt_sig, rem_sig = get_crt_export_bin_sig_rem_sig(cert, key)
+        cert, key, key_export = create_certificate(context.certificate_payload, signer=context.client.get_signer())
+        crt_export, crt_bin, crt_sig, rem_sig = get_crt_export_bin_sig_rem_sig(cert, key, context.client)
 
         context.client.store_certificate(crt_bin, rem_sig, crt_sig.hex())
+        cert_address = CertificateHandler.make_address_from_data(crt_bin)
+        print('certificate address: {}'.format(cert_address))
+        self.expect_get({cert_address: None})
+        self.expect_get({self.account_address1: AccountClient.get_account_model(CERT_STORE_PRICE)})
 
+        data = CertificateStorage()
+        data.hash = fingerprint
+        data.owner = signer_pubkey
+        data.revoked = False
 
+        account.certificates.append(address)
+
+        self.expect_set({
+            self.account_address1: account,
+            GENESIS_ADDRESS: genesis_status
+        })
+
+        self.expect_ok()
         # def get_new_certificate_payload(self, certificate_raw, signature_rem, signature_crt, cert_signer_public_key):
         #
         # self.send_transaction(CertificateMethod.STORE, CertificateClient.get_new_certificate_payload(TOTAL_SUPPLY),
@@ -113,10 +128,7 @@ class AtomicSwapTestCase(HelperTestCase):
         # account = Account()
         # account.balance = TOTAL_SUPPLY
         #
-        # self.expect_set({
-        #     self.account_address1: account,
-        #     GENESIS_ADDRESS: genesis_status
-        # })
+
         #
         # self.expect_ok()
 

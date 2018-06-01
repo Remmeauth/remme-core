@@ -65,6 +65,7 @@ class CertificateHandler(BasicHandler):
 
     def _store_certificate(self, context, signer_pubkey, transaction_payload):
         address = self.make_address_from_data(transaction_payload.certificate_raw)
+        LOGGER.info('Cert address {}'.format(address))
         data = get_data(context, CertificateStorage, address)
         if data:
             raise InvalidTransaction('This certificate is already registered.')
