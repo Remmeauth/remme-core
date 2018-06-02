@@ -75,7 +75,7 @@ class RestApiTestCase(HelperTestCase):
 
     @test
     @mock.patch('remme.shared.basic_client.BasicClient._send_request',
-                return_value=json.dumps({'link': 'http://rest-api:8080/batch_statuses?id=c6bcb01255c1870a5d42fe2dde5e91fb0c5992ec0b49932cdab901539bf977f75bb7699c053cea16668ba732a7d597dd0c2b80f157f1a2514932078bb761de4b'}))
+                return_value={'link': 'http://rest-api:8080/batch_statuses?id=c6bcb01255c1870a5d42fe2dde5e91fb0c5992ec0b49932cdab901539bf977f75bb7699c053cea16668ba732a7d597dd0c2b80f157f1a2514932078bb761de4b'})
     def test_valid_raw_transaction_send_to_the_node(self, req_mock):
         payload = self.create_raw_transaction_send_token_payload('03823c7a9e285246985089824f3aaa51fb8675d08d84b151833ca5febce37ad61e', 1)
         response = self.client.post('/api/v1/transaction',
@@ -84,11 +84,12 @@ class RestApiTestCase(HelperTestCase):
                                     }),
                                     content_type='application/json')
         self.assertEqual(response.status_code, 200, 'Error: %s' % response.get_data())
+        print('batch response: {}'.format(response.get_json()))
         self.assertTrue('batch_id' in response.get_json())
 
     @test
     @mock.patch('remme.shared.basic_client.BasicClient._send_request',
-                return_value=json.dumps({'link': 'http://rest-api:8080/batch_statuses?id=c6bcb01255c1870a5d42fe2dde5e91fb0c5992ec0b49932cdab901539bf977f75bb7699c053cea16668ba732a7d597dd0c2b80f157f1a2514932078bb761de4b'}))
+                return_value={'link': 'http://rest-api:8080/batch_statuses?id=c6bcb01255c1870a5d42fe2dde5e91fb0c5992ec0b49932cdab901539bf977f75bb7699c053cea16668ba732a7d597dd0c2b80f157f1a2514932078bb761de4b'})
     def test_token_send(self, req_mock):
         response = self.client.post('/api/v1/token',
                                     data=json.dumps({

@@ -42,7 +42,7 @@ def post(payload):
     client = CertificateClient()
     try:
         response = client._send_raw_transaction(tr_pb)
-        result = json.loads(response)
-        return {'batch_id': re.search(r'id=([0-9a-f]+)', result['link']).group(1)}, 200
+        print(f'response {response}')
+        return response, 200
     except Exception as e:
         return {'error': 'Send batch with transaction failed: %s' % e}, 400
