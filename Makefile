@@ -42,10 +42,10 @@ test: build_docker
 build_protobuf:
 	protoc -I=$(PROTO_SRC_DIR) --python_out=$(PROTO_DST_DIR) $(PROTO_SRC_DIR)/*.proto
 
-build_docker: build_protobuf
+build_docker:
 	docker-compose -f docker-compose/dev.yml build
 
-rebuild_docker: build_protobuf
+rebuild_docker:
 	docker-compose -f docker-compose/dev.yml build --no-cache
 
 release: build_docker

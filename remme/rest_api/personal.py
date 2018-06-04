@@ -18,18 +18,28 @@ import os
 import re
 from connexion import NoContent
 from sawtooth_signing import create_context
-
+from sawtooth_signing.secp256k1 import Secp256k1PrivateKey
+from sawtooth_signing import CryptoFactory
+from sawtooth_signing import ParseError
 
 from remme.settings import KEY_DIR
 
 
 def search():
     keys = []
-    for file in glob('{}/*.pub'.format(KEY_DIR)):
-        with open(file) as f:
-            contents = re.match(r'^[0-9a-f]{66}$', f.read()).group(0)
-        keys.append({'name': os.path.splitext(os.path.basename(file))[0],
-                     'pub_key': contents})
+    for file in glob(f'{KEY_DIR}/*.priv'):
+        try:
+            with open(file) as f:
+                contents = f.read().strip()
+                private_key = Secp256k1PrivateKey.from_hex(contents)
+                context = create_context('secp256k1')
+                signer = CryptoFactory(context).new_signer(private_key)
+                keys.append({'name': os.path.splitext(os.path.basename(file))[0],
+                             'pub_key': signer.get_public_key().as_hex()})
+        except OSError:
+            return {'error': f'Cannot read private key file {file}'}, 400
+        except ParseError:
+            return {'error': f'Cannot parse contents of private key file {file}'}, 400
     return {'keys': keys}
 
 

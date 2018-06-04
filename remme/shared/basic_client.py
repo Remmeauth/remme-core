@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------------
-
+import logging
 import base64
-import hashlib
 import time
 import json
 
@@ -38,34 +37,57 @@ from remme.shared.utils import hash512
 from remme.account.handler import AccountHandler, is_address
 
 
+LOGGER = logging.getLogger(__name__)
+
+
+def get_batch_id(response_dict):
+    link = response_dict['link']
+    batch_id = link.split('id=')[1]
+    return {'batch_id': batch_id}
+
+
 class BasicClient:
+
     def __init__(self, family_handler, test_helper=None, keyfile=PRIV_KEY_FILE):
         self.url = REST_API_URL
         self._family_handler = family_handler
         self.test_helper = test_helper
 
-        if self.test_helper:
-            return
+        try:
+            self._signer = self.get_signer_priv_key_from_file(keyfile)
+        except ClientException as e:
+            LOGGER.warn('Could not set up signer from file, detailed: %s', e)
+            self._signer = self.generate_signer(keyfile)
 
-        private_key_str = self.get_signer_priv_key_from_file()
+    @staticmethod
+    def get_signer_priv_key_from_file(keyfile):
+        try:
+            with open(keyfile) as fd:
+                private_key_str = fd.read().strip()
+        except OSError as err:
+            raise ClientException(
+                'Failed to read private key: {}'.format(str(err)))
+
         try:
             private_key = Secp256k1PrivateKey.from_hex(private_key_str)
         except ParseError as e:
             raise ClientException(
                 'Unable to load private key: {}'.format(str(e)))
 
-        self._signer = CryptoFactory(
-            create_context('secp256k1')).new_signer(private_key)
+        context = create_context('secp256k1')
+        return CryptoFactory(context).new_signer(private_key)
 
-    def get_signer_priv_key_from_file(self, keyfile=PRIV_KEY_FILE):
-        try:
-            with open(keyfile) as fd:
-                private_key_str = fd.read().strip()
-                fd.close()
-        except OSError as err:
-            raise ClientException(
-                'Failed to read private key: {}'.format(str(err)))
-        return private_key_str
+    @staticmethod
+    def generate_signer(keyfile=None):
+        context = create_context('secp256k1')
+        private_key = context.new_random_private_key()
+        if keyfile:
+            try:
+                with open(keyfile, 'w') as fd:
+                    fd.write(private_key.as_hex())
+            except OSError as err:
+                raise ClientException('Failed to write private key: {0}'.format(err))
+        return CryptoFactory(context).new_signer(private_key)
 
     def make_address(self, suffix):
         return self._family_handler.make_address(suffix)
@@ -78,10 +100,13 @@ class BasicClient:
 
     def get_value(self, key):
         result = self._send_request("state/{}".format(key))
-        return base64.b64decode(json.loads(result)['data'])
+        return base64.b64decode(result['data'])
 
     def get_signer(self):
         return self._signer
+
+    def get_public_key(self):
+        return self.get_signer().get_public_key().as_hex()
 
     def _get_status(self, batch_id, wait):
         try:
@@ -128,7 +153,7 @@ class BasicClient:
             raise ClientException(
                 'Failed to connect to REST API: {}'.format(err))
 
-        return result.text
+        return json.loads(result.text)
 
     def make_batch_list(self, payload_pb, addresses_input_output):
         payload = payload_pb.SerializeToString()
@@ -184,10 +209,19 @@ class BasicClient:
 
         batch_list = self.make_batch_list(payload, addresses_input_output)
 
-        return json.loads(self._send_request(
+        return get_batch_id(self._send_request(
             "batches", batch_list.SerializeToString(),
             'application/octet-stream',
         ))
+
+    def _send_raw_transaction(self, transaction_pb):
+        batch_list = self._sign_batch_list(self._signer, [transaction_pb])
+
+        return get_batch_id(self._send_request(
+            "batches", batch_list.SerializeToString(),
+            'application/octet-stream',
+        ))
+
 
     def _sign_batch_list(self, signer, transactions):
         transaction_signatures = [t.header_signature for t in transactions]

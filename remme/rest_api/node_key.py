@@ -13,13 +13,9 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-# TODO check if it works with a newer versio of Debian
-FROM python:3.6.5-jessie
-WORKDIR /root
-COPY ./requirements.txt .
-RUN pip3 install -r ./requirements.txt
-RUN mkdir -p remme/remme
-COPY ./remme ./remme/remme
-COPY ./setup.py ./remme
-RUN pip3 install ./remme
-COPY ./bash/.bashrc /root/.bashrc
+from remme.certificate.client import CertificateClient
+
+
+def get():
+    client = CertificateClient()
+    return {'pubkey': client.get_public_key()}
