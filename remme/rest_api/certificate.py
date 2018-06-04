@@ -92,8 +92,8 @@ def execute_delete(certificate_address):
         certificate_data = client.get_status(certificate_address)
         if certificate_data.revoked:
             return {'error': 'The certificate was already revoked'}, 409
-        client.revoke_certificate(certificate_address)
-        return NoContent, 200
+        batch_id, _ = client.revoke_certificate(certificate_address)
+        return {'batch_id': batch_id}, 200
     except KeyNotFound:
         return NoContent, 404
 
@@ -122,11 +122,11 @@ def execute_put(cert, key, key_export, name_to_save=None, passphrase=None):
     except ValueError:
         return {'error': 'The file already exists in specified location'}, 409
 
-    status, _ = certificate_client.store_certificate(crt_bin, rem_sig, crt_sig.hex())
+    batch_id, _ = certificate_client.store_certificate(crt_bin, rem_sig, crt_sig.hex())
 
     response = {'certificate': crt_export.decode('utf-8'),
                 'priv_key': key_export.decode('utf-8'),
-                'batch_id': re.search(r'id=([0-9a-f]+)', status['link']).group(1)}
+                'batch_id': batch_id}
     if saved_to:
         response['saved_to'] = saved_to
 
@@ -147,13 +147,13 @@ def execute_store(cert_request, not_valid_before, not_valid_after):
 
     certificate_public_key = key.public_key().public_bytes(encoding=serialization.Encoding.PEM,
                                                            format=serialization.PublicFormat.SubjectPublicKeyInfo)
-    status, _ = certificate_client.store_certificate(crt_bin,
+    batch_id, _ = certificate_client.store_certificate(crt_bin,
                                                      rem_sig,
                                                      crt_sig.hex(),
                                                      certificate_public_key)
 
     return {'certificate': crt_export.decode('utf-8'),
-            'batch_id': re.search(r'id=([0-9a-f]+)', status['link']).group(1)}
+            'batch_id': batch_id}
 
 
 # endregion
