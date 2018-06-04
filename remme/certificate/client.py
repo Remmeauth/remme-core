@@ -31,8 +31,8 @@ from cryptography.hazmat.backends import default_backend
 
 
 class CertificateClient(BasicClient):
-    def __init__(self):
-        super().__init__(CertificateHandler)
+    def __init__(self, test_helper=None):
+        super().__init__(CertificateHandler, test_helper=test_helper)
 
     @classmethod
     def get_new_certificate_payload(self, certificate_raw, signature_rem, signature_crt, cert_signer_public_key):

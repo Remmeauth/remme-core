@@ -41,7 +41,8 @@ FAMILY_NAME = 'certificate'
 FAMILY_VERSIONS = ['0.1']
 
 CERT_ORGANIZATION = 'REMME'
-CERT_MAX_VALIDITY = datetime.timedelta(365)
+CERT_MAX_VALIDITY_DAYS = 365
+CERT_MAX_VALIDITY = datetime.timedelta(CERT_MAX_VALIDITY_DAYS)
 
 CERT_STORE_PRICE = 10
 
@@ -65,6 +66,7 @@ class CertificateHandler(BasicHandler):
 
     def _store_certificate(self, context, signer_pubkey, transaction_payload):
         address = self.make_address_from_data(transaction_payload.certificate_raw)
+        LOGGER.info('Cert address {}'.format(address))
         data = get_data(context, CertificateStorage, address)
         if data:
             raise InvalidTransaction('This certificate is already registered.')

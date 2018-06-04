@@ -13,6 +13,7 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 import logging
+
 from unittest import mock
 
 from sawtooth_signing import create_context
@@ -47,6 +48,7 @@ class HelperTestCase(TransactionProcessorTestCase):
 
         cls._factory = cls.handler.get_message_factory(cls.account_signer1)
 
+
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()
@@ -65,12 +67,16 @@ class HelperTestCase(TransactionProcessorTestCase):
 
         return context
 
-    def send_transaction(self, method, pb_data, address_access_list):
+    def send_transaction(self, method, pb_data, address_access_list, account_signer=None):
+        factory = self._factory
+        if account_signer is not None:
+            factory = self.handler.get_message_factory(account_signer)
+        LOGGER.info('send_transaction')
         payload_pb = TransactionPayload()
         payload_pb.method = method
         payload_pb.data = pb_data.SerializeToString()
         self.validator.send(
-            self._factory.create_tp_process_request(payload_pb.SerializeToString(), address_access_list, address_access_list, [])
+            factory.create_tp_process_request(payload_pb.SerializeToString(), address_access_list, address_access_list, [])
         )
 
     def expect_get(self, key_value):

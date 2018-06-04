@@ -17,7 +17,9 @@ from pathlib import Path
 import unittest
 
 from remme.shared.logging import setup_logging
+
 from .test_account import *
+from .test_certificate import *
 from .test_atomic_swap import *
 from .test_rest_api import *
 

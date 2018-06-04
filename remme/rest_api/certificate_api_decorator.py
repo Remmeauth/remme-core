@@ -110,20 +110,23 @@ def http_payload_required(func):
     return func_wrapper
 
 
-def create_certificate(payload):
+def create_certificate(payload, org_name=CERT_ORGANIZATION, signer=None):
     parameters = get_params()
     encryption_algorithm = get_encryption_algorithm(payload)
 
     key = generate_key()
     key_export = generate_key_export(key, encryption_algorithm)
-    cert = build_certificate(parameters, payload, key)
+
+    if not signer:
+        signer = CertificateClient().get_signer()
+    cert = build_certificate(parameters, payload, key, signer.get_public_key().as_hex(), org_name)
 
     return cert, key, key_export
 
 
-def build_certificate(parameters, payload, key):
-    name_oid = [x509.NameAttribute(NameOID.ORGANIZATION_NAME, CERT_ORGANIZATION),
-                x509.NameAttribute(NameOID.USER_ID, CertificateClient().get_signer_pubkey())]
+def build_certificate(parameters, payload, key, signer_pub_key, org_name):
+    name_oid = [x509.NameAttribute(NameOID.ORGANIZATION_NAME, org_name),
+                x509.NameAttribute(NameOID.USER_ID, signer_pub_key)]
 
     for k, v in parameters.items():
         if k in payload.keys():
