@@ -13,7 +13,6 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-from remme.shared.utils import get_batch_id
 from remme.account.client import AccountClient
 
 
