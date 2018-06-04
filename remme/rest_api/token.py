@@ -22,7 +22,8 @@ def get(pub_key_user):
     address = client.make_address_from_data(pub_key_user)
     print('Reading from address: {}'.format(address))
     balance = client.get_balance(address)
-    return {'balance': balance}
+    return {'balance': balance,
+            'address': address}
 
 
 def post(payload):
