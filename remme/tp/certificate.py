@@ -27,7 +27,7 @@ from sawtooth_sdk.processor.exceptions import InvalidTransaction
 from sawtooth_signing.secp256k1 import Secp256k1PublicKey, Secp256k1Context
 
 from remme.tp.basic import BasicHandler, get_data
-from remme.tp.account import AccountHandler
+from remme.tp.account import AccountHandler, get_account_by_address
 
 from remme.shared.utils import hash512
 
