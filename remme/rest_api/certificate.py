@@ -92,8 +92,8 @@ def execute_delete(certificate_address):
         certificate_data = client.get_status(certificate_address)
         if certificate_data.revoked:
             return {'error': 'The certificate was already revoked'}, 409
-        batch_id, _ = client.revoke_certificate(certificate_address)
-        return {'batch_id': batch_id}, 200
+        status, _ = client.revoke_certificate(certificate_address)
+        return status
     except KeyNotFound:
         return NoContent, 404
 
@@ -147,13 +147,12 @@ def execute_store(cert_request, not_valid_before, not_valid_after):
 
     certificate_public_key = key.public_key().public_bytes(encoding=serialization.Encoding.PEM,
                                                            format=serialization.PublicFormat.SubjectPublicKeyInfo)
-    batch_id, _ = certificate_client.store_certificate(crt_bin,
+    status, _ = certificate_client.store_certificate(crt_bin,
                                                      rem_sig,
                                                      crt_sig.hex(),
                                                      certificate_public_key)
 
-    return {'certificate': crt_export.decode('utf-8'),
-            'batch_id': batch_id}
+    return status
 
 
 # endregion
