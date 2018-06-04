@@ -100,7 +100,7 @@ class BasicClient:
 
     def get_value(self, key):
         result = self._send_request("state/{}".format(key))
-        return base64.b64decode(json.loads(result)['data'])
+        return base64.b64decode(result['data'])
 
     def get_signer(self):
         return self._signer
