@@ -30,4 +30,4 @@ def post(payload):
     client = AccountClient()
     address_to = client.make_address_from_data(payload['pub_key_to'])
     result = client.transfer(address_to, payload['amount'])
-    return {'batch_id': get_batch_id(result)}
+    return {'batch_id': result['batch_id']}
