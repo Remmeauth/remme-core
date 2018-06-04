@@ -41,6 +41,6 @@ def post(payload):
     client = CertificateClient()
     try:
         result = client._send_raw_transaction(tr_pb)
-        return {'batch_id': get_batch_id(result)}, 200
+        return {'batch_id': result['batch_id']}, 200
     except Exception as e:
         return {'error': 'Send batch with transaction failed: %s' % e}, 400
