@@ -21,6 +21,5 @@ services:
 
   remme-rest-api:
     depends_on:
-      - rest-api
       - remme-tp
     entrypoint: python3 -m remme.rest_api

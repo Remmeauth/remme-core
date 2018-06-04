@@ -66,17 +66,6 @@ services:
         fi
       "
 
-  rest-api:
-    image: hyperledger/sawtooth-rest-api:1.0.1
-    depends_on:
-      - validator
-    expose:
-      - 8080
-    entrypoint: |
-      sawtooth-rest-api -vv
-        --connect tcp://validator:4004
-        --bind rest-api:8080
-
   remme-tp:
     build: ..
     image: remme/remme-core:latest
@@ -97,8 +86,6 @@ services:
   remme-rest-api:
     build: ..
     image: remme/remme-core:latest
-    depends_on:
-      - rest-api
     volumes:
       - user_keys:/root/.sawtooth/keys
       - ${REMME_CONTAINER_EXPORTS_FOLDER:-./default_export}:/root/usr/share
