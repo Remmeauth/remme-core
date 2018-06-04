@@ -152,7 +152,10 @@ def execute_store(cert_request, not_valid_before, not_valid_after):
                                                      crt_sig.hex(),
                                                      certificate_public_key)
 
-    return status
+    response = {'certificate': crt_export.decode('utf-8'),
+                'batch_id': batch_id['batch_id']}
+
+    return response
 
 
 # endregion
