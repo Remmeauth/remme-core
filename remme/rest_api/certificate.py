@@ -92,7 +92,7 @@ def execute_delete(certificate_address):
         certificate_data = client.get_status(certificate_address)
         if certificate_data.revoked:
             return {'error': 'The certificate was already revoked'}, 409
-        status, _ = client.revoke_certificate(certificate_address)
+        status = client.revoke_certificate(certificate_address)
         return status
     except KeyNotFound:
         return NoContent, 404
@@ -126,7 +126,7 @@ def execute_put(cert, key, key_export, name_to_save=None, passphrase=None):
 
     response = {'certificate': crt_export.decode('utf-8'),
                 'priv_key': key_export.decode('utf-8'),
-                'batch_id': batch_id}
+                'batch_id': batch_id['batch_id']}
     if saved_to:
         response['saved_to'] = saved_to
 
