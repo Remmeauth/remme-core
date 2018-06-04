@@ -147,7 +147,7 @@ def execute_store(cert_request, not_valid_before, not_valid_after):
 
     certificate_public_key = key.public_key().public_bytes(encoding=serialization.Encoding.PEM,
                                                            format=serialization.PublicFormat.SubjectPublicKeyInfo)
-    status, _ = certificate_client.store_certificate(crt_bin,
+    batch_id, _ = certificate_client.store_certificate(crt_bin,
                                                      rem_sig,
                                                      crt_sig.hex(),
                                                      certificate_public_key)
