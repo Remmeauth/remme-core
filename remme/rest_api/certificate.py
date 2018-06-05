@@ -92,8 +92,7 @@ def execute_delete(certificate_address):
         certificate_data = client.get_status(certificate_address)
         if certificate_data.revoked:
             return {'error': 'The certificate was already revoked'}, 409
-        status = client.revoke_certificate(certificate_address)
-        return status
+        return client.revoke_certificate(certificate_address)
     except KeyNotFound:
         return NoContent, 404
 
