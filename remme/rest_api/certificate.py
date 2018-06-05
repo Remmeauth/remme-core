@@ -92,8 +92,7 @@ def execute_delete(certificate_address):
         certificate_data = client.get_status(certificate_address)
         if certificate_data.revoked:
             return {'error': 'The certificate was already revoked'}, 409
-        status = client.revoke_certificate(certificate_address)
-        return status
+        return client.revoke_certificate(certificate_address)
     except KeyNotFound:
         return NoContent, 404
 
@@ -127,7 +126,7 @@ def execute_put(cert, key, key_export, name_to_save=None, passphrase=None):
     except ValueError:
         return {'error': 'The file already exists in specified location'}, 409
 
-    batch_id, _ = certificate_client.store_certificate(crt_bin, rem_sig, crt_sig.hex())
+    batch_id, _ = client.store_certificate(crt_bin, rem_sig, crt_sig.hex())
 
     response = {'certificate': crt_export.decode('utf-8'),
                 'priv_key': key_export.decode('utf-8'),
