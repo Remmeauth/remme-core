@@ -21,5 +21,4 @@ services:
 
   remme-rest-api:
     depends_on:
-      - rest-api
       - remme-tp

@@ -13,20 +13,10 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-import requests
-import json
-from connexion import NoContent
-
-from remme.settings import REST_API_URL
+from remme.account.client import AccountClient
 
 
 def get(batch_id):
-    try:
-        response = requests.get('{}/batch_statuses?id={}'.format(REST_API_URL, batch_id))
-        if response.status_code == 404:
-            return NoContent, 404
-        response_obj = json.loads(response.text)
-        return {'batch_id': batch_id,
-                'status': response_obj['data'][0]['status']}
-    except requests.ConnectionError:
-        return {'error': 'No Sawtooth API connection'}, 500
+    client = AccountClient()
+    batch = client.get_batch(batch_id)
+    return {'batch_id': batch_id, 'status': batch['status']}

@@ -127,7 +127,7 @@ def execute_put(cert, key, key_export, name_to_save=None, passphrase=None):
     except ValueError:
         return {'error': 'The file already exists in specified location'}, 409
 
-    batch_id, _ = certificate_client.store_certificate(crt_bin, rem_sig, crt_sig.hex())
+    batch_id, _ = client.store_certificate(crt_bin, rem_sig, crt_sig.hex())
 
     response = {'certificate': crt_export.decode('utf-8'),
                 'priv_key': key_export.decode('utf-8'),
