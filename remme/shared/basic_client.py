@@ -20,7 +20,6 @@ from contextlib import suppress
 
 import requests
 from google.protobuf.message import DecodeError
-from google.protobuf.json_format import MessageToDict
 from sawtooth_sdk.protobuf.block_pb2 import BlockHeader
 from sawtooth_sdk.protobuf.batch_pb2 import Batch, BatchHeader, BatchList
 from sawtooth_sdk.protobuf.client_list_control_pb2 import ClientPagingControls
@@ -46,17 +45,11 @@ from sawtooth_signing.secp256k1 import Secp256k1PrivateKey
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.settings import REST_API_URL, PRIV_KEY_FILE, ZMQ_URL
 from remme.shared.exceptions import ClientException, KeyNotFound
-from remme.shared.utils import hash512
+from remme.shared.utils import hash512, get_batch_id, message_to_dict
 from remme.account.handler import AccountHandler, is_address
 
 
 LOGGER = logging.getLogger(__name__)
-
-
-def get_batch_id(response_dict):
-    link = response_dict['link']
-    batch_id = link.split('id=')[1]
-    return {'batch_id': batch_id}
 
 
 class BasicClient:
@@ -135,13 +128,6 @@ class BasicClient:
         prefix = self._get_prefix()
         return prefix + pub_key
 
-    @staticmethod
-    def _message_to_dict(message):
-        return MessageToDict(
-            message,
-            including_default_value_fields=True,
-            preserving_proto_field_name=True)
-
     def _send_request(self, suffix, data=None, conn_protocol='text', **kwargs):
         if conn_protocol == 'text':
             return self._text_request(suffix, data, **kwargs)
@@ -212,7 +198,7 @@ class BasicClient:
             raise ClientException(
                 'Failed with ZMQ interaction: {0}'.format(vce))
 
-        data = self._message_to_dict(resp)
+        data = message_to_dict(resp)
 
         # NOTE: Not all protos have this status
         with suppress(AttributeError):
@@ -242,7 +228,7 @@ class BasicClient:
                 header or '')
             raise ClientException()
 
-        block['header'] = self._message_to_dict(header)
+        block['header'] = message_to_dict(header)
 
         return (
             block['header_signature'],

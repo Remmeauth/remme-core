@@ -18,38 +18,73 @@ import asyncio
 import hashlib
 import weakref
 import re
-import base64
 
-import cbor
+import aiohttp
+from aiohttp import web
 
-from sawtooth_rest_api.state_delta_subscription_handler import (StateDeltaSubscriberHandler, _message_to_dict)
-from sawtooth_rest_api.protobuf.validator_pb2 import Message
-from sawtooth_rest_api.protobuf import client_batch_pb2
+from sawtooth_sdk.protobuf.validator_pb2 import Message
+from sawtooth_sdk.protobuf import client_batch_pb2
+from sawtooth_sdk.messaging.exceptions import ValidatorConnectionError
+
+from remme.shared.utils import message_to_dict
 
 from .constants import Action, Entity, Status
 from .utils import deserialize, create_res_payload, validate_payload
 
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
-class WsApplicationHandler(StateDeltaSubscriberHandler):
+class WsApplicationHandler(object):
 
-    def __init__(self, connection, *, loop):
-        super().__init__(connection)
+    def __init__(self, stream, *, loop):
+        self._stream = stream
+        self._subscribers = []
+        self._subscriber_lock = asyncio.Lock()
+        self._accepting = True
+
         self._loop = loop
         self._batch_ids = {}
         self._batch_update_started = False
         self._batch_updator_task = None
-        self._batch_updator_task = weakref.ref(asyncio.ensure_future(self._update_list_batches(), loop=self._loop))
+        self._batch_updator_task = weakref.ref(
+            asyncio.ensure_future(
+                self._update_list_batches(), loop=self._loop))
 
     async def on_shutdown(self):
-        await super().on_shutdown()
+        await self._unregister_subscriptions()
+
+        self._accepting = False
+
+        for (ws, _) in self._subscribers:
+            await ws.close(code=aiohttp.WSCloseCode.GOING_AWAY,
+                           message='Server shutdown')
+
         if not self._batch_updator_task.cancelled():
             self._batch_updator_task.cancel()
         else:
             self._batch_updator_task = None
         self._batch_update_started = False
+
+    async def subscriptions(self, request):
+        if not self._accepting:
+            return web.Response(status=503)
+
+        web_sock = web.WebSocketResponse()
+        await web_sock.prepare(request)
+
+        async for msg in web_sock:
+            if msg.type == aiohttp.WSMsgType.TEXT:
+                await self._handle_message(web_sock, msg.data)
+            elif msg.type == aiohttp.WSMsgType.ERROR:
+                LOGGER.warning(
+                    'Web socket connection closed with exception %s',
+                    web_sock.exception())
+                await web_sock.close()
+
+        await self._handle_unsubscribe(web_sock)
+
+        return web_sock
 
     @staticmethod
     async def _ws_send(ws, action, id=None, data=None, type='response'):
@@ -62,7 +97,7 @@ class WsApplicationHandler(StateDeltaSubscriberHandler):
             await self._ws_send(web_sock, Status.MALFORMED_JSON)
             return
 
-        logger.info('Got payload: %s' % payload)
+        LOGGER.info('Got payload: %s' % payload)
 
         err_code = validate_payload(payload)
         if err_code:
@@ -75,7 +110,7 @@ class WsApplicationHandler(StateDeltaSubscriberHandler):
             await self._ws_send(web_sock, Status.INVALID_ACTION, payload['id'])
             return
 
-        logger.info('Determined action: %s', action)
+        LOGGER.info('Determined action: %s', action)
 
         if action == Action.SUBSCRIBE:
             await self._handle_subscribe(web_sock, payload)
@@ -87,30 +122,36 @@ class WsApplicationHandler(StateDeltaSubscriberHandler):
         self._batch_update_started = True
 
         async def _update_batch(batch_id):
-            batch_data, hash_sum = await self._get_batch(batch_id)
-            logger.debug('Fetched %s with sum %s', batch_data, hash_sum)
+            try:
+                batch_data, hash_sum = await self._loop.run_in_executor(
+                    None, self.get_batch, batch_id)
+            except Exception as e:
+                LOGGER.exception('Error to get batch data: %s', e)
+                return
+
+            LOGGER.debug('Fetched %s with sum %s', batch_data, hash_sum)
             batch = self._batch_ids[batch_id]
 
-            logger.debug('Got update for batch "%s"', batch)
+            LOGGER.debug('Got update for batch "%s"', batch)
 
             for ws in list(batch['ws']):
                 wsdata = batch['ws'][ws]
                 if ws.closed:
-                    logger.debug('Clear dead connection: %s', ws)
+                    LOGGER.debug('Clear dead connection: %s', ws)
                     self._handle_unsubscribe_batches(ws, [batch_id])
                     await self._handle_unsubscribe(ws)
                     continue
 
                 updated, id_ = wsdata['updated'], wsdata['id']
                 if updated and batch['state']['sum'] == hash_sum:
-                    logger.debug('Already updated state for conn "%s" and batch_id "%s"',
+                    LOGGER.debug('Already updated state for conn "%s" and batch_id "%s"',
                                  ws, batch_id)
                     continue
 
                 try:
                     await self._ws_send(ws, Status.BATCH_RESPONSE, id_, batch_data, 'message')
                 except Exception as e:
-                    logger.error('Send sock err: %s', e)
+                    LOGGER.error('Send sock err: %s', e)
                     self._handle_unsubscribe_batches(ws, [batch_id])
                     await self._handle_unsubscribe(ws)
                     continue
@@ -120,19 +161,13 @@ class WsApplicationHandler(StateDeltaSubscriberHandler):
             batch['state']['sum'] = hash_sum
             batch['state']['data'] = batch_data
 
-            logger.debug('Batch update finish')
+            LOGGER.debug('Batch update finish')
 
         while self._batch_update_started:
-            logger.debug('Start list batches fetching...')
+            LOGGER.debug('Start list batches fetching...')
 
             await asyncio.gather(*(_update_batch(batch_id) for batch_id in self._batch_ids.keys()))
             await asyncio.sleep(delta)
-
-    @staticmethod
-    def _batch_response_parse(data):
-        for tr in data['batch']['transactions']:
-            tr['payload'] = cbor.loads(base64.b64decode(tr['payload']))
-            tr['header'] = cbor.loads(base64.b64decode(tr['header']))
 
     def _handle_subscribe_batches(self, web_sock, batch_ids, id_):
         for batch_id in batch_ids:
@@ -150,20 +185,20 @@ class WsApplicationHandler(StateDeltaSubscriberHandler):
             try:
                 batch = self._batch_ids[batch_id]
             except KeyError:
-                logger.debug('Batch not found %s', batch_id)
+                LOGGER.debug('Batch not found %s', batch_id)
                 continue
 
             try:
                 del batch['ws'][web_sock]
             except KeyError:
-                logger.debug('Ws not found in batch %s', batch_id)
+                LOGGER.debug('Ws not found in batch %s', batch_id)
                 continue
 
             if not batch['ws']:
                 del self._batch_ids[batch_id]
 
     async def _handle_subscribe(self, web_sock, payload):
-        logger.info('Sending initial most recent event to new subscriber')
+        LOGGER.info('Sending initial most recent event to new subscriber')
 
         params = payload.get('parameters', {})
         batch_ids = params.get('batch_ids', [])
@@ -180,13 +215,13 @@ class WsApplicationHandler(StateDeltaSubscriberHandler):
                 err_ids = self._validate_ids(batch_ids)
                 if err_ids:
                     msg = 'Invalid batch ids: %s' % ', '.join(err_ids)
-                    logger.debug(msg)
+                    LOGGER.debug(msg)
                     await self._ws_send(web_sock, Status.INVALID_PARAMS,
                                         payload['id'])
                     return
                 self._subscribers.append((web_sock, {'batch_ids': batch_ids}))
                 self._handle_subscribe_batches(web_sock, batch_ids, payload['id'])
-                logger.info('Subscribed: %s', web_sock)
+                LOGGER.info('Subscribed: %s', web_sock)
 
         await self._ws_send(web_sock, Status.SUBSCRIBED, payload['id'])
 
@@ -216,29 +251,37 @@ class WsApplicationHandler(StateDeltaSubscriberHandler):
                     self._handle_unsubscribe_batches(web_sock, batch_ids)
                     await self._ws_send(web_sock, Status.UNSUBSCRIBED, payload['id'])
 
-            logger.info('Unsubscribed: %s', web_sock)
+            LOGGER.info('Unsubscribed: %s', web_sock)
 
     async def _handle_disconnect(self):
-        logger.info('Validator disconnected')
+        LOGGER.info('Validator disconnected')
         for (ws, _) in self._subscribers:
             await self._ws_send(ws, Status.NO_VALIDATOR)
 
-    async def _get_batch(self, batch_id):
-        resp = await self._connection.send(
-            Message.CLIENT_BATCH_GET_REQUEST,
-            client_batch_pb2.ClientBatchGetRequest(
+    def get_batch(self, batch_id):
+        self._stream.wait_for_ready()
+        future = self._stream.send(
+            message_type=Message.CLIENT_BATCH_GET_REQUEST,
+            content=client_batch_pb2.ClientBatchGetRequest(
                 batch_id=batch_id,
             ).SerializeToString())
 
+        try:
+            resp = future.result().content
+        except ValidatorConnectionError as vce:
+            LOGGER.error('Error: %s' % vce)
+            raise Exception(
+                'Failed with ZMQ interaction: {0}'.format(vce))
+
         batch_resp = client_batch_pb2.ClientBatchGetResponse()
-        batch_resp.ParseFromString(resp.content)
-        logger.debug('Batch: %s', resp)
-        logger.info('Batch parsed: %s', batch_resp)
+        batch_resp.ParseFromString(resp)
+        LOGGER.debug('Batch: %s', resp)
+        LOGGER.info('Batch parsed: %s', batch_resp)
 
         hash_sum = hashlib.sha256(batch_resp.SerializeToString()).hexdigest()
 
-        data = _message_to_dict(batch_resp)
-        logger.debug('data: %s', data)
+        data = message_to_dict(batch_resp)
+        LOGGER.debug('data: %s', data)
 
         batch = data.setdefault('batch', {})
         batch['header_signature'] = batch_id
@@ -247,12 +290,8 @@ class WsApplicationHandler(StateDeltaSubscriberHandler):
             'batch_statuses': {
                 'batch_id': batch['header_signature'],
                 'status': data.get('status', 'UNKNOWN'),
-                'block_number': None
             }
         }
-        if batch.get('header'):
-            prep_resp['batch_statuses']['block_number'] = cbor.loads(base64.b64decode(batch['header']))
-
         return prep_resp, hash_sum
 
     def _validate_ids(self, ids):

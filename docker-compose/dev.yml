@@ -71,9 +71,7 @@ services:
     image: remme/remme-core:latest
 
   remme-ws:
-    build:
-      context: ..
-      dockerfile: Dockerfile.ws
+    build: ..
     image: remme/remme-core-ws:latest
     depends_on:
       - remme-rest-api
