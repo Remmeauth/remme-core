@@ -16,14 +16,14 @@ import logging
 
 import datetime
 
-from remme.certificate.client import CertificateClient
-from remme.certificate.handler import CertificateHandler, CERT_STORE_PRICE, CERT_MAX_VALIDITY, CERT_MAX_VALIDITY_DAYS
+from remme.clients.certificate import CertificateClient
+from remme.tp.certificate import CertificateHandler, CERT_STORE_PRICE, CERT_MAX_VALIDITY, CERT_MAX_VALIDITY_DAYS
 from remme.protos.certificate_pb2 import CertificateStorage
 from remme.rest_api.certificate import get_certificate_signature, get_crt_export_bin_sig_rem_sig
 from remme.rest_api.certificate_api_decorator import certificate_put_request, create_certificate
 from remme.shared.logging import test
 from remme.tests.test_helper import HelperTestCase
-from remme.account.client import AccountClient
+from remme.clients.account import AccountClient
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes

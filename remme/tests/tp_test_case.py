@@ -29,7 +29,7 @@ class TransactionProcessorTestCase(unittest.TestCase):
 
         cls.factory = None
 
-        cls._zmq_patcher = mock.patch('remme.shared.basic_client.Stream',
+        cls._zmq_patcher = mock.patch('remme.clients.basic.Stream',
                                       return_value=cls.validator)
         cls._zmq_patcher_obj = cls._zmq_patcher.start()
 

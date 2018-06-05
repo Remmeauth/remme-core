@@ -46,7 +46,6 @@ from remme.protos.transaction_pb2 import TransactionPayload
 from remme.settings import REST_API_URL, PRIV_KEY_FILE, ZMQ_URL
 from remme.shared.exceptions import ClientException, KeyNotFound
 from remme.shared.utils import hash512, get_batch_id, message_to_dict
-from remme.account.handler import AccountHandler, is_address
 from remme.settings import REST_API_URL, PRIV_KEY_FILE
 from remme.shared.exceptions import ClientException
 from remme.shared.exceptions import KeyNotFound
