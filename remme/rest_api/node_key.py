@@ -13,7 +13,7 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-from remme.certificate.client import CertificateClient
+from remme.clients.certificate import CertificateClient
 
 
 def get():

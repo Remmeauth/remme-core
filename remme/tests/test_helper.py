@@ -21,10 +21,10 @@ from sawtooth_signing import CryptoFactory
 
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.shared.utils import AttrDict
-from remme.shared.basic_client import BasicClient
+from remme.clients.basic import BasicClient
 from remme.tests.tp_test_case import TransactionProcessorTestCase
-from remme.account.client import AccountClient
-from remme.account.handler import AccountHandler
+from remme.clients.account import AccountClient
+from remme.tp.account import AccountHandler
 
 LOGGER = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ class HelperTestCase(TransactionProcessorTestCase):
         cls.handler = handler
         cls.client_class = client_class
 
-        cls._pk_patcher = mock.patch('remme.shared.basic_client.BasicClient.get_signer_priv_key_from_file',
+        cls._pk_patcher = mock.patch('remme.clients.basic.BasicClient.get_signer_priv_key_from_file',
                                      return_value=BasicClient.generate_signer())
         cls._pk_patcher_obj = cls._pk_patcher.start()
 

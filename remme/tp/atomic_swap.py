@@ -21,10 +21,10 @@ from remme.protos.atomic_swap_pb2 import AtomicSwapMethod, AtomicSwapInitPayload
     AtomicSwapApprovePayload, AtomicSwapExpirePayload, AtomicSwapSetSecretLockPayload, AtomicSwapClosePayload
 from remme.settings import SETTINGS_SWAP_COMMISSION, ZERO_ADDRESS
 from remme.settings.helper import _get_setting_value
-from remme.shared.basic_handler import BasicHandler, get_data
+from remme.tp.basic import BasicHandler, get_data
 from remme.shared.utils import hash256
-from remme.account.client import AccountClient
-from remme.account.handler import AccountHandler, get_account_by_address
+from remme.clients.account import AccountClient
+from remme.tp.account import AccountHandler, get_account_by_address
 from remme.shared.singleton import singleton
 
 LOGGER = logging.getLogger(__name__)

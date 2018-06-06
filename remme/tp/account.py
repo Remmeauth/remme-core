@@ -18,9 +18,8 @@ from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
 from remme.protos.account_pb2  import Account, GenesisStatus, AccountMethod, GenesisPayload, \
     TransferPayload
-from remme.settings import SETTINGS_KEY_GENESIS_OWNERS, GENESIS_ADDRESS, ZERO_ADDRESS
-from remme.settings.helper import _get_setting_value
-from remme.shared.basic_handler import *
+from remme.settings import GENESIS_ADDRESS, ZERO_ADDRESS
+from remme.tp.basic import *
 from remme.shared.singleton import singleton
 
 LOGGER = logging.getLogger(__name__)

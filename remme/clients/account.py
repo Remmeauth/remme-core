@@ -13,11 +13,9 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-import json
-
 from remme.protos.account_pb2 import AccountMethod, GenesisPayload, TransferPayload
-from remme.shared.basic_client import BasicClient
-from remme.account.handler import AccountHandler
+from remme.clients.basic import BasicClient
+from remme.tp.account import AccountHandler
 from remme.shared.exceptions import KeyNotFound
 
 from remme.protos.account_pb2 import Account

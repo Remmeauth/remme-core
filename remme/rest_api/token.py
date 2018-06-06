@@ -13,7 +13,8 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-from remme.account.client import AccountClient
+import re
+from remme.clients.account import AccountClient
 
 
 def get(pub_key_user):

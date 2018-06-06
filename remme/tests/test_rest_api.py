@@ -15,8 +15,8 @@ from remme.shared.utils import hash512
 from remme.shared.logging import test
 from remme.protos.account_pb2 import AccountMethod, TransferPayload, Account
 from remme.protos.transaction_pb2 import TransactionPayload
-from remme.account.client import AccountClient
-from remme.account.handler import AccountHandler
+from remme.clients.account import AccountClient
+from remme.tp.account import AccountHandler
 from remme.tests.test_helper import HelperTestCase
 
 
@@ -60,11 +60,8 @@ class RestApiTestCase(HelperTestCase):
 
         signature = signer.sign(header)
 
-        transaction = Transaction(
-            header=header,
-            payload=payload,
-            header_signature=signature
-        )
+        cls.transaction = Transaction(header=header, payload=payload, header_signature=signature)
+        transaction = cls.transaction
         return transaction
 
     @test
@@ -74,7 +71,7 @@ class RestApiTestCase(HelperTestCase):
         self.assertTrue('pubkey' in response.get_json())
 
     @test
-    @mock.patch('remme.shared.basic_client.BasicClient.submit_batches',
+    @mock.patch('remme.clients.basic.BasicClient.submit_batches',
                 return_value={'link': 'http://rest-api:8080/batch_statuses?id=c6bcb01255c1870a5d42fe2dde5e91fb0c5992ec0b49932cdab901539bf977f75bb7699c053cea16668ba732a7d597dd0c2b80f157f1a2514932078bb761de4b'})
     def test_valid_raw_transaction_send_to_the_node(self, req_mock):
         payload = self.create_raw_transaction_send_token_payload('03823c7a9e285246985089824f3aaa51fb8675d08d84b151833ca5febce37ad61e', 1)
@@ -87,7 +84,7 @@ class RestApiTestCase(HelperTestCase):
         self.assertTrue('batch_id' in response.get_json())
 
     @test
-    @mock.patch('remme.shared.basic_client.BasicClient.submit_batches',
+    @mock.patch('remme.clients.basic.BasicClient.submit_batches',
                 return_value={'link': 'http://rest-api:8080/batch_statuses?id=c6bcb01255c1870a5d42fe2dde5e91fb0c5992ec0b49932cdab901539bf977f75bb7699c053cea16668ba732a7d597dd0c2b80f157f1a2514932078bb761de4b'})
     def test_token_send(self, req_mock):
         response = self.client.post('/api/v1/token',
@@ -100,9 +97,9 @@ class RestApiTestCase(HelperTestCase):
         self.assertTrue('batch_id' in response.get_json())
 
     @test
-    @mock.patch('remme.shared.basic_client.BasicClient.fetch_state',
+    @mock.patch('remme.clients.basic.BasicClient.fetch_state',
                 return_value={'data': base64.b64encode(Account(balance=100).SerializeToString())})
-    @mock.patch('remme.shared.basic_client.BasicClient.get_root_block',
+    @mock.patch('remme.clients.basic.BasicClient.get_root_block',
                 return_value=(None, 'some_root'))
     def test_get_token_balance(self, root_mock, fetch_state_mock):
         pubkey = '03823c7a9e285246985089824f3aaa51fb8675d08d84b151833ca5febce37ad61a'
@@ -111,7 +108,7 @@ class RestApiTestCase(HelperTestCase):
         self.assertEqual(response.get_json()['balance'], 100)
 
     @test
-    @mock.patch('remme.shared.basic_client.BasicClient.get_batch_statuses',
+    @mock.patch('remme.clients.basic.BasicClient.get_batch_statuses',
                 return_value={'data': [{'status': 'COMMITTED'}]})
     def test_check_batch_status(self, batch_status_mock):
         batch_id = '3936f0fa13d008c2b00d04013dfa5e5359fccc117e4c47b1416ee24e115ac08b08707be3b3ce6956ca3d789d245ff0dddf7a39bc2b2f4210ffe81ebd0244c014'

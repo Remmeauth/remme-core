@@ -1,7 +1,7 @@
 import json
 import logging
 
-from remme.atomic_swap_tp.client import AtomicSwapClient, get_swap_init_payload, get_swap_approve_payload, \
+from remme.clients.atomic_swap import AtomicSwapClient, get_swap_init_payload, get_swap_approve_payload, \
     get_swap_expire_payload, get_swap_set_secret_lock_payload, get_swap_close_payload
 from google.protobuf.json_format import MessageToJson
 

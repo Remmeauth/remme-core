@@ -5,7 +5,7 @@ from contextlib import suppress
 
 from sawtooth_processor_test.mock_validator import MockValidator
 
-from remme.__main__ import TP_HANDLERS
+from remme.tp.__main__ import TP_HANDLERS
 
 
 class RemmeMockValidator(MockValidator):
@@ -29,7 +29,7 @@ class TransactionProcessorTestCase(unittest.TestCase):
 
         cls.factory = None
 
-        cls._zmq_patcher = mock.patch('remme.shared.basic_client.Stream',
+        cls._zmq_patcher = mock.patch('remme.clients.basic.Stream',
                                       return_value=cls.validator)
         cls._zmq_patcher_obj = cls._zmq_patcher.start()
 

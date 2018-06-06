@@ -29,4 +29,4 @@ services:
   remme-tp:
     build: ..
     image: remme/remme-core:latest
-    entrypoint: python3 -m remme tcp://tests:4004
+    entrypoint: python3 -m remme.tp tcp://tests:4004
