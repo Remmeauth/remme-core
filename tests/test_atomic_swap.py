@@ -24,7 +24,7 @@ from remme.settings import SETTINGS_SWAP_COMMISSION
 from remme.settings.helper import _make_settings_key, get_setting_from_key_value
 from remme.shared.logging import test
 from remme.shared.utils import generate_random_key, hash256
-from remme.tests.test_helper import HelperTestCase
+from tests.test_helper import HelperTestCase
 from remme.clients.account import AccountClient
 from remme.tp.account import ZERO_ADDRESS
 
