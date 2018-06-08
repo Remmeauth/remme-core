@@ -17,7 +17,7 @@ from remme.protos.account_pb2 import AccountMethod, TransferPayload, Account
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.clients.account import AccountClient
 from remme.tp.account import AccountHandler
-from remme.tests.test_helper import HelperTestCase
+from tests.test_helper import HelperTestCase
 
 
 class RestApiTestCase(HelperTestCase):

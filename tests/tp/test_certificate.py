@@ -22,7 +22,7 @@ from remme.protos.certificate_pb2 import CertificateStorage
 from remme.rest_api.certificate import get_certificate_signature, get_crt_export_bin_sig_rem_sig
 from remme.rest_api.certificate_api_decorator import certificate_put_request, create_certificate
 from remme.shared.logging import test
-from remme.tests.test_helper import HelperTestCase
+from tests.test_helper import HelperTestCase
 from remme.clients.account import AccountClient
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend

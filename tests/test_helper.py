@@ -12,27 +12,54 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------
+import os
 import logging
 
-from unittest import mock
+from contextlib import suppress
+
+from unittest import TestCase, mock
 
 from sawtooth_signing import create_context
 from sawtooth_signing import CryptoFactory
 
+from sawtooth_processor_test.mock_validator import MockValidator
+
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.shared.utils import AttrDict
 from remme.clients.basic import BasicClient
-from remme.tests.tp_test_case import TransactionProcessorTestCase
 from remme.clients.account import AccountClient
 from remme.tp.account import AccountHandler
+
+from remme.tp.__main__ import TP_HANDLERS
 
 LOGGER = logging.getLogger(__name__)
 
 
-class HelperTestCase(TransactionProcessorTestCase):
+class RemmeMockValidator(MockValidator):
+
+    def wait_for_ready(self):
+        pass
+
+
+class HelperTestCase(TestCase):
     @classmethod
     def setUpClass(cls, handler, client_class=None):
-        super().setUpClass()
+        url = os.getenv('TEST_BIND', 'tcp://127.0.0.1:4004')
+
+        cls.validator = RemmeMockValidator()
+
+        cls.validator.listen(url)
+
+        for item in TP_HANDLERS:
+            if not cls.validator.register_processor():
+                raise Exception('Failed to register processor')
+
+        cls.factory = None
+
+        cls._zmq_patcher = mock.patch('remme.clients.basic.Stream',
+                                      return_value=cls.validator)
+        cls._zmq_patcher_obj = cls._zmq_patcher.start()
+
         cls.handler = handler
         cls.client_class = client_class
 
@@ -51,7 +78,9 @@ class HelperTestCase(TransactionProcessorTestCase):
 
     @classmethod
     def tearDownClass(cls):
-        super().tearDownClass()
+        with suppress(AttributeError):
+            cls.validator.close()
+        cls._zmq_patcher.stop()
         cls._pk_patcher.stop()
 
     @classmethod

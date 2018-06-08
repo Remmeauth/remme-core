@@ -17,4 +17,4 @@ version: '2.1'
 
 services:
   tests:
-    entrypoint: python3 -m remme.tests
+    entrypoint: python3 -m unittest discover ./tests
