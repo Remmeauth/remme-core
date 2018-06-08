@@ -139,6 +139,8 @@ paths:
                 pattern: '^[0-9a-f]{66}$'
               certificates:
                 type: array
+                items:
+                  $ref: '#/definitions/BatchId'
                 description: The list of addresses of the certificates
             required:
               - pub_key
@@ -305,9 +307,6 @@ paths:
               certificate:
                 type: string
                 description: PEM encoded created certificate signed by node
-            required:
-              - revoked
-              - owner_pub_key
         500:
           $ref: '#/responses/500GeneralError'
   /batch_status/{batch_id}:
