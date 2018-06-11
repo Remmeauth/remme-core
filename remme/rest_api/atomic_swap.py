@@ -43,7 +43,7 @@ def close(**data):
 
 
 def get_swap_info(swap_id):
-    return json.loads(MessageToJson(client.swap_get(swap_id)))
+    return json.loads(MessageToJson(client.swap_get(swap_id), preserving_proto_field_name=True))
 
 
 def get_pub_key_encryption():
