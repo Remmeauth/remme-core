@@ -43,7 +43,9 @@ def close(**data):
 
 
 def get_swap_info(swap_id):
-    return json.loads(MessageToJson(client.swap_get(swap_id), preserving_proto_field_name=True))
+    swap_info = client.swap_get(swap_id)
+    LOGGER.info(f'Get swap info {swap_info}')
+    return json.loads(MessageToJson(swap_info, preserving_proto_field_name=True, including_default_value_fields=True))
 
 
 def get_pub_key_encryption():
