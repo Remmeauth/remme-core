@@ -14,6 +14,8 @@
 # ------------------------------------------------------------------------
 
 import argparse
+import os
+
 from pkg_resources import resource_filename
 import connexion
 from flask_cors import CORS
@@ -27,6 +29,16 @@ if __name__ == '__main__':
     parser.add_argument('--bind', default='0.0.0.0')
     arguments = parser.parse_args()
     app = connexion.FlaskApp(__name__, specification_dir='.')
-    CORS(app.app)
+
+    CORS_ALLOW_ORIGIN = os.getenv('CORS_ALLOW_ORIGIN', default='').split(',')
+    CORS_EXPOSE_HEADERS = os.getenv('CORS_EXPOSE_HEADERS', default='').split(',')
+    CORS_ALLOW_HEADERS = os.getenv('CORS_ALLOW_HEADERS', default='').split(',')
+    CORS_ALLOW_METHODS = os.getenv('CORS_ALLOW_METHODS', default='').split(',')
+    CORS_MAX_AGE = int(os.getenv('CORS_MAX_AGE', default=10000))
+    CORS_ALLOW_CREDENTIALS = bool(os.getenv('CORS_ALLOW_CREDENTIALS', default=True))
+    CORS(app.app, origins=CORS_ALLOW_ORIGIN, methods=CORS_ALLOW_METHODS, max_age=CORS_MAX_AGE,
+                    supports_credentials=CORS_ALLOW_CREDENTIALS, allow_headers=CORS_ALLOW_HEADERS,
+                    expose_headers=CORS_EXPOSE_HEADERS)
+
     app.add_api(resource_filename(__name__, 'openapi.yml'), resolver=RestMethodsSwitcherResolver('remme.rest_api'))
     app.run(port=arguments.port, host=arguments.bind)
