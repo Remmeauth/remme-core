@@ -7,3 +7,5 @@ keys/
 *.DS_Store
 docs/generated
 docs/README.rst
+protos/
+docker-compose/default_export

@@ -15,14 +15,15 @@
 
 import logging
 import os
+import time
 from pathlib import Path
-import re
 from connexion import NoContent
 
-from remme.clients.certificate import CertificateClient
-from remme.rest_api.certificate_api_decorator import certificate_put_request, \
-    http_payload_required, certificate_address_request, certificate_sign_request, \
-    p12_certificate_address_request
+from remme.clients.pub_key import PubKeyClient
+from remme.rest_api.pub_key_api_decorator import (
+    pub_key_put_request, http_payload_required, pub_key_address_request,
+    pub_key_sign_request, p12_pub_key_address_request
+)
 from remme.shared.exceptions import KeyNotFound
 
 from cryptography.hazmat.primitives import hashes
@@ -43,41 +44,42 @@ LOGGER = logging.getLogger(__name__)
 
 # region Endpoints
 
-@http_payload_required
-@certificate_address_request
-def post(certificate_address):
-    return execute_post(certificate_address)
-
 
 @http_payload_required
-@certificate_address_request
-def delete(certificate_address):
-    return execute_delete(certificate_address)
+@pub_key_address_request
+def post(pub_key_address):
+    return execute_post(pub_key_address)
 
 
 @http_payload_required
-@certificate_put_request
+@pub_key_address_request
+def delete(pub_key_address):
+    return execute_delete(pub_key_address)
+
+
+@http_payload_required
+@pub_key_put_request
 def put(cert, key, key_export, name_to_save=None, passphrase=None):
     return execute_put(cert, key, key_export, name_to_save, passphrase)
 
 
-@certificate_sign_request
+@pub_key_sign_request
 def store(cert_request, not_valid_before, not_valid_after):
     return execute_store(cert_request, not_valid_before, not_valid_after)
 
 
-@p12_certificate_address_request
-def delete_p12(certificate_address):
-    return execute_delete(certificate_address)
+@p12_pub_key_address_request
+def delete_p12(pub_key_address):
+    return execute_delete(pub_key_address)
 
 
-@p12_certificate_address_request
-def post_p12(certificate_address):
-    return execute_post(certificate_address)
+@p12_pub_key_address_request
+def post_p12(pub_key_address):
+    return execute_post(pub_key_address)
 
 
 @http_payload_required
-@certificate_put_request
+@pub_key_put_request
 def put_p12(cert, key, key_export, name_to_save=None, passphrase=None):
     return execute_put(cert, key, key_export, name_to_save, passphrase)
 
@@ -85,50 +87,62 @@ def put_p12(cert, key, key_export, name_to_save=None, passphrase=None):
 # endregion
 
 # region Logic
-def execute_delete(certificate_address):
-    client = CertificateClient()
+def execute_delete(pub_key_address):
+    client = PubKeyClient()
     try:
-        certificate_data = client.get_status(certificate_address)
-        if certificate_data.revoked:
-            return {'error': 'The certificate was already revoked'}, 409
-        return client.revoke_certificate(certificate_address)
+        pub_key_data = client.get_status(pub_key_address)
+        if pub_key_data.revoked:
+            return {'error': 'The pub_key was already revoked'}, 409
+        return client.revoke_pub_key(pub_key_address)
     except KeyNotFound:
         return NoContent, 404
 
 
-def execute_post(certificate_address):
-    client = CertificateClient()
+def execute_post(pub_key_address):
+    client = PubKeyClient()
     try:
-        certificate_data = client.get_status(certificate_address)
-        return {'revoked': certificate_data.revoked,
-                'owner': certificate_data.owner}
+        pub_key_data = client.get_status(pub_key_address)
+        now = time.time()
+        valid_from = pub_key_data.payload.valid_from
+        valid_to = pub_key_data.payload.valid_to
+        return {'revoked': pub_key_data.revoked,
+                'owner_pub_key': pub_key_data.owner,
+                'valid': not pub_key_data.revoked and valid_from < now and now < valid_to,
+                'valid_from': valid_from,
+                'valid_to': valid_to}
     except KeyNotFound:
         return NoContent, 404
 
 
 def get_crt_export_bin_sig_rem_sig(cert, key, client):
     crt_export = cert.public_bytes(serialization.Encoding.PEM)
-    crt_bin = cert.public_bytes(serialization.Encoding.DER).hex()
-    crt_hash = hash512(crt_bin)
+    crt_bin = cert.public_bytes(serialization.Encoding.DER)
+    pub_key = cert.public_key().public_bytes(encoding=serialization.Encoding.PEM,
+                                             format=serialization.PublicFormat.SubjectPublicKeyInfo).decode('utf-8')
+    crt_hash = hash512(crt_bin.hex())
     rem_sig = client.sign_text(crt_hash)
-    crt_sig = get_certificate_signature(key, rem_sig)
+    crt_sig = get_pub_key_signature(key, rem_sig).hex()
 
-    return crt_export, crt_bin, crt_sig, rem_sig
+    valid_from = int(cert.not_valid_before.timestamp())
+    valid_to = int(cert.not_valid_after.timestamp())
+
+    return crt_export, crt_bin, crt_sig, rem_sig, pub_key, valid_from, valid_to
 
 
 def execute_put(cert, key, key_export, name_to_save=None, passphrase=None):
-    client = CertificateClient()
-    crt_export, crt_bin, crt_sig, rem_sig = get_crt_export_bin_sig_rem_sig(cert, key, client)
+    client = PubKeyClient()
+    crt_export, crt_bin, crt_sig, rem_sig, pub_key, \
+        valid_from, valid_to = get_crt_export_bin_sig_rem_sig(cert, key, client)
 
     try:
         saved_to = save_p12(cert, key, name_to_save, passphrase)
     except ValueError:
         return {'error': 'The file already exists in specified location'}, 409
 
-    batch_id, _ = client.store_certificate(crt_bin, rem_sig, crt_sig.hex())
+    batch_id, _ = client.store_pub_key(pub_key, rem_sig, crt_sig, valid_from, valid_to)
 
-    response = {'certificate': crt_export.decode('utf-8'),
-                'priv_key': key_export.decode('utf-8'),
+    response = {'priv_key': key_export.decode('utf-8'),
+                'pub_key': pub_key,
                 'batch_id': batch_id['batch_id']}
     if saved_to:
         response['saved_to'] = saved_to
@@ -137,21 +151,17 @@ def execute_put(cert, key, key_export, name_to_save=None, passphrase=None):
 
 
 def execute_store(cert_request, not_valid_before, not_valid_after):
-    certificate_client = CertificateClient()
+    pub_key_client = PubKeyClient()
 
     key = get_keys_to_sign()
-    cert = certificate_client.process_csr(cert_request, key, not_valid_before, not_valid_after)
+    cert = pub_key_client.process_csr(cert_request, key, not_valid_before, not_valid_after)
 
-    crt_export, crt_bin, crt_sig, rem_sig = get_crt_export_bin_sig_rem_sig(cert, key, certificate_client)
+    crt_export, crt_bin, crt_sig, rem_sig, pub_key, \
+        valid_from, valid_to = get_crt_export_bin_sig_rem_sig(cert, key, pub_key_client)
 
-    certificate_public_key = key.public_key().public_bytes(encoding=serialization.Encoding.PEM,
-                                                           format=serialization.PublicFormat.SubjectPublicKeyInfo)
-    batch_id, _ = certificate_client.store_certificate(crt_bin,
-                                                     rem_sig,
-                                                     crt_sig.hex(),
-                                                     certificate_public_key)
+    batch_id, _ = pub_key_client.store_pub_key(pub_key, rem_sig, crt_sig, valid_from, valid_to)
 
-    response = {'certificate': crt_export.decode('utf-8'),
+    response = {'pub_key': pub_key,
                 'batch_id': batch_id['batch_id']}
 
     return response
@@ -182,14 +192,11 @@ def save_p12(cert, private, file_name, passphrase=None):
         return str(Path(host_folder).joinpath(f'{file_name}.p12'))
 
 
-def get_certificate_signature(key, rem_sig):
+def get_pub_key_signature(key, sig):
     return key.sign(
-        bytes.fromhex(rem_sig),
-        padding.PSS(
-            mgf=padding.MGF1(hashes.SHA256()),
-            salt_length=padding.PSS.MAX_LENGTH
-        ),
-        hashes.SHA256()
+        bytes.fromhex(sig),
+        padding.PKCS1v15(),
+        hashes.SHA512()
     )
 
 
@@ -225,5 +232,3 @@ def get_keys_to_sign():
         )
         save_key(pk, REMME_CA_KEY_FILE)
     return pk
-
-# endregion

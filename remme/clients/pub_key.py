@@ -15,12 +15,14 @@
 
 import datetime
 
-from remme.protos.certificate_pb2 import CertificateStorage, \
-    NewCertificatePayload, RevokeCertificatePayload, CertificateMethod
+from remme.protos.pub_key_pb2 import (
+    PubKeyStorage,
+    NewPubKeyPayload, RevokePubKeyPayload, PubKeyMethod
+)
 from remme.clients.basic import BasicClient
-from remme.tp.certificate import CertificateHandler
+from remme.tp.pub_key import PubKeyHandler
 from remme.tp.account import AccountHandler
-from remme.tp.certificate import CERT_ORGANIZATION, CERT_MAX_VALIDITY
+from remme.tp.pub_key import CERT_ORGANIZATION, CERT_MAX_VALIDITY
 
 
 from cryptography.x509.oid import NameOID
@@ -29,31 +31,33 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
 
 
-class CertificateClient(BasicClient):
+class PubKeyClient(BasicClient):
     def __init__(self, test_helper=None):
-        super().__init__(CertificateHandler, test_helper=test_helper)
+        super().__init__(PubKeyHandler, test_helper=test_helper)
 
     @classmethod
-    def get_new_certificate_payload(self, certificate_raw, signature_rem, signature_crt, cert_signer_public_key):
-        payload = NewCertificatePayload()
-        payload.certificate_raw = certificate_raw
-        payload.signature_rem = signature_rem
-        payload.signature_crt = signature_crt
-        if cert_signer_public_key:
-            payload.cert_signer_public_key = cert_signer_public_key
+    def get_new_pub_key_payload(self, public_key, entity_hash, entity_hash_signature, valid_from, valid_to):
+        payload = NewPubKeyPayload()
+        payload.public_key = public_key
+        payload.public_key_type = NewPubKeyPayload.RSA
+        payload.entity_type = NewPubKeyPayload.PERSONAL
+        payload.entity_hash = entity_hash
+        payload.entity_hash_signature = entity_hash_signature
+        payload.valid_from = valid_from
+        payload.valid_to = valid_to
 
         return payload
 
     @classmethod
     def get_revoke_payload(self, crt_address):
-        payload = RevokeCertificatePayload()
+        payload = RevokePubKeyPayload()
         payload.address = crt_address
 
         return payload
 
-    def process_csr(self, certificate_request, key, not_valid_before=None, not_valid_after=None):
-        public_key = certificate_request.public_key()
-        subject = certificate_request.subject
+    def process_csr(self, pub_key_request, key, not_valid_before=None, not_valid_after=None):
+        public_key = pub_key_request.public_key()
+        subject = pub_key_request.subject
         issuer = x509.Name([
             x509.NameAttribute(NameOID.ORGANIZATION_NAME, CERT_ORGANIZATION),
             x509.NameAttribute(NameOID.USER_ID, self.get_signer_pubkey())
@@ -76,20 +80,21 @@ class CertificateClient(BasicClient):
             not_valid_after
         ).sign(key, hashes.SHA256(), default_backend())
 
-    def store_certificate(self, certificate_raw, signature_rem, signature_crt, cert_signer_public_key=None):
-        payload = self.get_new_certificate_payload(certificate_raw,
-                                                   signature_rem,
-                                                   signature_crt,
-                                                   cert_signer_public_key)
+    def store_pub_key(self, public_key, entity_hash, entity_hash_signature, valid_from, valid_to):
+        payload = self.get_new_pub_key_payload(public_key,
+                                               entity_hash,
+                                               entity_hash_signature,
+                                               valid_from,
+                                               valid_to)
 
-        crt_address = self.make_address_from_data(certificate_raw)
+        crt_address = self.make_address_from_data(public_key)
 
         account_address = AccountHandler.make_address_from_data(self._signer.get_public_key().as_hex())
-        return self._send_transaction(CertificateMethod.STORE, payload, [crt_address, account_address]), crt_address
+        return self._send_transaction(PubKeyMethod.STORE, payload, [crt_address, account_address]), crt_address
 
-    def revoke_certificate(self, crt_address):
+    def revoke_pub_key(self, crt_address):
         payload = self.get_revoke_payload(crt_address)
-        return self._send_transaction(CertificateMethod.REVOKE, payload, [crt_address])
+        return self._send_transaction(PubKeyMethod.REVOKE, payload, [crt_address])
 
     def get_signer_pubkey(self):
         return self._signer.get_public_key().as_hex()
@@ -99,6 +104,6 @@ class CertificateClient(BasicClient):
 
     def get_status(self, address):
         data = self.get_value(address)
-        storage = CertificateStorage()
+        storage = PubKeyStorage()
         storage.ParseFromString(data)
         return storage

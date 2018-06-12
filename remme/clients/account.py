@@ -64,10 +64,10 @@ class AccountClient(BasicClient):
         account.ParseFromString(self.get_value(address))
         return account
 
-    def get_certificates(self, address):
+    def get_pub_keys(self, address):
         try:
             account = self.get_account(address)
-            return list(account.certificates)
+            return list(account.pub_keys)
         except KeyNotFound:
             return []
 

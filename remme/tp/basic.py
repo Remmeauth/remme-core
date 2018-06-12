@@ -97,7 +97,7 @@ class BasicHandler(TransactionHandler):
             processor = state_processor[transaction_payload.method]['processor']
             updated_state = processor(context, transaction.header.signer_public_key, data_pb)
         except KeyError:
-            raise InvalidTransaction('Unknown value {} for the certificate operation type.'.
+            raise InvalidTransaction('Unknown value {} for the pub_key operation type.'.
                                      format(int(transaction_payload.method)))
         except ParseError:
             raise InvalidTransaction('Cannot decode transaction payload')

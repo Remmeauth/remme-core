@@ -1,11 +1,13 @@
-from remme.tp.certificate import CERT_STORE_PRICE, CERT_ORGANIZATION, CERT_MAX_VALIDITY
+import logging
+
+from remme.tp.pub_key import CERT_STORE_PRICE, CERT_ORGANIZATION, CERT_MAX_VALIDITY
 
 from remme.clients.account import AccountClient
 from remme.tp.account import AccountHandler
 
 from remme.shared.exceptions import KeyNotFound
 
-from remme.clients.certificate import CertificateClient
+from remme.clients.pub_key import PubKeyClient
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 from cryptography import x509
@@ -18,15 +20,18 @@ import datetime
 from OpenSSL import crypto
 
 
-def certificate_put_request(func):
+LOGGER = logging.getLogger(__name__)
+
+
+def pub_key_put_request(func):
     def validation_logic(payload):
         cert, key, key_export = create_certificate(payload)
         if not is_valid_token_balance():
-            return {'error': 'You have no tokens to issue certificate'}, 402
-        if certificate_already_exist(cert):
-            return {'error': 'This certificate is already registered'}, 409
+            return {'error': 'You have no tokens to issue pub_key'}, 402
+        if pub_key_already_exist(cert):
+            return {'error': 'This pub_key is already registered'}, 409
         if cert.not_valid_after - cert.not_valid_before > CERT_MAX_VALIDITY:
-            return {'error': 'The certificate validity exceeds the maximum value'}, 400
+            return {'error': 'The pub_key validity exceeds the maximum value'}, 400
 
         name_to_save = payload['name_to_save'] if 'name_to_save' in payload else None
         passphrase = payload['passphrase'] if 'passphrase' in payload else None
@@ -36,30 +41,30 @@ def certificate_put_request(func):
     return validation_logic
 
 
-def certificate_address_request(func):
+def pub_key_address_request(func):
     def validation_logic(payload):
         try:
-            certificate = x509.load_pem_x509_certificate(payload['certificate'].encode('utf-8'),
-                                                         default_backend())
-            crt_bin = certificate.public_bytes(serialization.Encoding.DER).hex()
-            address = CertificateClient().make_address_from_data(crt_bin)
+            serialization.load_pem_public_key(payload['pub_key'].encode('utf-8'),
+                                              default_backend())
+            address = PubKeyClient().make_address_from_data(payload['pub_key'])
+            LOGGER.debug(f'fetch pub_key_address {address}')
         except ValueError:
-            return {'error': 'Unable to load certificate entity'}, 422
-
+            return {'error': 'Unable to load pub_key entity'}, 422
         return func(address)
 
     return validation_logic
 
 
-def p12_certificate_address_request(func):
-    def validation_logic(certificate, passphrase=''):
+def p12_pub_key_address_request(func):
+    def validation_logic(pub_key, passphrase=''):
         try:
-            p12 = crypto.load_pkcs12(certificate.read(), passphrase)
+            p12 = crypto.load_pkcs12(pub_key.read(), passphrase)
             pub_cert = p12.get_certificate().to_cryptography()
-            crt_bin = pub_cert.public_bytes(serialization.Encoding.DER).hex()
-            address = CertificateClient().make_address_from_data(crt_bin)
+            pub_key = pub_cert.public_key().public_bytes(encoding=serialization.Encoding.PEM,
+                                                         format=serialization.PublicFormat.SubjectPublicKeyInfo)
+            address = PubKeyClient().make_address_from_data(pub_key)
         except ValueError:
-            return {'error': 'Unable to load certificate entity'}, 422
+            return {'error': 'Unable to load pub_key entity'}, 422
         except crypto.Error:
             return {'error': 'Incorrect passphrase'}, 403
 
@@ -68,13 +73,13 @@ def p12_certificate_address_request(func):
     return validation_logic
 
 
-def certificate_sign_request(func):
+def pub_key_sign_request(func):
     def validation_logic(payload):
         try:
-            certificate = x509.load_pem_x509_csr(payload['certificate'].encode('utf-8'),
-                                                 default_backend())
+            pub_key = x509.load_pem_x509_csr(payload['pub_key'].encode('utf-8'),
+                                             default_backend())
             if not is_valid_token_balance():
-                return {'error': 'You have no tokens to issue certificate'}, 402
+                return {'error': 'You have no tokens to issue pub_key'}, 402
 
             not_valid_before = payload.get('not_valid_before', None)
             not_valid_after = payload.get('not_valid_after', None)
@@ -84,14 +89,14 @@ def certificate_sign_request(func):
 
             if not_valid_after:
                 if not_valid_before >= not_valid_after:
-                    return {'error': 'not_valid_before certificate property has to occur before the not_valid_after'}, 400
+                    return {'error': 'not_valid_before pub_key property has to occur before the not_valid_after'}, 400
                 if not_valid_after - not_valid_before > CERT_MAX_VALIDITY:
-                    return {'error': 'The certificate validity exceeds the maximum value.'}, 400
+                    return {'error': 'The pub_key validity exceeds the maximum value.'}, 400
 
         except ValueError:
-            return {'error': 'Unable to load certificate request entity'}, 422
+            return {'error': 'Unable to load pub_key request entity'}, 422
 
-        return func(certificate, not_valid_before, not_valid_after)
+        return func(pub_key, not_valid_before, not_valid_after)
 
     return validation_logic
 
@@ -117,7 +122,7 @@ def create_certificate(payload, org_name=CERT_ORGANIZATION, signer=None):
     key_export = generate_key_export(key, encryption_algorithm)
 
     if not signer:
-        signer = CertificateClient().get_signer()
+        signer = PubKeyClient().get_signer()
     cert = build_certificate(parameters, payload, key, signer.get_public_key().as_hex(), org_name)
 
     return cert, key, key_export
@@ -216,11 +221,11 @@ def is_valid_token_balance():
     return signer_balance >= CERT_STORE_PRICE
 
 
-def certificate_already_exist(cert):
+def pub_key_already_exist(cert):
     account_client = AccountClient()
     address = account_client.make_address_from_data(cert.public_bytes(serialization.Encoding.DER).hex())
     try:
-        value = account_client.get_value(address)
+        account_client.get_value(address)
     except KeyNotFound:
         return False
     return True
