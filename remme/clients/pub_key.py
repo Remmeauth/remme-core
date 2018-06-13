@@ -36,11 +36,12 @@ class PubKeyClient(BasicClient):
         super().__init__(PubKeyHandler, test_helper=test_helper)
 
     @classmethod
-    def get_new_pub_key_payload(self, public_key, entity_hash, entity_hash_signature, valid_from, valid_to):
+    def get_new_pub_key_payload(self, public_key, entity_hash, entity_hash_signature, valid_from, valid_to,
+                                public_key_type=NewPubKeyPayload.RSA, entity_type=NewPubKeyPayload.PERSONAL):
         payload = NewPubKeyPayload()
         payload.public_key = public_key
-        payload.public_key_type = NewPubKeyPayload.RSA
-        payload.entity_type = NewPubKeyPayload.PERSONAL
+        payload.public_key_type = public_key_type
+        payload.entity_type = entity_type
         payload.entity_hash = entity_hash
         payload.entity_hash_signature = entity_hash_signature
         payload.valid_from = valid_from
@@ -55,9 +56,9 @@ class PubKeyClient(BasicClient):
 
         return payload
 
-    def process_csr(self, pub_key_request, key, not_valid_before=None, not_valid_after=None):
-        public_key = pub_key_request.public_key()
-        subject = pub_key_request.subject
+    def process_csr(self, certificate_request, key, not_valid_before=None, not_valid_after=None):
+        public_key = certificate_request.public_key()
+        subject = certificate_request.subject
         issuer = x509.Name([
             x509.NameAttribute(NameOID.ORGANIZATION_NAME, CERT_ORGANIZATION),
             x509.NameAttribute(NameOID.USER_ID, self.get_signer_pubkey())
