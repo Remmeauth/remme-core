@@ -71,18 +71,25 @@ class PubKeyHandler(BasicHandler):
         cert_signer_pubkey = load_pem_public_key(transaction_payload.public_key.encode('utf-8'),
                                                  backend=default_backend())
         try:
-            cert_signer_pubkey.verify(binascii.unhexlify(transaction_payload.entity_hash_signature),
-                                      binascii.unhexlify(transaction_payload.entity_hash),
-                                      padding.PKCS1v15(),
-                                      # padding.PSS(mgf=padding.MGF1(hashes.SHA256()),
-                                      #             salt_length=padding.PSS.MAX_LENGTH),
-                                      hashes.SHA512())
-        except InvalidSignature:
-            raise InvalidTransaction('Invalid signature')
+            ehs_bytes = binascii.unhexlify(transaction_payload.entity_hash_signature)
+            eh_bytes = binascii.unhexlify(transaction_payload.entity_hash)
         except binascii.Error:
             LOGGER.debug(f'entity_hash_signature {transaction_payload.entity_hash_signature}')
             LOGGER.debug(f'entity_hash {transaction_payload.entity_hash}')
             raise InvalidTransaction('Entity hash or signature not a hex format')
+
+        # NOTE: For support PKCS1v15 and PSS
+        sigerr = 0
+        pkcs = padding.PKCS1v15()
+        pss = padding.PSS(mgf=padding.MGF1(hashes.SHA256()), salt_length=padding.PSS.MAX_LENGTH)
+        for _padding in (pkcs, pss):
+            try:
+                cert_signer_pubkey.verify(ehs_bytes, eh_bytes, _padding, hashes.SHA512())
+            except InvalidSignature:
+                sigerr += 1
+
+        if sigerr == 2:
+            raise InvalidTransaction('Invalid signature')
 
         data = PubKeyStorage()
         data.owner = signer_pubkey

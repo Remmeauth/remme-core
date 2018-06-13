@@ -195,7 +195,10 @@ def save_p12(cert, private, file_name, passphrase=None):
 def get_pub_key_signature(key, sig):
     return key.sign(
         bytes.fromhex(sig),
-        padding.PKCS1v15(),
+        padding.PSS(
+            mgf=padding.MGF1(hashes.SHA256()),
+            salt_length=padding.PSS.MAX_LENGTH
+        ),
         hashes.SHA512()
     )
 
