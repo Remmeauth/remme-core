@@ -23,7 +23,7 @@ import aiohttp
 from aiohttp import web
 
 from sawtooth_sdk.protobuf.validator_pb2 import Message
-from sawtooth_sdk.protobuf import client_batch_pb2
+from sawtooth_sdk.protobuf import client_batch_submit_pb2
 from sawtooth_sdk.messaging.exceptions import ValidatorConnectionError
 
 from remme.shared.utils import message_to_dict
@@ -261,9 +261,9 @@ class WsApplicationHandler(object):
     def get_batch(self, batch_id):
         self._stream.wait_for_ready()
         future = self._stream.send(
-            message_type=Message.CLIENT_BATCH_GET_REQUEST,
-            content=client_batch_pb2.ClientBatchGetRequest(
-                batch_id=batch_id,
+            message_type=Message.CLIENT_BATCH_STATUS_REQUEST,
+            content=client_batch_submit_pb2.ClientBatchStatusRequest(
+                batch_ids=[batch_id],
             ).SerializeToString())
 
         try:
@@ -273,7 +273,7 @@ class WsApplicationHandler(object):
             raise Exception(
                 'Failed with ZMQ interaction: {0}'.format(vce))
 
-        batch_resp = client_batch_pb2.ClientBatchGetResponse()
+        batch_resp = client_batch_submit_pb2.ClientBatchStatusResponse()
         batch_resp.ParseFromString(resp)
         LOGGER.debug('Batch: %s', resp)
         LOGGER.info('Batch parsed: %s', batch_resp)
@@ -283,13 +283,18 @@ class WsApplicationHandler(object):
         data = message_to_dict(batch_resp)
         LOGGER.debug('data: %s', data)
 
-        batch = data.setdefault('batch', {})
-        batch['header_signature'] = batch_id
+        try:
+            batch_data = data['batch_statuses'][0]
+        except IndexError:
+            raise Exception(f'Batch with id "{batch_id}" not found')
+
+        assert batch_id == batch_data['batch_id'], \
+            'Batches not matched (req: {0}, got: {1})'.format(batch_id, batch_data['batch_id'])
 
         prep_resp = {
             'batch_statuses': {
-                'batch_id': batch['header_signature'],
-                'status': data.get('status', 'UNKNOWN'),
+                'batch_id': batch_data['batch_id'],
+                'status': batch_data['status'],
             }
         }
         return prep_resp, hash_sum
