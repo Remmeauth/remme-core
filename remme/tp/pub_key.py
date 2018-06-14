@@ -77,13 +77,15 @@ class PubKeyHandler(BasicHandler):
             LOGGER.debug(f'entity_hash {transaction_payload.entity_hash}')
             raise InvalidTransaction('Entity hash or signature not a hex format')
 
-        # NOTE: For support PKCS1v15 and PSS
+        # FIXME: For support PKCS1v15 and PSS
+        LOGGER.warn('HAZARD: Detecting padding for verification')
         sigerr = 0
         pkcs = padding.PKCS1v15()
-        pss = padding.PSS(mgf=padding.MGF1(hashes.SHA256()), salt_length=padding.PSS.MAX_LENGTH)
+        pss = padding.PSS(mgf=padding.MGF1(hashes.SHA512()), salt_length=padding.PSS.MAX_LENGTH)
         for _padding in (pkcs, pss):
             try:
                 cert_signer_pubkey.verify(ehs_bytes, eh_bytes, _padding, hashes.SHA512())
+                LOGGER.warn('HAZARD: Padding found: %s', _padding.name)
             except InvalidSignature:
                 sigerr += 1
 

@@ -135,8 +135,8 @@ def get_crt_export_bin_sig_rem_sig(cert, key, client):
     rem_sig = client.sign_text(crt_hash)
     crt_sig = get_pub_key_signature(key, rem_sig).hex()
 
-    valid_from = int(cert.not_valid_before.timestamp())
-    valid_to = int(cert.not_valid_after.timestamp())
+    valid_from = int(cert.not_valid_before.strftime("%s"))
+    valid_to = int(cert.not_valid_after.strftime("%s"))
 
     return crt_export, crt_bin, crt_sig, rem_sig, pub_key, valid_from, valid_to
 
@@ -210,7 +210,7 @@ def get_pub_key_signature(key, sig):
     return key.sign(
         bytes.fromhex(sig),
         padding.PSS(
-            mgf=padding.MGF1(hashes.SHA256()),
+            mgf=padding.MGF1(hashes.SHA512()),
             salt_length=padding.PSS.MAX_LENGTH
         ),
         hashes.SHA512()
