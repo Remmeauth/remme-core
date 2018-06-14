@@ -110,7 +110,7 @@ class PubKeyTestCase(HelperTestCase):
         cert_address = PubKeyHandler.make_address_from_data(pub_key)
 
         valid_from = int(valid_from - PUB_KEY_MAX_VALIDITY.total_seconds())
-        valid_to = int(valid_to - PUB_KEY_MAX_VALIDITY.total_seconds())
+        valid_to = int(valid_to + PUB_KEY_MAX_VALIDITY.total_seconds())
 
         context.client.store_pub_key(pub_key, rem_sig, crt_sig, valid_from, valid_to)
 
