@@ -22,7 +22,7 @@ from connexion import NoContent
 from remme.clients.pub_key import PubKeyClient
 from remme.rest_api.pub_key_api_decorator import (
     pub_key_put_request, http_payload_required, pub_key_address_request,
-    pub_key_sign_request, p12_pub_key_address_request
+    pub_key_sign_request, p12_pub_key_address_request, cert_key_address_request
 )
 from remme.shared.exceptions import KeyNotFound
 
@@ -46,13 +46,13 @@ LOGGER = logging.getLogger(__name__)
 
 
 @http_payload_required
-@pub_key_address_request
+@cert_key_address_request
 def post(pub_key_address):
     return execute_post(pub_key_address)
 
 
 @http_payload_required
-@pub_key_address_request
+@cert_key_address_request
 def delete(pub_key_address):
     return execute_delete(pub_key_address)
 
@@ -66,6 +66,18 @@ def put(cert, key, key_export, name_to_save=None, passphrase=None):
 @pub_key_sign_request
 def store(cert_request, not_valid_before, not_valid_after):
     return execute_store(cert_request, not_valid_before, not_valid_after)
+
+
+@http_payload_required
+@pub_key_address_request
+def post_pub_key(pub_key_address):
+    return execute_post(pub_key_address)
+
+
+@http_payload_required
+@pub_key_address_request
+def delete_pub_key(pub_key_address):
+    return execute_delete(pub_key_address)
 
 
 @p12_pub_key_address_request
@@ -143,6 +155,7 @@ def execute_put(cert, key, key_export, name_to_save=None, passphrase=None):
 
     response = {'priv_key': key_export.decode('utf-8'),
                 'pub_key': pub_key,
+                'crt_key': crt_export.decode('utf-8'),
                 'batch_id': batch_id['batch_id']}
     if saved_to:
         response['saved_to'] = saved_to
@@ -162,6 +175,7 @@ def execute_store(cert_request, not_valid_before, not_valid_after):
     batch_id, _ = pub_key_client.store_pub_key(pub_key, rem_sig, crt_sig, valid_from, valid_to)
 
     response = {'pub_key': pub_key,
+                'crt_key': crt_export.decode('utf-8'),
                 'batch_id': batch_id['batch_id']}
 
     return response

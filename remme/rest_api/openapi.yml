@@ -147,15 +147,15 @@ paths:
               - pub_keys
         500:
           $ref: '#/responses/500GeneralError'
-  /pub_key/p12:
+  /certificate/p12:
     put:
       operationId: remme.rest_api.pub_key.put_p12
-      summary: Generate and register a new pub_key
+      summary: Generate and register a new certificate
       parameters:
         - $ref: '#/parameters/pub_key_p12_create_payload'
       responses:
         200:
-          description: A new pub_key was generated and the registration transaction was submitted
+          description: A new certificate was generated and the registration transaction was submitted
           schema:
             properties:
               batch_id:
@@ -163,6 +163,9 @@ paths:
               pub_key:
                 type: string
                 description: PEM encoded public key
+              crt_key:
+                type: string
+                description: CSR key
               priv_key:
                 type: string
                 description: PEM encoded private key
@@ -173,6 +176,7 @@ paths:
               - batch_id
               - pub_key
               - priv_key
+              - crt_key
         500:
           $ref: '#/responses/500GeneralError'
     post:
@@ -234,41 +238,8 @@ paths:
         500:
           $ref: '#/responses/500GeneralError'
   /pub_key:
-    put:
-      summary: Generate and register a new pub_key
-      parameters:
-        - $ref: '#/parameters/pub_key_create_payload'
-      responses:
-        200:
-          description: A new pub_key was generated and the registration transaction was submitted
-          schema:
-            properties:
-              batch_id:
-                $ref: '#/definitions/BatchId'
-              pub_key:
-                type: string
-                description: PEM encoded pub_key
-              priv_key:
-                type: string
-                description: PEM encoded private key
-            required:
-              - batch_id
-              - pub_key
-              - priv_key
-        500:
-          $ref: '#/responses/500GeneralError'
-    delete:
-      summary: Revoke a pub_key
-      parameters:
-        - $ref: '#/parameters/pub_key_payload'
-      responses:
-        200:
-          $ref: '#/responses/200BatchSubmitted'
-        404:
-          $ref: '#/responses/404NoPubKey'
-        500:
-          $ref: '#/responses/500GeneralError'
     post:
+      operationId: remme.rest_api.pub_key.post_pub_key
       summary: Check the status of the provided pub_key
       parameters:
         - $ref: '#/parameters/pub_key_payload'
@@ -303,15 +274,104 @@ paths:
           $ref: '#/responses/404NoPubKey'
         500:
           $ref: '#/responses/500GeneralError'
-  /pub_key/store:
-    put:
-      operationId: remme.rest_api.pub_key.store
-      summary: Signs and stores provided pub_key signing request(CSR) to REMchain
+    delete:
+      operationId: remme.rest_api.pub_key.delete_pub_key
+      summary: Revoke a pub_key
       parameters:
         - $ref: '#/parameters/pub_key_payload'
       responses:
         200:
-          description: Public key signing request (csr) is signed and pub_key data registered on the REMchain
+          $ref: '#/responses/200BatchSubmitted'
+        404:
+          $ref: '#/responses/404NoPubKey'
+        500:
+          $ref: '#/responses/500GeneralError'
+  /certificate:
+    put:
+      operationId: remme.rest_api.pub_key.put
+      summary: Generate and register a new certificate
+      parameters:
+        - $ref: '#/parameters/pub_key_create_payload'
+      responses:
+        200:
+          description: A new certificate was generated and the registration transaction was submitted
+          schema:
+            properties:
+              batch_id:
+                $ref: '#/definitions/BatchId'
+              pub_key:
+                type: string
+                description: PEM encoded public key
+              crt_key:
+                type: string
+                description: CSR key
+              priv_key:
+                type: string
+                description: PEM encoded private key
+            required:
+              - batch_id
+              - pub_key
+              - priv_key
+              - crt_key
+        500:
+          $ref: '#/responses/500GeneralError'
+    delete:
+      operationId: remme.rest_api.pub_key.delete
+      summary: Revoke a cert
+      parameters:
+        - $ref: '#/parameters/certificate_payload'
+      responses:
+        200:
+          $ref: '#/responses/200BatchSubmitted'
+        404:
+          $ref: '#/responses/404NoPubKey'
+        500:
+          $ref: '#/responses/500GeneralError'
+    post:
+      operationId: remme.rest_api.pub_key.post
+      summary: Check the status of the provided cert_key
+      parameters:
+        - $ref: '#/parameters/certificate_payload'
+      responses:
+        200:
+          description: Public key is registered on the REMchain
+          schema:
+            properties:
+              revoked:
+                description: Indicates if the pub_key was revoked
+                type: boolean
+              owner_pub_key:
+                description: The hex-encoded public key of the pub_key owner
+                type: string
+                pattern: '^[0-9a-f]{66}$'
+              valid:
+                description: Indicates if the public key still valid
+                type: boolean
+              valid_from:
+                description: Public key valid from time
+                type: integer
+              valid_to:
+                description: Public key valid to time
+                type: integer
+            required:
+              - revoked
+              - owner_pub_key
+              - valid
+              - valid_from
+              - valid_to
+        404:
+          $ref: '#/responses/404NoPubKey'
+        500:
+          $ref: '#/responses/500GeneralError'
+  /pub_key/store:
+    put:
+      operationId: remme.rest_api.pub_key.store
+      summary: Signs and stores provided certificate signing request(CSR) to REMchain
+      parameters:
+        - $ref: '#/parameters/pub_key_payload'
+      responses:
+        200:
+          description: Public key signing request (csr) is signed and certificate data registered on the REMchain
           schema:
             properties:
               batch_id:
@@ -626,6 +686,24 @@ parameters:
           type: integer
       required:
         - pub_key
+  certificate_payload:
+    name: payload
+    description: PEM encoded pub_key file
+    in: body
+    required: true
+    schema:
+      properties:
+        crt_key:
+          description: PEM encoded crt key
+          type: string
+        not_valid_before:
+          description: The timestamp of a pub_key validity starting date
+          type: integer
+        not_valid_after:
+          description: The timestamp of a pub_key validity end date
+          type: integer
+      required:
+        - crt_key
   pub_key_create_payload:
     name: payload
     description: Public key fields required for pub_key creation

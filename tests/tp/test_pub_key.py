@@ -14,19 +14,14 @@
 # ------------------------------------------------------------------------
 import logging
 
-import datetime
-
 from remme.clients.pub_key import PubKeyClient
-from remme.tp.pub_key import PubKeyHandler, CERT_STORE_PRICE, CERT_MAX_VALIDITY, CERT_MAX_VALIDITY_DAYS
+from remme.tp.pub_key import PubKeyHandler, PUB_KEY_STORE_PRICE, PUB_KEY_MAX_VALIDITY
 from remme.protos.pub_key_pb2 import PubKeyStorage
-from remme.rest_api.pub_key import get_pub_key_signature, get_crt_export_bin_sig_rem_sig
-from remme.rest_api.pub_key_api_decorator import pub_key_put_request, create_certificate
+from remme.rest_api.pub_key import get_crt_export_bin_sig_rem_sig
+from remme.rest_api.pub_key_api_decorator import create_certificate
 from remme.shared.logging import test
 from tests.test_helper import HelperTestCase
 from remme.clients.account import AccountClient
-from cryptography import x509
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes
 
 LOGGER = logging.getLogger(__name__)
 
@@ -86,7 +81,7 @@ class PubKeyTestCase(HelperTestCase):
         cert_address, transaction_payload = self._pre_parse_payload_and_exec(context, cert, key)
         self.expect_get({cert_address: None})
 
-        account = AccountClient.get_account_model(CERT_STORE_PRICE)
+        account = AccountClient.get_account_model(PUB_KEY_STORE_PRICE)
         self.expect_get({self.account_address1: account})
 
         data = PubKeyStorage()
@@ -94,7 +89,7 @@ class PubKeyTestCase(HelperTestCase):
         data.payload.CopyFrom(transaction_payload)
         data.revoked = False
 
-        account.balance -= CERT_STORE_PRICE
+        account.balance -= PUB_KEY_STORE_PRICE
         account.pub_keys.append(cert_address)
 
         self.expect_set({
@@ -103,6 +98,25 @@ class PubKeyTestCase(HelperTestCase):
         })
 
         self.expect_ok()
+
+    @test
+    def test_store_fail_invalid_validity_date(self):
+        context = self.get_context()
+
+        cert, key, _ = create_certificate(context.pub_key_payload, signer=context.client.get_signer())
+        crt_export, crt_bin, crt_sig, rem_sig, pub_key, \
+            valid_from, valid_to = get_crt_export_bin_sig_rem_sig(cert, key, context.client)
+
+        cert_address = PubKeyHandler.make_address_from_data(pub_key)
+
+        valid_from = int(valid_from - PUB_KEY_MAX_VALIDITY.total_seconds())
+        valid_to = int(valid_to - PUB_KEY_MAX_VALIDITY.total_seconds())
+
+        context.client.store_pub_key(pub_key, rem_sig, crt_sig, valid_from, valid_to)
+
+        self.expect_get({cert_address: None})
+
+        self.expect_invalid_transaction()
 
     @test
     def test_revoke_success(self):

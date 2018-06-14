@@ -13,9 +13,10 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-import datetime
 import logging
 import binascii
+from datetime import datetime, timedelta
+
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
@@ -37,11 +38,9 @@ LOGGER = logging.getLogger(__name__)
 FAMILY_NAME = 'pub_key'
 FAMILY_VERSIONS = ['0.1']
 
-CERT_ORGANIZATION = 'REMME'
-CERT_MAX_VALIDITY_DAYS = 365
-CERT_MAX_VALIDITY = datetime.timedelta(CERT_MAX_VALIDITY_DAYS)
-
-CERT_STORE_PRICE = 10
+PUB_KEY_ORGANIZATION = 'REMME'
+PUB_KEY_MAX_VALIDITY = timedelta(365)
+PUB_KEY_STORE_PRICE = 10
 
 
 @singleton
@@ -63,7 +62,7 @@ class PubKeyHandler(BasicHandler):
 
     def _store_pub_key(self, context, signer_pubkey, transaction_payload):
         address = self.make_address_from_data(transaction_payload.public_key)
-        LOGGER.info('Cert address {}'.format(address))
+        LOGGER.info('Pub key address {}'.format(address))
         data = get_data(context, PubKeyStorage, address)
         if data:
             raise InvalidTransaction('This pub key is already registered.')
@@ -91,6 +90,12 @@ class PubKeyHandler(BasicHandler):
         if sigerr == 2:
             raise InvalidTransaction('Invalid signature')
 
+        valid_from = datetime.fromtimestamp(transaction_payload.valid_from)
+        valid_to = datetime.fromtimestamp(transaction_payload.valid_to)
+
+        if valid_to - valid_from > PUB_KEY_MAX_VALIDITY:
+            raise InvalidTransaction('The public key validity exceeds the maximum value.')
+
         data = PubKeyStorage()
         data.owner = signer_pubkey
         data.payload.CopyFrom(transaction_payload)
@@ -98,10 +103,10 @@ class PubKeyHandler(BasicHandler):
 
         account_address = AccountHandler.make_address_from_data(signer_pubkey)
         account = get_account_by_address(context, account_address)
-        if account.balance < CERT_STORE_PRICE:
+        if account.balance < PUB_KEY_STORE_PRICE:
             raise InvalidTransaction('Not enough tokens to register a new pub key. Current balance: {}'
                                      .format(account.balance))
-        account.balance -= CERT_STORE_PRICE
+        account.balance -= PUB_KEY_STORE_PRICE
 
         if address not in account.pub_keys:
             account.pub_keys.append(address)
@@ -119,6 +124,6 @@ class PubKeyHandler(BasicHandler):
             raise InvalidTransaction('The pub key is already revoked.')
         data.revoked = True
 
-        LOGGER.info('Revoked the pub_key on address {}'.format(transaction_payload.address))
+        LOGGER.info('Revoked the pub key on address {}'.format(transaction_payload.address))
 
         return {transaction_payload.address: data}

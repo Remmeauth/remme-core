@@ -22,7 +22,7 @@ from remme.protos.pub_key_pb2 import (
 from remme.clients.basic import BasicClient
 from remme.tp.pub_key import PubKeyHandler
 from remme.tp.account import AccountHandler
-from remme.tp.pub_key import CERT_ORGANIZATION, CERT_MAX_VALIDITY
+from remme.tp.pub_key import PUB_KEY_ORGANIZATION, PUB_KEY_MAX_VALIDITY
 
 
 from cryptography.x509.oid import NameOID
@@ -60,12 +60,12 @@ class PubKeyClient(BasicClient):
         public_key = certificate_request.public_key()
         subject = certificate_request.subject
         issuer = x509.Name([
-            x509.NameAttribute(NameOID.ORGANIZATION_NAME, CERT_ORGANIZATION),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, PUB_KEY_ORGANIZATION),
             x509.NameAttribute(NameOID.USER_ID, self.get_signer_pubkey())
         ])
 
         not_valid_before = not_valid_before if not_valid_before else datetime.datetime.utcnow()
-        not_valid_after = not_valid_after if not_valid_after else not_valid_before + CERT_MAX_VALIDITY
+        not_valid_after = not_valid_after if not_valid_after else not_valid_before + PUB_KEY_MAX_VALIDITY
 
         return x509.CertificateBuilder().subject_name(
             subject

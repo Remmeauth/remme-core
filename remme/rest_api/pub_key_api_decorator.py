@@ -1,6 +1,6 @@
 import logging
 
-from remme.tp.pub_key import CERT_STORE_PRICE, CERT_ORGANIZATION, CERT_MAX_VALIDITY
+from remme.tp.pub_key import PUB_KEY_STORE_PRICE, PUB_KEY_ORGANIZATION, PUB_KEY_MAX_VALIDITY
 
 from remme.clients.account import AccountClient
 from remme.tp.account import AccountHandler
@@ -30,7 +30,7 @@ def pub_key_put_request(func):
             return {'error': 'You have no tokens to issue pub_key'}, 402
         if pub_key_already_exist(cert):
             return {'error': 'This pub_key is already registered'}, 409
-        if cert.not_valid_after - cert.not_valid_before > CERT_MAX_VALIDITY:
+        if cert.not_valid_after - cert.not_valid_before > PUB_KEY_MAX_VALIDITY:
             return {'error': 'The pub_key validity exceeds the maximum value'}, 400
 
         name_to_save = payload['name_to_save'] if 'name_to_save' in payload else None
@@ -50,6 +50,22 @@ def pub_key_address_request(func):
             LOGGER.debug(f'fetch pub_key_address {address}')
         except ValueError:
             return {'error': 'Unable to load pub_key entity'}, 422
+        return func(address)
+
+    return validation_logic
+
+
+def cert_key_address_request(func):
+    def validation_logic(payload):
+        try:
+            certificate = x509.load_pem_x509_certificate(payload['crt_key'].encode('utf-8'),
+                                                         default_backend())
+            pub_key = certificate.public_key().public_bytes(encoding=serialization.Encoding.PEM,
+                                                            format=serialization.PublicFormat.SubjectPublicKeyInfo)
+            address = PubKeyClient().make_address_from_data(pub_key)
+            LOGGER.debug(f'fetch crt_key_address {address}')
+        except ValueError:
+            return {'error': 'Unable to load crt_key entity'}, 422
         return func(address)
 
     return validation_logic
@@ -85,12 +101,12 @@ def pub_key_sign_request(func):
             not_valid_after = payload.get('not_valid_after', None)
 
             not_valid_before = datetime.datetime.fromtimestamp(not_valid_before) if not_valid_before else datetime.datetime.utcnow()
-            not_valid_after = datetime.datetime.fromtimestamp(not_valid_after) if not_valid_after else not_valid_before + CERT_MAX_VALIDITY
+            not_valid_after = datetime.datetime.fromtimestamp(not_valid_after) if not_valid_after else not_valid_before + PUB_KEY_MAX_VALIDITY
 
             if not_valid_after:
                 if not_valid_before >= not_valid_after:
                     return {'error': 'not_valid_before pub_key property has to occur before the not_valid_after'}, 400
-                if not_valid_after - not_valid_before > CERT_MAX_VALIDITY:
+                if not_valid_after - not_valid_before > PUB_KEY_MAX_VALIDITY:
                     return {'error': 'The pub_key validity exceeds the maximum value.'}, 400
 
         except ValueError:
@@ -114,7 +130,7 @@ def http_payload_required(func):
     return func_wrapper
 
 
-def create_certificate(payload, org_name=CERT_ORGANIZATION, signer=None):
+def create_certificate(payload, org_name=PUB_KEY_ORGANIZATION, signer=None):
     parameters = get_params()
     encryption_algorithm = get_encryption_algorithm(payload)
 
@@ -164,7 +180,7 @@ def get_dates_from_payload(payload):
     if 'validity' in payload:
         not_valid_after = not_valid_before + datetime.timedelta(days=payload['validity'])
     else:
-        not_valid_after = not_valid_before + CERT_MAX_VALIDITY
+        not_valid_after = not_valid_before + PUB_KEY_MAX_VALIDITY
 
     return not_valid_before, not_valid_after
 
@@ -218,7 +234,7 @@ def is_valid_token_balance():
     account_client = AccountClient()
     signer_pub_key = account_client.get_signer().get_public_key().as_hex()
     signer_balance = account_client.get_balance(AccountHandler.make_address_from_data(signer_pub_key))
-    return signer_balance >= CERT_STORE_PRICE
+    return signer_balance >= PUB_KEY_STORE_PRICE
 
 
 def pub_key_already_exist(cert):
