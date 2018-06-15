@@ -18,7 +18,7 @@ from contextlib import suppress
 from google.protobuf.message import DecodeError
 from sawtooth_sdk.protobuf.transaction_pb2 import Transaction
 
-from remme.clients.certificate import CertificateClient
+from remme.clients.pub_key import PubKeyClient
 
 
 def post(payload):
@@ -37,7 +37,7 @@ def post(payload):
     except DecodeError:
         return {'error': 'Failed to parse transaction proto'}, 400
 
-    client = CertificateClient()
+    client = PubKeyClient()
     try:
         result = client._send_raw_transaction(tr_pb)
         return {'batch_id': result['batch_id']}, 200

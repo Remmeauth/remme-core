@@ -13,9 +13,9 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-from remme.clients.certificate import CertificateClient
+from remme.clients.pub_key import PubKeyClient
 
 
 def get():
-    client = CertificateClient()
+    client = PubKeyClient()
     return {'pubkey': client.get_public_key()}
