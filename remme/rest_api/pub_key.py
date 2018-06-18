@@ -119,6 +119,7 @@ def execute_post(pub_key_address):
         valid_to = pub_key_data.payload.valid_to
         return {'revoked': pub_key_data.revoked,
                 'owner_pub_key': pub_key_data.owner,
+                'entity_hash': pub_key_data.payload.entity_hash,
                 'valid': not pub_key_data.revoked and valid_from < now and now < valid_to,
                 'valid_from': valid_from,
                 'valid_to': valid_to}
