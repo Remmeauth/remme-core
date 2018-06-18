@@ -26,6 +26,7 @@ Welcome to REMME's documentation!
 
    family-account
    family-atomic-swap
+   family-pub-key
 
 
 
