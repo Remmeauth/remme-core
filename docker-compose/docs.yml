@@ -20,6 +20,7 @@ services:
     build: ..
     image: remme/remme-core-dev:latest
     volumes:
+      - user_keys:/root/.sawtooth/keys
       - ..:/root/remme
       - ../README.rst:/root/remme/docs/README.rst
     ports:
@@ -31,3 +32,6 @@ services:
         sphinx-apidoc -f -o remme/docs/generated remme && \
         sphinx-autobuild -H 0.0.0.0 -p 8000 remme/docs build
       "
+
+volumes:
+  user_keys:

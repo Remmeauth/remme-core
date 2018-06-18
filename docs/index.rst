@@ -22,9 +22,10 @@ Welcome to REMME's documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Products:
+   :caption: Families:
 
-   rest-api
+   family-account
+   family-atomic-swap
 
 
 
