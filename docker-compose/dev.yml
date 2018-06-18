@@ -53,15 +53,13 @@ services:
 
   validator-rest-api:
     image: hyperledger/sawtooth-rest-api:1.0.1
-    volumes:
-      - ../../:/project/sawtooth-core
     expose:
       - 8008
     ports:
       - 8008
     depends_on:
      - validator
-    command: sawtooth-rest-api -v --connect tcp://validator:4004 --bind rest-api:8008
+    command: sawtooth-rest-api -v --connect tcp://validator:4004 --bind validator-rest-api:8008
     stop_signal: SIGKILL
 
   settings-tp:
