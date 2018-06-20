@@ -14,10 +14,10 @@ The following protocol buffers definition define public key entries:
 
 .. code-block:: protobuf
 
+    // X.509 certificate entity
     message PubKeyStorage {
-         // The UID field of a certificate.
+         // Public key of a user The UID field of a certificate.
          string owner = 1;
-         // indicates if this key was revoked
          NewPubKeyPayload payload = 2;
          bool revoked = 3;
     }
@@ -70,10 +70,10 @@ Transaction Header
 Inputs and Outputs
 ------------------
 
-The inputs and outputs for account family transactions must include:
+The inputs and outputs for Pub Key family transactions in respect to payload must include:
 
-* Sender's account address
-* Receiver's account address
+* **NewPubKeyPayload**: Sender's account address, *public_key address*
+* **RevokePubKeyPayload**: *public_key address*
 
 Dependencies
 ------------
@@ -83,7 +83,7 @@ None.
 Family
 ------
 
-- family_name: "account"
+- family_name: "pub_key"
 - family_version: "0.1"
 
 Encoding

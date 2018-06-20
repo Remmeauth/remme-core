@@ -32,8 +32,7 @@ run_dev_no_genesis: build_docker
 run_dev: build_docker
 	docker-compose -f docker-compose/dev.yml -f docker-compose/genesis.yml -f docker-compose/run.yml up
 
-run_docs: build_docker
-	docker-compose -f docker-compose/docs.yml up
+run_docs: docker-compose -f docker-compose/docs.yml up
 
 poet_enroll_validators_list:
 	docker exec -it $(shell docker-compose -f docker-compose/dev.yml ps -q validator) bash -c "poet registration \

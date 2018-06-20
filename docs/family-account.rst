@@ -16,11 +16,13 @@ The following protocol buffers definition defines account entries:
 
 .. code-block:: protobuf
 
+    // Entity storing related info to a public key
     message Account {
          uint64 balance = 1;
          repeated string certificates = 2;
      }
 
+    // Information on weather the genesis emission has occurred
     message GenesisStatus {
         bool status = 1;
     }

@@ -18,9 +18,8 @@ version: '2.1'
 services:
   remme-docs:
     build: ..
-    image: remme/remme-core-dev:latest
+    image: remme/remme-core:latest
     volumes:
-      - user_keys:/root/.sawtooth/keys
       - ..:/root/remme
       - ../README.rst:/root/remme/docs/README.rst
     ports:
@@ -29,8 +28,5 @@ services:
       - ../.env
     entrypoint: |
       bash -c "
-        sphinx-autobuild -H 0.0.0.0 -p 8000 remme/docs build
+        sphinx-autobuild -H 0.0.0.0 -p 8000 remme/docs remme/docs/html
       "
-
-volumes:
-  user_keys:
