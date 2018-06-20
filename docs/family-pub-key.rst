@@ -14,11 +14,12 @@ The following protocol buffers definition define public key entries:
 
 .. code-block:: protobuf
 
-    // X.509 certificate entity
     message PubKeyStorage {
-         // Public key of a user The UID field of a certificate.
+         // Public key of a user who added the certificate
          string owner = 1;
+         // X.509 certificate entity
          NewPubKeyPayload payload = 2;
+         // status of the certificate
          bool revoked = 3;
     }
 
