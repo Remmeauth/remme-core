@@ -1,0 +1,282 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>REMME Core &mdash; REMME Core  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Sawtooth Framework Overview" href="sawtooth-overview.html" />
+    <link rel="prev" title="Welcome to REMME’s documentation!" href="index.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> REMME Core
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">REMME Core</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-run">How to run</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#for-an-end-user">For an end-user</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#for-developers-contributors">For developers &amp; contributors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#license">License</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Protocol:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="sawtooth-overview.html">Sawtooth Framework Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Node Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remme-framework.html">REMME Core: Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remme-client.html">REMME Core: Client</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Families:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="family-account.html">Account Transaction Family</a></li>
+<li class="toctree-l1"><a class="reference internal" href="family-atomic-swap.html">Atomic Swap Transaction Family</a></li>
+<li class="toctree-l1"><a class="reference internal" href="family-pub-key.html">Public Key Transaction Family</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">REMME Core</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>REMME Core</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/README.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="remme-core">
+<h1>REMME Core<a class="headerlink" href="#remme-core" title="Permalink to this headline">¶</a></h1>
+<p><a class="reference external" href="https://circleci.com/gh/Remmeauth/remme-core"><img alt="CircleCI" src="https://img.shields.io/circleci/project/github/Remmeauth/remme-core.svg" /></a> <a class="reference external" href="https://hub.docker.com/r/remme/remme-core/"><img alt="Docker Stars" src="https://img.shields.io/docker/stars/remme/remme-core.svg" /></a></p>
+<p><strong>This is an alpha version! It is not suitable for any use in production
+and is intended to demonstrate capabilities of Hyperledger Sawtooth in
+the scope of REMME.</strong></p>
+<div class="section" id="how-to-run">
+<h2>How to run<a class="headerlink" href="#how-to-run" title="Permalink to this headline">¶</a></h2>
+<p>You will need Docker and Docker Compose installed on your machine.</p>
+<div class="section" id="for-an-end-user">
+<h3>For an end-user<a class="headerlink" href="#for-an-end-user" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li>Download the latest release from <a class="reference external" href="https://github.com/Remmeauth/remme-core/releases">Releases</a> section
+(<code class="docutils literal notranslate"><span class="pre">&lt;version_number&gt;-release.zip</span></code>). Unpack it.</li>
+<li>Start node: Open a terminal inside the unpacked folder and run
+<code class="docutils literal notranslate"><span class="pre">./run.sh</span></code>.</li>
+<li>You can now use our REST API. By default it is started on <a class="reference external" href="http://localhost:8080">http://localhost:8080</a>. Fancy Swagger UI
+with documentation is available on <a class="reference external" href="http://localhost:8080/api/v1/ui">http://localhost:8080/api/v1/ui</a>. The API port can be changed in
+<cite>.env</cite> file.</li>
+</ol>
+<p>On the first run you will need to initialize the genesis block. To make
+that just run <code class="docutils literal notranslate"><span class="pre">./genesis.sh</span></code>. This will generate a new key pair and
+genesis block.</p>
+</div>
+<div class="section" id="for-developers-contributors">
+<h3>For developers &amp; contributors<a class="headerlink" href="#for-developers-contributors" title="Permalink to this headline">¶</a></h3>
+<p>Clone this repository to your machine:
+<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">clone</span> <span class="pre">https://github.com/Remmeauth/remme-core.git</span></code></p>
+<p>When you have this repository cloned go the project directory run the
+following commands:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">build_docker</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">run_dev</span></code></li>
+</ul>
+<p>You can run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test</span></code> to run automated tests.</p>
+<p>This project uses git submodules. To initialize them run <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">submodule</span> <span class="pre">init</span></code> and then <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">submodule</span> <span class="pre">update</span></code>.</p>
+</div>
+</div>
+<div class="section" id="license">
+<h2>License<a class="headerlink" href="#license" title="Permalink to this headline">¶</a></h2>
+<p>REMME software and documentation are licensed under <a class="reference external" href="LICENCE">Apache License Version 2.0</a>.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="sawtooth-overview.html" class="btn btn-neutral float-right" title="Sawtooth Framework Overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="Welcome to REMME’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, REMME Core Team..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

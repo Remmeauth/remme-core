@@ -1,0 +1,426 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Atomic Swap Transaction Family &mdash; REMME Core  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Public Key Transaction Family" href="family-pub-key.html" />
+    <link rel="prev" title="Account Transaction Family" href="family-account.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> REMME Core
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="README.html">REMME Core</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Protocol:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="sawtooth-overview.html">Sawtooth Framework Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Node Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remme-framework.html">REMME Core: Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remme-client.html">REMME Core: Client</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Families:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="family-account.html">Account Transaction Family</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Atomic Swap Transaction Family</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#state">State</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#definition-of-atomic-swap-entries">Definition of Atomic-Swap Entries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#addressing">Addressing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#transaction-payload">Transaction Payload</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#transaction-header">Transaction Header</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#inputs-and-outputs">Inputs and Outputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#family">Family</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#encoding">Encoding</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#atomic-swap-high-level-process">Atomic Swap High-level Process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#atomic-swap-eth-remchain-with-a-remme-bot">Atomic Swap ETH =&gt; REMchain with a REMME bot</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="family-pub-key.html">Public Key Transaction Family</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">REMME Core</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Atomic Swap Transaction Family</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/family-atomic-swap.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="atomic-swap-transaction-family">
+<h1>Atomic Swap Transaction Family<a class="headerlink" href="#atomic-swap-transaction-family" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The Atomic Swap transaction family provides means for universal exchange between two agents in separate chains.</p>
+<p>There are a few definitions we introduce to formalise agent names during the exchange:</p>
+<p><em>Initiator</em> - An agent requesting the atomic swap.</p>
+<p><em>Solicitor</em> - An agent hosting the swap and ready to solicit the exchange.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Currently, REMchain provides a bot for liquidity who <em>solicites</em> the exchange in the most demanded 1:1 ETH REMME Token &lt;=&gt; REMchain Tokens swaps.</p>
+</div>
+</div>
+<div class="section" id="state">
+<h2>State<a class="headerlink" href="#state" title="Permalink to this headline">¶</a></h2>
+<p>During the initialisation process of the swap, the <em>initiator</em> generates a random “swap_id”, the hash of which is used for addressing the swap information.</p>
+<div class="section" id="definition-of-atomic-swap-entries">
+<h3>Definition of Atomic-Swap Entries<a class="headerlink" href="#definition-of-atomic-swap-entries" title="Permalink to this headline">¶</a></h3>
+<p>The following protocol buffers definition defines atomic swap entries:</p>
+<div class="highlight-protobuf notranslate"><div class="highlight"><pre><span></span><span class="kd">message</span> <span class="nc">AtomicSwapInfo</span> <span class="p">{</span>
+    <span class="kt">bool</span> <span class="na">is_closed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// if the swap is closed and unavailable for actions upon it</span>
+    <span class="kt">bool</span> <span class="na">is_approved</span> <span class="o">=</span> <span class="mi">11</span><span class="p">;</span> <span class="c1">// if Alice approved the swap, initiated by herself</span>
+    <span class="kt">string</span> <span class="na">sender_address</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Address of the agent on the REMchain side soliciting the exchange</span>
+    <span class="kt">string</span> <span class="na">sender_address_non_local</span> <span class="o">=</span> <span class="mi">12</span><span class="p">;</span> <span class="c1">// Address to receive arranged equivalent on the other chain (non local one)</span>
+    <span class="kt">string</span> <span class="na">receiver_address</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// REMchain agent to receive funds</span>
+    <span class="kt">uint64</span> <span class="na">amount</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// The amount to be transferred</span>
+    <span class="kt">string</span> <span class="na">email_address_encrypted_optional</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// email address for solicitor (Bob) to notify the swap initiator (Alice)</span>
+    <span class="kt">string</span> <span class="na">swap_id</span> <span class="o">=</span> <span class="mi">6</span><span class="p">;</span> <span class="c1">// Swap unique id</span>
+    <span class="kt">string</span> <span class="na">secret_lock</span> <span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="c1">// A secret lock to successfuly match with a secret_key and close the swap</span>
+    <span class="kt">string</span> <span class="na">secret_key</span> <span class="o">=</span> <span class="mi">8</span><span class="p">;</span> <span class="c1">// Last step information, provided to as a secret for solicitor</span>
+    <span class="kt">uint32</span> <span class="na">created_at</span> <span class="o">=</span> <span class="mi">9</span><span class="p">;</span> <span class="c1">// Creation date in a timestamp format</span>
+    <span class="kt">bool</span> <span class="na">is_initiator</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span> <span class="c1">// check weather REMchain side initiated the swap (not a solicitor)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="addressing">
+<h3>Addressing<a class="headerlink" href="#addressing" title="Permalink to this headline">¶</a></h3>
+<p>We use swap_id provided during swap initialisation to store the state of the swap and is formed using <code class="code docutils literal notranslate"><span class="pre">make_address_from_data</span></code>.</p>
+</div>
+</div>
+<div class="section" id="transaction-payload">
+<h2>Transaction Payload<a class="headerlink" href="#transaction-payload" title="Permalink to this headline">¶</a></h2>
+<p>Account transaction family payloads are defined by the following protocol
+buffers code:</p>
+<div class="highlight-protobuf notranslate"><div class="highlight"><pre><span></span><span class="c1">// Init Payload</span>
+<span class="kd">message</span> <span class="nc">AtomicSwapInitPayload</span> <span class="p">{</span>
+    <span class="kt">string</span> <span class="na">receiver_address</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// REMchain agent to receive funds</span>
+    <span class="kt">string</span> <span class="na">sender_address_non_local</span> <span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="c1">// Address to receive arranged equivalent on the other chain (non local one)</span>
+    <span class="kt">uint64</span> <span class="na">amount</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// The amount to be transferred</span>
+    <span class="kt">string</span> <span class="na">swap_id</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Swap unique id</span>
+    <span class="kt">string</span> <span class="na">secret_lock_by_solicitor</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// A secret lock, provided during initialisation, only if REMchain side is a solicitor (non initiator)</span>
+    <span class="kt">string</span> <span class="na">email_address_encrypted_by_initiator</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// An email address provided by swap initiator (Alice) to be notified of the next step</span>
+    <span class="kt">uint32</span> <span class="na">created_at</span> <span class="o">=</span> <span class="mi">6</span><span class="p">;</span> <span class="c1">// Creation date in a timestamp format</span>
+<span class="p">}</span>
+
+<span class="kd">message</span> <span class="nc">AtomicSwapApprovePayload</span> <span class="p">{</span>
+    <span class="kt">string</span> <span class="na">swap_id</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kd">message</span> <span class="nc">AtomicSwapExpirePayload</span> <span class="p">{</span>
+    <span class="kt">string</span> <span class="na">swap_id</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kd">message</span> <span class="nc">AtomicSwapSetSecretLockPayload</span> <span class="p">{</span>
+    <span class="kt">string</span> <span class="na">swap_id</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="kt">string</span> <span class="na">secret_lock</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kd">message</span> <span class="nc">AtomicSwapClosePayload</span> <span class="p">{</span>
+    <span class="kt">string</span> <span class="na">swap_id</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="kt">string</span> <span class="na">secret_key</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="transaction-header">
+<h2>Transaction Header<a class="headerlink" href="#transaction-header" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="inputs-and-outputs">
+<h3>Inputs and Outputs<a class="headerlink" href="#inputs-and-outputs" title="Permalink to this headline">¶</a></h3>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Some address abbreviations are:</p>
+<ul class="last simple">
+<li><strong>Signer’s account address</strong> - formed from a public key of a transaction signer.</li>
+<li><strong>Swap address</strong> - 70 characters concatenation of 6 chars atomic swap family prefix + 64 chars hash of the swap id.</li>
+<li><strong>ZERO_ADDRESS</strong> - reserved address used for locking funds <em>on chain</em>.</li>
+<li><strong>SETTINGS_SWAP_COMMISSION</strong> - <em>settings</em> address for retrieving operation commision amount</li>
+</ul>
+</div>
+<p>The inputs and outputs for account family transactions in respect to their payloads refer to following addresses:</p>
+<ul class="simple">
+<li><strong>InitPayload</strong>: Swap address, signer’s and funds receiver’s account addresses, ZERO_ADDRESS, SETTINGS_SWAP_COMMISSION</li>
+<li><strong>AtomicSwapApprovePayload</strong>: Swap address</li>
+<li><strong>AtomicSwapExpirePayload</strong>: Swap address, ZERO_ADDRESS, signer’s account address</li>
+<li><strong>AtomicSwapSetSecretLockPayload</strong>: Swap address</li>
+<li><strong>AtomicSwapClosePayload</strong>: Swap address, ZERO_ADDRESS, receiver’s account address</li>
+</ul>
+</div>
+<div class="section" id="family">
+<h3>Family<a class="headerlink" href="#family" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>family_name: “AtomicSwap”</li>
+<li>family_version: “0.1”</li>
+</ul>
+</div>
+<div class="section" id="encoding">
+<h3>Encoding<a class="headerlink" href="#encoding" title="Permalink to this headline">¶</a></h3>
+<p>The encoding field must be set to “application/protobuf”.</p>
+</div>
+<div class="section" id="atomic-swap-high-level-process">
+<h3>Atomic Swap High-level Process<a class="headerlink" href="#atomic-swap-high-level-process" title="Permalink to this headline">¶</a></h3>
+<p>Atomic Swap between two agents
+When performing an atomic swap between ERC20 and REMME, the AtomicSwapERC20 contract should be used. For this example, Alice holds REMME ERC20 tokens and Bob also holds REMchain tokens. Alice is looking to give her ERC20 tokens to Bob in exchange for his REMME tokens.</p>
+<ol class="arabic simple">
+<li>Bob generates a random secret key and hashes it using SHA256 to generate a secret lock.</li>
+<li>Bob uses the secret lock, and a REMME transaction, to setup a transaction to Alice on the condition that she produces the secret key. If she does not do so within 48 hours then Bob can withdraw the funds.</li>
+<li>Bob sends the secret lock to Alice along with the address of his transaction on the REMME blockchain.</li>
+<li>Alice checks Bob’s transaction, verifying the details of the trade. If she does not agree then she does not need to do anything. After 48 hours, Bob can withdraw his funds.</li>
+<li>Alice provides an allowance to the AtomicSwapERC20 contract, using her ERC20 contract to do so.</li>
+<li>Alice calls open using a unique _swapID that has been negotiated between both traders. She also uses the secret lock that was provided by Bob. The allowance will be checked and used to transfer Alice’s ERC20 tokens to the AtomicSwapERC20 contract.</li>
+<li>Bob calls check to verify the details of the trade. If he does not agree, then he does not need to do anything. After 24 hours, Alice can call expire, getting a refund of her ERC20 tokens.</li>
+<li>Bob calls close, which requires that he submits the secret key associated with the secret lock. If he has provided the correct secret key, it will transfer Alice’s ERC20 tokens to Bob and store the secret key.</li>
+<li>Alice calls checkSecretKey, acquiring the secret key.</li>
+<li>Alice provides the secret key to Bob’s Swap Handler, and receives his REMME tokens.</li>
+</ol>
+</div>
+<div class="section" id="atomic-swap-eth-remchain-with-a-remme-bot">
+<h3>Atomic Swap ETH =&gt; REMchain with a REMME bot<a class="headerlink" href="#atomic-swap-eth-remchain-with-a-remme-bot" title="Permalink to this headline">¶</a></h3>
+<p>Illustration of the implementation</p>
+<div class="figure">
+<img alt="_images/atomic-swap.png" src="_images/atomic-swap.png" />
+</div>
+<ol class="arabic simple">
+<li>Alice wants to show intention for atomic swap with Bob. She calls “REMME Bridge” method <cite>requestSwap</cite>, she wants to receive in REMchain tokens, so she provides the amount and her REMchain address. Alice starts watching “REMME Bridge” for transactions.</li>
+<li><dl class="first docutils">
+<dt>Bob sees the method call to the “REMME Bridge”, of which he is owner.</dt>
+<dd><ol class="first last loweralpha">
+<li>He generates random secret key and hashes it (producing a secret lock). He also generates _swapID to reference the swap in AtomicSwapERC20.</li>
+<li>He sends swap transaction to Alice’s address with a secret lock on REMchain with the condition that Alice will provide the right secret key in the next 48 hours, otherwise Bob will be able to withdraw funds.</li>
+<li>Bob sends “REMME Bridge” transaction via <cite>returnSecretLock</cite> where he passes address of the REMchain transaction, generated _swapID and his Ethereum address.</li>
+</ol>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Alice checks “REMME Bridge” for Bob’s transaction using <cite>check</cite> which uses    her ethereum address for current transaction state information.</dt>
+<dd><ol class="first last loweralpha">
+<li>She receives a secret lock, a _swapID and Bob’s eth address.</li>
+<li>Now she verifies details of Bob’s transaction and makes sure it was created in the past hour (if transaction_id was provided after 24 hours, Bob may withdraw both chain’s funds) if she doesn’t agree to details, she doesn’t have to do anything. (in 48 hours Bob can withdraw his funds)</li>
+<li>If she agrees, she gives allowance to transfer ERC20 REMME token to AtomiSwapERC20 contract and provides.</li>
+<li>Alice calls open using a unique _swapID that has been negotiated between both traders and Bob’s eth-address. She also uses the secret lock that was provided by Bob. The allowance will be checked and used to transfer Alice’s ERC20 tokens to the AtomicSwapERC20 contract.</li>
+</ol>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Bob calls check to verify the details of the trade using _swapID.</dt>
+<dd><ol class="first last loweralpha">
+<li>If he doesn’t agree, he doesn’t have to do anything (he will be able to withdraw his funds in 48 hours)</li>
+<li>Bob calls close, which requires that he submits the secret key associated with the secret lock. If he has provided the correct secret key, it will transfer Alice’s ERC20 tokens to Bob and store the secret key.</li>
+</ol>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Alice notices related transaction to AtomicSwapERC20</dt>
+<dd><ol class="first last loweralpha">
+<li>She calls checkSecretKey, acquiring the secret key</li>
+<li>Alice provides the secret key to Bob’s Swap Handler, and receives his REMME tokens.</li>
+</ol>
+</dd>
+</dl>
+</li>
+</ol>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="family-pub-key.html" class="btn btn-neutral float-right" title="Public Key Transaction Family" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="family-account.html" class="btn btn-neutral" title="Account Transaction Family" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, REMME Core Team..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

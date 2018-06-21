@@ -1,0 +1,278 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Node Architecture &mdash; REMME Core  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="REMME Core: Framework" href="remme-framework.html" />
+    <link rel="prev" title="Sawtooth Framework Overview" href="sawtooth-overview.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> REMME Core
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="README.html">REMME Core</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Protocol:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="sawtooth-overview.html">Sawtooth Framework Overview</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Node Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#global-state">Global State</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#radix-addresses">Radix Addresses</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#transaction-processor-tp">Transaction Processor (TP)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="remme-framework.html">REMME Core: Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remme-client.html">REMME Core: Client</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Families:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="family-account.html">Account Transaction Family</a></li>
+<li class="toctree-l1"><a class="reference internal" href="family-atomic-swap.html">Atomic Swap Transaction Family</a></li>
+<li class="toctree-l1"><a class="reference internal" href="family-pub-key.html">Public Key Transaction Family</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">REMME Core</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Node Architecture</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/architecture.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="node-architecture">
+<h1>Node Architecture<a class="headerlink" href="#node-architecture" title="Permalink to this headline">¶</a></h1>
+<p>Each node consists of 2 main logical components:</p>
+<ul class="simple">
+<li><a class="reference external" href="https://sawtooth.hyperledger.org/docs/core/releases/latest/architecture/journal.html">Journal</a> - responsible for consensus mechanism, storage and networking.</li>
+<li>Transaction Processor - business logic on how to process a new transaction.</li>
+</ul>
+<p>(we have agreed within a team to refer to “Journal” container as a “Validator”)</p>
+<div class="figure" id="id3">
+<img alt="_images/journal_organization.svg" src="_images/journal_organization.svg" /><p class="caption"><span class="caption-text">This image by <a class="reference external" href="https://www.intel.com/">Intel Corporation</a> is licenced under
+<a class="reference external" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></span></p>
+</div>
+<p>We will not elaborate on “Journal” construct, you can read more from <a class="reference external" href="https://sawtooth.hyperledger.org/docs/core/releases/latest/architecture/journal.html">the official site</a>.</p>
+<div class="section" id="global-state">
+<h2>Global State<a class="headerlink" href="#global-state" title="Permalink to this headline">¶</a></h2>
+<p>Before we dive into <strong>Transaction Processor</strong>’s description, we need to keep in mind how our blockchain stores and ensures consistency of our data across many nodes.</p>
+<p>The following primitive data storage system is used based on <strong>Radix Merkle Tree</strong>:</p>
+<p><em>Address</em> =&gt; <em>Data</em></p>
+<div class="section" id="radix-addresses">
+<h3>Radix Addresses<a class="headerlink" href="#radix-addresses" title="Permalink to this headline">¶</a></h3>
+<p>One can find a detailed description of <strong>Radix Merkle Tree</strong> from <a class="reference external" href="https://sawtooth.hyperledger.org/docs/core/releases/latest/architecture/global_state.html#merkle-hashes">the official website</a>
+or <a class="reference external" href="https://en.wikipedia.org/wiki/Merkle_tree">Wikipedia</a></p>
+<p>We are more interested in how one forms an <strong>address</strong> (a hex-encoded <strong>70</strong> character string representing 35 bytes).</p>
+<div class="figure">
+<img alt="_images/state_address_format.svg" src="_images/state_address_format.svg" /></div>
+<p>In order to uniquely define the parts of the tree where information is stored, a namespace prefix is suggested which consists of 3 bytes (<strong>6</strong> hex characters). The remaining 32 bytes (<strong>64</strong> hex characters) are encoded based on the specifications of the designer of the namespace.</p>
+<p>A namespace prefix defines a <strong>family</strong> (which is described in <strong>handler</strong>) that helps process relevant transactions provided <strong>address reference</strong> to a given <strong>family address</strong>.
+It is worth to note that <strong>family</strong> may have <strong>many</strong> prefixes.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">When it comes to serialisation and deserialisation, make sure to use <strong>deterministic</strong> approach to storing data across the network. At REMME we use <strong>protobuf</strong> which is described later.</p>
+</div>
+</div>
+</div>
+<div class="section" id="transaction-processor-tp">
+<h2>Transaction Processor (TP)<a class="headerlink" href="#transaction-processor-tp" title="Permalink to this headline">¶</a></h2>
+<p>TP may consist of several <strong>Transaction Handlers</strong> which contain business logic on how to process a certain <strong>family</strong> of a transactions.</p>
+<p>We have inherited and encapsulated <strong>TransactionHandler</strong> logic with a shared class basic_handler.py for developer’s convenience.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="remme-framework.html" class="btn btn-neutral float-right" title="REMME Core: Framework" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="sawtooth-overview.html" class="btn btn-neutral" title="Sawtooth Framework Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, REMME Core Team..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

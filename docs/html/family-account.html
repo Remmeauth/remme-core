@@ -1,0 +1,333 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Account Transaction Family &mdash; REMME Core  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Atomic Swap Transaction Family" href="family-atomic-swap.html" />
+    <link rel="prev" title="REMME Core: Client" href="remme-client.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> REMME Core
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="README.html">REMME Core</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Protocol:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="sawtooth-overview.html">Sawtooth Framework Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Node Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remme-framework.html">REMME Core: Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remme-client.html">REMME Core: Client</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Families:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Account Transaction Family</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#definition-of-account-entries">Definition of Account Entries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#addressing">Addressing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#transaction-payload">Transaction Payload</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#transaction-header">Transaction Header</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#inputs-and-outputs">Inputs and Outputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#family">Family</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#encoding">Encoding</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#execution">Execution</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="family-atomic-swap.html">Atomic Swap Transaction Family</a></li>
+<li class="toctree-l1"><a class="reference internal" href="family-pub-key.html">Public Key Transaction Family</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">REMME Core</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Account Transaction Family</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/family-account.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="account-transaction-family">
+<h1>Account Transaction Family<a class="headerlink" href="#account-transaction-family" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The Account transaction family provides an information about agent’s state mapped to his public key within the REMME blockchain and allows to perform token transfers and retrieve the list of certificates in control as of main operations to date.</p>
+<p>The account transaction family plays a critical role during blockchain initialization and executes logic for genesis block initial token release.</p>
+<div class="section" id="definition-of-account-entries">
+<h3>Definition of Account Entries<a class="headerlink" href="#definition-of-account-entries" title="Permalink to this headline">¶</a></h3>
+<p>The following protocol buffers definition defines account entries:</p>
+<div class="highlight-protobuf notranslate"><div class="highlight"><pre><span></span><span class="c1">// Entity storing related info to a public key</span>
+<span class="kd">message</span> <span class="nc">Account</span> <span class="p">{</span>
+     <span class="kt">uint64</span> <span class="na">balance</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+     <span class="k">repeated</span> <span class="kt">string</span> <span class="na">certificates</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+ <span class="p">}</span>
+
+<span class="c1">// Information on weather the genesis emission has occurred</span>
+<span class="kd">message</span> <span class="nc">GenesisStatus</span> <span class="p">{</span>
+    <span class="kt">bool</span> <span class="na">status</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="addressing">
+<h3>Addressing<a class="headerlink" href="#addressing" title="Permalink to this headline">¶</a></h3>
+<p>When an account is read or changed, it is accessed by addressing it with a simple combination of the hash of transaction signer’s public key and first characters of transaction family name as a prefix, which is implemented in a parent class <strong>Basic Handler</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">make_address_from_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="n">appendix</span> <span class="o">=</span> <span class="n">hash512</span><span class="p">(</span><span class="n">data</span><span class="p">)[:</span><span class="mi">64</span><span class="p">]</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_address</span><span class="p">(</span><span class="n">appendix</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="transaction-payload">
+<h2>Transaction Payload<a class="headerlink" href="#transaction-payload" title="Permalink to this headline">¶</a></h2>
+<p>Account transaction family payloads are defined by the following protocol
+buffers code:</p>
+<div class="highlight-protobuf notranslate"><div class="highlight"><pre><span></span><span class="c1">// Transfer Payload</span>
+<span class="c1">// - Contains receiver address and the amount transaffered.</span>
+<span class="kd">message</span> <span class="nc">TransferPayload</span> <span class="p">{</span>
+    <span class="kt">string</span> <span class="na">address_to</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="kt">uint64</span> <span class="na">value</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// Genesis Payload</span>
+<span class="c1">// - Total supply assigned to a transaction signer&#39;s address.</span>
+<span class="kd">message</span> <span class="nc">GenesisPayload</span> <span class="p">{</span>
+    <span class="kt">uint64</span> <span class="na">total_supply</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="transaction-header">
+<h2>Transaction Header<a class="headerlink" href="#transaction-header" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="inputs-and-outputs">
+<h3>Inputs and Outputs<a class="headerlink" href="#inputs-and-outputs" title="Permalink to this headline">¶</a></h3>
+<p>The inputs and outputs for account family transactions must include:</p>
+<ul class="simple">
+<li>Sender’s account address</li>
+<li>Receiver’s account address</li>
+</ul>
+</div>
+<div class="section" id="dependencies">
+<h3>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h3>
+<p>None.</p>
+</div>
+<div class="section" id="family">
+<h3>Family<a class="headerlink" href="#family" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>family_name: “account”</li>
+<li>family_version: “0.1”</li>
+</ul>
+</div>
+<div class="section" id="encoding">
+<h3>Encoding<a class="headerlink" href="#encoding" title="Permalink to this headline">¶</a></h3>
+<p>The encoding field must be set to “application/protobuf”.</p>
+</div>
+</div>
+<div class="section" id="execution">
+<h2>Execution<a class="headerlink" href="#execution" title="Permalink to this headline">¶</a></h2>
+<p>There is a clear separation of _transfer_from_address (on chain method) and _transfer (public method) to forbid transfers from a reserved <em>ZERO_ADDRESS</em> outside of the blockchain scope and help with an addres formation from the public key.</p>
+<p>Further, during execution of a transfer, 1) it ensures that the recipient’s address is also not among reserved ones, 2) we make sure that the the transaction is not sent to oneself.</p>
+<p>We retrieve account entry for the signer account as well as of a recipient.</p>
+<p>If either entry doesn’t exist on the blockchain yet, we initialise it.</p>
+<p>Once we verified that the balance is sufficinet for a transfer, the state of each account gets updated.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="family-atomic-swap.html" class="btn btn-neutral float-right" title="Atomic Swap Transaction Family" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="remme-client.html" class="btn btn-neutral" title="REMME Core: Client" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, REMME Core Team..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

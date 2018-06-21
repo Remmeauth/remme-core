@@ -1,0 +1,300 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>REMME Core: Client &mdash; REMME Core  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Account Transaction Family" href="family-account.html" />
+    <link rel="prev" title="REMME Core: Framework" href="remme-framework.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> REMME Core
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="README.html">REMME Core</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Protocol:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="sawtooth-overview.html">Sawtooth Framework Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Node Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remme-framework.html">REMME Core: Framework</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">REMME Core: Client</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#custom-client">Custom client</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#transaction-payloads">Transaction Payloads</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sending-transaction">Sending Transaction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Families:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="family-account.html">Account Transaction Family</a></li>
+<li class="toctree-l1"><a class="reference internal" href="family-atomic-swap.html">Atomic Swap Transaction Family</a></li>
+<li class="toctree-l1"><a class="reference internal" href="family-pub-key.html">Public Key Transaction Family</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">REMME Core</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>REMME Core: Client</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/remme-client.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="remme-core-client">
+<h1>REMME Core: Client<a class="headerlink" href="#remme-core-client" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The main purpose of our client is to encapsulate low-level code and as the result to minimise worries of our contributors.</p>
+<p>The client connects to Sawtooth-provided “<strong>rest-api</strong>” container which does all the communication with the <strong>journal</strong> (validator container)</p>
+<p>There are few primary methods <code class="code docutils literal notranslate"><span class="pre">basic_client.py</span></code> consists of:</p>
+<ul class="simple">
+<li><code class="code docutils literal notranslate"><span class="pre">make_address</span></code> and <code class="code docutils literal notranslate"><span class="pre">make_address_from_data</span></code> (are provided and described in <a class="reference external" href="./remme-framework.html#address-formation">handler section</a>)</li>
+<li><code class="code docutils literal notranslate"><span class="pre">send_transaction(self,</span> <span class="pre">method,</span> <span class="pre">data_pb,</span> <span class="pre">addresses_input_output)</span></code> - responsible for sending transaction to <strong>validator</strong> (journal)</li>
+<li><code class="code docutils literal notranslate"><span class="pre">get_value(self,</span> <span class="pre">key)</span></code> - retrieves value from the current synced journal storage.</li>
+</ul>
+</div>
+<div class="section" id="custom-client">
+<h2>Custom client<a class="headerlink" href="#custom-client" title="Permalink to this headline">¶</a></h2>
+<p>We encourage developers building Dapps on top of REMME protocol to create their own client in order to provide rest-api interface for their client application.</p>
+<div class="section" id="transaction-payloads">
+<h3>Transaction Payloads<a class="headerlink" href="#transaction-payloads" title="Permalink to this headline">¶</a></h3>
+<p>For testing purposes and maximum code reusability, we recommend to construct <code class="code docutils literal notranslate"><span class="pre">&#64;classmethod</span></code>  functions that help validate fields and form proto objects for transaction payloads as such:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@classmethod</span>
+<span class="k">def</span> <span class="nf">get_transfer_payload</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">address_to</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_valid</span><span class="p">(</span><span class="n">address_to</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">is_valid</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Error&quot;</span><span class="p">)</span>
+
+    <span class="n">transfer</span> <span class="o">=</span> <span class="n">TransferPayload</span><span class="p">()</span>
+    <span class="n">transfer</span><span class="o">.</span><span class="n">address_to</span> <span class="o">=</span> <span class="n">address_to</span>
+    <span class="n">transfer</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="k">return</span> <span class="n">transfer</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="sending-transaction">
+<h3>Sending Transaction<a class="headerlink" href="#sending-transaction" title="Permalink to this headline">¶</a></h3>
+<p><code class="code docutils literal notranslate"><span class="pre">_send_transaction(method,</span> <span class="pre">&nbsp;protobuf_payload,</span> <span class="pre">addresses_input_output)</span></code> is designed to help client app in forming and sending transaction to a running validator (Journal).</p>
+<p><code class="code docutils literal notranslate"><span class="pre">method</span></code> - enum value specified per family transaction type.</p>
+<p><code class="code docutils literal notranslate"><span class="pre">protobuf_payload</span></code> - proto object that represents transaction payload.</p>
+<p><code class="code docutils literal notranslate"><span class="pre">addresses_input_output</span></code>:</p>
+<p>In order to achieve the <strong>parallel</strong> execution architecture of our transactions, we would like to specify the <strong>list of addresses</strong> which your handlers will use to retrieve values from (<code class="code docutils literal notranslate"><span class="pre">inputs</span></code>) and save to (<code class="code docutils literal notranslate"><span class="pre">outputs</span></code>)  the state during the <strong>transaction processing</strong> step.</p>
+<p>For simplicity of writing client code, we have decided to combine <code class="code docutils literal notranslate"><span class="pre">inputs</span></code> and <code class="code docutils literal notranslate"><span class="pre">outputs</span></code> into one list - <code class="code docutils literal notranslate"><span class="pre">addresses_input_output</span></code>, as we believe that Dapp developers are most likely to duplicate these lists as a result of their architecture.</p>
+</div>
+<div class="section" id="example">
+<h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
+<p>Example usage of <code class="code docutils literal notranslate"><span class="pre">send_transaction</span></code> and <code class="code docutils literal notranslate"><span class="pre">get_value</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">transfer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">address_to</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="n">addresses_input_output</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">address_from</span><span class="p">,</span> <span class="n">address_to</span><span class="p">]</span>
+    <span class="n">transfer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_transfer_payload</span><span class="p">(</span><span class="n">address_to</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_transaction</span><span class="p">(</span><span class="n">AccountMethod</span><span class="o">.</span><span class="n">TRANSFER</span><span class="p">,</span> <span class="n">transfer</span><span class="p">,</span> <span class="n">addresses_input_output</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">get_account</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">address</span><span class="p">):</span>
+    <span class="n">account</span> <span class="o">=</span> <span class="n">Account</span><span class="p">()</span>
+    <span class="n">account</span><span class="o">.</span><span class="n">ParseFromString</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">address</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">account</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="family-account.html" class="btn btn-neutral float-right" title="Account Transaction Family" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="remme-framework.html" class="btn btn-neutral" title="REMME Core: Framework" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, REMME Core Team..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

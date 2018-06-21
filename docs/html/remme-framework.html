@@ -1,0 +1,372 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>REMME Core: Framework &mdash; REMME Core  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="REMME Core: Client" href="remme-client.html" />
+    <link rel="prev" title="Node Architecture" href="architecture.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> REMME Core
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="README.html">REMME Core</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Protocol:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="sawtooth-overview.html">Sawtooth Framework Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Node Architecture</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">REMME Core: Framework</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#serialization">Serialization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#naming-convention">Naming convention</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#handlers">Handlers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#initialization">Initialization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#architecture">Architecture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#address-formation">Address Formation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#processor-function">Processor Function</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="remme-client.html">REMME Core: Client</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Families:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="family-account.html">Account Transaction Family</a></li>
+<li class="toctree-l1"><a class="reference internal" href="family-atomic-swap.html">Atomic Swap Transaction Family</a></li>
+<li class="toctree-l1"><a class="reference internal" href="family-pub-key.html">Public Key Transaction Family</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">REMME Core</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>REMME Core: Framework</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/remme-framework.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="remme-core-framework">
+<h1>REMME Core: Framework<a class="headerlink" href="#remme-core-framework" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="serialization">
+<h2>Serialization<a class="headerlink" href="#serialization" title="Permalink to this headline">¶</a></h2>
+<p>When it comes to describing business entities and deterministically serialize our models, we use <a class="reference external" href="https://github.com/google/protobuf">Protobuf</a> - a language-neutral, platform-neutral, extensible mechanism for serializing structured data.</p>
+<p>Transactions supplied to Transaction Processor(TP) have its own <strong>payload</strong> and are universally structured within REMME protocol as follows:</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="n">protos</span><span class="o">/</span><span class="n">transaction</span><span class="o">.</span><span class="na">proto</span>
+
+<span class="n">message</span> <span class="n">TransactionPayload</span> <span class="o">{</span>
+    <span class="n">uint32</span> <span class="n">method</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span>
+    <span class="n">bytes</span> <span class="n">data</span> <span class="o">=</span> <span class="mi">2</span><span class="o">;</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Each <strong>family</strong> defines its own transaction types by using “Method” structure as such:</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="n">message</span> <span class="n">AccountMethod</span> <span class="o">{</span>
+    <span class="kd">enum</span> <span class="n">Method</span> <span class="o">{</span>
+        <span class="n">TRANSFER</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+        <span class="n">GENESIS</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">It is important that enum is nested and contents are upper-cased.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">REMME developer may generate protobuf python files by calling <code class="code docutils literal notranslate"><span class="pre">make</span> <span class="pre">build_protobuf</span></code></p>
+</div>
+<div class="section" id="naming-convention">
+<h3>Naming convention<a class="headerlink" href="#naming-convention" title="Permalink to this headline">¶</a></h3>
+<p>There are 2 types of models that are primarily used in any blockchain protocol:</p>
+<ol class="arabic simple">
+<li>Transaction data.</li>
+<li>Storage data</li>
+</ol>
+<p>It is agreed to use “<strong>Payload</strong>” suffix for logical separation of <strong>Transaction data</strong> type.</p>
+</div>
+</div>
+<div class="section" id="handlers">
+<h2>Handlers<a class="headerlink" href="#handlers" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="initialization">
+<h3>Initialization<a class="headerlink" href="#initialization" title="Permalink to this headline">¶</a></h3>
+<p>It is very important to predefine FAMILY_NAME and a FAMILY_VERSIONS as such:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">FAMILY_NAME</span> <span class="o">=</span> <span class="s1">&#39;account&#39;</span>
+<span class="n">FAMILY_VERSIONS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;0.1&#39;</span><span class="p">]</span> <span class="o">//</span> <span class="n">helps</span> <span class="n">to</span> <span class="n">keep</span> <span class="n">track</span> <span class="n">of</span> <span class="n">handler</span> <span class="n">updates</span> <span class="n">accross</span> <span class="n">the</span> <span class="n">network</span>
+</pre></div>
+</div>
+<p>and pass them to parent class <code class="code docutils literal notranslate"><span class="pre">basic_handler.py</span></code> as such:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">FAMILY_NAME</span><span class="p">,</span> <span class="n">FAMILY_VERSIONS</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="architecture">
+<h3>Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h3>
+<p>From architecture description, you may have witnessed handler’s possible actions.
+However, we decided to limit developer and enforce functional philosophy in order to write high-quality transaction processors.</p>
+<p>As a result, we provide you with an encapsulated <code class="code docutils literal notranslate"><span class="pre">basic_handler.py</span></code> that one inherits for own purposes of building a custom handler.</p>
+<p>The key way to enable relevant transaction type processing is to provide a custom handler with a <code class="code docutils literal notranslate"><span class="pre">get_state_processor</span></code> method:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">get_state_processor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">AccountMethod</span><span class="o">.</span><span class="n">TRANSFER</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;pb_class&#39;</span><span class="p">:</span> <span class="n">TransferPayload</span><span class="p">,</span>
+            <span class="s1">&#39;processor&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transfer</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+</pre></div>
+</div>
+<p><code class="code docutils literal notranslate"><span class="pre">pb_class</span></code> - specifies a type of transaction payload.</p>
+<p><code class="code docutils literal notranslate"><span class="pre">processor</span></code> - function containing business logic on how to <strong>verify</strong> and <strong>process</strong> a new transaction.</p>
+</div>
+<div class="section" id="address-formation">
+<h3>Address Formation<a class="headerlink" href="#address-formation" title="Permalink to this headline">¶</a></h3>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Remember that address must be a <strong>70</strong> hex character long string represention.</p>
+</div>
+<p>There are few helper functions used in <strong>handler</strong> and <strong>client</strong> apps to form an address depending on namespace design you choose:</p>
+<ol class="arabic simple">
+<li>Given a 64 hex characters long suffix, we would like to append it to the prefix defined by our <strong>family of addresses</strong>:</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">make_address</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">appendix</span><span class="p">):</span>
+    <span class="n">address</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span> <span class="o">+</span> <span class="n">appendix</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_address</span><span class="p">(</span><span class="n">address</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">InternalError</span><span class="p">(</span><span class="s1">&#39;{} is not a valid address&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">address</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">address</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li>Before we pass the suffix, we are likely to encode it from unique peace of data of an arbitrary size using hashing algorithm and pasing first 64 characters of the result:</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">make_address_from_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="n">appendix</span> <span class="o">=</span> <span class="n">hash512</span><span class="p">(</span><span class="n">data</span><span class="p">)[:</span><span class="mi">64</span><span class="p">]</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_address</span><span class="p">(</span><span class="n">appendix</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>They can be found in <code class="code docutils literal notranslate"><span class="pre">basic_handler.py</span></code> - parent class of our custom handlers and are used across the project.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">It is important to have <strong>1-1</strong> unique mapping, otherwise, address <strong>collision</strong> may occur.</p>
+</div>
+</div>
+<div class="section" id="processor-function">
+<h3>Processor Function<a class="headerlink" href="#processor-function" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_processor_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">signer_pubkey</span><span class="p">,</span> <span class="n">deserialised_payload</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_valid</span><span class="p">(</span><span class="n">deserialised_payload</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">InvalidTransaction</span><span class="p">(</span><span class="s1">&#39;Invalid transaction.&#39;</span><span class="p">)</span>
+
+    <span class="n">address1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_address_from_data</span><span class="p">(</span><span class="n">signer_pubkey</span><span class="p">)</span>
+    <span class="n">address2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_address</span><span class="p">(</span><span class="n">deserialised_payload</span><span class="o">.</span><span class="n">address_data</span><span class="p">)</span>
+
+    <span class="n">proto_model1</span> <span class="o">=</span> <span class="n">get_data</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">ProtoModel</span><span class="p">,</span> <span class="n">address1</span><span class="p">)</span>
+    <span class="n">proto_model2</span> <span class="o">=</span> <span class="n">get_data</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">ProtoModel</span><span class="p">,</span> <span class="n">address2</span><span class="p">)</span>
+
+    <span class="o">...</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">address1</span><span class="p">:</span> <span class="n">proto_model1</span><span class="p">,</span>
+        <span class="n">address2</span><span class="p">:</span> <span class="n">proto_model2</span><span class="p">,</span>
+    <span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="remme-client.html" class="btn btn-neutral float-right" title="REMME Core: Client" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="architecture.html" class="btn btn-neutral" title="Node Architecture" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, REMME Core Team..
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
