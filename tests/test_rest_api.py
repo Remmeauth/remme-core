@@ -30,11 +30,12 @@ class RestApiTestCase(HelperTestCase):
                           resolver=RestMethodsSwitcherResolver('remme.rest_api'))
         cls.client = flask_app.app.test_client()
 
-    @classmethod
-    def create_raw_transaction_send_token_payload(cls, pub_key_to, amount=1):
-        client = cls.client_class()
+    @staticmethod
+    def create_raw_transaction_send_token_payload(pub_key_to, amount=1):
+        client = AccountClient()
         signer = client._signer
         address = client.make_address_from_data(pub_key_to)
+        node_address = client.get_user_address()
 
         transfer = TransferPayload()
         transfer.address_to = address
@@ -50,8 +51,8 @@ class RestApiTestCase(HelperTestCase):
             signer_public_key=signer.get_public_key().as_hex(),
             family_name=client._family_handler.family_name,
             family_version=client._family_handler.family_versions[-1],
-            inputs=[address],
-            outputs=[address],
+            inputs=[node_address, address],
+            outputs=[node_address, address],
             dependencies=[],
             payload_sha512=hash512(payload),
             batcher_public_key=signer.get_public_key().as_hex(),
@@ -60,8 +61,7 @@ class RestApiTestCase(HelperTestCase):
 
         signature = signer.sign(header)
 
-        cls.transaction = Transaction(header=header, payload=payload, header_signature=signature)
-        transaction = cls.transaction
+        transaction = Transaction(header=header, payload=payload, header_signature=signature)
         return transaction
 
     @test

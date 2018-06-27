@@ -122,22 +122,25 @@ class WsApplicationHandler(object):
         self._batch_update_started = True
 
         async def _update_batch(batch_id):
+            force_cleanup = False
             try:
-                batch_data, hash_sum = await self._loop.run_in_executor(
-                    None, self.get_batch, batch_id)
+                batch_data, hash_sum = self.get_batch(batch_id)
+                LOGGER.debug('Fetched %s with sum %s', batch_data, hash_sum)
             except Exception as e:
-                LOGGER.exception('Error to get batch data: %s', e)
-                return
+                force_cleanup = True
+                LOGGER.error('Error to get batch data: %s', e)
 
-            LOGGER.debug('Fetched %s with sum %s', batch_data, hash_sum)
             batch = self._batch_ids[batch_id]
 
-            LOGGER.debug('Got update for batch "%s"', batch)
+            if not force_cleanup:
+                LOGGER.debug('Got update for batch "%s"', batch)
+                batch['state']['sum'] = hash_sum
+                batch['state']['data'] = batch_data
 
             for ws in list(batch['ws']):
                 wsdata = batch['ws'][ws]
-                if ws.closed:
-                    LOGGER.debug('Clear dead connection: %s', ws)
+                if ws.closed or force_cleanup:
+                    LOGGER.debug('Clear connection: %s', ws)
                     self._handle_unsubscribe_batches(ws, [batch_id])
                     await self._handle_unsubscribe(ws)
                     continue
@@ -157,9 +160,6 @@ class WsApplicationHandler(object):
                     continue
 
                 wsdata['updated'] = True
-
-            batch['state']['sum'] = hash_sum
-            batch['state']['data'] = batch_data
 
             LOGGER.debug('Batch update finish')
 
@@ -267,11 +267,14 @@ class WsApplicationHandler(object):
             ).SerializeToString())
 
         try:
-            resp = future.result().content
+            resp = future.result(10).content
         except ValidatorConnectionError as vce:
-            LOGGER.error('Error: %s' % vce)
+            LOGGER.error('ZMQ error: %s' % vce)
             raise Exception(
                 'Failed with ZMQ interaction: {0}'.format(vce))
+        except asyncio.TimeoutError:
+            LOGGER.error(f'Task with batch_id {batch_id} timeouted')
+            raise Exception('Timeout')
 
         batch_resp = client_batch_submit_pb2.ClientBatchStatusResponse()
         batch_resp.ParseFromString(resp)
