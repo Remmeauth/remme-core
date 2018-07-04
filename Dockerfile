@@ -18,6 +18,13 @@ FROM python:3.6.5-jessie
 WORKDIR /root
 COPY ./requirements.txt .
 RUN pip3 install -r ./requirements.txt
+RUN apt-get update && \
+    apt-get -y install rsync
+COPY ./remme/rest_api/swagger-index.patch .
+RUN cd $(python3 -c "import connexion, os; print(os.path.dirname(connexion.__file__) + '/vendor/swagger-ui')") && \
+    sh update.sh 3.17.0 && \
+    patch -p0 < /root/swagger-index.patch && \
+    cd /root
 RUN mkdir -p remme/remme
 COPY ./remme ./remme/remme
 COPY ./setup.py ./remme
