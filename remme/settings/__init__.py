@@ -1,3 +1,5 @@
+import os
+
 REST_API_URL = 'http://rest-api:8080'
 ZMQ_URL = 'tcp://validator:4004'
 KEY_DIR = '/root/.sawtooth/keys'
@@ -10,4 +12,5 @@ SETTINGS_SWAP_COMMISSION = 'SETTINGS_SWAP_COMMISSION'
 
 ZERO_ADDRESS = '0' * 70
 GENESIS_ADDRESS = '0' * 69 + '1'
-ENABLE_ECONOMY = True
+
+ENABLE_ECONOMY = os.getenv('REMME_ECONOMY_ENABLED', True)
