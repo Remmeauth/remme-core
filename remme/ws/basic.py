@@ -146,22 +146,12 @@ class BasicWebSocketHandler(object):
     def unsubscribe(self, entity, data):
         pass
 
-    async def _handle_unsubscribe(self, web_sock, payload=None):
+    async def _handle_unsubscribe(self, web_sock, data=None):
         with await self._subscriber_lock:
             if web_sock in self._subscribers:
                 del self._subscribers[web_sock]
 
-            if payload:
-                data = payload.get('data', {})
-
-                try:
-                    entity = Entity(payload['entity'])
-                except ValueError:
-                    await self._ws_send(web_sock, Status.INVALID_ENTITY, payload['id'])
-                    return
-
-                self.unsubscribe(web_sock, entity, data)
-            await self._ws_send(web_sock, Status.UNSUBSCRIBED, payload['id'])
+            await self._ws_send_message(web_sock, Status.UNSUBSCRIBED)
 
             LOGGER.info('Unsubscribed: %s', web_sock)
 
