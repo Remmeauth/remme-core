@@ -28,6 +28,7 @@ class Entity(Enum):
     BATCH_STATE = 'batch_state'
     EVENTS = 'events'
 
+
 @unique
 class Type(Enum):
     MESSAGE = 'message'
