@@ -203,7 +203,7 @@ class WsApplicationHandler(object):
     async def _handle_subscribe(self, web_sock, payload):
         LOGGER.info('Sending initial most recent event to new subscriber')
 
-        params = payload.get('parameters', {})
+        params = payload.get('data', {})
         batch_ids = params.get('batch_ids', [])
 
         try:

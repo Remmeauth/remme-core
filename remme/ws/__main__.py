@@ -20,6 +20,7 @@ from zmq.asyncio import ZMQEventLoop
 from sawtooth_sdk.messaging.stream import Stream
 from remme.settings import ZMQ_URL
 from remme.shared.logging import setup_logging
+from remme.ws.events import WSEventSocketHandler
 from .ws import WsApplicationHandler
 
 if __name__ == '__main__':
@@ -33,5 +34,7 @@ if __name__ == '__main__':
     app = web.Application(loop=loop)
     stream = Stream(ZMQ_URL)
     ws_handler = WsApplicationHandler(stream, loop=loop)
+    ws_event_handler = WSEventSocketHandler(stream, loop=loop)
+    app.router.add_route('GET', '/ws/events', ws_event_handler.subscriptions)
     app.router.add_route('GET', '/ws', ws_handler.subscriptions)
     web.run_app(app, host=arguments.bind, port=arguments.port)

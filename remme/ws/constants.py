@@ -25,8 +25,13 @@ class Action(Enum):
 
 @unique
 class Entity(Enum):
-
     BATCH_STATE = 'batch_state'
+    EVENTS = 'events'
+
+@unique
+class Type(Enum):
+    MESSAGE = 'message'
+    ERROR = 'error'
 
 
 @unique
@@ -69,5 +74,8 @@ class Status(IntEnum):
 
     # validator connection failed
     NO_VALIDATOR = 110
+
+    # missing data
+    MISSING_DATA = 111
 
     BATCH_RESPONSE = 200
