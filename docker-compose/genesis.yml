@@ -33,7 +33,11 @@ services:
 
         sawset genesis -k /etc/sawtooth/keys/validator.priv && \
 
-        GENESIS_BATCHES=\"config-genesis.batch /genesis/batch/token-proposal.batch\"
+        GENESIS_BATCHES=\"config-genesis.batch\"
+
+        if [ \"$$REMME_ECONOMY_ENABLED\" = \"True\" ]; then
+          GENESIS_BATCHES=\"$$GENESIS_BATCHES /genesis/batch/token-proposal.batch\"
+
 
         if [ \"$$REMME_CONSENSUS\" = \"poet-simulator\" ]; then
           sawset proposal create -k /etc/sawtooth/keys/validator.priv \
