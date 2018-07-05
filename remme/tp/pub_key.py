@@ -32,6 +32,7 @@ from remme.protos.pub_key_pb2 import (
     NewPubKeyPayload, RevokePubKeyPayload, PubKeyMethod
 )
 from remme.shared.singleton import singleton
+from remme.settings import ENABLE_ECONOMY
 
 LOGGER = logging.getLogger(__name__)
 
@@ -61,6 +62,13 @@ class PubKeyHandler(BasicHandler):
         }
 
     def _store_pub_key(self, context, signer_pubkey, transaction_payload):
+        account_address = AccountHandler.make_address_from_data(signer_pubkey)
+        account = get_account_by_address(context, account_address)
+        if account.balance < PUB_KEY_STORE_PRICE and ENABLE_ECONOMY:
+            raise InvalidTransaction('Not enough tokens to register a new pub key. Current balance: {}'
+                                     .format(account.balance))
+        account.balance -= PUB_KEY_STORE_PRICE
+
         address = self.make_address_from_data(transaction_payload.public_key)
         LOGGER.info('Pub key address {}'.format(address))
         data = get_data(context, PubKeyStorage, address)
@@ -102,13 +110,6 @@ class PubKeyHandler(BasicHandler):
         data.owner = signer_pubkey
         data.payload.CopyFrom(transaction_payload)
         data.revoked = False
-
-        account_address = AccountHandler.make_address_from_data(signer_pubkey)
-        account = get_account_by_address(context, account_address)
-        if account.balance < PUB_KEY_STORE_PRICE:
-            raise InvalidTransaction('Not enough tokens to register a new pub key. Current balance: {}'
-                                     .format(account.balance))
-        account.balance -= PUB_KEY_STORE_PRICE
 
         if address not in account.pub_keys:
             account.pub_keys.append(address)

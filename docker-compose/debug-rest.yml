@@ -17,7 +17,7 @@ version: '2.1'
 
 services:
   remme-tp:
-    entrypoint: python3 -m remme.tp tcp://validator:4004
+    entrypoint: python3 -m remme.tp --account --atomic-swap --pubkey tcp://validator:4004
 
   remme-rest-api:
     depends_on:
