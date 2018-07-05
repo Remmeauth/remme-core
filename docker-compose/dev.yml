@@ -80,6 +80,8 @@ services:
   remme-tp:
     build: ..
     image: remme/remme-core:latest
+    env_file:
+      - ../.env
 
   remme-ws:
     build: ..
