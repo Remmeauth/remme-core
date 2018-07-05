@@ -13,4 +13,4 @@ SETTINGS_SWAP_COMMISSION = 'remme.settings.swap_comission'
 ZERO_ADDRESS = '0' * 70
 GENESIS_ADDRESS = '0' * 69 + '1'
 
-ENABLE_ECONOMY = os.getenv('REMME_ECONOMY_ENABLED', True)
+ENABLE_ECONOMY = os.getenv('REMME_ECONOMY_ENABLED', True) == 'True'
