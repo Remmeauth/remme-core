@@ -26,6 +26,7 @@ from remme.shared.utils import hash256, web3_hash, hash512
 from remme.clients.account import AccountClient
 from remme.tp.account import AccountHandler, get_account_by_address
 from remme.shared.singleton import singleton
+from remme.ws.events import SWAP_INIT_EVENT
 
 LOGGER = logging.getLogger(__name__)
 
@@ -146,6 +147,10 @@ class AtomicSwapHandler(BasicHandler):
                                                             swap_info.sender_address,
                                                             transfer_payload)
         LOGGER.info("Save state")
+
+        context.add_event(
+            event_type=SWAP_INIT_EVENT,
+            attributes=[("status", "success")])
 
         return {**self.get_state_update(swap_info),  **token_updated_state}
 
