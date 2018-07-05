@@ -13,6 +13,9 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
+# TODO The problem was already fix in Sawtooth master branch, waiting for a release
+# https://github.com/Remmeauth/remme-core/pull/58
+
 import logging
 import asyncio
 import hashlib
