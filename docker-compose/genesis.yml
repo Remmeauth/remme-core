@@ -37,7 +37,7 @@ services:
 
         if [ \"$$REMME_ECONOMY_ENABLED\" = \"True\" ]; then
           GENESIS_BATCHES=\"$$GENESIS_BATCHES /genesis/batch/token-proposal.batch\"
-
+        fi
 
         if [ \"$$REMME_CONSENSUS\" = \"poet-simulator\" ]; then
           sawset proposal create -k /etc/sawtooth/keys/validator.priv \

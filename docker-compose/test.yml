@@ -29,4 +29,4 @@ services:
   remme-tp:
     build: ..
     image: remme/remme-core:latest
-    entrypoint: python3 -m remme.tp --account --atomic-swap --pubkey tcp://tests:4004
+    entrypoint: python3 -m remme.tp tcp://tests:4004 --account --atomic-swap --pubkey
