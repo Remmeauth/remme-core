@@ -55,9 +55,9 @@ services:
         fi
 
         sawset proposal create -k /etc/sawtooth/keys/validator.priv \
-            \"SETTINGS_PUB_KEY_ENCRYPTION=$$(cat /etc/sawtooth/keys/validator.pub)\" \
-            \"SETTINGS_KEY_GENESIS_OWNERS=$$(cat /etc/sawtooth/keys/validator.pub)\" \
-            SETTINGS_SWAP_COMMISSION=100 \
+            \"remme.settings.pub_key_encryption=$$(cat /etc/sawtooth/keys/validator.pub)\" \
+            \"remme.settings.genesis_owners=$$(cat /etc/sawtooth/keys/validator.pub)\" \
+            remme.settings.swap_comission=100 \
             -o settings_config.batch
 
         GENESIS_BATCHES=\"$$GENESIS_BATCHES settings_config.batch\"
