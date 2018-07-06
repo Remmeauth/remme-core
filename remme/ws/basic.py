@@ -74,11 +74,14 @@ class BasicWebSocketHandler(object):
             'data': data
         }
 
+    async def _ws_send_status(self, ws, status):
+        await self._ws_send(ws, self.get_response_payload(Type.STATUS, {'status': status}))
+
     async def _ws_send_message(self, ws, data):
         await self._ws_send(ws, self.get_response_payload(Type.MESSAGE, data))
 
     async def _ws_send_error(self, ws, error):
-        await self._ws_send(ws, self.get_response_payload(Type.ERROR, error))
+        await self._ws_send(ws, self.get_response_payload(Type.ERROR, {'status': error}))
 
     async def _ws_send(self, ws, payload):
         return await ws.send_str(serialize(payload))
@@ -102,7 +105,7 @@ class BasicWebSocketHandler(object):
         try:
             action = Action(payload['action'])
         except ValueError:
-            await self._ws_send(web_sock, Status.INVALID_ACTION)
+            await self._ws_send_error(web_sock, Status.INVALID_ACTION)
             return
 
         LOGGER.info('Determined action: %s', action)
@@ -138,7 +141,7 @@ class BasicWebSocketHandler(object):
             self._subscribers[web_sock] = self.subscribe(entity, data)
             LOGGER.info('Subscribed: %s', web_sock)
 
-        await self._ws_send_message(web_sock, Status.SUBSCRIBED)
+        await self._ws_send_status(web_sock, Status.SUBSCRIBED)
 
     def subscribe(self, entity, data):
         pass
@@ -151,11 +154,11 @@ class BasicWebSocketHandler(object):
             if web_sock in self._subscribers:
                 del self._subscribers[web_sock]
 
-            await self._ws_send_message(web_sock, Status.UNSUBSCRIBED)
+            await self._ws_send_status(web_sock, Status.UNSUBSCRIBED)
 
             LOGGER.info('Unsubscribed: %s', web_sock)
 
     async def _handle_disconnect(self):
         LOGGER.info('Validator disconnected')
         for ws, _ in self._subscribers.items():
-            await self._ws_send(ws, Status.NO_VALIDATOR)
+            await self._ws_send_status(ws, Status.NO_VALIDATOR)
