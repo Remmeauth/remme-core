@@ -32,6 +32,7 @@ class Entity(Enum):
 class Type(Enum):
     MESSAGE = 'message'
     ERROR = 'error'
+    STATUS = 'status'
 
 
 @unique
