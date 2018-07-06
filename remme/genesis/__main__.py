@@ -17,7 +17,7 @@ import argparse
 from remme.protos.account_pb2 import AccountMethod
 from remme.clients.account import AccountClient
 from remme.tp.account import AccountHandler, TransactionPayload
-from remme.settings import GENESIS_ADDRESS
+from remme.settings import GENESIS_ADDRESS, ENABLE_ECONOMY
 
 OUTPUT_BATCH = '/genesis/batch/token-proposal.batch'
 
@@ -28,19 +28,20 @@ if __name__ == '__main__':
 
     account_client = AccountClient()
 
-    zero_address = AccountHandler.make_address('0' * 64)
-    target_address = AccountHandler.make_address_from_data(account_client.get_signer().get_public_key().as_hex())
+    if ENABLE_ECONOMY:
+        zero_address = AccountHandler.make_address('0' * 64)
+        target_address = AccountHandler.make_address_from_data(account_client.get_signer().get_public_key().as_hex())
 
-    print('Issuing {} tokens to address {}'.format(args.token_supply, target_address))
+        print('Issuing {} tokens to address {}'.format(args.token_supply, target_address))
 
-    addresses_input_output = [GENESIS_ADDRESS, target_address]
+        addresses_input_output = [GENESIS_ADDRESS, target_address]
 
-    payload = TransactionPayload()
-    payload.method = AccountMethod.GENESIS
-    payload.data = account_client.get_genesis_payload(args.token_supply).SerializeToString()
+        payload = TransactionPayload()
+        payload.method = AccountMethod.GENESIS
+        payload.data = account_client.get_genesis_payload(args.token_supply).SerializeToString()
 
-    batch_list = AccountClient().make_batch_list(payload, addresses_input_output)
+        batch_list = AccountClient().make_batch_list(payload, addresses_input_output)
 
-    batch_file = open(OUTPUT_BATCH, 'wb')
-    batch_file.write(batch_list.SerializeToString())
-    batch_file.close()
+        batch_file = open(OUTPUT_BATCH, 'wb')
+        batch_file.write(batch_list.SerializeToString())
+        batch_file.close()

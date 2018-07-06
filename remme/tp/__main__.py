@@ -21,6 +21,7 @@ from remme.tp.pub_key import PubKeyHandler
 from remme.tp.account import AccountHandler
 
 from remme.shared.logging import setup_logging
+from remme.settings import ENABLE_ECONOMY
 
 
 TP_HANDLERS = [AccountHandler, PubKeyHandler, AtomicSwapHandler]
@@ -29,12 +30,21 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Transaction processor.')
     parser.add_argument('endpoint')
     parser.add_argument('-v', '--verbosity', type=int, default=2)
+    parser.add_argument('--account', action='store_true')
+    parser.add_argument('--atomic-swap', action='store_true')
+    parser.add_argument('--pubkey', action='store_true')
     args = parser.parse_args()
     setup_logging('remme', args.verbosity)
 
     processor = TransactionProcessor(url=args.endpoint)
-    for handler in TP_HANDLERS:
-        processor.add_handler(handler)
+
+    if args.account and ENABLE_ECONOMY:
+        processor.add_handler(AccountHandler)
+    if args.atomic_swap and ENABLE_ECONOMY:
+        processor.add_handler(AtomicSwapHandler)
+    if args.pubkey:
+        processor.add_handler(PubKeyHandler)
+
     try:
         processor.start()
     except KeyboardInterrupt:
