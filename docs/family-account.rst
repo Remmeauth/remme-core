@@ -30,13 +30,13 @@ The following protocol buffers definition defines account entries:
 Addressing
 ----------
 
-When an account is read or changed, it is accessed by addressing it with a simple combination of the hash of transaction signer's public key and first characters of transaction family name as a prefix, which is implemented in a parent class **Basic Handler**:
+The address of an entity on the storage is built as follows (where ``public_key`` is a public key of a user in
+hexadecimal representation and ``hash512(text)`` returns the hexadecimal representation of ``sha512(text)``):
 
 .. code-block:: python
 
-    def make_address_from_data(self, data):
-        appendix = hash512(data)[:64]
-        return self.make_address(appendix)
+    address = hash512('account')[:6] + hash512(public_key)[:64]
+
 
 Transaction Payload
 ===================

@@ -48,7 +48,12 @@ The following protocol buffers definition defines atomic swap entries:
 Addressing
 ----------
 
-We use swap_id provided during swap initialisation to store the state of the swap and is formed using :code:`make_address_from_data`.
+The address of an entity on the storage is built as follows (where ``sha512(text)``):
+
+.. code-block:: python
+
+    address = hash512('AtomicSwap')[:6] + hash512(swap_id)[:64]
+
 
 Transaction Payload
 ===================

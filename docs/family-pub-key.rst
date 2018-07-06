@@ -26,7 +26,13 @@ The following protocol buffers definition define public key entries:
 Addressing
 ----------
 
-Address for storing the *PubKeyStorage* is constructed using *make_address_from_data* of the *BasicHandler* with a **public key** provided.
+The address of an entity on the storage is built as follows (where ``pubkey_pem`` is a PEM-encoded public key and
+``hash512(text)`` returns the hexadecimal representation of ``sha512(text)``):
+
+.. code-block:: python
+
+    address = hash512('pub_key')[:6] + hash512(pubkey_pem)[:64]
+
 
 Transaction Payload
 ===================
