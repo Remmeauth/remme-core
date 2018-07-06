@@ -16,7 +16,9 @@ import logging
 
 from remme.clients.pub_key import PubKeyClient
 from remme.tp.pub_key import PubKeyHandler, PUB_KEY_STORE_PRICE, PUB_KEY_MAX_VALIDITY
+from remme.tp.account import AccountHandler
 from remme.protos.pub_key_pb2 import PubKeyStorage
+from remme.protos.account_pb2 import PubKeyAccount
 from remme.rest_api.pub_key import get_crt_export_bin_sig_rem_sig
 from remme.rest_api.pub_key_api_decorator import create_certificate
 from remme.shared.logging import test
@@ -61,11 +63,14 @@ class PubKeyTestCase(HelperTestCase):
         crt_export, crt_bin, crt_sig, rem_sig, pub_key, \
             valid_from, valid_to = get_crt_export_bin_sig_rem_sig(cert, key, context.client)
 
+        pubkey_acc_address = AccountHandler.make_address_from_data(f'{self.account_address1}0')
+
         transaction_payload = context.client.get_new_pub_key_payload(pub_key, rem_sig, crt_sig, valid_from, valid_to)
         cert_address = PubKeyHandler.make_address_from_data(pub_key)
 
         if type == 'store':
-            context.client.store_pub_key(pub_key, rem_sig, crt_sig, valid_from, valid_to)
+            context.client.store_pub_key(pub_key, rem_sig, crt_sig, valid_from, valid_to,
+                                         pubkey_acc_address=pubkey_acc_address)
         elif type == 'revoke':
             context.client.revoke_pub_key(cert_address)
         else:
@@ -84,17 +89,22 @@ class PubKeyTestCase(HelperTestCase):
         account = AccountClient.get_account_model(PUB_KEY_STORE_PRICE)
         self.expect_get({self.account_address1: account})
 
+        pubkey_acc_address = AccountHandler.make_address_from_data(f'{self.account_address1}0')
+        pubkey_acc = PubKeyAccount()
+        pubkey_acc.address = cert_address
+        self.expect_get({pubkey_acc_address: pubkey_acc})
+
         data = PubKeyStorage()
         data.owner = self.account_signer1.get_public_key().as_hex()
         data.payload.CopyFrom(transaction_payload)
         data.revoked = False
 
         account.balance -= PUB_KEY_STORE_PRICE
-        account.pub_keys.append(cert_address)
 
         self.expect_set({
             self.account_address1: account,
-            cert_address: data
+            cert_address: data,
+            pubkey_acc_address: pubkey_acc
         })
 
         self.expect_ok()
@@ -112,7 +122,9 @@ class PubKeyTestCase(HelperTestCase):
         valid_from = int(valid_from - PUB_KEY_MAX_VALIDITY.total_seconds())
         valid_to = int(valid_to + PUB_KEY_MAX_VALIDITY.total_seconds())
 
-        context.client.store_pub_key(pub_key, rem_sig, crt_sig, valid_from, valid_to)
+        pubkey_acc_address = AccountHandler.make_address_from_data(f'{self.account_address1}0')
+        context.client.store_pub_key(pub_key, rem_sig, crt_sig, valid_from, valid_to,
+                                     pubkey_acc_address=pubkey_acc_address)
 
         self.expect_get({cert_address: None})
 

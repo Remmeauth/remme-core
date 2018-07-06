@@ -27,6 +27,7 @@ from sawtooth_sdk.processor.exceptions import InvalidTransaction
 from remme.tp.basic import BasicHandler, get_data
 from remme.tp.account import AccountHandler, get_account_by_address
 
+from remme.protos.account_pb2 import PubKeyAccount
 from remme.protos.pub_key_pb2 import (
     PubKeyStorage,
     NewPubKeyPayload, RevokePubKeyPayload, PubKeyMethod
@@ -63,6 +64,7 @@ class PubKeyHandler(BasicHandler):
 
     def _store_pub_key(self, context, signer_pubkey, transaction_payload):
         address = self.make_address_from_data(transaction_payload.public_key)
+        LOGGER.info('Pub key {}'.format(signer_pubkey))
         LOGGER.info('Pub key address {}'.format(address))
         data = get_data(context, PubKeyStorage, address)
         if data:
@@ -112,11 +114,16 @@ class PubKeyHandler(BasicHandler):
                                          .format(account.balance))
             account.balance -= PUB_KEY_STORE_PRICE
 
-        if address not in account.pub_keys:
-            account.pub_keys.append(address)
+        pubkey_acc_address = AccountHandler.make_address_from_data(f'{account_address}{account.pub_key_nonce}')
+        pubkey_acc = get_data(context, PubKeyAccount, pubkey_acc_address)
+        if not pubkey_acc:
+            pubkey_acc = PubKeyAccount()
+            pubkey_acc.address = address
+            account.pub_key_nonce += 1
 
         return {address: data,
-                account_address: account}
+                account_address: account,
+                pubkey_acc_address: pubkey_acc}
 
     def _revoke_pub_key(self, context, signer_pubkey, transaction_payload):
         data = get_data(context, PubKeyStorage, transaction_payload.address)
