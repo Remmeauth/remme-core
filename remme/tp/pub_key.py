@@ -106,10 +106,11 @@ class PubKeyHandler(BasicHandler):
 
         account_address = AccountHandler.make_address_from_data(signer_pubkey)
         account = get_account_by_address(context, account_address)
-        if account.balance < PUB_KEY_STORE_PRICE and ENABLE_ECONOMY:
-            raise InvalidTransaction('Not enough tokens to register a new pub key. Current balance: {}'
-                                     .format(account.balance))
-        account.balance -= PUB_KEY_STORE_PRICE
+        if ENABLE_ECONOMY:
+            if account.balance < PUB_KEY_STORE_PRICE:
+                raise InvalidTransaction('Not enough tokens to register a new pub key. Current balance: {}'
+                                         .format(account.balance))
+            account.balance -= PUB_KEY_STORE_PRICE
 
         if address not in account.pub_keys:
             account.pub_keys.append(address)
