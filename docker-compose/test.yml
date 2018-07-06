@@ -29,4 +29,6 @@ services:
   remme-tp:
     build: ..
     image: remme/remme-core:latest
+    environment:
+      IS_TESTING: "True"
     entrypoint: python3 -m remme.tp tcp://tests:4004 --account --atomic-swap --pubkey

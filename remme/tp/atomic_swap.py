@@ -21,8 +21,9 @@ from remme.protos.atomic_swap_pb2 import AtomicSwapMethod, AtomicSwapInitPayload
     AtomicSwapApprovePayload, AtomicSwapExpirePayload, AtomicSwapSetSecretLockPayload, AtomicSwapClosePayload
 from remme.settings import SETTINGS_SWAP_COMMISSION, ZERO_ADDRESS
 from remme.settings.helper import _get_setting_value
-from remme.tp.basic import BasicHandler, get_data
-from remme.shared.utils import hash256, web3_hash, hash512
+
+from remme.shared.utils import web3_hash
+from remme.tp.basic import BasicHandler, get_data, add_event
 from remme.clients.account import AccountClient
 from remme.tp.account import AccountHandler, get_account_by_address
 from remme.shared.singleton import singleton
@@ -147,9 +148,7 @@ class AtomicSwapHandler(BasicHandler):
                                                             transfer_payload)
         LOGGER.info("Save state")
 
-        context.add_event(
-            event_type=SWAP_INIT_EVENT,
-            attributes=[("status", "success")])
+        add_event(context, SWAP_INIT_EVENT, [("status", "success")])
 
         return {**self.get_state_update(swap_info),  **token_updated_state}
 

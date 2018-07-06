@@ -14,6 +14,10 @@
 # ------------------------------------------------------------------------
 
 import hashlib
+
+import logging
+import os
+
 from google.protobuf.text_format import ParseError
 from sawtooth_processor_test.message_factory import MessageFactory
 from sawtooth_sdk.processor.exceptions import InternalError
@@ -23,6 +27,7 @@ from sawtooth_sdk.processor.exceptions import InvalidTransaction
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.shared.utils import hash512
 
+LOGGER = logging.getLogger(__name__)
 
 def is_address(address):
     try:
@@ -32,6 +37,15 @@ def is_address(address):
         return True
     except (AssertionError, ValueError):
         return False
+
+
+def add_event(context, event_type, attributes):
+    IS_TESTING = bool(os.getenv('IS_TESTING', default=False))
+    if not IS_TESTING:
+        context.add_event(
+            event_type=event_type,
+            attributes=attributes)
+
 
 def get_data(context, pb_class, address):
     raw_data = context.get_state([address])
