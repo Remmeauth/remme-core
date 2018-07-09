@@ -22,8 +22,8 @@ from remme.protos.atomic_swap_pb2 import AtomicSwapMethod, AtomicSwapInitPayload
 from remme.settings import SETTINGS_SWAP_COMMISSION, ZERO_ADDRESS
 from remme.settings.helper import _get_setting_value
 
-from remme.shared.utils import web3_hash
 from remme.tp.basic import BasicHandler, get_data, add_event
+from remme.shared.utils import web3_hash
 from remme.clients.account import AccountClient
 from remme.tp.account import AccountHandler, get_account_by_address
 from remme.shared.singleton import singleton
