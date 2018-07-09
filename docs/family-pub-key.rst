@@ -5,7 +5,8 @@ Public Key Transaction Family
 Overview
 ========
 
-The *Public Key* transaction family provides a trustless way to store the public key based on RSA cryptosystem on the REMchain.
+The *Public Key* transaction family provides a trustless way to store the public key.
+In current protocol version RSA keys are supported, in next releases there will be added support for ECDSA keys as well.
 
 Definitions of Public Key Entries
 ---------------------------------
@@ -104,5 +105,4 @@ To-Do
 
 Add support for:
 
-* PKCS1v15
-* PSS
+* ECDSA keys storing mechanism
