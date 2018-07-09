@@ -7,7 +7,7 @@ Overview
 
 The main purpose of our client is to encapsulate low-level code and as the result to minimise worries of our contributors.
 
-The client connects to Sawtooth-provided "**rest-api**" container which does all the communication with the **journal** (validator container)
+The client connects to the **journal** (validator container) via **ZMQ**
 
 
 

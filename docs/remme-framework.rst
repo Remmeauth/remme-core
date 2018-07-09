@@ -116,6 +116,7 @@ There are few helper functions used in **handler** and **client** apps to form a
         if not is_address(address):
             raise InternalError('{} is not a valid address'.format(address))
         return address
+
 2. Before we pass the suffix, we are likely to encode it from unique peace of data of an arbitrary size using hashing algorithm and pasing first 64 characters of the result:
 
 .. code-block:: python
