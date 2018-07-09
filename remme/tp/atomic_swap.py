@@ -148,7 +148,7 @@ class AtomicSwapHandler(BasicHandler):
                                                             transfer_payload)
         LOGGER.info("Save state")
 
-        add_event(context, SWAP_INIT_EVENT, [("status", "success")])
+        add_event(context, SWAP_INIT_EVENT, [("swap_id", swap_info.swap_id)])
 
         return {**self.get_state_update(swap_info),  **token_updated_state}
 
