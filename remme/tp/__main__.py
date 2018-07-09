@@ -14,6 +14,7 @@
 # ------------------------------------------------------------------------
 
 import argparse
+
 from sawtooth_sdk.processor.core import TransactionProcessor
 
 from remme.tp.atomic_swap import AtomicSwapHandler
