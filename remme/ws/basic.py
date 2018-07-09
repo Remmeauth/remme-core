@@ -70,7 +70,7 @@ class BasicWebSocketHandler(object):
 
     def get_response_payload(self, type, data):
         return {
-            'type': type,
+            'type': type.value,
             'data': data
         }
 
