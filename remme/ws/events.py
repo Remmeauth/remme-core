@@ -15,7 +15,7 @@ from remme.shared.utils import generate_random_key
 from remme.ws.basic import BasicWebSocketHandler
 from remme.ws.constants import Entity
 
-SWAP_INIT_EVENT = 'atomic-swap/init'
+SWAP_INIT_EVENT = 'atomic-swap-init'
 
 LOGGER = logging.getLogger(__name__)
 
@@ -87,11 +87,17 @@ class WSEventSocketHandler(BasicWebSocketHandler):
         event_list = EventList()
         event_list.ParseFromString(msg.content)
 
+        result = []
+        for event in event_list.events:
+            event = json.loads(
+                MessageToJson(event, preserving_proto_field_name=True, including_default_value_fields=True))
+            event_response = {}
+            event_response['type'] = event['event_type']
+            event_response['data'] = {item['key']: item['value'] for item in event['attributes']}
+            result += [event_response]
+
         for web_sock, _ in self._subscribers.items():
-            await self._ws_send_message(web_sock, {Entity.EVENTS: [json.loads(MessageToJson(event,
-                                                                           preserving_proto_field_name=True,
-                                                                           including_default_value_fields=True))
-                                                                   for event in event_list.events]})
+            await self._ws_send_message(web_sock, {Entity.EVENTS: result})
 
     async def listen_events(self, delta=5):
         while True:
