@@ -95,7 +95,7 @@ class PubKeyClient(BasicClient):
 
         if not pubkey_acc_address:
             account = AccountClient().get_account(account_address)
-            pubkey_acc_address = AccountHandler.make_address_from_data(f'{account_address}{account.pub_key_nonce}')
+            pubkey_acc_address = AccountHandler.make_address_from_data(f'{account_address}{account.pub_key_serial_number}', 'account_pub_key_mapping')
 
         return self._send_transaction(PubKeyMethod.STORE, payload, [crt_address, account_address, pubkey_acc_address]), crt_address
 

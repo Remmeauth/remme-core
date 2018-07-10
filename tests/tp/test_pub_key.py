@@ -63,7 +63,7 @@ class PubKeyTestCase(HelperTestCase):
         crt_export, crt_bin, crt_sig, rem_sig, pub_key, \
             valid_from, valid_to = get_crt_export_bin_sig_rem_sig(cert, key, context.client)
 
-        pubkey_acc_address = AccountHandler.make_address_from_data(f'{self.account_address1}0')
+        pubkey_acc_address = AccountHandler.make_address_from_data(f'{self.account_address1}0', 'account_pub_key_mapping')
 
         transaction_payload = context.client.get_new_pub_key_payload(pub_key, rem_sig, crt_sig, valid_from, valid_to)
         cert_address = PubKeyHandler.make_address_from_data(pub_key)
@@ -89,7 +89,7 @@ class PubKeyTestCase(HelperTestCase):
         account = AccountClient.get_account_model(PUB_KEY_STORE_PRICE)
         self.expect_get({self.account_address1: account})
 
-        pubkey_acc_address = AccountHandler.make_address_from_data(f'{self.account_address1}0')
+        pubkey_acc_address = AccountHandler.make_address_from_data(f'{self.account_address1}0', 'account_pub_key_mapping')
         pubkey_acc = PubKeyAccount()
         pubkey_acc.address = cert_address
         self.expect_get({pubkey_acc_address: pubkey_acc})
@@ -122,7 +122,7 @@ class PubKeyTestCase(HelperTestCase):
         valid_from = int(valid_from - PUB_KEY_MAX_VALIDITY.total_seconds())
         valid_to = int(valid_to + PUB_KEY_MAX_VALIDITY.total_seconds())
 
-        pubkey_acc_address = AccountHandler.make_address_from_data(f'{self.account_address1}0')
+        pubkey_acc_address = AccountHandler.make_address_from_data(f'{self.account_address1}0', 'account_pub_key_mapping')
         context.client.store_pub_key(pub_key, rem_sig, crt_sig, valid_from, valid_to,
                                      pubkey_acc_address=pubkey_acc_address)
 

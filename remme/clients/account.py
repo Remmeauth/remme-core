@@ -83,12 +83,12 @@ class AccountClient(BasicClient):
         except KeyNotFound:
             return []
 
-        if not account.pub_key_nonce:
+        if not account.pub_key_serial_number:
             return pub_keys
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-            for pk_nonce in range(account.pub_key_nonce):
-                pubkey_acc_address = self.make_address_from_data(f'{address}{pk_nonce}')
+            for pk_nonce in range(account.pub_key_serial_number):
+                pubkey_acc_address = self.make_address_from_data(f'{address}{pk_nonce}', 'account_pub_key_mapping')
                 future_to_address[executor.submit(self.get_pubkey_account, pubkey_acc_address)] = pubkey_acc_address
                 LOGGER.debug(f'Submit future for "get_pubkey_account" for pubkey_acc address "{pubkey_acc_address}", '
                              f'where pubkey user address "{address}" and pubkey nonce "{pk_nonce}"')

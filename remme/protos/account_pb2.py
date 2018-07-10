@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='account.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\raccount.proto\"4\n\rAccountMethod\"#\n\x06Method\x12\x0c\n\x08TRANSFER\x10\x00\x12\x0b\n\x07GENESIS\x10\x01\"4\n\x0fTransferPayload\x12\x12\n\naddress_to\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x04\"&\n\x0eGenesisPayload\x12\x14\n\x0ctotal_supply\x18\x01 \x01(\x04\"1\n\x07\x41\x63\x63ount\x12\x0f\n\x07\x62\x61lance\x18\x01 \x01(\x04\x12\x15\n\rpub_key_nonce\x18\x02 \x01(\x04\" \n\rPubKeyAccount\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"\x1f\n\rGenesisStatus\x12\x0e\n\x06status\x18\x01 \x01(\x08\x62\x06proto3')
+  serialized_pb=_b('\n\raccount.proto\"4\n\rAccountMethod\"#\n\x06Method\x12\x0c\n\x08TRANSFER\x10\x00\x12\x0b\n\x07GENESIS\x10\x01\"4\n\x0fTransferPayload\x12\x12\n\naddress_to\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x04\"&\n\x0eGenesisPayload\x12\x14\n\x0ctotal_supply\x18\x01 \x01(\x04\"9\n\x07\x41\x63\x63ount\x12\x0f\n\x07\x62\x61lance\x18\x01 \x01(\x04\x12\x1d\n\x15pub_key_serial_number\x18\x02 \x01(\x04\" \n\rPubKeyAccount\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"\x1f\n\rGenesisStatus\x12\x0e\n\x06status\x18\x01 \x01(\x08\x62\x06proto3')
 )
 
 
@@ -156,7 +156,7 @@ _ACCOUNT = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='pub_key_nonce', full_name='Account.pub_key_nonce', index=1,
+      name='pub_key_serial_number', full_name='Account.pub_key_serial_number', index=1,
       number=2, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -175,7 +175,7 @@ _ACCOUNT = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=165,
-  serialized_end=214,
+  serialized_end=222,
 )
 
 
@@ -205,8 +205,8 @@ _PUBKEYACCOUNT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=216,
-  serialized_end=248,
+  serialized_start=224,
+  serialized_end=256,
 )
 
 
@@ -236,8 +236,8 @@ _GENESISSTATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=250,
-  serialized_end=281,
+  serialized_start=258,
+  serialized_end=289,
 )
 
 _ACCOUNTMETHOD_METHOD.containing_type = _ACCOUNTMETHOD

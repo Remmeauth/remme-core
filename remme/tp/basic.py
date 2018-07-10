@@ -110,12 +110,15 @@ class BasicHandler(TransactionHandler):
                                 'Full list of states to update: {}.'
                                 .format(addresses, updated_state.keys()))
 
-    def make_address(self, appendix):
-        address = self._prefix + appendix
+    @staticmethod
+    def make_address(address):
         if not is_address(address):
             raise InternalError('{} is not a valid address'.format(address))
         return address
 
-    def make_address_from_data(self, data):
+    def make_address_from_data(self, data, prefix=None):
+        if prefix:
+            prefix = hash512(prefix)[:6]
         appendix = hash512(data)[:64]
-        return self.make_address(appendix)
+        address = (prefix or self._prefix) + appendix
+        return self.make_address(address)

@@ -114,12 +114,12 @@ class PubKeyHandler(BasicHandler):
                                          .format(account.balance))
             account.balance -= PUB_KEY_STORE_PRICE
 
-        pubkey_acc_address = AccountHandler.make_address_from_data(f'{account_address}{account.pub_key_nonce}')
+        pubkey_acc_address = AccountHandler.make_address_from_data(f'{account_address}{account.pub_key_serial_number}', 'account_pub_key_mapping')
         pubkey_acc = get_data(context, PubKeyAccount, pubkey_acc_address)
         if not pubkey_acc:
             pubkey_acc = PubKeyAccount()
             pubkey_acc.address = address
-            account.pub_key_nonce += 1
+            account.pub_key_serial_number += 1
 
         return {address: data,
                 account_address: account,

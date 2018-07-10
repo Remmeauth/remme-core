@@ -8,7 +8,6 @@ keys/
 docs/generated
 docs/README.rst
 docs/html/
-protos/
 !remme/protos/.keep
 !remme/protos/__init__.py
 remme/protos/
