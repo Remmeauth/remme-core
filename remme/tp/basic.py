@@ -117,6 +117,7 @@ class BasicHandler(TransactionHandler):
         return address
 
     def make_address_from_data(self, data, prefix=None):
+        # FIXME: bypassing the framework
         if prefix:
             prefix = hash512(prefix)[:6]
         appendix = hash512(data)[:64]
