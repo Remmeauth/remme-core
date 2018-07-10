@@ -97,7 +97,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
             result += [event_response]
 
         for web_sock, _ in self._subscribers.items():
-            await self._ws_send_message(web_sock, {Entity.EVENTS: result})
+            await self._ws_send_message(web_sock, {Entity.EVENTS.value: result})
 
     async def listen_events(self, delta=5):
         while True:
