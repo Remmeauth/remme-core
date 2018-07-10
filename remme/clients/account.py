@@ -86,6 +86,7 @@ class AccountClient(BasicClient):
         if not account.pub_key_serial_number:
             return pub_keys
 
+        # FIXME: Optimize to one request
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
             for pk_nonce in range(account.pub_key_serial_number):
                 pubkey_acc_address = self.make_address_from_data(f'{address}{pk_nonce}', 'account_pub_key_mapping')
