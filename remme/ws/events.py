@@ -1,17 +1,16 @@
 import json
 
-import zmq
 import logging
 import weakref
 import asyncio
 
-from remme.settings import ZMQ_URL
+from concurrent.futures import TimeoutError
 from sawtooth_sdk.protobuf.client_event_pb2 import ClientEventsSubscribeRequest
 from sawtooth_sdk.protobuf.validator_pb2 import Message
 from sawtooth_sdk.protobuf.events_pb2 import EventList, EventSubscription
 from google.protobuf.json_format import MessageToJson
+from sawtooth_sdk.messaging.exceptions import ValidatorConnectionError
 
-from remme.shared.utils import generate_random_key
 from remme.ws.basic import BasicWebSocketHandler
 from remme.ws.constants import Entity
 
@@ -41,24 +40,25 @@ class WSEventSocketHandler(BasicWebSocketHandler):
     def subscribe_events(self):
         # Setup a connection to the validator
         LOGGER.info(f"Subscribing to events")
-        ctx = zmq.Context()
-        self._socket = ctx.socket(zmq.DEALER)
-        self._socket.connect(ZMQ_URL)
-        LOGGER.info(f"Connected to ZMQ")
 
         request = ClientEventsSubscribeRequest(subscriptions=self._make_subscriptions(), last_known_block_ids=[]).SerializeToString()
 
-        # Construct the message wrapper
-        correlation_id = generate_random_key()  # This must be unique for all in-process requests
-        msg = Message(
-            correlation_id=correlation_id,
+        # Send the request
+        LOGGER.info(f"Sending subscription request.")
+
+        self._stream.wait_for_ready()
+        future = self._stream.send(
             message_type=Message.CLIENT_EVENTS_SUBSCRIBE_REQUEST,
             content=request)
 
-        # Send the request
-        LOGGER.info(f"Sending subscription request.")
-        self._socket.send_multipart([msg.SerializeToString()])
+        try:
+            resp = future.result(3).content
+        except ValidatorConnectionError as vce:
+            LOGGER.error('Error: %s' % vce)
+            raise Exception(
+                'Failed with ZMQ interaction: {0}'.format(vce))
 
+        LOGGER.info(f'Subscription response: {resp}')
         LOGGER.info(f"Subscribed.")
 
     # The following code listens for events and logs them indefinitely.
@@ -67,8 +67,9 @@ class WSEventSocketHandler(BasicWebSocketHandler):
 
         resp = None
         try:
-            resp = self._socket.recv_multipart(flags=zmq.NOBLOCK)[-1]
-        except zmq.Again as e:
+            # resp = self._socket.recv_multipart(flags=zmq.NOBLOCK)[-1]
+            resp = self._stream.receive().result(3).content
+        except TimeoutError:
             LOGGER.info("No message received yet")
             return
 
