@@ -298,10 +298,7 @@ class WsApplicationHandler(object):
             'Batches not matched (req: {0}, got: {1})'.format(batch_id, batch_data['batch_id'])
 
         prep_resp = {
-            'batch_statuses': {
-                'batch_id': batch_data['batch_id'],
-                'status': batch_data['status'],
-            }
+            'batch_statuses': batch_data
         }
         return prep_resp, hash_sum
 
