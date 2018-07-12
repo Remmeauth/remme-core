@@ -21,7 +21,6 @@ class BlockInfoClient(BasicClient):
     def get_many_block_info(self, block_start, block_end):
         result = []
         for i in range(block_start, block_end):
-            LOGGER.info(f'get_block_info {i}')
             result += [self.get_block_info(i)]
         return result
 
