@@ -1,9 +1,13 @@
+import logging
+
 from remme.clients.basic import BasicClient
 from remme.protos.block_info_pb2 import BlockInfo, BlockInfoConfig
 
+LOGGER = logging.getLogger(__name__)
+
 NAMESPACE = '00b10c'
-CONFIG_ADDRESS = NAMESPACE + '00' + '0' * 62
-BLOCK_INFO_NAMESPACE = NAMESPACE + '01'
+CONFIG_ADDRESS = NAMESPACE + '01' + '0' * 62
+BLOCK_INFO_NAMESPACE = NAMESPACE + '00'
 # 00b10c00
 class BlockInfoClient(BasicClient):
     def __init__(self):
@@ -17,6 +21,7 @@ class BlockInfoClient(BasicClient):
     def get_many_block_info(self, block_start, block_end):
         result = []
         for i in range(block_start, block_end):
+            LOGGER.info(f'get_block_info {i}')
             result += [self.get_block_info(i)]
         return result
 
@@ -27,4 +32,3 @@ class BlockInfoClient(BasicClient):
 
     def create_block_address(self, block_num):
         return BLOCK_INFO_NAMESPACE + hex(block_num)[2:].zfill(62)
-
