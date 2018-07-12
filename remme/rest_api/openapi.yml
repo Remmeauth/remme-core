@@ -429,6 +429,44 @@ paths:
           description: No batch with the given id found
         500:
           $ref: '#/responses/500GeneralError'
+
+  /block-config:
+    get:
+      summary: Get Block Config
+      operationId: remme.rest_api.block_info.get_block_config
+      responses:
+        200:
+          $ref: '#/responses/BlockConfig'
+        500:
+          $ref: '#/responses/500GeneralError'
+
+  /block-info/{block_start}-{block_end}:
+    get:
+      summary: Get blocks
+      operationId: remme.rest_api.block_info.get_block_info
+      parameters:
+        - name: block_start
+          description: Starting block number of the block list
+          in: path
+          type: integer
+          required: true
+        - name: block_end
+          description: Ending block number of the block list
+          in: path
+          type: integer
+          required: true
+      responses:
+        200:
+          description: List of blocks (BlockInfo type)
+          schema:
+            properties:
+              blocks:
+                type: array
+                items:
+                  $ref: '#/definitions/BlockInfo'
+        500:
+          $ref: '#/responses/500GeneralError'
+
   /personal:
     get:
       summary: Get the list of public keys
@@ -623,6 +661,22 @@ responses:
         is_initiator:
           description: Is Alice initiator of a transaction on the REMchain side
           type: boolean
+  BlockConfig:
+    description: Block Config
+    schema:
+      properties:
+        latest_block:
+          type: integer
+          description: Latest block
+        oldest_block:
+          type: integer
+          description: Oldest block
+        target_count:
+          type: integer
+          description: Target count.
+        sync_tolerance:
+          type: integer
+          description: Public key for the component internal to the validator that signed the BlockHeader
 
 parameters:
   swap_init_payload:
@@ -886,6 +940,24 @@ definitions:
         type: string
         description: hex-encoded public key
         pattern: '^[0-9a-f]{128}$'
+  BlockInfo:
+    properties:
+      block_num:
+        type: integer
+        description: Block number
+      timestamp:
+        type: integer
+        description: Approximately when this block was committed, as a Unix UTC timestamp
+      previous_header_signature:
+        type: string
+        description: The header_signature of the previous block that was added to the chain.
+      signer_public_key:
+        type: string
+        description: Public key for the component internal to the validator that signed the BlockHeader
+      header_signature:
+        type: string
+        description: The signature derived from signing the header
+
   BatchId:
     type: string
     description: The hex-encoded identifier of the batch in which the transaction was submitted

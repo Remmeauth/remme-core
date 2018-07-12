@@ -62,6 +62,14 @@ services:
     command: sawtooth-rest-api -v --connect tcp://validator:4004 --bind validator-rest-api:8008
     stop_signal: SIGKILL
 
+  block-info-tp:
+    image: hyperledger/sawtooth-block-info-tp:1.0.1
+    expose:
+      - 4004
+    depends_on:
+      - validator
+    command: block-info-tp -vv -C tcp://validator:4004
+
   settings-tp:
     image: hyperledger/sawtooth-settings-tp:1.0.1
     entrypoint: settings-tp -vv -C tcp://validator:4004
