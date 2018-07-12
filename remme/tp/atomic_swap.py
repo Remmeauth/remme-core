@@ -16,6 +16,7 @@
 import datetime
 import logging
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
+from web3 import Web3
 
 from remme.protos.atomic_swap_pb2 import AtomicSwapMethod, AtomicSwapInitPayload, AtomicSwapInfo, \
     AtomicSwapApprovePayload, AtomicSwapExpirePayload, AtomicSwapSetSecretLockPayload, AtomicSwapClosePayload
@@ -226,7 +227,7 @@ class AtomicSwapHandler(BasicHandler):
         if not swap_info.secret_lock:
             raise InvalidTransaction('Secret lock is required to close the swap!')
 
-        if hash256(swap_close_payload.secret_key) != swap_info.secret_lock:
+        if str(Web3.toHex(Web3.sha3(text=swap_close_payload.secret_key)))[2:] != swap_info.secret_lock:
             raise InvalidTransaction('Secret key doesn\'t match specified secret lock!')
 
         if not swap_info.is_approved:
