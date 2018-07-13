@@ -1,4 +1,5 @@
 import json
+from enum import unique
 
 import zmq
 import logging
@@ -13,9 +14,20 @@ from google.protobuf.json_format import MessageToJson
 
 from remme.shared.utils import generate_random_key
 from remme.ws.basic import BasicWebSocketHandler
+from enum import Enum
+
 from remme.ws.constants import Entity
 
 SWAP_INIT_EVENT = 'atomic-swap-init'
+
+
+@unique
+class Events(Enum):
+    SWAP_INIT = 'atomic-swap-init'
+    SWAP_CLOSE = 'atomic-swap-close'
+    SWAP_APPROVE = 'atomic-swap-approve'
+    SWAP_EXPIRE = 'atomic-swap-expire'
+    SWAP_SET_SECRET_LOCK = 'atomic-swap-set-secret-lock'
 
 LOGGER = logging.getLogger(__name__)
 
@@ -23,7 +35,7 @@ LOGGER = logging.getLogger(__name__)
 class WSEventSocketHandler(BasicWebSocketHandler):
     def __init__(self, stream, loop):
         super().__init__(stream, loop)
-        self._events = [SWAP_INIT_EVENT]
+        self._events = [event.value for event in Events]
         self._events_updator_task = weakref.ref(
             asyncio.ensure_future(
                 self.listen_events(), loop=self._loop))
