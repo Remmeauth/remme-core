@@ -29,6 +29,7 @@ from remme.shared.utils import hash512
 
 LOGGER = logging.getLogger(__name__)
 
+
 def is_address(address):
     try:
         assert isinstance(address, str)
@@ -44,7 +45,7 @@ def add_event(context, event_type, attributes):
     if not IS_TESTING:
         context.add_event(
             event_type=event_type,
-            attributes=attributes)
+            attributes=[(key, value) for key, value in attributes.items()])
 
 
 def get_data(context, pb_class, address):

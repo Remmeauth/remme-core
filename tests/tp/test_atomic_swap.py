@@ -178,6 +178,7 @@ class AtomicSwapTestCase(HelperTestCase):
 
         swap_info = context.swap_info
         swap_info.is_closed = True
+        swap_info.secret_key = context.secret_key
 
         self.expect_set({
             **{context.swap_address: swap_info},
