@@ -35,6 +35,15 @@ The address of an entity on the storage is built as follows (where ``pubkey_pem`
     address = hash512('pub_key')[:6] + hash512(pubkey_pem)[:64]
 
 
+There is another namespace which holds links from accounts to public keys, and it is constructed as follows (where
+``account_address`` is the address of an account which own this public key and ``pub_key_serial_number`` is the
+number of the public key):
+
+.. code-block:: python
+
+    address = hash512('account_pub_key_mapping')[:6] + hash512(account_address + str(pub_key_serial_number))[:64]
+
+
 Transaction Payload
 ===================
 
@@ -80,7 +89,7 @@ Inputs and Outputs
 
 The inputs and outputs for Pub Key family transactions in respect to payload must include:
 
-* **NewPubKeyPayload**: Sender's account address, *public_key address*
+* **NewPubKeyPayload**: Sender's account address, *public_key address*, *mapping address*
 * **RevokePubKeyPayload**: *public_key address*
 
 Dependencies
