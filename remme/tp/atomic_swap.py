@@ -27,7 +27,7 @@ from remme.shared.utils import web3_hash
 from remme.clients.account import AccountClient
 from remme.tp.account import AccountHandler, get_account_by_address
 from remme.shared.singleton import singleton
-from remme.ws.events import SWAP_INIT_EVENT, Events
+from remme.ws.events import Events
 
 LOGGER = logging.getLogger(__name__)
 
