@@ -9,17 +9,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - REST API:
   - The endpoint for sending raw transactions. Now it is possible to build and sign a transaction and then submit it to
-  a validator with the REST API without running a node while keeping your private keys secure.
+  the validator with the REST API without running a node while keeping your private keys secure.
   - CORS support for REST API.
-- WebSockets for real-time tracking changes on transactions statutes. Other features are on the way.
+- WebSockets for real-time tracking changes on transactions statuses. Other features are on the way.
 - Arrays of public keys in Account objects were introduced to easily track all of the certificates issued by a
 particular user. The list of certificates is accessible with the REST API endpoint. Please note, that those
-changes are subject for future performance optimizations. Those change would not affect the REST API interface, but the
+changes are subject for future performance optimizations. Those changes would not affect the REST API interface, but the
 internals is subject to change.
-- Possibility to disable economy in private networks. Many of those who want to launch their private networks do not
-need economy features so now there is a way to disable them.
+- Optional feature to disable economy mechanism in private networks (REMME sidechains).
 - Specifications for transaction families are now publicly available in the repository.
-- More configuration options for nodes (see `.env` to see a full list of them).
+- More configuration options for nodes (see `.env` to find a full list of them).
 ### Changed
 - `token` transaction family was renamed to `account`.
 - Moved from storing certificates to storing and managing public keys. This leads to several important consequences:
