@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   a validator with the REST API without running a node while keeping your private keys secure.
   - CORS support for REST API.
 - WebSockets for real-time tracking changes on transactions statutes. Other features are on the way.
-- Arrays of certificates in Account objects were introduced to easily track all of the certificates issued by a
+- Arrays of public keys in Account objects were introduced to easily track all of the certificates issued by a
 particular user. The list of certificates is accessible with the REST API endpoint. Please note, that those
 changes are subject for future performance optimizations. Those change would not affect the REST API interface, but the
 internals is subject to change.
