@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------
-import logging
+
 import hashlib
 from google.protobuf.text_format import ParseError
 from sawtooth_processor_test.message_factory import MessageFactory
@@ -22,9 +22,6 @@ from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.shared.utils import hash512
-
-
-LOGGER = logging.getLogger(__name__)
 
 
 def is_address(address):
@@ -104,22 +101,19 @@ class BasicHandler(TransactionHandler):
                                      format(int(transaction_payload.method)))
         except ParseError:
             raise InvalidTransaction('Cannot decode transaction payload')
+        print(self._family_name)
         addresses = context.set_state({k: v.SerializeToString() for k, v in updated_state.items()})
         if len(addresses) < len(updated_state):
             raise InternalError('Failed to update all of states. Updated: {}. '
                                 'Full list of states to update: {}.'
                                 .format(addresses, updated_state.keys()))
 
-    @staticmethod
-    def make_address(address):
+    def make_address(self, appendix):
+        address = self._prefix + appendix
         if not is_address(address):
             raise InternalError('{} is not a valid address'.format(address))
         return address
 
-    def make_address_from_data(self, data, prefix=None):
-        # FIXME: bypassing the framework
-        if prefix:
-            prefix = hash512(prefix)[:6]
+    def make_address_from_data(self, data):
         appendix = hash512(data)[:64]
-        address = (prefix or self._prefix) + appendix
-        return self.make_address(address)
+        return self.make_address(appendix)

@@ -31,4 +31,3 @@ COPY ./setup.py ./remme
 RUN pip3 install ./remme
 COPY ./bash/.bashrc /root/.bashrc
 COPY ./tests ./tests
-COPY ./protos ./protos
