@@ -80,4 +80,10 @@ class Status(IntEnum):
     # missing data
     MISSING_DATA = 111
 
+    # wrong event type provided
+    WRONG_EVENT_TYPE = 112
+
+    # socket is already subscribed
+    ALREADY_SUBSCRIBED = 113
+
     BATCH_RESPONSE = 200
