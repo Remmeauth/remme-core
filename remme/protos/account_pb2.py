@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='account.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\raccount.proto\"4\n\rAccountMethod\"#\n\x06Method\x12\x0c\n\x08TRANSFER\x10\x00\x12\x0b\n\x07GENESIS\x10\x01\"4\n\x0fTransferPayload\x12\x12\n\naddress_to\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x04\"&\n\x0eGenesisPayload\x12\x14\n\x0ctotal_supply\x18\x01 \x01(\x04\"9\n\x07\x41\x63\x63ount\x12\x0f\n\x07\x62\x61lance\x18\x01 \x01(\x04\x12\x1d\n\x15pub_key_serial_number\x18\x02 \x01(\x04\" \n\rPubKeyAccount\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"\x1f\n\rGenesisStatus\x12\x0e\n\x06status\x18\x01 \x01(\x08\x62\x06proto3')
+  serialized_pb=_b('\n\raccount.proto\"4\n\rAccountMethod\"#\n\x06Method\x12\x0c\n\x08TRANSFER\x10\x00\x12\x0b\n\x07GENESIS\x10\x01\"4\n\x0fTransferPayload\x12\x12\n\naddress_to\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x04\"&\n\x0eGenesisPayload\x12\x14\n\x0ctotal_supply\x18\x01 \x01(\x04\",\n\x07\x41\x63\x63ount\x12\x0f\n\x07\x62\x61lance\x18\x01 \x01(\x04\x12\x10\n\x08pub_keys\x18\x02 \x03(\t\"\x1f\n\rGenesisStatus\x12\x0e\n\x06status\x18\x01 \x01(\x08\x62\x06proto3')
 )
 
 
@@ -85,14 +85,14 @@ _TRANSFERPAYLOAD = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='value', full_name='TransferPayload.value', index=1,
       number=2, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -123,7 +123,7 @@ _GENESISPAYLOAD = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -154,14 +154,14 @@ _ACCOUNT = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='pub_key_serial_number', full_name='Account.pub_key_serial_number', index=1,
-      number=2, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
+      name='pub_keys', full_name='Account.pub_keys', index=1,
+      number=2, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -175,38 +175,7 @@ _ACCOUNT = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=165,
-  serialized_end=222,
-)
-
-
-_PUBKEYACCOUNT = _descriptor.Descriptor(
-  name='PubKeyAccount',
-  full_name='PubKeyAccount',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='address', full_name='PubKeyAccount.address', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=224,
-  serialized_end=256,
+  serialized_end=209,
 )
 
 
@@ -223,7 +192,7 @@ _GENESISSTATUS = _descriptor.Descriptor(
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -236,8 +205,8 @@ _GENESISSTATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=258,
-  serialized_end=289,
+  serialized_start=211,
+  serialized_end=242,
 )
 
 _ACCOUNTMETHOD_METHOD.containing_type = _ACCOUNTMETHOD
@@ -245,7 +214,6 @@ DESCRIPTOR.message_types_by_name['AccountMethod'] = _ACCOUNTMETHOD
 DESCRIPTOR.message_types_by_name['TransferPayload'] = _TRANSFERPAYLOAD
 DESCRIPTOR.message_types_by_name['GenesisPayload'] = _GENESISPAYLOAD
 DESCRIPTOR.message_types_by_name['Account'] = _ACCOUNT
-DESCRIPTOR.message_types_by_name['PubKeyAccount'] = _PUBKEYACCOUNT
 DESCRIPTOR.message_types_by_name['GenesisStatus'] = _GENESISSTATUS
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -276,13 +244,6 @@ Account = _reflection.GeneratedProtocolMessageType('Account', (_message.Message,
   # @@protoc_insertion_point(class_scope:Account)
   ))
 _sym_db.RegisterMessage(Account)
-
-PubKeyAccount = _reflection.GeneratedProtocolMessageType('PubKeyAccount', (_message.Message,), dict(
-  DESCRIPTOR = _PUBKEYACCOUNT,
-  __module__ = 'account_pb2'
-  # @@protoc_insertion_point(class_scope:PubKeyAccount)
-  ))
-_sym_db.RegisterMessage(PubKeyAccount)
 
 GenesisStatus = _reflection.GeneratedProtocolMessageType('GenesisStatus', (_message.Message,), dict(
   DESCRIPTOR = _GENESISSTATUS,

@@ -103,8 +103,8 @@ class BasicClient:
     def make_address(self, suffix):
         return self._family_handler.make_address(suffix)
 
-    def make_address_from_data(self, data, prefix=None):
-        return self._family_handler.make_address_from_data(data, prefix)
+    def make_address_from_data(self, data):
+        return self._family_handler.make_address_from_data(data)
 
     def is_address(self, address):
         return self._family_handler.is_address(address)

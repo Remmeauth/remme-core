@@ -20,7 +20,6 @@ from remme.protos.pub_key_pb2 import (
     NewPubKeyPayload, RevokePubKeyPayload, PubKeyMethod
 )
 from remme.clients.basic import BasicClient
-from remme.clients.account import AccountClient
 from remme.tp.pub_key import PubKeyHandler
 from remme.tp.account import AccountHandler
 from remme.tp.pub_key import PUB_KEY_ORGANIZATION, PUB_KEY_MAX_VALIDITY
@@ -82,8 +81,7 @@ class PubKeyClient(BasicClient):
             not_valid_after
         ).sign(key, hashes.SHA256(), default_backend())
 
-    def store_pub_key(self, public_key, entity_hash, entity_hash_signature, valid_from, valid_to,
-                      pubkey_acc_address=None):
+    def store_pub_key(self, public_key, entity_hash, entity_hash_signature, valid_from, valid_to):
         payload = self.get_new_pub_key_payload(public_key,
                                                entity_hash,
                                                entity_hash_signature,
@@ -91,13 +89,9 @@ class PubKeyClient(BasicClient):
                                                valid_to)
 
         crt_address = self.make_address_from_data(public_key)
+
         account_address = AccountHandler.make_address_from_data(self._signer.get_public_key().as_hex())
-
-        if not pubkey_acc_address:
-            account = AccountClient().get_account(account_address)
-            pubkey_acc_address = AccountHandler.make_address_from_data(f'{account_address}{account.pub_key_serial_number}', 'account_pub_key_mapping')
-
-        return self._send_transaction(PubKeyMethod.STORE, payload, [crt_address, account_address, pubkey_acc_address]), crt_address
+        return self._send_transaction(PubKeyMethod.STORE, payload, [crt_address, account_address]), crt_address
 
     def revoke_pub_key(self, crt_address):
         payload = self.get_revoke_payload(crt_address)
