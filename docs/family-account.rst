@@ -18,9 +18,8 @@ The following protocol buffers definition defines account entries:
 
     // Entity storing related info to a public key
     message Account {
-        uint64 balance = 1;
-        // The serial number of the last issued certificate
-        uint64 pub_key_serial_number = 2;
+         uint64 balance = 1;
+         repeated string certificates = 2;
      }
 
     // Information on weather the genesis emission has occurred
