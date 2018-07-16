@@ -33,11 +33,9 @@ For developers & contributors
 Clone this repository to your machine:
 ``git clone https://github.com/Remmeauth/remme-core.git``
 
-When you have this repository cloned go the project directory run the
-following commands:
+When you have this repository cloned go the project directory and run ``make run_dev``.
 
--  ``make build_docker``
--  ``make run_dev``
+**NOTE:** on further runs you will want to run ``make run_dev_no_genesis``.
 
 You can run ``make test`` to run automated tests.
 
