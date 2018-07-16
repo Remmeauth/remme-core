@@ -14,9 +14,10 @@
 # ------------------------------------------------------------------------
 
 import argparse
-from remme.protos.token_pb2 import TokenMethod
-from remme.token.token_client import TokenClient
-from remme.token.token_handler import TokenHandler, TransactionPayload
+from remme.protos.account_pb2 import AccountMethod
+from remme.clients.account import AccountClient
+from remme.tp.account import AccountHandler, TransactionPayload
+from remme.settings import GENESIS_ADDRESS, ENABLE_ECONOMY
 
 OUTPUT_BATCH = '/genesis/batch/token-proposal.batch'
 
@@ -25,21 +26,22 @@ if __name__ == '__main__':
     parser.add_argument('token_supply')
     args = parser.parse_args()
 
-    token_client = TokenClient()
+    account_client = AccountClient()
 
-    zero_address = TokenHandler.make_address('0' * 64)
-    target_address = TokenHandler.make_address_from_data(token_client.get_signer().get_public_key().as_hex())
-    
-    print('Issuing {} tokens to address {}'.format(args.token_supply, target_address))
+    if ENABLE_ECONOMY:
+        zero_address = AccountHandler.make_address('0' * 64)
+        target_address = AccountHandler.make_address_from_data(account_client.get_signer().get_public_key().as_hex())
 
-    addresses_input_output = [zero_address, target_address]
+        print('Issuing {} tokens to address {}'.format(args.token_supply, target_address))
 
-    payload = TransactionPayload()
-    payload.method = TokenMethod.GENESIS
-    payload.data = token_client.get_genesis_payload(args.token_supply).SerializeToString()
+        addresses_input_output = [GENESIS_ADDRESS, target_address]
 
-    batch_list = TokenClient().make_batch_list(payload, addresses_input_output)
+        payload = TransactionPayload()
+        payload.method = AccountMethod.GENESIS
+        payload.data = account_client.get_genesis_payload(args.token_supply).SerializeToString()
 
-    batch_file = open(OUTPUT_BATCH, 'wb')
-    batch_file.write(batch_list.SerializeToString())
-    batch_file.close()
+        batch_list = AccountClient().make_batch_list(payload, addresses_input_output)
+
+        batch_file = open(OUTPUT_BATCH, 'wb')
+        batch_file.write(batch_list.SerializeToString())
+        batch_file.close()

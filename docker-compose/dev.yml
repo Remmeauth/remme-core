@@ -23,6 +23,7 @@ services:
       - poet-validator-registry
     volumes:
       - validator_keys:/etc/sawtooth/keys
+      - chain_data:/var/lib/sawtooth/
     expose:
       - 4004
     ports:
@@ -46,8 +47,24 @@ services:
           --bind component:tcp://eth0:4004 \
           --bind network:tcp://eth0:8800 \
           --scheduler parallel \
+          --minimum-peer-connectivity $$REMME_MINIMUM_PEERS_CONNECTIVITY \
           $$ADDITIONAL_ARGS
       "
+
+  validator-rest-api:
+    image: hyperledger/sawtooth-rest-api:1.0.1
+    expose:
+      - 8008
+    ports:
+      - '${REMME_VALIDATOR_REST_API_PORT:-8008}:8008'
+    depends_on:
+     - validator
+    command: sawtooth-rest-api -v --connect tcp://validator:4004 --bind validator-rest-api:8008
+    stop_signal: SIGKILL
+
+  settings-tp:
+    image: hyperledger/sawtooth-settings-tp:1.0.1
+    entrypoint: settings-tp -vv -C tcp://validator:4004
 
   poet-validator-registry:
     image: hyperledger/sawtooth-poet-validator-registry-tp:1.0.1
@@ -60,30 +77,26 @@ services:
         fi
       "
 
-  settings-tp:
-    image: hyperledger/sawtooth-settings-tp:1.0.1
-    entrypoint: settings-tp -vv -C tcp://validator:4004
-
-  rest-api:
-    image: hyperledger/sawtooth-rest-api:1.0.1
-    depends_on:
-      - validator
-    expose:
-      - 8080
-    entrypoint: |
-      sawtooth-rest-api -vv
-        --connect tcp://validator:4004
-        --bind rest-api:8080
-
   remme-tp:
     build: ..
     image: remme/remme-core:latest
+    env_file:
+      - ../.env
+
+  remme-ws:
+    build: ..
+    image: remme/remme-core-ws:latest
+    depends_on:
+      - remme-rest-api
+    ports:
+      - '${REMME_WS_PORT:-9080}:9080'
+    env_file:
+      - ../.env
+    entrypoint: python3 -m remme.ws --port=9080
 
   remme-rest-api:
     build: ..
     image: remme/remme-core:latest
-    depends_on:
-      - rest-api
     volumes:
       - user_keys:/root/.sawtooth/keys
       - ${REMME_CONTAINER_EXPORTS_FOLDER:-./default_export}:/root/usr/share
@@ -95,3 +108,4 @@ services:
 volumes:
   user_keys:
   validator_keys:
+  chain_data:

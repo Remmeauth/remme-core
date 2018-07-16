@@ -21,7 +21,7 @@ For an end-user
    ``./run.sh``.
 3. You can now use our REST API. By default it is started on http://localhost:8080. Fancy Swagger UI
    with documentation is available on http://localhost:8080/api/v1/ui. The API port can be changed in
-   `.env` file.
+   ``.env`` file.
 
 On the first run you will need to initialize the genesis block. To make
 that just run ``./genesis.sh``. This will generate a new key pair and
@@ -33,13 +33,16 @@ For developers & contributors
 Clone this repository to your machine:
 ``git clone https://github.com/Remmeauth/remme-core.git``
 
-When you have this repository cloned go the project directory run the
-following commands:
+When you have this repository cloned go the project directory and run ``make run_dev``.
 
--  ``make build_docker``
--  ``make run_dev``
+**NOTE:** on further runs you will want to run ``make run_dev_no_genesis``.
 
 You can run ``make test`` to run automated tests.
+
+This project uses git submodules. To initialize them run ``git submodule init`` and then
+``git submodule update --init``.
+
+To see documentation in a readable format run ``make run_docs`` and navigate to http://localhost:8000.
 
 License
 -------

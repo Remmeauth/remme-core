@@ -13,17 +13,21 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-FROM ubuntu:xenial
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 8AA7AF1F1091A5FD && \
-    echo "deb http://repo.sawtooth.me/ubuntu/1.0/stable xenial universe" >> /etc/apt/sources.list && \
-    apt-get update && \
-    apt-get install -y sawtooth && \
-    apt-get install -y python3-pip && \
-    apt-get install -y libssl-dev
+# TODO check if it works with a newer version of Debian
+FROM python:3.6.5-jessie
 WORKDIR /root
-COPY ./bash/.bashrc /root/.bashrc
 COPY ./requirements.txt .
 RUN pip3 install -r ./requirements.txt
-RUN mkdir remme
-COPY . ./remme
+RUN apt-get update && \
+    apt-get -y install rsync
+COPY ./remme/rest_api/swagger-index.patch .
+RUN cd $(python3 -c "import connexion, os; print(os.path.dirname(connexion.__file__) + '/vendor/swagger-ui')") && \
+    sh update.sh 3.17.0 && \
+    patch -p0 < /root/swagger-index.patch && \
+    cd /root
+RUN mkdir -p remme/remme
+COPY ./remme ./remme/remme
+COPY ./setup.py ./remme
 RUN pip3 install ./remme
+COPY ./bash/.bashrc /root/.bashrc
+COPY ./tests ./tests

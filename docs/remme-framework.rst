@@ -22,7 +22,7 @@ Each **family** defines its own transaction types by using "Method" structure as
 
 .. code-block:: java
 
-    message TokenMethod {
+    message AccountMethod {
         enum Method {
             TRANSFER = 0;
             GENESIS = 1;
@@ -61,7 +61,7 @@ It is very important to predefine FAMILY_NAME and a FAMILY_VERSIONS as such:
 
 .. code-block:: python
 
-    FAMILY_NAME = 'token'
+    FAMILY_NAME = 'account'
     FAMILY_VERSIONS = ['0.1'] // helps to keep track of handler updates accross the network
 
 and pass them to parent class :code:`basic_handler.py` as such:
@@ -86,7 +86,7 @@ The key way to enable relevant transaction type processing is to provide a custo
 
     def get_state_processor(self):
         return {
-            TokenMethod.TRANSFER: {
+            AccountMethod.TRANSFER: {
                 'pb_class': TransferPayload,
                 'processor': self._transfer
             }
@@ -116,12 +116,13 @@ There are few helper functions used in **handler** and **client** apps to form a
         if not is_address(address):
             raise InternalError('{} is not a valid address'.format(address))
         return address
+
 2. Before we pass the suffix, we are likely to encode it from unique peace of data of an arbitrary size using hashing algorithm and pasing first 64 characters of the result:
 
 .. code-block:: python
 
     def make_address_from_data(self, data):
-        appendix = hashlib.sha512(data.encode('utf-8')).hexdigest()[:64]
+        appendix = hash512(data)[:64]
         return self.make_address(appendix)
 
 They can be found in :code:`basic_handler.py` - parent class of our custom handlers and are used across the project.

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='remme',
-    version='0.3.1-alpha',
+    version='0.4.0-alpha',
     description='Distributed Public Key Infrastructure (PKI) protocol',
     author='REMME',
     url='https://remme.io',
@@ -16,11 +16,5 @@ setup(
         'cryptography',
         'connexion'
     ],
-    entry_points={
-        'console_scripts': [
-            'rem-token=remme.token.token_cli:main',
-            'rem-crt=remme.certificate.certificate_cli:main'
-        ]
-    },
     package_data={'remme.rest_api': ['openapi.yml']}
 )

@@ -5,7 +5,8 @@
 keys/
 *.pyc
 *.DS_Store
-remme/genesis/data
-remme/genesis/batch/token-proposal.batch
 docs/generated
 docs/README.rst
+docs/html/
+docker-compose/default_export
+remme/protos
