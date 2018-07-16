@@ -2,6 +2,7 @@ import hashlib
 
 from google.protobuf.json_format import MessageToDict
 from sawtooth_signing import create_context
+from web3 import Web3
 
 
 def generate_random_key():
@@ -15,6 +16,10 @@ def hash256(data):
 
 def hash512(data):
     return hashlib.sha512(data.encode('utf-8') if isinstance(data, str) else data).hexdigest()
+
+
+def web3_hash(data):
+    return str(Web3.toHex(Web3.sha3(text=data)))
 
 
 class AttrDict(dict):
