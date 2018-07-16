@@ -13,17 +13,14 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-# TODO better resolver (remover operationId)
-
-# Generate documentation:
-# docker run -v $HOME/Projects/Work/Remme/remme-core/remme/rest_api:/docs swaggerapi/swagger-codegen-cli generate -i /docs/openapi.yml -l html2 -o /docs
+# TODO better resolver (remove operationId)
 
 swagger: '2.0'
 
 info:
   title: 'REMME Core REST API'
   version: '0.1'
-basePath: "/api/v1"
+basePath: '/api/v1'
 
 consumes:
   - application/json
@@ -70,6 +67,8 @@ paths:
   /token:
     post:
       summary: Send tokens from the current user to another user
+      tags:
+        - Token operations
       parameters:
         - name: payload
           in: body
@@ -94,6 +93,8 @@ paths:
   /token/{pub_key_user}:
     get:
       summary: Retrieve the amount of tokens for the specified user
+      tags:
+        - Token operations
       parameters:
         - name: pub_key_user
           description: The public key of the user to check the amount of tokens
@@ -121,6 +122,8 @@ paths:
     get:
       operationId: remme.rest_api.user.get_pub_keys
       summary: Retrieve the public keys of the specified user
+      tags:
+        - PKI
       parameters:
         - name: pub_key_user
           description: The public key of the user to get the public keys
@@ -151,6 +154,8 @@ paths:
     put:
       operationId: remme.rest_api.pub_key.put_p12
       summary: Generate and register a new certificate
+      tags:
+        - X.509
       parameters:
         - $ref: '#/parameters/pub_key_p12_create_payload'
       responses:
@@ -182,6 +187,8 @@ paths:
     post:
       operationId: remme.rest_api.pub_key.post_p12
       summary: Check the status of the provided p12 pub_key
+      tags:
+        - X.509
       consumes:
       - multipart/form-data
       parameters:
@@ -217,6 +224,8 @@ paths:
     delete:
       operationId: remme.rest_api.pub_key.delete_p12
       summary: Revoke a pub_key for p12 format.
+      tags:
+        - X.509
       consumes:
       - multipart/form-data
       parameters:
@@ -241,6 +250,8 @@ paths:
     post:
       operationId: remme.rest_api.pub_key.post_pub_key
       summary: Check the status of the provided pub_key
+      tags:
+        - PKI
       parameters:
         - $ref: '#/parameters/pub_key_payload'
       responses:
@@ -277,6 +288,8 @@ paths:
     delete:
       operationId: remme.rest_api.pub_key.delete_pub_key
       summary: Revoke a pub_key
+      tags:
+        - PKI
       parameters:
         - $ref: '#/parameters/pub_key_payload'
       responses:
@@ -290,6 +303,8 @@ paths:
     put:
       operationId: remme.rest_api.pub_key.put
       summary: Generate and register a new certificate
+      tags:
+        - X.509
       parameters:
         - $ref: '#/parameters/pub_key_create_payload'
       responses:
@@ -318,6 +333,8 @@ paths:
     delete:
       operationId: remme.rest_api.pub_key.delete
       summary: Revoke a cert
+      tags:
+        - X.509
       parameters:
         - $ref: '#/parameters/certificate_payload'
       responses:
@@ -330,6 +347,8 @@ paths:
     post:
       operationId: remme.rest_api.pub_key.post
       summary: Check the status of the provided cert_key
+      tags:
+        - X.509
       parameters:
         - $ref: '#/parameters/certificate_payload'
       responses:
@@ -367,6 +386,8 @@ paths:
     put:
       operationId: remme.rest_api.pub_key.store
       summary: Signs and stores provided certificate signing request(CSR) to REMchain
+      tags:
+        - PKI
       parameters:
         - $ref: '#/parameters/pub_key_payload'
       responses:
@@ -411,6 +432,8 @@ paths:
   /personal:
     get:
       summary: Get the list of public keys
+      tags:
+        - Node management
       responses:
         200:
           description: The list of public keys
@@ -422,6 +445,8 @@ paths:
                   $ref: '#/definitions/PubkeyMeta'
     put:
       summary: Generate new key pair
+      tags:
+        - Node management
       parameters:
         - $ref: '#/parameters/key_name_payload'
       responses:
@@ -433,6 +458,8 @@ paths:
           description: A key with such name is already registered in the system
     delete:
       summary: Delete the key
+      tags:
+        - Node management
       parameters:
         - $ref: '#/parameters/key_name_payload'
       responses:
@@ -444,6 +471,8 @@ paths:
     post:
       operationId: remme.rest_api.atomic_swap.init
       summary: Alice may initialize a swap transaction or Bob may follow one as a "non initiator"
+      tags:
+        - Atomic Swap
       parameters:
         - $ref: '#/parameters/swap_init_payload'
       responses:
@@ -456,6 +485,8 @@ paths:
     post:
       operationId: remme.rest_api.atomic_swap.approve
       summary: Alice may initialize a swap transaction or Bob may follow one as a "non initiator"
+      tags:
+        - Atomic Swap
       parameters:
         - $ref: '#/parameters/swap_approve_payload'
       responses:
@@ -468,6 +499,8 @@ paths:
     post:
       operationId: remme.rest_api.atomic_swap.expire
       summary: Alice or Bob expire the swap and receive the refund
+      tags:
+        - Atomic Swap
       parameters:
         - $ref: '#/parameters/swap_approve_payload'
       responses:
@@ -479,6 +512,8 @@ paths:
     post:
       operationId: remme.rest_api.atomic_swap.set_secret_lock
       summary: Bob may set the secret lock
+      tags:
+        - Atomic Swap
       parameters:
         - $ref: '#/parameters/swap_set_secret_lock_payload'
       responses:
@@ -490,6 +525,8 @@ paths:
     post:
       operationId: remme.rest_api.atomic_swap.close
       summary: Close the swap by providing a secret key
+      tags:
+        - Atomic Swap
       parameters:
         - $ref: '#/parameters/swap_close_payload'
       responses:
@@ -501,6 +538,8 @@ paths:
     get:
       operationId: remme.rest_api.atomic_swap.get_swap_info
       summary: Get information about swap
+      tags:
+        - Atomic Swap
       parameters:
         - name: swap_id
           description: The id of the batch to check
@@ -520,6 +559,8 @@ paths:
     get:
       operationId: remme.rest_api.atomic_swap.get_pub_key_encryption
       summary: Get a public key with which to enсrypt sensitive data during the swap. (e.g email address)
+      tags:
+        - Atomic Swap
       responses:
         200:
           description: Public key
@@ -582,8 +623,6 @@ responses:
         is_initiator:
           description: Is Alice initiator of a transaction on the REMchain side
           type: boolean
-
-
 
 parameters:
   swap_init_payload:
@@ -876,3 +915,14 @@ definitions:
     description: User account address
     pattern: '^[0-9a-f]{64}$'
 
+tags:
+  - name: default
+  - name: Node management
+  - name: Token operations
+    description: POST method is only for node owners
+  - name: PKI
+    description: PUT and DELETE methods are only for node owners
+  - name: X.509
+    description: PUT and DELETE methods are only for node owners
+  - name: Atomic Swap
+    description: EXPERIMENTAL, STILL IN PROGRESS
