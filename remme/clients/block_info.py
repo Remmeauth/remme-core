@@ -8,7 +8,8 @@ LOGGER = logging.getLogger(__name__)
 NAMESPACE = '00b10c'
 CONFIG_ADDRESS = NAMESPACE + '01' + '0' * 62
 BLOCK_INFO_NAMESPACE = NAMESPACE + '00'
-# 00b10c00
+
+
 class BlockInfoClient(BasicClient):
     def __init__(self):
         super().__init__(None)
@@ -18,9 +19,9 @@ class BlockInfoClient(BasicClient):
         bi.ParseFromString(self.get_value(self.create_block_address(block_num)))
         return bi
 
-    def get_many_block_info(self, block_start, block_end):
+    def get_many_block_info(self, start, end):
         result = []
-        for i in range(block_start, block_end):
+        for i in range(start, end):
             result += [self.get_block_info(i)]
         return result
 

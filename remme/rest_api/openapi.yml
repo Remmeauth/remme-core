@@ -440,17 +440,17 @@ paths:
         500:
           $ref: '#/responses/500GeneralError'
 
-  /block-info/{block_start}-{block_end}:
+  /block-info:
     get:
       summary: Get blocks
       operationId: remme.rest_api.block_info.get_block_info
       parameters:
-        - name: block_start
+        - name: start
           description: Starting block number of the block list
           in: path
           type: integer
           required: true
-        - name: block_end
+        - name: end
           description: Ending block number of the block list
           in: path
           type: integer
