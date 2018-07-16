@@ -717,12 +717,6 @@ parameters:
         pub_key:
           description: PEM encoded pub_key file
           type: string
-        not_valid_before:
-          description: The timestamp of a pub_key validity starting date
-          type: integer
-        not_valid_after:
-          description: The timestamp of a pub_key validity end date
-          type: integer
       required:
         - pub_key
   certificate_payload:
@@ -735,12 +729,6 @@ parameters:
         crt_key:
           description: PEM encoded crt key
           type: string
-        not_valid_before:
-          description: The timestamp of a pub_key validity starting date
-          type: integer
-        not_valid_after:
-          description: The timestamp of a pub_key validity end date
-          type: integer
       required:
         - crt_key
   pub_key_create_payload:
