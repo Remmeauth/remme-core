@@ -28,8 +28,14 @@ from .utils import deserialize, serialize
 LOGGER = logging.getLogger(__name__)
 
 
-class BasicWebSocketHandler(object):
+class SocketException(BaseException):
+    def __init__(self, web_sock, error_code, info=""):
+        self.web_sock = web_sock
+        self.error_code = error_code
+        self.info = info
 
+
+class BasicWebSocketHandler():
     def __init__(self, stream, loop):
         self._stream = stream
         # mapping websocket => something valuable
@@ -57,7 +63,11 @@ class BasicWebSocketHandler(object):
 
         async for msg in web_sock:
             if msg.type == aiohttp.WSMsgType.TEXT:
-                await self._handle_message(web_sock, msg.data)
+                try:
+                    await self._handle_message(web_sock, msg.data)
+                except SocketException as e:
+                    await self._ws_send_error(e.web_sock, e.error_code, e.info)
+
             elif msg.type == aiohttp.WSMsgType.ERROR:
                 LOGGER.warning(
                     'Web socket connection closed with exception %s',
@@ -80,8 +90,8 @@ class BasicWebSocketHandler(object):
     async def _ws_send_message(self, ws, data):
         await self._ws_send(ws, self.get_response_payload(Type.MESSAGE, data))
 
-    async def _ws_send_error(self, ws, error):
-        await self._ws_send(ws, self.get_response_payload(Type.ERROR, {'status': error}))
+    async def _ws_send_error(self, ws, error, info=""):
+        await self._ws_send(ws, self.get_response_payload(Type.ERROR, {'status': error, 'info': info}))
 
     async def _ws_send(self, ws, payload):
         return await ws.send_str(serialize(payload))
@@ -91,22 +101,19 @@ class BasicWebSocketHandler(object):
             LOGGER.info(f'Incoming message {message_content}')
             payload = deserialize(message_content)
         except Exception:
-            await self._ws_send_error(web_sock, Status.MALFORMED_JSON)
-            return
+            raise SocketException(web_sock, Status.MALFORMED_JSON)
 
         LOGGER.info('Got payload: %s' % payload)
 
         err_code = self.validate_payload(payload)
 
         if err_code:
-            await self._ws_send_error(web_sock, err_code)
-            return
+            raise SocketException(web_sock, err_code)
 
         try:
             action = Action(payload['action'])
         except ValueError:
-            await self._ws_send_error(web_sock, Status.INVALID_ACTION)
-            return
+            raise SocketException(web_sock, Status.INVALID_ACTION)
 
         LOGGER.info('Determined action: %s', action)
 
@@ -134,16 +141,15 @@ class BasicWebSocketHandler(object):
         try:
             entity = Entity(data['entity'])
         except ValueError:
-            await self._ws_send_error(web_sock, Status.INVALID_ENTITY)
-            return
+            raise SocketException(web_sock, Status.INVALID_ENTITY)
 
         with await self._subscriber_lock:
-            self._subscribers[web_sock] = self.subscribe(entity, data)
+            self._subscribers[web_sock] = await self.subscribe(web_sock, entity, data)
             LOGGER.info('Subscribed: %s', web_sock)
 
         await self._ws_send_status(web_sock, Status.SUBSCRIBED)
 
-    def subscribe(self, entity, data):
+    async def subscribe(self, entity, data):
         pass
 
     def unsubscribe(self, entity, data):

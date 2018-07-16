@@ -13,10 +13,10 @@ from sawtooth_sdk.protobuf.events_pb2 import EventList, EventSubscription
 from google.protobuf.json_format import MessageToJson
 
 from remme.shared.utils import generate_random_key
-from remme.ws.basic import BasicWebSocketHandler
+from remme.ws.basic import BasicWebSocketHandler, SocketException
 from enum import Enum
 
-from remme.ws.constants import Entity
+from remme.ws.constants import Entity, Status
 
 SWAP_INIT_EVENT = 'atomic-swap-init'
 
@@ -35,16 +35,24 @@ LOGGER = logging.getLogger(__name__)
 class WSEventSocketHandler(BasicWebSocketHandler):
     def __init__(self, stream, loop):
         super().__init__(stream, loop)
-        self._events = [event.value for event in Events]
+        # events to subscribers
+        self._events = {event.value: [] for event in Events}
         self._events_updator_task = weakref.ref(
             asyncio.ensure_future(
                 self.listen_events(), loop=self._loop))
         self.subscribe_events()
 
     # return what value to be mapped to web_sock
-    def subscribe(self, entity, data):
+    async def subscribe(self, web_sock, entity, data):
         if entity == Entity.EVENTS:
             events = data.get('events', [])
+            LOGGER.info(f'Events being subscribed to: {events}')
+            for event in events:
+                if event not in self._events:
+                    raise SocketException(web_sock, Status.WRONG_EVENT_TYPE, f"Event: {event} is not supported")
+                if web_sock in self._events[event]:
+                    raise SocketException(web_sock, Status.ALREADY_SUBSCRIBED, f"Socket is already subscribed to: {event}")
+                self._events[event] += [web_sock]
             return {'events': events}
 
     def unsubscribe(self, entity, data):
@@ -100,6 +108,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
         event_list.ParseFromString(msg.content)
 
         result = []
+        web_socks_to_notify = {}
         for event in event_list.events:
             event = json.loads(
                 MessageToJson(event, preserving_proto_field_name=True, including_default_value_fields=True))
@@ -108,8 +117,13 @@ class WSEventSocketHandler(BasicWebSocketHandler):
             event_response['data'] = {item['key']: item['value'] for item in event['attributes']}
             result += [event_response]
 
-        for web_sock, _ in self._subscribers.items():
-            await self._ws_send_message(web_sock, {Entity.EVENTS.value: result})
+            for web_sock in self._events[event_response['type']]:
+                if web_sock not in web_socks_to_notify:
+                    web_socks_to_notify[web_sock] = []
+                web_socks_to_notify[web_sock] += [event_response]
+
+        for web_sock, events in web_socks_to_notify.items():
+            await self._ws_send_message(web_sock, {Entity.EVENTS.value: events})
 
     async def listen_events(self, delta=5):
         while True:
