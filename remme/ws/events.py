@@ -18,8 +18,6 @@ from enum import Enum
 
 from remme.ws.constants import Entity, Status
 
-SWAP_INIT_EVENT = 'atomic-swap-init'
-
 
 @unique
 class Events(Enum):
@@ -46,13 +44,19 @@ class WSEventSocketHandler(BasicWebSocketHandler):
     async def subscribe(self, web_sock, entity, data):
         if entity == Entity.EVENTS:
             events = data.get('events', [])
-            LOGGER.info(f'Events being subscribed to: {events}')
+
+            if not events:
+                raise SocketException(web_sock, Status.EVENTS_NOT_PROVIDED, f"Events being subscribed are not provided")
+
             for event in events:
                 if event not in self._events:
                     raise SocketException(web_sock, Status.WRONG_EVENT_TYPE, f"Event: {event} is not supported")
                 if web_sock in self._events[event]:
                     raise SocketException(web_sock, Status.ALREADY_SUBSCRIBED, f"Socket is already subscribed to: {event}")
                 self._events[event] += [web_sock]
+
+            LOGGER.info(f'Events being subscribed to: {events}')
+
             return {'events': events}
 
     def unsubscribe(self, entity, data):

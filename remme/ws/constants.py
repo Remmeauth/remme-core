@@ -86,4 +86,7 @@ class Status(IntEnum):
     # socket is already subscribed
     ALREADY_SUBSCRIBED = 113
 
+    # events being subscribed to are not provided
+    EVENTS_NOT_PROVIDED = 114
+
     BATCH_RESPONSE = 200
