@@ -21,7 +21,7 @@ For an end-user
    ``./run.sh``.
 3. You can now use our REST API. By default it is started on http://localhost:8080. Fancy Swagger UI
    with documentation is available on http://localhost:8080/api/v1/ui. The API port can be changed in
-   `.env` file.
+   ``.env`` file.
 
 On the first run you will need to initialize the genesis block. To make
 that just run ``./genesis.sh``. This will generate a new key pair and
@@ -41,7 +41,10 @@ following commands:
 
 You can run ``make test`` to run automated tests.
 
-This project uses git submodules. To initialize them run ``git submodule init`` and then ``git submodule update``.
+This project uses git submodules. To initialize them run ``git submodule init`` and then
+``git submodule update --init``.
+
+To see documentation in a readable format run ``make run_docs`` and navigate to http://localhost:8000.
 
 License
 -------

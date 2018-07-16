@@ -20,7 +20,6 @@ internals is subject to change.
 need economy features so now there is a way to disable them.
 - Specifications for transaction families are now publicly available in the repository.
 - More configuration options for nodes (see `.env` to see a full list of them).
-
 ### Changed
 - `token` transaction family was renamed to `account`.
 - Moved from storing certificates to storing and managing public keys. This leads to several important consequences:
