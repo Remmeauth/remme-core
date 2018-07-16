@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [0.3.1-alpha] - 2018-04-16
+## [0.3.1-alpha] - 2018-04-27
 ### Added
 - REST API:
   - Support for certificate signing requests. Now key pairs for certificates can be generated on the client side.
