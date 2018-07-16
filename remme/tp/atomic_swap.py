@@ -227,7 +227,7 @@ class AtomicSwapHandler(BasicHandler):
         if not swap_info.secret_lock:
             raise InvalidTransaction('Secret lock is required to close the swap!')
 
-        if str(Web3.toHex(Web3.sha3(text=swap_close_payload.secret_key)))[2:] != swap_info.secret_lock:
+        if str(Web3.toHex(Web3.sha3(text=swap_close_payload.secret_key))) != swap_info.secret_lock:
             raise InvalidTransaction('Secret key doesn\'t match specified secret lock!')
 
         if not swap_info.is_approved:
