@@ -447,12 +447,12 @@ paths:
       parameters:
         - name: start
           description: Starting block number of the block list
-          in: path
+          in: query
           type: integer
           required: true
         - name: end
           description: Ending block number of the block list
-          in: path
+          in: query
           type: integer
           required: true
       responses:
