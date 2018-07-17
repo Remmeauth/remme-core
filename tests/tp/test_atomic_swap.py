@@ -23,7 +23,7 @@ from remme.protos.atomic_swap_pb2 import AtomicSwapInfo
 from remme.settings import SETTINGS_SWAP_COMMISSION
 from remme.settings.helper import _make_settings_key, get_setting_from_key_value
 from remme.shared.logging import test
-from remme.shared.utils import generate_random_key, hash256
+from remme.shared.utils import generate_random_key, hash256, web3_hash
 from tests.test_helper import HelperTestCase
 from remme.clients.account import AccountClient
 from remme.tp.account import ZERO_ADDRESS
@@ -43,8 +43,8 @@ class AtomicSwapTestCase(HelperTestCase):
 
         context.swap_id = generate_random_key()
         context.swap_address = AtomicSwapHandler.make_address_from_data(context.swap_id)
-        context.secret_key = generate_random_key()
-        context.secret_lock = hash256(context.secret_key)
+        context.secret_key = "039eaa877ff63694f8f09c8034403f8b5165a7418812a642396d5d539f90b170"
+        context.secret_lock = "b605112c2d7489034bbd7beab083fb65ba02af787786bb5e3d99bb26709f4f68"
         context.now = datetime.datetime.now()
         context.created_at = int(context.now.timestamp())
         context.email_address = ""
