@@ -43,8 +43,8 @@ class AtomicSwapTestCase(HelperTestCase):
 
         context.swap_id = generate_random_key()
         context.swap_address = AtomicSwapHandler.make_address_from_data(context.swap_id)
-        context.secret_key = generate_random_key()
-        context.secret_lock = web3_hash(context.secret_key)
+        context.secret_key = "0x039eaa877ff63694f8f09c8034403f8b5165a7418812a642396d5d539f90b170"
+        context.secret_lock = "0xb605112c2d7489034bbd7beab083fb65ba02af787786bb5e3d99bb26709f4f68"
         context.now = datetime.datetime.now()
         context.created_at = int(context.now.timestamp())
         context.email_address = ""

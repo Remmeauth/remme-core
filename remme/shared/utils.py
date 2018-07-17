@@ -19,7 +19,7 @@ def hash512(data):
 
 
 def web3_hash(data):
-    return str(Web3.toHex(Web3.sha3(text=data)))
+    return str(Web3.toHex(Web3.sha3(hexstr=data)))[2:]
 
 
 class AttrDict(dict):
