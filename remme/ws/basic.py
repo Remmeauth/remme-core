@@ -149,14 +149,16 @@ class BasicWebSocketHandler():
 
         await self._ws_send_status(web_sock, Status.SUBSCRIBED)
 
-    async def subscribe(self, entity, data):
+    async def subscribe(self, web_sock, entity, data):
         pass
 
-    def unsubscribe(self, entity, data):
+    def unsubscribe(self, web_sock):
         pass
 
     async def _handle_unsubscribe(self, web_sock, data=None):
         with await self._subscriber_lock:
+            self.unsubscribe(web_sock)
+
             if web_sock in self._subscribers:
                 del self._subscribers[web_sock]
 
