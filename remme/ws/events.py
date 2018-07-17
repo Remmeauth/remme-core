@@ -59,7 +59,8 @@ class WSEventSocketHandler(BasicWebSocketHandler):
 
             return {'events': events}
 
-    def unsubscribe(self, entity, data):
+    def unsubscribe(self, web_sock):
+        # currently web_sock notification is based on self._subscriptions list
         pass
 
     def subscribe_events(self):
@@ -122,9 +123,10 @@ class WSEventSocketHandler(BasicWebSocketHandler):
             result += [event_response]
 
             for web_sock in self._events[event_response['type']]:
-                if web_sock not in web_socks_to_notify:
-                    web_socks_to_notify[web_sock] = []
-                web_socks_to_notify[web_sock] += [event_response]
+                if web_sock in self._subscribers:
+                    if web_sock not in web_socks_to_notify:
+                        web_socks_to_notify[web_sock] = []
+                    web_socks_to_notify[web_sock] += [event_response]
 
         for web_sock, events in web_socks_to_notify.items():
             await self._ws_send_message(web_sock, {Entity.EVENTS.value: events})
