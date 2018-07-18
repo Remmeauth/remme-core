@@ -143,9 +143,9 @@ class BasicWebSocketHandler():
         except ValueError:
             raise SocketException(web_sock, Status.INVALID_ENTITY)
 
-        with await self._subscriber_lock:
-            self._subscribers[web_sock] = await self.subscribe(web_sock, entity, data)
-            LOGGER.info('Subscribed: %s', web_sock)
+        # with await self._subscriber_lock:
+        self._subscribers[web_sock] = await self.subscribe(web_sock, entity, data)
+        LOGGER.info('Subscribed: %s', web_sock)
 
         await self._ws_send_status(web_sock, Status.SUBSCRIBED)
 
@@ -156,15 +156,15 @@ class BasicWebSocketHandler():
         pass
 
     async def _handle_unsubscribe(self, web_sock, data=None):
-        with await self._subscriber_lock:
-            self.unsubscribe(web_sock)
+        # with await self._subscriber_lock:
+        self.unsubscribe(web_sock)
 
-            if web_sock in self._subscribers:
-                del self._subscribers[web_sock]
+        if web_sock in self._subscribers:
+            del self._subscribers[web_sock]
 
-            await self._ws_send_status(web_sock, Status.UNSUBSCRIBED)
+        await self._ws_send_status(web_sock, Status.UNSUBSCRIBED)
 
-            LOGGER.info('Unsubscribed: %s', web_sock)
+        LOGGER.info('Unsubscribed: %s', web_sock)
 
     async def _handle_disconnect(self):
         LOGGER.info('Validator disconnected')
