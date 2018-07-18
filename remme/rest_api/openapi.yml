@@ -449,12 +449,10 @@ paths:
           description: Starting block number of the block list
           in: query
           type: integer
-          required: true
-        - name: end
-          description: Ending block number of the block list
+        - name: limit
+          description: Number of blocks to return in descending order
           in: query
           type: integer
-          required: true
       responses:
         200:
           description: List of blocks (BlockInfo type)

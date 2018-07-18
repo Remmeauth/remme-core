@@ -2,6 +2,7 @@ import logging
 
 from remme.clients.basic import BasicClient
 from remme.protos.block_info_pb2 import BlockInfo, BlockInfoConfig
+from remme.shared.exceptions import KeyNotFound
 
 LOGGER = logging.getLogger(__name__)
 
@@ -19,10 +20,23 @@ class BlockInfoClient(BasicClient):
         bi.ParseFromString(self.get_value(self.create_block_address(block_num)))
         return bi
 
-    def get_many_block_info(self, start, end):
+    def get_many_block_info(self, start, limit):
         result = []
-        for i in range(start, end):
+        if not(start and limit):
+            block_config = self.get_block_info_config()
+
+            if not start:
+                start = block_config.latest_block
+
+            if not limit:
+                limit = start - block_config.oldest_block + 1
+
+        if limit - start > 1:
+            raise KeyNotFound("404")
+
+        for i in range(start-limit+1, start+1):
             result += [self.get_block_info(i)]
+        result.reverse()
         return result
 
     def get_block_info_config(self):
