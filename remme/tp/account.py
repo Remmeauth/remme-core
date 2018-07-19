@@ -21,6 +21,7 @@ from remme.protos.account_pb2  import Account, GenesisStatus, AccountMethod, Gen
 from remme.settings import GENESIS_ADDRESS, ZERO_ADDRESS
 from remme.tp.basic import *
 from remme.shared.singleton import singleton
+from remme.ws.events import Events
 
 LOGGER = logging.getLogger(__name__)
 
@@ -112,6 +113,10 @@ class AccountHandler(BasicHandler):
         LOGGER.info('Transferred {} tokens from {} to {}'.format(transfer_payload.value,
                                                                  signer_key,
                                                                  transfer_payload.address_to))
+
+        add_event(context, Events.ACCOUNT_TRANSFER.value, {"sender_address": signer_key,
+                                                           "receiver_address": transfer_payload.address_to,
+                                                           "amount": transfer_payload.value})
 
         return {
             signer_key: signer_account,
