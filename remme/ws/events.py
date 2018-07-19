@@ -27,6 +27,8 @@ class Events(Enum):
     SWAP_EXPIRE = 'atomic-swap-expire'
     SWAP_SET_SECRET_LOCK = 'atomic-swap-set-secret-lock'
 
+    ACCOUNT_TRANSFER = 'account-transfer'
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -61,6 +63,11 @@ class WSEventSocketHandler(BasicWebSocketHandler):
 
     def unsubscribe(self, web_sock):
         # currently web_sock notification is based on self._subscriptions list
+        for event, web_socks in self._events.items():
+            if web_sock in web_socks:
+                web_socks.remove(web_sock)
+                self._events[event] = web_socks
+
         pass
 
     def subscribe_events(self):
