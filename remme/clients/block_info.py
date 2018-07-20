@@ -35,10 +35,10 @@ class BlockInfoClient(BasicClient):
             if not limit:
                 limit = start - block_config.oldest_block + 1
 
-        if limit - start > 1:
-            limit = start + 1
+        if limit - start > 0:
+            limit = start
 
-        for i in range(start-limit+1, start+1):
+        for i in range(start-limit, start):
             result += [self.get_block_info(i)]
         result.reverse()
         return result
