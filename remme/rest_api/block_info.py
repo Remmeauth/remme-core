@@ -10,6 +10,7 @@ block_info_client = BlockInfoClient()
 def get_block_config():
     block_config = block_info_client.get_block_info_config()
     block_config.oldest_block += 1
+    block_config.latest_block += 1
     return from_proto_to_json(block_config)
 
 

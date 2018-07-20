@@ -30,7 +30,7 @@ class BlockInfoClient(BasicClient):
                 return []
 
             if not start:
-                start = block_config.latest_block
+                start = block_config.latest_block + 1
 
             if not limit:
                 limit = start - block_config.oldest_block + 1
