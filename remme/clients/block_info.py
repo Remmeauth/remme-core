@@ -23,7 +23,11 @@ class BlockInfoClient(BasicClient):
     def get_many_block_info(self, start, limit):
         result = []
         if not(start and limit):
-            block_config = self.get_block_info_config()
+            block_config = None
+            try:
+                block_config = self.get_block_info_config()
+            except:
+                return []
 
             if not start:
                 start = block_config.latest_block
@@ -32,7 +36,7 @@ class BlockInfoClient(BasicClient):
                 limit = start - block_config.oldest_block + 1
 
         if limit - start > 1:
-            raise KeyNotFound("404")
+            limit = start + 1
 
         for i in range(start-limit+1, start+1):
             result += [self.get_block_info(i)]
