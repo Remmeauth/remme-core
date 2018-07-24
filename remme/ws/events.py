@@ -119,15 +119,11 @@ class WSEventSocketHandler(BasicWebSocketHandler):
         event_list = EventList()
         event_list.ParseFromString(msg.content)
 
-        result = []
         web_socks_to_notify = {}
         for event in event_list.events:
-            event = json.loads(
-                MessageToJson(event, preserving_proto_field_name=True, including_default_value_fields=True))
             event_response = {}
-            event_response['type'] = event['event_type']
-            event_response['data'] = {item['key']: item['value'] for item in event['attributes']}
-            result += [event_response]
+            event_response['type'] = event.event_type
+            event_response['data'] = {item.key: item.value for item in event.attributes}
 
             for web_sock in self._events[event_response['type']]:
                 if web_sock in self._subscribers:

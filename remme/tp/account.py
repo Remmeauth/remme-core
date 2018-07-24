@@ -47,7 +47,7 @@ class AccountHandler(BasicHandler):
             AccountMethod.TRANSFER: {
                 'pb_class': TransferPayload,
                 'processor': self._transfer,
-                EMIT_EVENT: Events.SWAP_INIT.value
+                EMIT_EVENT: Events.ACCOUNT_TRANSFER.value
             },
             AccountMethod.GENESIS: {
                 'pb_class': GenesisPayload,
@@ -115,10 +115,6 @@ class AccountHandler(BasicHandler):
         LOGGER.info('Transferred {} tokens from {} to {}'.format(transfer_payload.value,
                                                                  signer_key,
                                                                  transfer_payload.address_to))
-
-        add_event(context, Events.ACCOUNT_TRANSFER.value, {"sender_address": signer_key,
-                                                           "receiver_address": transfer_payload.address_to,
-                                                           "amount": transfer_payload.value})
 
         return {
             signer_key: signer_account,
