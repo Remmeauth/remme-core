@@ -21,6 +21,7 @@ from remme.protos.account_pb2  import Account, GenesisStatus, AccountMethod, Gen
 from remme.settings import GENESIS_ADDRESS, ZERO_ADDRESS
 from remme.tp.basic import *
 from remme.shared.singleton import singleton
+from remme.ws.basic import EMIT_EVENT
 from remme.ws.events import Events
 
 LOGGER = logging.getLogger(__name__)
@@ -45,7 +46,8 @@ class AccountHandler(BasicHandler):
         return {
             AccountMethod.TRANSFER: {
                 'pb_class': TransferPayload,
-                'processor': self._transfer
+                'processor': self._transfer,
+                EMIT_EVENT: Events.SWAP_INIT.value
             },
             AccountMethod.GENESIS: {
                 'pb_class': GenesisPayload,
