@@ -131,7 +131,8 @@ class BasicHandler(TransactionHandler):
         event_name = state_processor[transaction_payload.method].get(EMIT_EVENT, None)
         if event_name:
             add_event(context, event_name,
-                      {"write_addresses": [key for key, _ in updated_state.items()]})
+                      {"write_addresses": [key for key, _ in updated_state.items()],
+                       "header_signature": transaction.header_signature})
 
     def make_address(self, appendix):
         address = self._prefix + appendix
