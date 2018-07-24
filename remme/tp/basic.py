@@ -29,6 +29,9 @@ from remme.shared.utils import hash512
 
 LOGGER = logging.getLogger(__name__)
 
+# Key flag for transaction processor to emit event
+EMIT_EVENT = 'emit_event'
+
 
 def is_address(address):
     try:
@@ -43,6 +46,7 @@ def is_address(address):
 def add_event(context, event_type, attributes):
     IS_TESTING = bool(os.getenv('IS_TESTING', default=False))
     if not IS_TESTING:
+        LOGGER.info("add_event")
         context.add_event(
             event_type=event_type,
             attributes=[(key, str(value)) for key, value in attributes.items()])
@@ -116,12 +120,20 @@ class BasicHandler(TransactionHandler):
                                      format(int(transaction_payload.method)))
         except ParseError:
             raise InvalidTransaction('Cannot decode transaction payload')
-        print(self._family_name)
+
         addresses = context.set_state({k: v.SerializeToString() for k, v in updated_state.items()})
         if len(addresses) < len(updated_state):
             raise InternalError('Failed to update all of states. Updated: {}. '
                                 'Full list of states to update: {}.'
                                 .format(addresses, updated_state.keys()))
+
+        #TODO add block number
+        event_name = state_processor[transaction_payload.method].get(EMIT_EVENT, None)
+        if event_name:
+            add_event(context, event_name,
+                      {"write_addresses": [key for key, _ in updated_state.items()],
+                       "family_name": self.family_name,
+                       "payload_method": transaction_payload.method})
 
     def make_address(self, appendix):
         address = self._prefix + appendix

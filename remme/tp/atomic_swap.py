@@ -155,8 +155,6 @@ class AtomicSwapHandler(BasicHandler):
                                                             transfer_payload)
         LOGGER.info("Save state")
 
-        add_event(context, Events.SWAP_INIT.value, {"swap_id": swap_info.swap_id})
-
         return {**self.get_state_update(swap_info),  **token_updated_state}
 
     def _swap_approve(self, context, signer_pubkey, swap_approve_payload):
@@ -178,8 +176,6 @@ class AtomicSwapHandler(BasicHandler):
             raise InvalidTransaction('Swap id {} is already closed.'.format(swap_info.swap_id))
 
         swap_info.is_approved = True
-
-        add_event(context, Events.SWAP_APPROVE.value, {"swap_id": swap_info.swap_id})
 
         return self.get_state_update(swap_info)
 
@@ -210,8 +206,6 @@ class AtomicSwapHandler(BasicHandler):
                                                                     ZERO_ADDRESS,
                                                                     transfer_payload)
 
-        add_event(context, Events.SWAP_EXPIRE.value, {"swap_id": swap_info.swap_id})
-
         return {**self.get_state_update(swap_info), **token_updated_state}
 
     def _swap_set_lock(self, context, signer_pubkey, swap_set_lock_payload):
@@ -227,9 +221,6 @@ class AtomicSwapHandler(BasicHandler):
             raise InvalidTransaction('Secret lock is already added for {}.'.format(swap_info.swap_id))
 
         swap_info.secret_lock = swap_set_lock_payload.secret_lock
-
-        add_event(context, Events.SWAP_SET_SECRET_LOCK.value, {"swap_id": swap_info.swap_id,
-                                                               "secret_lock": swap_info.secret_lock})
 
         return self.get_state_update(swap_info)
 
@@ -257,8 +248,5 @@ class AtomicSwapHandler(BasicHandler):
                                                                     transfer_payload)
         swap_info.secret_key = swap_close_payload.secret_key
         swap_info.is_closed = True
-
-        add_event(context, Events.SWAP_CLOSE.value, {"swap_id": swap_info.swap_id,
-                                                     "secret_key": swap_close_payload.secret_key})
 
         return {**self.get_state_update(swap_info), **token_updated_state}
