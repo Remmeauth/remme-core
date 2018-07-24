@@ -4,7 +4,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [0.3.1-alpha] - 2018-04-16
+
+## [0.4.0-alpha] - 2018-07-16
+### Added
+- REST API:
+  - The endpoint for sending raw transactions. Now it is possible to build and sign a transaction and then submit it to
+  the validator with the REST API without running a node while keeping your private keys secure.
+  - CORS support for REST API.
+- WebSockets for real-time tracking changes on transactions statuses. Other features are on the way.
+- Arrays of public keys in Account objects were introduced to easily track all of the certificates issued by a
+particular user. The list of certificates is accessible with the REST API endpoint. Please note, that those
+changes are subject for future performance optimizations. Those changes would not affect the REST API interface, but the
+internals is subject to change.
+- Optional feature to disable economy mechanism in private networks (REMME sidechains).
+- Specifications for transaction families are now publicly available in the repository.
+- More configuration options for nodes (see `.env` to find a full list of them).
+### Changed
+- `token` transaction family was renamed to `account`.
+- Moved from storing certificates to storing and managing public keys. This leads to several important consequences:
+  - GDPR compliance as no personal data accessible in a certificate is stored on the blockchain.
+  - A wide range of supported containers for public keys.
+- No dependency on Sawtooth API within REMME REST API. Previously the project used Sawtooth REST API to communicate with
+the core. Now it communicates with the core directly via ZMQ sockets.
+- Migrate to Python 3.6
+- Internal refactoring has been done for cleaner project structure.
+  - The transaction processor is now called as `remme.tp` instead of `remme`.
+- Swagger UI was updated to a newer version.
+
+## [0.3.1-alpha] - 2018-04-27
 ### Added
 - REST API:
   - Support for certificate signing requests. Now key pairs for certificates can be generated on the client side.

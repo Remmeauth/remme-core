@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='remme',
-    version='0.3.1-alpha',
+    version='0.4.0-alpha',
     description='Distributed Public Key Infrastructure (PKI) protocol',
     author='REMME',
     url='https://remme.io',

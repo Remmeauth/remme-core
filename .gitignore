@@ -8,5 +8,5 @@ keys/
 docs/generated
 docs/README.rst
 docs/html/
-protos/
 docker-compose/default_export
+remme/protos
