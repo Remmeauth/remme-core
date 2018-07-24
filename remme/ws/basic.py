@@ -28,6 +28,8 @@ from .utils import deserialize, serialize
 
 LOGGER = logging.getLogger(__name__)
 
+EMIT_EVENT = "emit_event"
+
 
 class SocketException(BaseException):
     def __init__(self, web_sock, error_code, info=""):

@@ -27,6 +27,7 @@ from remme.shared.utils import web3_hash
 from remme.clients.account import AccountClient
 from remme.tp.account import AccountHandler, get_account_by_address
 from remme.shared.singleton import singleton
+from remme.ws.basic import EMIT_EVENT
 from remme.ws.events import Events
 
 LOGGER = logging.getLogger(__name__)
@@ -54,23 +55,28 @@ class AtomicSwapHandler(BasicHandler):
         return {
             AtomicSwapMethod.INIT: {
                 'pb_class': AtomicSwapInitPayload,
-                'processor': self._swap_init
+                'processor': self._swap_init,
+                EMIT_EVENT: Events.SWAP_INIT.value
             },
             AtomicSwapMethod.APPROVE: {
                 'pb_class': AtomicSwapApprovePayload,
-                'processor': self._swap_approve
+                'processor': self._swap_approve,
+                EMIT_EVENT: Events.SWAP_APPROVE.value
             },
             AtomicSwapMethod.EXPIRE: {
                 'pb_class': AtomicSwapExpirePayload,
-                'processor': self._swap_expire
+                'processor': self._swap_expire,
+                EMIT_EVENT: Events.SWAP_EXPIRE.value
             },
             AtomicSwapMethod.SET_SECRET_LOCK: {
                 'pb_class': AtomicSwapSetSecretLockPayload,
-                'processor': self._swap_set_lock
+                'processor': self._swap_set_lock,
+                EMIT_EVENT: Events.SWAP_SET_SECRET_LOCK.value
             },
             AtomicSwapMethod.CLOSE: {
                 'pb_class': AtomicSwapClosePayload,
-                'processor': self._swap_close
+                'processor': self._swap_close,
+                EMIT_EVENT: Events.SWAP_CLOSE.value
             },
         }
 
