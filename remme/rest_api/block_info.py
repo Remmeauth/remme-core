@@ -1,7 +1,7 @@
 
 from remme.clients.block_info import BlockInfoClient
 from remme.rest_api import handle_key_not_found
-from remme.shared.utils import from_proto_to_json
+from remme.shared.utils import from_proto_to_dict
 
 block_info_client = BlockInfoClient()
 
@@ -11,7 +11,7 @@ def get_block_config():
     block_config = block_info_client.get_block_info_config()
     block_config.oldest_block += 1
     block_config.latest_block += 1
-    return from_proto_to_json(block_config)
+    return from_proto_to_dict(block_config)
 
 
 @handle_key_not_found

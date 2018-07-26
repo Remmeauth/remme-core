@@ -64,8 +64,6 @@ services:
 
   block-info-tp:
     image: hyperledger/sawtooth-block-info-tp:1.0.1
-    expose:
-      - 4004
     depends_on:
       - validator
     command: block-info-tp -vv -C tcp://validator:4004
