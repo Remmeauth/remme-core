@@ -25,7 +25,7 @@ from sawtooth_sdk.processor.handler import TransactionHandler
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
 from remme.protos.transaction_pb2 import TransactionPayload
-from remme.shared.utils import hash512
+from remme.shared.utils import hash512, from_proto_to_dict
 
 LOGGER = logging.getLogger(__name__)
 
@@ -131,7 +131,10 @@ class BasicHandler(TransactionHandler):
         event_name = state_processor[transaction_payload.method].get(EMIT_EVENT, None)
         if event_name:
             add_event(context, event_name,
-                      {"write_addresses": [key for key, _ in updated_state.items()],
+                      {"entities_changed": [{**{'address': key,
+                                                'type': value.__class__.__name__},
+                                             **from_proto_to_dict(value)}
+                                            for key, value in updated_state.items()],
                        "header_signature": transaction.signature})
 
     def make_address(self, appendix):
