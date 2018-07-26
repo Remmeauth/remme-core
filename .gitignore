@@ -8,5 +8,6 @@ keys/
 docs/generated
 docs/README.rst
 docs/html/
+!remme/protos/.keep
+!remme/protos/__init__.py
 docker-compose/default_export
-remme/protos

@@ -14,8 +14,10 @@
 # ------------------------------------------------------------------------
 
 from remme.clients.account import AccountClient
+from remme.rest_api import handle_key_not_found
 
 
+@handle_key_not_found
 def get(batch_id):
     client = AccountClient()
     batch = client.get_batch(batch_id)

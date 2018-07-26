@@ -33,7 +33,7 @@ jobs:
           name: Clone submodules
           command: |
             git submodule init && \
-            git submodule update
+            git submodule update --init
       - run:
           name: Run tests
           command: make test

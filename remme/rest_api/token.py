@@ -15,8 +15,10 @@
 
 import re
 from remme.clients.account import AccountClient
+from remme.rest_api import handle_key_not_found
 
 
+@handle_key_not_found
 def get(pub_key_user):
     client = AccountClient()
     address = client.make_address_from_data(pub_key_user)
