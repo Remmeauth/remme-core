@@ -14,6 +14,7 @@
 # ------------------------------------------------------------------------
 
 import hashlib
+import json
 
 import logging
 import os
@@ -127,14 +128,13 @@ class BasicHandler(TransactionHandler):
                                 'Full list of states to update: {}.'
                                 .format(addresses, updated_state.keys()))
 
-        #TODO add block number
         event_name = state_processor[transaction_payload.method].get(EMIT_EVENT, None)
         if event_name:
             add_event(context, event_name,
-                      {"entities_changed": [{**{'address': key,
-                                                'type': value.__class__.__name__},
-                                             **from_proto_to_dict(value)}
-                                            for key, value in updated_state.items()],
+                      {"entities_changed": json.dumps([{**{'address': key,
+                                                           'type': value.__class__.__name__},
+                                                        **from_proto_to_dict(value)}
+                                                        for key, value in updated_state.items()]),
                        "header_signature": transaction.signature})
 
     def make_address(self, appendix):
