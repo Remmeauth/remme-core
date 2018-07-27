@@ -6,6 +6,7 @@ import logging
 import weakref
 import asyncio
 
+from remme.protos.atomic_swap_pb2 import AtomicSwapInfo
 from remme.settings import ZMQ_URL
 from sawtooth_sdk.protobuf.client_event_pb2 import ClientEventsSubscribeRequest
 from sawtooth_sdk.protobuf.validator_pb2 import Message
@@ -19,17 +20,40 @@ from enum import Enum
 from remme.ws.constants import Entity, Status
 
 
+ATOMIC_SWAP = 'atomic-swap'
+ACCOUNT = 'account'
+
+
 @unique
 class Events(Enum):
-    SWAP_INIT = 'atomic-swap-init'
-    SWAP_CLOSE = 'atomic-swap-close'
-    SWAP_APPROVE = 'atomic-swap-approve'
-    SWAP_EXPIRE = 'atomic-swap-expire'
-    SWAP_SET_SECRET_LOCK = 'atomic-swap-set-secret-lock'
+    SWAP_INIT = f'{ATOMIC_SWAP}-init'
+    SWAP_CLOSE = f'{ATOMIC_SWAP}-close'
+    SWAP_APPROVE = f'{ATOMIC_SWAP}-approve'
+    SWAP_EXPIRE = f'{ATOMIC_SWAP}-expire'
+    SWAP_SET_SECRET_LOCK = f'{ATOMIC_SWAP}-set-secret-lock'
 
-    ACCOUNT_TRANSFER = 'account-transfer'
+    ACCOUNT_TRANSFER = f'{ACCOUNT}-transfer'
 
 LOGGER = logging.getLogger(__name__)
+
+
+def process_event(type, attributes):
+    transaction_id = None
+    entities_changed = None
+    data = {}
+    for item in attributes:
+        if item.key == 'header_signature':
+            transaction_id = item.value
+        if item.key == 'entities_changed':
+            entities_changed = json.loads(item.value)
+
+    if type.startswith(ATOMIC_SWAP):
+        for entity in entities_changed:
+            if entity['type'] == AtomicSwapInfo.__name__:
+                data = entity
+    if not data:
+        data = entities_changed
+    return transaction_id, data
 
 
 class WSEventSocketHandler(BasicWebSocketHandler):
@@ -123,7 +147,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
         for event in event_list.events:
             event_response = {}
             event_response['type'] = event.event_type
-            event_response['data'] = {item.key: item.value for item in event.attributes}
+            event_response['transaction_id'], event_response['data'] = process_event(event.event_type, event.attributes)
 
             for web_sock in self._events[event_response['type']]:
                 if web_sock in self._subscribers:
