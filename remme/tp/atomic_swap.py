@@ -101,6 +101,7 @@ class AtomicSwapHandler(BasicHandler):
         swap_info = AtomicSwapInfo()
         swap_info.swap_id = swap_init_payload.swap_id
         swap_info.is_closed = False
+        swap_info.is_expired = False
         swap_info.amount = swap_init_payload.amount
         swap_info.created_at = swap_init_payload.created_at
         swap_info.email_address_encrypted_optional = swap_init_payload.email_address_encrypted_by_initiator
@@ -190,6 +191,7 @@ class AtomicSwapHandler(BasicHandler):
                                         intiator_name, INTIATOR_TIME_LOCK, swap_info.created_at))
 
         swap_info.is_closed = True
+        swap_info.is_expired = True
 
         transfer_payload = AccountClient.get_transfer_payload(swap_info.sender_address, swap_info.amount)
         token_updated_state = AccountHandler._transfer_from_address(context,
