@@ -114,16 +114,22 @@ class HelperTestCase(TestCase):
             self._factory.create_get_request([address for address, _ in key_value.items()]))
         LOGGER.info('expect_get create_get_response')
 
+        resp_dict = {}
+        for key, value in key_value.items():
+            if hasattr(value, 'SerializeToString'):
+                resp_dict[key] = value.SerializeToString()
+            elif value is None:
+                resp_dict[key] = None
+            else:
+                resp_dict[key] = str(value).encode()
+
         self.validator.respond(
-            self._factory.create_get_response(
-                {key: value.SerializeToString() if hasattr(value, 'SerializeToString') else str(value).encode()
-                        if value else None for key, value in key_value.items()
-                }),
-            received)
+            self._factory.create_get_response(resp_dict), received)
 
     def expect_set(self, key_value):
         received = self.validator.expect(
             self._factory.create_set_request({key: value_pb.SerializeToString()
+                                              if value_pb is not None else None
                                               for key, value_pb in key_value.items()}))
 
         print('sending set response...')
@@ -145,8 +151,8 @@ class HelperTestCase(TestCase):
 
     # a short term solution
     def transfer(self, address1, amount1, address2, amount2, value):
-        self.expect_get({address1: AccountClient.get_account_model(amount1)})
-        self.expect_get({address2: AccountClient.get_account_model(amount2)})
+        self.expect_get({address1: AccountClient.get_account_model(amount1),
+                         address2: AccountClient.get_account_model(amount2)})
 
         return {
             address1: AccountClient.get_account_model(amount1 - value),
