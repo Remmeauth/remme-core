@@ -87,7 +87,7 @@ services:
     env_file:
       - ../.env
     entrypoint: |
-      bash -c "
+      sh -c "
         if [ ! -f /root/.sawtooth/keys/key.priv ]; then
           sawtooth keygen key
         fi;

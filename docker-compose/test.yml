@@ -13,11 +13,13 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-version: '2.1'
+version: '3.4'
 
 services:
   tests:
-    build: ..
+    build:
+      context: ..
+      target: build
     image: remme/remme-core:latest
     depends_on:
       - remme-tp
