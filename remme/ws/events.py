@@ -60,7 +60,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
     def __init__(self, stream, loop):
         super().__init__(stream, loop)
         # events to subscribers
-        self._events = {event.value: [] for event in Events}
+        self._events = {event.value: {} for event in Events}
         self._events_updator_task = weakref.ref(
             asyncio.ensure_future(
                 self.listen_events(), loop=self._loop))
@@ -79,7 +79,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
                     raise SocketException(web_sock, Status.WRONG_EVENT_TYPE, f"Event: {event} is not supported")
                 if web_sock in self._events[event]:
                     raise SocketException(web_sock, Status.ALREADY_SUBSCRIBED, f"Socket is already subscribed to: {event}")
-                self._events[event] += [web_sock]
+                self._events[event][web_sock] = {}
 
             LOGGER.info(f'Events being subscribed to: {events}')
 
@@ -87,12 +87,10 @@ class WSEventSocketHandler(BasicWebSocketHandler):
 
     def unsubscribe(self, web_sock):
         # currently web_sock notification is based on self._subscriptions list
-        for event, web_socks in self._events.items():
-            if web_sock in web_socks:
-                web_socks.remove(web_sock)
-                self._events[event] = web_socks
-
-        pass
+        for event, web_socks_dict in self._events.items():
+            if web_sock in web_socks_dict:
+                del web_socks_dict[web_sock]
+                self._events[event] = web_socks_dict
 
     def subscribe_events(self):
         # Setup a connection to the validator
@@ -150,10 +148,12 @@ class WSEventSocketHandler(BasicWebSocketHandler):
             event_response['transaction_id'], event_response['data'] = process_event(event.event_type, event.attributes)
 
             for web_sock in self._events[event_response['type']]:
-                if web_sock in self._subscribers:
-                    if web_sock not in web_socks_to_notify:
-                        web_socks_to_notify[web_sock] = []
-                    web_socks_to_notify[web_sock] += [event_response]
+                if web_sock.closed:
+                    await self._handle_unsubscribe(web_sock)
+                    continue
+                if web_sock not in web_socks_to_notify:
+                    web_socks_to_notify[web_sock] = []
+                web_socks_to_notify[web_sock] += [event_response]
 
         for web_sock, events in web_socks_to_notify.items():
             await self._ws_send_message(web_sock, {Entity.EVENTS.value: events})

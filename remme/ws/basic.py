@@ -57,7 +57,7 @@ class BasicWebSocketHandler():
             await ws.close(code=aiohttp.WSCloseCode.GOING_AWAY,
                            message='Server shutdown')
 
-    async def subscriptions(self, request):
+    async def on_websocket_connect(self, request):
         if not self._accepting:
             return web.Response(status=503)
 
