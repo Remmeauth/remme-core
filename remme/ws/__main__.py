@@ -35,6 +35,6 @@ if __name__ == '__main__':
     stream = Stream(ZMQ_URL)
     ws_handler = WsApplicationHandler(stream, loop=loop)
     ws_event_handler = WSEventSocketHandler(stream, loop=loop)
-    app.router.add_route('GET', '/ws/events', ws_event_handler.subscriptions)
+    app.router.add_route('GET', '/ws/events', ws_event_handler.on_websocket_connect)
     app.router.add_route('GET', '/ws', ws_handler.subscriptions)
     web.run_app(app, host=arguments.bind, port=arguments.port)
