@@ -53,6 +53,7 @@ class AtomicSwapTestCase(HelperTestCase):
         swap_info = AtomicSwapInfo()
         swap_info.swap_id = context.swap_id
         swap_info.is_closed = False
+        swap_info.is_expired = False
         swap_info.is_approved = True
         swap_info.is_initiator = False
         swap_info.amount = context.AMOUNT
@@ -317,6 +318,7 @@ class AtomicSwapTestCase(HelperTestCase):
 
         updated_state = self.transfer(ZERO_ADDRESS, context.swap_info.amount, self.account_address1, 0, context.swap_info.amount)
         context.swap_info.is_closed = True
+        context.swap_info.is_expired = True
 
         self.expect_set({
             **{context.swap_address: context.swap_info},
@@ -343,6 +345,7 @@ class AtomicSwapTestCase(HelperTestCase):
         updated_state = self.transfer(ZERO_ADDRESS, context.swap_info.amount, self.account_address1, 0,
                                       context.swap_info.amount)
         context.swap_info.is_closed = True
+        context.swap_info.is_expired = True
 
         self.expect_set({
             **{context.swap_address: context.swap_info},

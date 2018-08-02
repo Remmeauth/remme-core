@@ -631,6 +631,9 @@ responses:
         is_closed:
           description: is swap close
           type: boolean
+        is_expired:
+          description: is swap expired
+          type: boolean
         is_approved:
           description: Receiver address
           type: boolean
