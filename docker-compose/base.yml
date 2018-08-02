@@ -1,0 +1,114 @@
+# Copyright 2018 REMME
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ------------------------------------------------------------------------
+
+version: '3.4'
+
+services:
+  validator:
+    build:
+      context: ..
+      target: validator
+    image: remme/sawtooth-validator:latest
+    depends_on:
+      - remme-genesis
+    volumes:
+      - genesis_data:/genesis/batch
+      - validator_keys:/etc/sawtooth/keys
+      - chain_data:/var/lib/sawtooth/
+    network_mode: bridge
+    ports:
+      - '0.0.0.0:${REMME_VALIDATOR_PORT:-8800}:8800'
+      - '0.0.0.0:${REMME_WS_PORT:-9080}:9080'
+      - '0.0.0.0:${REMME_REST_API_PORT:-8080}:8080'
+      - '0.0.0.0:${REMME_VALIDATOR_REST_API_PORT:-8008}:8008'
+    env_file:
+      - ../.env
+    entrypoint: sh /scripts/validator.sh
+
+  remme-build:
+    build:
+      context: ..
+      target: release
+    image: remme/remme-core:latest
+
+  remme-genesis:
+    image: remme/remme-core:latest
+    volumes:
+      - user_keys:/root/.sawtooth/keys
+      - genesis_data:/genesis/batch
+    env_file:
+      - ../.env
+    command: sh /scripts/genesis.sh
+
+  validator-rest-api:
+    image: hyperledger/sawtooth-rest-api:1.0.1
+    network_mode: "service:validator"
+    depends_on:
+     - validator
+    command: sawtooth-rest-api -v --connect tcp://127.0.0.1:4004 --bind 0.0.0.0:8008
+
+  block-info-tp:
+    image: hyperledger/sawtooth-block-info-tp:1.0.1
+    network_mode: "service:validator"
+    command: block-info-tp -vv -C tcp://127.0.0.1:4004
+
+  settings-tp:
+    image: hyperledger/sawtooth-settings-tp:1.0.1
+    network_mode: "service:validator"
+    entrypoint: settings-tp -vv -C tcp://127.0.0.1:4004
+
+  poet-validator-registry:
+    build:
+      context: ..
+      target: validator-registry
+    image: remme/sawtooth-poet-validator-registry-tp:1.0.1
+    network_mode: "service:validator"
+    env_file:
+      - ../.env
+    entrypoint: sh /scripts/poet-validator-registry.sh
+
+  remme-tp:
+    image: remme/remme-core:latest
+    network_mode: "service:validator"
+    env_file:
+      - ../.env
+    entrypoint: python3 -m remme.tp tcp://127.0.0.1:4004 --account --atomic-swap --pubkey
+
+  remme-ws:
+    image: remme/remme-core:latest
+    network_mode: "service:validator"
+    depends_on:
+      - validator
+    env_file:
+      - ../.env
+    entrypoint: python3 -m remme.ws --port=9080
+
+  remme-rest-api:
+    image: remme/remme-core:latest
+    network_mode: "service:validator"
+    depends_on:
+      - validator
+    volumes:
+      - user_keys:/root/.sawtooth/keys
+      - ${REMME_CONTAINER_EXPORTS_FOLDER:-./default_export}:/root/usr/share
+    env_file:
+      - ../.env
+    entrypoint: python3 -m remme.rest_api
+
+volumes:
+  genesis_data:
+  user_keys:
+  validator_keys:
+  chain_data:
