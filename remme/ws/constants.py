@@ -15,6 +15,21 @@
 
 from enum import Enum, IntEnum, unique
 
+# to be replaced with a family name if applicable
+ATOMIC_SWAP = 'atomic-swap'
+ACCOUNT = 'account'
+
+
+@unique
+class Events(Enum):
+    SWAP_INIT = f'{ATOMIC_SWAP}-init'
+    SWAP_CLOSE = f'{ATOMIC_SWAP}-close'
+    SWAP_APPROVE = f'{ATOMIC_SWAP}-approve'
+    SWAP_EXPIRE = f'{ATOMIC_SWAP}-expire'
+    SWAP_SET_SECRET_LOCK = f'{ATOMIC_SWAP}-set-secret-lock'
+
+    ACCOUNT_TRANSFER = f'{ACCOUNT}-transfer'
+
 
 @unique
 class Action(Enum):

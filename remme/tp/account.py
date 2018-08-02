@@ -22,7 +22,7 @@ from remme.settings import GENESIS_ADDRESS, ZERO_ADDRESS
 from remme.tp.basic import *
 from remme.shared.singleton import singleton
 from remme.ws.basic import EMIT_EVENT
-from remme.ws.events import Events
+from remme.ws.constants import Events
 
 LOGGER = logging.getLogger(__name__)
 

@@ -17,22 +17,7 @@ from remme.shared.utils import generate_random_key
 from remme.ws.basic import BasicWebSocketHandler, SocketException
 from enum import Enum
 
-from remme.ws.constants import Entity, Status
-
-
-ATOMIC_SWAP = 'atomic-swap'
-ACCOUNT = 'account'
-
-
-@unique
-class Events(Enum):
-    SWAP_INIT = f'{ATOMIC_SWAP}-init'
-    SWAP_CLOSE = f'{ATOMIC_SWAP}-close'
-    SWAP_APPROVE = f'{ATOMIC_SWAP}-approve'
-    SWAP_EXPIRE = f'{ATOMIC_SWAP}-expire'
-    SWAP_SET_SECRET_LOCK = f'{ATOMIC_SWAP}-set-secret-lock'
-
-    ACCOUNT_TRANSFER = f'{ACCOUNT}-transfer'
+from remme.ws.constants import Entity, Status, ATOMIC_SWAP, Events
 
 LOGGER = logging.getLogger(__name__)
 
