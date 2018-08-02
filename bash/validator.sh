@@ -45,6 +45,10 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
 
     GENESIS_BATCHES="$GENESIS_BATCHES block_config.batch settings_config.batch"
 
+    if [ "$REMME_ECONOMY_ENABLED" = "True" ]; then
+        GENESIS_BATCHES="$GENESIS_BATCHES /genesis/batch/token-proposal.batch"
+    fi
+
     sawadm genesis $GENESIS_BATCHES
 fi
 

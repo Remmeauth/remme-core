@@ -13,7 +13,7 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-version: '2.1'
+version: '3.4'
 
 services:
   validator:
@@ -22,80 +22,19 @@ services:
     volumes:
       - genesis_data:/genesis/batch
       - user_keys:/root/.sawtooth/keys
-    entrypoint: |
-      bash -c "
-        if [ -d /var/lib/sawtooth ]; then
-          rm /var/lib/sawtooth/*
-        fi
-        if [ ! -f /etc/sawtooth/keys/validator.priv ]; then
-          sawadm keygen
-        fi
-
-        sawset genesis -k /etc/sawtooth/keys/validator.priv && \
-
-        GENESIS_BATCHES=\"config-genesis.batch\"
-
-        if [ \"$$REMME_ECONOMY_ENABLED\" = \"True\" ]; then
-          GENESIS_BATCHES=\"$$GENESIS_BATCHES /genesis/batch/token-proposal.batch\"
-        fi
-
-        if [ \"$$REMME_CONSENSUS\" = \"poet-simulator\" ]; then
-          sawset proposal create -k /etc/sawtooth/keys/validator.priv \
-            sawtooth.consensus.algorithm=poet \
-            \"sawtooth.poet.report_public_key_pem=$$(cat /etc/sawtooth/simulator_rk_pub.pem)\" \
-            \"sawtooth.poet.valid_enclave_measurements=$$(poet enclave --enclave-module simulator measurement)\" \
-            \"sawtooth.poet.valid_enclave_basenames=$$(poet enclave --enclave-module simulator basename)\" \
-            sawtooth.poet.enclave_module_name=sawtooth_poet_simulator.poet_enclave_simulator.poet_enclave_simulator \
-            -o poet_config.batch && \
-
-          poet registration create -k /etc/sawtooth/keys/validator.priv \
-            --enclave-module simulator -o poet_genesis.batch
-
-          GENESIS_BATCHES=\"$$GENESIS_BATCHES poet_config.batch poet_genesis.batch\"
-        fi
-
-        sawset proposal create \
-            -k /etc/sawtooth/keys/validator.priv \
-            sawtooth.validator.batch_injectors=block_info \
-            'sawtooth.validator.block_validation_rules=NofX:1,block_info;XatY:block_info,0;local:0' \
-            -o block_config.batch
-
-        sawset proposal create -k /etc/sawtooth/keys/validator.priv \
-            \"remme.settings.pub_key_encryption=$$(cat /etc/sawtooth/keys/validator.pub)\" \
-            \"remme.settings.genesis_owners=$$(cat /etc/sawtooth/keys/validator.pub)\" \
-            remme.settings.swap_comission=100 \
-            -o settings_config.batch
-
-        GENESIS_BATCHES=\"$$GENESIS_BATCHES block_config.batch settings_config.batch\"
-
-        sawadm genesis $$GENESIS_BATCHES && \
-
-        sawtooth-validator -vv \
-          --endpoint tcp://$$REMME_VALIDATOR_IP:$$REMME_VALIDATOR_PORT \
-          --bind component:tcp://eth0:4004 \
-          --bind network:tcp://eth0:8800 \
-          --minimum-peer-connectivity $$REMME_MINIMUM_PEERS_CONNECTIVITY \
-          --scheduler parallel
-      "
+    environment:
+      - REMME_START_MODE=genesis
 
   remme-genesis:
-    build: ..
     image: remme/remme-core:latest
     volumes:
       - user_keys:/root/.sawtooth/keys
       - genesis_data:/genesis/batch
     env_file:
       - ../.env
-    entrypoint: |
-      sh -c "
-        if [ ! -f /root/.sawtooth/keys/key.priv ]; then
-          sawtooth keygen key
-        fi;
-        if [ ! -e /genesis/batch ]; then
-          mkdir /genesis/batch
-        fi;
-        python3 -m remme.genesis $${REMME_TOKEN_SUPPLY}
-      "
+    environment:
+      - REMME_START_MODE=genesis
+    command: sh /scripts/genesis.sh
 
 volumes:
   genesis_data:

@@ -31,8 +31,16 @@ COPY ./remme ./remme/remme
 COPY ./setup.py ./remme
 RUN pip3 install --user ./remme
 COPY ./tests ./tests
+COPY ./bash /scripts
 
 FROM alpine:edge as release
 RUN apk --update --no-cache add --force python3 libffi openssl libzmq
 COPY --from=build /install /install
 ENV PYTHONUSERBASE=/install
+COPY ./bash /scripts
+
+FROM hyperledger/sawtooth-validator:1.0.1 as validator
+COPY ./bash /scripts
+
+FROM hyperledger/sawtooth-poet-validator-registry-tp:1.0.1 as validator-registry
+COPY ./bash /scripts

@@ -23,12 +23,15 @@ services:
     image: remme/remme-core:latest
     depends_on:
       - remme-tp
-    expose:
-      - 4004
+    network_mode: bridge
     environment:
-      TEST_BIND: "tcp://eth0:4004"
+      - TEST_BIND=tcp://127.0.0.1:4004
+    entrypoint: python3 -m unittest discover ./tests
 
   remme-tp:
-    build: ..
+    build:
+      context: ..
+      target: build
     image: remme/remme-core:latest
-    entrypoint: python3 -m remme.tp tcp://tests:4004 --account --atomic-swap --pubkey
+    network_mode: "service:tests"
+    entrypoint: python3 -m remme.tp tcp://127.0.0.1:4004 --account --atomic-swap --pubkey
