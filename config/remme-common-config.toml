@@ -1,8 +1,0 @@
-[remme.validator]
-ip = "127.0.0.1"
-port = 8800
-peering_mode = "dynamic"
-peers_list = []
-seeds_list = []
-consensus = ""
-minimum_peers_connectivity = 1

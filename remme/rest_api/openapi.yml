@@ -430,40 +430,40 @@ paths:
         500:
           $ref: '#/responses/500GeneralError'
 
-  /block-config:
-    get:
-      summary: Get Block Config
-      operationId: remme.rest_api.block_info.get_block_config
-      responses:
-        200:
-          $ref: '#/responses/BlockConfig'
-        500:
-          $ref: '#/responses/500GeneralError'
-
-  /block-info:
-    get:
-      summary: Get blocks
-      operationId: remme.rest_api.block_info.get_block_info
-      parameters:
-        - name: start
-          description: Starting block number of the block list
-          in: query
-          type: integer
-        - name: limit
-          description: Number of blocks to return in descending order
-          in: query
-          type: integer
-      responses:
-        200:
-          description: List of blocks (BlockInfo type)
-          schema:
-            properties:
-              blocks:
-                type: array
-                items:
-                  $ref: '#/definitions/BlockInfo'
-        500:
-          $ref: '#/responses/500GeneralError'
+#  /block-config:
+#    get:
+#      summary: Get Block Config
+#      operationId: remme.rest_api.block_info.get_block_config
+#      responses:
+#        200:
+#          $ref: '#/responses/BlockConfig'
+#        500:
+#          $ref: '#/responses/500GeneralError'
+#
+#  /block-info:
+#    get:
+#      summary: Get blocks
+#      operationId: remme.rest_api.block_info.get_block_info
+#      parameters:
+#        - name: start
+#          description: Starting block number of the block list
+#          in: query
+#          type: integer
+#        - name: limit
+#          description: Number of blocks to return in descending order
+#          in: query
+#          type: integer
+#      responses:
+#        200:
+#          description: List of blocks (BlockInfo type)
+#          schema:
+#            properties:
+#              blocks:
+#                type: array
+#                items:
+#                  $ref: '#/definitions/BlockInfo'
+#        500:
+#          $ref: '#/responses/500GeneralError'
 
   /personal:
     get:
@@ -503,108 +503,108 @@ paths:
           description: Successfully deleted a key
         404:
           description: No key with the given name found
-  /atomic-swap/init:
-    post:
-      operationId: remme.rest_api.atomic_swap.init
-      summary: Alice may initialize a swap transaction or Bob may follow one as a "non initiator"
-      tags:
-        - Atomic Swap
-      parameters:
-        - $ref: '#/parameters/swap_init_payload'
-      responses:
-        200:
-          $ref: '#/responses/200BatchSubmitted'
-        500:
-          $ref: '#/responses/500GeneralError'
-
-  /atomic-swap/approve:
-    post:
-      operationId: remme.rest_api.atomic_swap.approve
-      summary: Alice may initialize a swap transaction or Bob may follow one as a "non initiator"
-      tags:
-        - Atomic Swap
-      parameters:
-        - $ref: '#/parameters/swap_approve_payload'
-      responses:
-        200:
-          $ref: '#/responses/200BatchSubmitted'
-        500:
-          $ref: '#/responses/500GeneralError'
-
-  /atomic-swap/expire:
-    post:
-      operationId: remme.rest_api.atomic_swap.expire
-      summary: Alice or Bob expire the swap and receive the refund
-      tags:
-        - Atomic Swap
-      parameters:
-        - $ref: '#/parameters/swap_approve_payload'
-      responses:
-        200:
-          $ref: '#/responses/200BatchSubmitted'
-        500:
-          $ref: '#/responses/500GeneralError'
-  /atomic-swap/set-secret-lock:
-    post:
-      operationId: remme.rest_api.atomic_swap.set_secret_lock
-      summary: Bob may set the secret lock
-      tags:
-        - Atomic Swap
-      parameters:
-        - $ref: '#/parameters/swap_set_secret_lock_payload'
-      responses:
-        200:
-          $ref: '#/responses/200BatchSubmitted'
-        500:
-          $ref: '#/responses/500GeneralError'
-  /atomic-swap/close:
-    post:
-      operationId: remme.rest_api.atomic_swap.close
-      summary: Close the swap by providing a secret key
-      tags:
-        - Atomic Swap
-      parameters:
-        - $ref: '#/parameters/swap_close_payload'
-      responses:
-        200:
-          $ref: '#/responses/200BatchSubmitted'
-        500:
-          $ref: '#/responses/500GeneralError'
-  /atomic-swap/{swap_id}:
-    get:
-      operationId: remme.rest_api.atomic_swap.get_swap_info
-      summary: Get information about swap
-      tags:
-        - Atomic Swap
-      parameters:
-        - name: swap_id
-          description: The id of the batch to check
-          in: path
-          type: string
-          pattern: '^[0-9a-f]{64}$'
-          required: true
-      responses:
-        200:
-          $ref: '#/responses/SwapInfo'
-        404:
-          description: No batch with the given id found
-        500:
-          $ref: '#/responses/500GeneralError'
-
-  /atomic-swap/pub-key-encryption:
-    get:
-      operationId: remme.rest_api.atomic_swap.get_pub_key_encryption
-      summary: Get a public key with which to enсrypt sensitive data during the swap. (e.g email address)
-      tags:
-        - Atomic Swap
-      responses:
-        200:
-          description: Public key
-          schema:
-            properties:
-              pub_key:
-                description: Public Key
-                type: string
+#  /atomic-swap/init:
+#    post:
+#      operationId: remme.rest_api.atomic_swap.init
+#      summary: Alice may initialize a swap transaction or Bob may follow one as a "non initiator"
+#      tags:
+#        - Atomic Swap
+#      parameters:
+#        - $ref: '#/parameters/swap_init_payload'
+#      responses:
+#        200:
+#          $ref: '#/responses/200BatchSubmitted'
+#        500:
+#          $ref: '#/responses/500GeneralError'
+#
+#  /atomic-swap/approve:
+#    post:
+#      operationId: remme.rest_api.atomic_swap.approve
+#      summary: Alice may initialize a swap transaction or Bob may follow one as a "non initiator"
+#      tags:
+#        - Atomic Swap
+#      parameters:
+#        - $ref: '#/parameters/swap_approve_payload'
+#      responses:
+#        200:
+#          $ref: '#/responses/200BatchSubmitted'
+#        500:
+#          $ref: '#/responses/500GeneralError'
+#
+#  /atomic-swap/expire:
+#    post:
+#      operationId: remme.rest_api.atomic_swap.expire
+#      summary: Alice or Bob expire the swap and receive the refund
+#      tags:
+#        - Atomic Swap
+#      parameters:
+#        - $ref: '#/parameters/swap_approve_payload'
+#      responses:
+#        200:
+#          $ref: '#/responses/200BatchSubmitted'
+#        500:
+#          $ref: '#/responses/500GeneralError'
+#  /atomic-swap/set-secret-lock:
+#    post:
+#      operationId: remme.rest_api.atomic_swap.set_secret_lock
+#      summary: Bob may set the secret lock
+#      tags:
+#        - Atomic Swap
+#      parameters:
+#        - $ref: '#/parameters/swap_set_secret_lock_payload'
+#      responses:
+#        200:
+#          $ref: '#/responses/200BatchSubmitted'
+#        500:
+#          $ref: '#/responses/500GeneralError'
+#  /atomic-swap/close:
+#    post:
+#      operationId: remme.rest_api.atomic_swap.close
+#      summary: Close the swap by providing a secret key
+#      tags:
+#        - Atomic Swap
+#      parameters:
+#        - $ref: '#/parameters/swap_close_payload'
+#      responses:
+#        200:
+#          $ref: '#/responses/200BatchSubmitted'
+#        500:
+#          $ref: '#/responses/500GeneralError'
+#  /atomic-swap/{swap_id}:
+#    get:
+#      operationId: remme.rest_api.atomic_swap.get_swap_info
+#      summary: Get information about swap
+#      tags:
+#        - Atomic Swap
+#      parameters:
+#        - name: swap_id
+#          description: The id of the batch to check
+#          in: path
+#          type: string
+#          pattern: '^[0-9a-f]{64}$'
+#          required: true
+#      responses:
+#        200:
+#          $ref: '#/responses/SwapInfo'
+#        404:
+#          description: No batch with the given id found
+#        500:
+#          $ref: '#/responses/500GeneralError'
+#
+#  /atomic-swap/pub-key-encryption:
+#    get:
+#      operationId: remme.rest_api.atomic_swap.get_pub_key_encryption
+#      summary: Get a public key with which to enсrypt sensitive data during the swap. (e.g email address)
+#      tags:
+#        - Atomic Swap
+#      responses:
+#        200:
+#          description: Public key
+#          schema:
+#            properties:
+#              pub_key:
+#                description: Public Key
+#                type: string
 
 responses:
   200BatchSubmitted:

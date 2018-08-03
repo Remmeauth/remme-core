@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-source .env
+source ./bash/network-config.env
 docker-compose -f docker-compose/base.yml up

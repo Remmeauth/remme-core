@@ -41,6 +41,8 @@ COPY ./bash /scripts
 
 FROM hyperledger/sawtooth-validator:1.0.1 as validator
 COPY ./bash /scripts
+RUN chmod +x /scripts/toml-to-env.py
 
 FROM hyperledger/sawtooth-poet-validator-registry-tp:1.0.1 as validator-registry
 COPY ./bash /scripts
+RUN chmod +x /scripts/toml-to-env.py

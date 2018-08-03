@@ -1,4 +1,8 @@
+eval `python3 /scripts/toml-to-env.py`
+
 ADDITIONAL_ARGS=""
+
+echo "Economy enabled: $REMME_ECONOMY_ENABLED"
 
 if [ ! -f /etc/sawtooth/keys/validator.priv ]; then
     sawadm keygen
@@ -20,6 +24,7 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
             "sawtooth.poet.valid_enclave_measurements=$(poet enclave --enclave-module simulator measurement)" \
             "sawtooth.poet.valid_enclave_basenames=$(poet enclave --enclave-module simulator basename)" \
             sawtooth.poet.enclave_module_name=sawtooth_poet_simulator.poet_enclave_simulator.poet_enclave_simulator \
+            remme.economy_enabled=$REMME_ECONOMY_ENABLED \
             -o poet_config.batch
 
         poet registration create \
@@ -53,20 +58,12 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
 fi
 
 if [ "$REMME_START_MODE" = "run" ]; then
-
-    ADDITIONAL_ARGS="--peering $REMME_PEERING_MODE"
-    if [ ! -z "$REMME_PEERS_LIST" ]; then
-        ADDITIONAL_ARGS="$ADDITIONAL_ARGS --peers $REMME_PEERS_LIST"
-    fi
-    if [ ! -z "$REMME_SEEDS_LIST" ]; then
-        ADDITIONAL_ARGS="$ADDITIONAL_ARGS --seeds $REMME_SEEDS_LIST"
-    fi
+    SEEDS=$(sed ':a;N;$!ba;s/\n/,/g' /config/seeds-list.txt)
+    ADDITIONAL_ARGS="$ADDITIONAL_ARGS --seeds $SEEDS --peers $SEEDS"
 fi
 
 sawtooth-validator -vv \
     --endpoint tcp://$REMME_VALIDATOR_IP:$REMME_VALIDATOR_PORT \
     --bind component:tcp://127.0.0.1:4004 \
     --bind network:tcp://0.0.0.0:8800 \
-    --scheduler parallel \
-    --minimum-peer-connectivity $REMME_MINIMUM_PEERS_CONNECTIVITY \
     $ADDITIONAL_ARGS

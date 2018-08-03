@@ -24,6 +24,8 @@ services:
     volumes:
       - validator_keys:/etc/sawtooth/keys
       - chain_data:/var/lib/sawtooth/
+      - ../config/remme-genesis-config.toml:/config/remme-genesis-config.toml
+      - ../config/sawtooth-validator-config.toml:/etc/sawtooth/validator.toml
     network_mode: bridge
     ports:
       - '0.0.0.0:${REMME_VALIDATOR_PORT:-8800}:8800'
@@ -31,7 +33,7 @@ services:
       - '0.0.0.0:${REMME_REST_API_PORT:-8080}:8080'
       - '0.0.0.0:${REMME_VALIDATOR_REST_API_PORT:-8008}:8008'
     env_file:
-      - ../.env
+      - ../config/network-config.env
     environment:
       - REMME_START_MODE=run
     entrypoint: sh /scripts/validator.sh
@@ -65,24 +67,24 @@ services:
       target: validator-registry
     image: remme/sawtooth-poet-validator-registry-tp:1.0.1
     network_mode: "service:validator"
-    env_file:
-      - ../.env
+    volumes:
+      - ../config/remme-genesis-config.toml:/config/remme-genesis-config.toml
     entrypoint: sh /scripts/poet-validator-registry.sh
 
   remme-tp:
     image: remme/remme-core:latest
     network_mode: "service:validator"
-    env_file:
-      - ../.env
-    entrypoint: python3 -m remme.tp tcp://127.0.0.1:4004 --account --atomic-swap --pubkey
+    volumes:
+      - ../config/remme-client-config.toml:/config/remme-client-config.toml
+    entrypoint: python3 -m remme.tp --account --atomic-swap --pubkey
 
   remme-ws:
     image: remme/remme-core:latest
     network_mode: "service:validator"
     depends_on:
       - validator
-    env_file:
-      - ../.env
+    volumes:
+      - ../config/remme-client-config.toml:/config/remme-client-config.toml
     entrypoint: python3 -m remme.ws --port=9080
 
   remme-rest-api:
@@ -93,13 +95,11 @@ services:
     volumes:
       - user_keys:/root/.sawtooth/keys
       - ${REMME_CONTAINER_EXPORTS_FOLDER:-./default_export}:/root/usr/share
+      - ../config/remme-client-config.toml:/config/remme-client-config.toml
       - ../config/remme-rest-api.toml:/config/remme-rest-api.toml
-    env_file:
-      - ../.env
     entrypoint: python3 -m remme.rest_api
 
 volumes:
   user_keys:
   validator_keys:
   chain_data:
-

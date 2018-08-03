@@ -20,9 +20,7 @@ services:
     build:
       context: ..
       target: build
-    image: remme/remme-core:latest
-    depends_on:
-      - remme-tp
+    image: remme/remme-core-dev:latest
     network_mode: bridge
     environment:
       - TEST_BIND=tcp://127.0.0.1:4004

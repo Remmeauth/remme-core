@@ -14,21 +14,24 @@
 # ------------------------------------------------------------------------
 
 import argparse
+import toml
 from remme.protos.account_pb2 import AccountMethod
 from remme.clients.account import AccountClient
 from remme.tp.account import AccountHandler, TransactionPayload
-from remme.settings import GENESIS_ADDRESS, ENABLE_ECONOMY
+from remme.settings import GENESIS_ADDRESS
 
 OUTPUT_BATCH = '/genesis/batch/token-proposal.batch'
 
 if __name__ == '__main__':
+    parameters = toml.load('/config/remme-genesis-config.toml')['remme']['genesis']
+
     parser = argparse.ArgumentParser(description='File with a public key to assign initial supply.')
-    parser.add_argument('token_supply')
+    parser.add_argument('--token-supply', default=parameters['token_supply'])
     args = parser.parse_args()
 
     account_client = AccountClient()
 
-    if ENABLE_ECONOMY:
+    if parameters['economy_enabled']:
         zero_address = AccountHandler.make_address('0' * 64)
         target_address = AccountHandler.make_address_from_data(account_client.get_signer().get_public_key().as_hex())
 

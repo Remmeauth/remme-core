@@ -1,0 +1,6 @@
+# For more info please refer to
+# https://sawtooth.hyperledger.org/docs/core/releases/1.0.5/sysadmin_guide/configuring_sawtooth/validator_configuration_file.html
+
+peering = "dynamic"
+minimum_peer_connectivity = 1
+scheduler = "parallel"
