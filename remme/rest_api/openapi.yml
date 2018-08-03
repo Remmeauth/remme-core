@@ -150,6 +150,28 @@ paths:
               - pub_keys
         500:
           $ref: '#/responses/500GeneralError'
+  /network:
+    get:
+      operationId: remme.rest_api.network.get
+      summary: Retrieve the synchronization of node and list of active peers
+      tags:
+        - Network
+      responses:
+        200:
+          description: The addresses of public keys for the specified user
+          schema:
+            properties:
+              is_synced:
+                type: boolean
+                description: The status of node sync
+              peer_count:
+                type: integer
+                description: The count of active peers
+            required:
+              - is_synced
+              - peer_count
+        500:
+          $ref: '#/responses/500GeneralError'
   /certificate/p12:
     put:
       operationId: remme.rest_api.pub_key.put_p12

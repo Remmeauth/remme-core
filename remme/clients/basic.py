@@ -34,6 +34,9 @@ from sawtooth_sdk.protobuf.transaction_pb2 import (
     Transaction, TransactionHeader
 )
 from sawtooth_sdk.messaging.stream import Stream
+from sawtooth_sdk.protobuf.client_peers_pb2 import (
+    ClientPeersGetRequest, ClientPeersGetResponse
+)
 from sawtooth_sdk.protobuf.client_batch_submit_pb2 import (
     ClientBatchSubmitRequest, ClientBatchSubmitResponse,
     ClientBatchStatusRequest, ClientBatchStatusResponse,
@@ -101,7 +104,7 @@ class BasicClient:
                 with open(keyfile, 'w') as fd:
                     fd.write(private_key.as_hex())
             except OSError as err:
-                raise ClientException('Failed to write private key: {0}'.format(err))
+                raise ClientException(f'Failed to write private key: {err}')
         return CryptoFactory(context).new_signer(private_key)
 
     def make_address(self, suffix):
@@ -114,11 +117,13 @@ class BasicClient:
         return self._family_handler.is_address(address)
 
     def get_value(self, address):
-        result = self._send_request("state/{}".format(address), conn_protocol='socket')
+        result = self._send_request(f"state/{address}",
+                                    conn_protocol='socket')
         return base64.b64decode(result['data'])
 
     def get_batch(self, batch_id):
-        result = self._send_request("batch_statuses?id={}".format(batch_id), conn_protocol='socket')
+        result = self._send_request(f"batch_statuses?id={batch_id}",
+                                    conn_protocol='socket')
         return result['data'][0]
 
     def get_signer(self):
@@ -217,6 +222,12 @@ class BasicClient:
             raise ClientException("Error: %s" % data)
 
         return data
+
+    def fetch_peers(self):
+        resp = self._handle_response(Message.CLIENT_PEERS_GET_REQUEST,
+                                     ClientPeersGetResponse,
+                                     ClientPeersGetRequest())
+        return {'data': resp['peers']}
 
     def get_root_block(self):
         resp = self._handle_response(Message.CLIENT_BLOCK_LIST_REQUEST,
