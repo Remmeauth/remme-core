@@ -646,13 +646,14 @@ responses:
         error:
           type: string
           description: Error description
+
   SwapInfo:
     description: Swap info fields
     schema:
       properties:
         state:
           description: The current state the swap is in.
-          type: integer
+          type: string
         sender_address:
           $ref: '#/definitions/Address'
         receiver_address:
