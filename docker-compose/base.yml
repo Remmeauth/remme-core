@@ -22,7 +22,6 @@ services:
       target: validator
     image: remme/sawtooth-validator:latest
     volumes:
-      - genesis_data:/genesis/batch
       - validator_keys:/etc/sawtooth/keys
       - chain_data:/var/lib/sawtooth/
     network_mode: bridge
