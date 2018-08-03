@@ -650,15 +650,9 @@ responses:
     description: Swap info fields
     schema:
       properties:
-        is_closed:
-          description: is swap close
-          type: boolean
-        is_expired:
-          description: is swap expired
-          type: boolean
-        is_approved:
-          description: Receiver address
-          type: boolean
+        state:
+          description: The current state the swap is in.
+          type: integer
         sender_address:
           $ref: '#/definitions/Address'
         receiver_address:
