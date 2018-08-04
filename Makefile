@@ -13,8 +13,6 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-PROTO_SRC_DIR = ./protos
-PROTO_DST_DIR = ./remme/protos
 RELEASE_NUMBER ?= $(shell git describe --abbrev=0 --tags)
 
 include ./config/network-config.env
@@ -35,15 +33,8 @@ run_dev:
 run_docs:
 	docker-compose -f docker-compose/docs.yml up --build
 
-poet_enroll_validators_list:
-	docker exec -it $(shell docker-compose -f docker-compose/dev.yml ps -q validator) bash -c "poet registration \
-	create -k /etc/sawtooth/keys/validator.priv -o enroll_poet.batch && sawtooth batch submit -f enroll_poet.batch --url http://rest-api:8080"
-
 test:
 	docker-compose -f docker-compose/test.yml up --build --abort-on-container-exit
-
-build_protobuf:
-	protoc -I=$(PROTO_SRC_DIR) --python_out=$(PROTO_DST_DIR) $(PROTO_SRC_DIR)/*.proto
 
 rebuild_docker:
 	docker-compose -f docker-compose/dev.yml build --no-cache

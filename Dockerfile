@@ -16,7 +16,7 @@
 # TODO check if it works with a newer version of Debian
 FROM python:3.6.5-alpine as build
 WORKDIR /root
-RUN apk --update --no-cache add rsync pkgconf build-base autoconf automake libtool libffi-dev python3-dev zeromq-dev openssl-dev
+RUN apk --update --no-cache add rsync pkgconf build-base autoconf automake protobuf libtool libffi-dev python3-dev zeromq-dev openssl-dev
 RUN mkdir /install
 ENV PYTHONUSERBASE=/install
 COPY ./requirements.txt .
@@ -26,8 +26,9 @@ RUN cd $(python3 -c "import connexion, os; print(os.path.dirname(connexion.__fil
     sh update.sh 3.17.0 && \
     patch -p0 < /root/swagger-index.patch && \
     cd /root
-RUN mkdir -p remme/remme
 COPY ./remme ./remme/remme
+COPY ./protos ./remme/protos
+RUN protoc -I=./remme/protos --python_out=./remme/remme/protos ./remme/protos/*.proto
 COPY ./setup.py ./remme
 RUN pip3 install --user ./remme
 COPY ./tests ./tests
