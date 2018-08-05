@@ -17,6 +17,7 @@ version: '2.1'
 
 services:
   remme-docs:
+    container_name: remme_docs
     build: ..
     image: remme/remme-core:latest
     volumes:

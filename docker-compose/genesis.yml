@@ -26,6 +26,7 @@ services:
       - REMME_START_MODE=genesis
 
   remme-genesis:
+    container_name: remme_genesis
     image: remme/remme-core:latest
     volumes:
       - user_keys:/root/.sawtooth/keys

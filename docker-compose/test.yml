@@ -17,6 +17,7 @@ version: '3.4'
 
 services:
   tests:
+    container_name: remme_tests
     build:
       context: ..
       target: build
@@ -27,6 +28,7 @@ services:
     entrypoint: python3 -m unittest discover ./tests
 
   remme-tp:
+    container_name: remme_tests_tp
     build:
       context: ..
       target: build
