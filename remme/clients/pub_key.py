@@ -23,7 +23,7 @@ from remme.clients.basic import BasicClient
 from remme.tp.pub_key import PubKeyHandler
 from remme.tp.account import AccountHandler
 from remme.tp.pub_key import PUB_KEY_ORGANIZATION, PUB_KEY_MAX_VALIDITY
-
+from remme.settings.helper import _make_settings_key
 
 from cryptography.x509.oid import NameOID
 from cryptography import x509
@@ -89,9 +89,9 @@ class PubKeyClient(BasicClient):
                                                valid_to)
 
         crt_address = self.make_address_from_data(public_key)
-
         account_address = AccountHandler.make_address_from_data(self._signer.get_public_key().as_hex())
-        return self._send_transaction(PubKeyMethod.STORE, payload, [crt_address, account_address]), crt_address
+        settings_address = _make_settings_key('remme.economy_enabled')
+        return self._send_transaction(PubKeyMethod.STORE, payload, [crt_address, account_address, settings_address]), crt_address
 
     def revoke_pub_key(self, crt_address):
         payload = self.get_revoke_payload(crt_address)
