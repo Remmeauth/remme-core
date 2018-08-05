@@ -26,6 +26,7 @@ services:
       - chain_data:/var/lib/sawtooth/
       - ../config/remme-genesis-config.toml:/config/remme-genesis-config.toml
       - ../config/sawtooth-validator-config.toml:/etc/sawtooth/validator.toml
+      - ../config/seeds-list.txt:/config/seeds-list.txt
     network_mode: bridge
     ports:
       - '0.0.0.0:${REMME_VALIDATOR_PORT:-8800}:8800'
