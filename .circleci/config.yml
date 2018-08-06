@@ -26,11 +26,8 @@ jobs:
             git submodule init && \
             git submodule update --init
       - run:
-          name: Build test images
-          command: docker build --target build -t remme/remme-core-dev:latest .
-      - run:
           name: Run tests
-          command: docker-compose -f docker-compose/test.yml up --abort-on-container-exit
+          command: make test
   deploy:
     machine:
       docker_layer_caching: true
