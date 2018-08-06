@@ -19,15 +19,6 @@ jobs:
     machine:
       docker_layer_caching: true
     steps:
-      - run:
-          name: Install proto3
-          command: |
-            curl -OL https://github.com/google/protobuf/releases/download/v3.5.1/protoc-3.5.1-linux-x86_64.zip && \
-            unzip protoc-3.5.1-linux-x86_64.zip -d protoc3 && \
-            sudo mv protoc3/bin/* /usr/local/bin/ && \
-            sudo mv protoc3/include/* /usr/local/include/ && \
-            rm protoc-3.5.1-linux-x86_64.zip && \
-            rm -rf protoc3
       - checkout
       - run:
           name: Clone submodules
@@ -35,8 +26,11 @@ jobs:
             git submodule init && \
             git submodule update --init
       - run:
+          name: Build test images
+          command: docker build --target build -t remme/remme-core-dev:latest .
+      - run:
           name: Run tests
-          command: make test
+          command: docker-compose -f docker-compose/test.yml up --abort-on-container-exit
   deploy:
     machine:
       docker_layer_caching: true

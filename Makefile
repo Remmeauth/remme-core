@@ -34,6 +34,7 @@ run_docs:
 	docker-compose -f docker-compose/docs.yml up --build
 
 test:
+	docker build --target build -t remme/remme-core-dev:latest .
 	docker-compose -f docker-compose/test.yml up --build --abort-on-container-exit
 
 rebuild_docker:
