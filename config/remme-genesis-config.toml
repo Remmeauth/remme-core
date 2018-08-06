@@ -2,4 +2,4 @@
 token_supply = 1000000000000
 economy_enabled = true
 # leave empty for devmode
-consensus = ""
+consensus = "poet-simulator"
