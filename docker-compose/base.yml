@@ -49,7 +49,7 @@ services:
 
   validator-rest-api:
     container_name: remme_validator_rest_api
-    image: hyperledger/sawtooth-rest-api:1.0.1
+    image: hyperledger/sawtooth-rest-api:1.0.5
     network_mode: "service:validator"
     depends_on:
      - validator
@@ -57,13 +57,16 @@ services:
 
   block-info-tp:
     container_name: remme_block_info_tp
-    image: hyperledger/sawtooth-block-info-tp:1.0.1
+    build:
+      context: ..
+      target: sawtooth-block-info-tp
+    image: remme/sawtooth-block-info-tp:1.0.4
     network_mode: "service:validator"
     command: block-info-tp -vv -C tcp://127.0.0.1:4004
 
   settings-tp:
     container_name: remme_settings_tp
-    image: hyperledger/sawtooth-settings-tp:1.0.1
+    image: hyperledger/sawtooth-settings-tp:1.0.5
     network_mode: "service:validator"
     entrypoint: settings-tp -vv -C tcp://127.0.0.1:4004
 
@@ -72,7 +75,7 @@ services:
     build:
       context: ..
       target: validator-registry
-    image: remme/sawtooth-poet-validator-registry-tp:1.0.1
+    image: remme/sawtooth-poet-validator-registry-tp:1.0.5
     network_mode: "service:validator"
     volumes:
       - ../config/remme-genesis-config.toml:/config/remme-genesis-config.toml
