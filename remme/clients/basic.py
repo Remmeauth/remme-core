@@ -16,6 +16,7 @@ import logging
 import base64
 import time
 import json
+import toml
 from contextlib import suppress
 
 import requests
@@ -43,26 +44,29 @@ from sawtooth_signing import CryptoFactory, ParseError, create_context
 from sawtooth_signing.secp256k1 import Secp256k1PrivateKey
 
 from remme.protos.transaction_pb2 import TransactionPayload
-from remme.settings import REST_API_URL, PRIV_KEY_FILE, ZMQ_URL
 from remme.shared.exceptions import ClientException, KeyNotFound
 from remme.shared.utils import hash512, get_batch_id, message_to_dict
-from remme.settings import REST_API_URL, PRIV_KEY_FILE
 from remme.shared.exceptions import ClientException
 from remme.shared.exceptions import KeyNotFound
 from remme.shared.utils import hash512
 from remme.tp.account import AccountHandler, is_address
 
+from remme.settings import PRIV_KEY_FILE
 
 LOGGER = logging.getLogger(__name__)
 
 
 class BasicClient:
+    def __init__(self, family_handler, test_helper=None, keyfile=None):
+        config = toml.load('/config/remme-client-config.toml')['remme']['client']
 
-    def __init__(self, family_handler, test_helper=None, keyfile=PRIV_KEY_FILE):
-        self.url = REST_API_URL
+        self.url = config['validator_rest_api_url']
         self._family_handler = family_handler
         self.test_helper = test_helper
-        self._stream = Stream(ZMQ_URL)
+        self._stream = Stream(f'tcp://{ config["validator_ip"] }:{ config["validator_port"] }')
+
+        if keyfile is None:
+            keyfile = PRIV_KEY_FILE
 
         try:
             self._signer = self.get_signer_priv_key_from_file(keyfile)
