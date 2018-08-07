@@ -29,7 +29,7 @@ services:
 
   remme-tp:
     container_name: remme_tests_tp
-    image: remme/remme-core:latest
+    image: remme/remme-core-dev:latest
     network_mode: "service:tests"
     volumes:
       - ../config/remme-client-config.toml:/config/remme-client-config.toml
