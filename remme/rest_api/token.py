@@ -13,7 +13,6 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-import re
 from remme.clients.account import AccountClient
 from remme.rest_api import handle_key_not_found
 

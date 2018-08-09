@@ -11,15 +11,13 @@ def access_denied_function(*args, **kwargs):
 
 class RestMethodsSwitcherResolver(RestyResolver):
 
-    def __init__(self, default_module_name, collection_endpoint_name='search'):
-        rules = os.getenv(REST_METHODS_ENV_KEY)
+    def __init__(self, default_module_name, rules="*", collection_endpoint_name='search'):
         self.request_path = None
         self.request_method = None
-        self.allow_all_requests = rules == '*' \
-                                  or rules == None
+        self.allow_all_requests = rules == '*' or rules is None
         if not self.allow_all_requests:
             try:
-                self.allowed_operations = get_allowed_operations(rules)
+                self.allowed_operations = rules
             except IndexError:
                 raise ValueError('Could not parse {} env var value'.format(REST_METHODS_ENV_KEY))
 
@@ -51,28 +49,5 @@ class RestMethodsSwitcherResolver(RestyResolver):
         return self.request_path in self.allowed_operations
 
 
-def get_allowed_method(method_str):
-    return method_str.split(':')[0]
-
-
-def get_allowed_request_types(method):
-    return method.split(':')[1].split(',')
-
-
-def get_allowed_methods(enviroment_var):
-    return enviroment_var.split(';')
-
-
 def get_clear_method_path(path):
     return path.split('/{')[0]
-
-
-def get_allowed_operations(rules):
-    methods = get_allowed_methods(rules)
-
-    allowed_operations = {}
-    for method_str in methods:
-        method = get_allowed_method(method_str)
-        allowed_operations[method] = get_allowed_request_types(method_str)
-
-    return allowed_operations

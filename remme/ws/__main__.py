@@ -15,15 +15,17 @@
 
 import argparse
 import asyncio
+import toml
 from aiohttp import web
 from zmq.asyncio import ZMQEventLoop
 from sawtooth_sdk.messaging.stream import Stream
-from remme.settings import ZMQ_URL
 from remme.shared.logging import setup_logging
 from remme.ws.events import WSEventSocketHandler
 from .ws import WsApplicationHandler
 
 if __name__ == '__main__':
+    config = toml.load('/config/remme-client-config.toml')['remme']['client']
+    zmq_url = f'tcp://{ config["validator_ip"] }:{ config["validator_port"] }'
     setup_logging('remme.ws')
     parser = argparse.ArgumentParser()
     parser.add_argument('--port', type=int, default=8080)
@@ -32,7 +34,7 @@ if __name__ == '__main__':
     loop = ZMQEventLoop()
     asyncio.set_event_loop(loop)
     app = web.Application(loop=loop)
-    stream = Stream(ZMQ_URL)
+    stream = Stream(zmq_url)
     ws_handler = WsApplicationHandler(stream, loop=loop)
     ws_event_handler = WSEventSocketHandler(stream, loop=loop)
     app.router.add_route('GET', '/ws/events', ws_event_handler.on_websocket_connect)

@@ -22,6 +22,7 @@ from remme.rest_api.pub_key_api_decorator import create_certificate
 from remme.shared.logging import test
 from tests.test_helper import HelperTestCase
 from remme.clients.account import AccountClient
+from remme.settings.helper import _make_settings_key
 
 LOGGER = logging.getLogger(__name__)
 
@@ -83,6 +84,7 @@ class PubKeyTestCase(HelperTestCase):
 
         account = AccountClient.get_account_model(PUB_KEY_STORE_PRICE)
         self.expect_get({self.account_address1: account})
+        self.expect_get({_make_settings_key('remme.economy_enabled'): None})
 
         data = PubKeyStorage()
         data.owner = self.account_signer1.get_public_key().as_hex()
