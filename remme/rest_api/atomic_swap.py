@@ -36,6 +36,7 @@ def set_secret_lock(**data):
     return client.swap_set_secret_lock(payload)
 
 
+@handle_key_not_found
 def close(**data):
     data = data['payload']
     swap_info = client.swap_get(data['swap_id'])
