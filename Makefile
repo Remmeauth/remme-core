@@ -20,9 +20,9 @@ include ./config/network-config.env
 .PHONY: release
 
 restart_dev:
-	docker-compose -f docker-compose/dev.yml -f docker-compose/genesis.yml -f docker-compose/run.yml down
-	docker-compose -f docker-compose/dev.yml -f docker-compose/genesis.yml -f docker-compose/run.yml build
-	docker-compose -f docker-compose/dev.yml -f docker-compose/genesis.yml -f docker-compose/run.yml up -d
+	docker-compose -f docker-compose/base.yml -f docker-compose/genesis.yml down
+	docker-compose -f docker-compose/base.yml -f docker-compose/genesis.yml build
+	docker-compose -f docker-compose/base.yml -f docker-compose/genesis.yml up -d
 
 run_dev_no_genesis:
 	docker-compose -f docker-compose/base.yml up --build

@@ -18,6 +18,7 @@ Welcome to REMME's documentation!
    architecture
    remme-framework
    remme-client
+   remme-ws
    generated/modules
 
 .. toctree::
