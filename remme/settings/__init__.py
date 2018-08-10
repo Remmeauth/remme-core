@@ -5,7 +5,7 @@ import logging
 LOGGER = logging.getLogger(__name__)
 
 REST_API_URL = 'http://rest-api:8080'
-ZMQ_URL = 'tcp://validator:4004'
+ZMQ_URL = 'tcp://127.0.0.1:4004'
 
 KEY_DIR = '/root/.sawtooth/keys'
 PRIV_KEY_FILE = KEY_DIR + '/key.priv'

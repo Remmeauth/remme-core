@@ -8,7 +8,7 @@ import asyncio
 
 from remme.protos.atomic_swap_pb2 import AtomicSwapInfo
 from remme.settings import ZMQ_URL
-from sawtooth_sdk.protobuf.client_event_pb2 import ClientEventsSubscribeRequest
+from sawtooth_sdk.protobuf.client_event_pb2 import ClientEventsSubscribeRequest, ClientEventsSubscribeResponse
 from sawtooth_sdk.protobuf.validator_pb2 import Message
 from sawtooth_sdk.protobuf.events_pb2 import EventList, EventSubscription
 from google.protobuf.json_format import MessageToJson
@@ -85,7 +85,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
         self._socket.connect(ZMQ_URL)
         LOGGER.info(f"Connected to ZMQ")
 
-        request = ClientEventsSubscribeRequest(subscriptions=self._make_subscriptions(), last_known_block_ids=[]).SerializeToString()
+        request = ClientEventsSubscribeRequest(subscriptions=self._make_subscriptions()).SerializeToString()
 
         # Construct the message wrapper
         correlation_id = generate_random_key()  # This must be unique for all in-process requests
@@ -98,7 +98,28 @@ class WSEventSocketHandler(BasicWebSocketHandler):
         LOGGER.info(f"Sending subscription request.")
         self._socket.send_multipart([msg.SerializeToString()])
 
-        LOGGER.info(f"Subscribed.")
+        LOGGER.info(f"Subscription request sent")
+
+        # Receive the response
+        resp = self._socket.recv_multipart()[-1]
+
+        # Parse the message wrapper
+        msg = Message()
+        msg.ParseFromString(resp)
+
+        # Validate the response type
+        if msg.message_type != Message.CLIENT_EVENTS_SUBSCRIBE_RESPONSE:
+            LOGGER.info(f"Unexpected message type")
+
+        # Parse the response
+        response = ClientEventsSubscribeResponse()
+        response.ParseFromString(msg.content)
+
+        # Validate the response status
+        if response.status != ClientEventsSubscribeResponse.OK:
+            LOGGER.info("Subscription failed: {}".format(response.response_message))
+            return
+        LOGGER.info(f"Successfully subscribed")
 
     # The following code listens for events and logs them indefinitely.
     async def check_event(self):
