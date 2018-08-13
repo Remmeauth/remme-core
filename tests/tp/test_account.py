@@ -46,7 +46,7 @@ class AccountTestCase(HelperTestCase):
         account = Account()
         account.balance = TOTAL_SUPPLY
 
-        self.expect_set({
+        self.expect_set(AccountMethod.GENESIS, {
             self.account_address1: account,
             GENESIS_ADDRESS: genesis_status
         })
@@ -77,7 +77,7 @@ class AccountTestCase(HelperTestCase):
                               AccountClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
                               [self.account_address1, self.account_address2])
 
-        self.expect_set(self.transfer(self.account_address1, ACCOUNT_AMOUNT1,
+        self.expect_set(AccountMethod.TRANSFER, self.transfer(self.account_address1, ACCOUNT_AMOUNT1,
                                       self.account_address2, ACCOUNT_AMOUNT2, TRANSFER_VALUE))
 
         self.expect_ok()
@@ -108,7 +108,7 @@ class AccountTestCase(HelperTestCase):
         self.expect_invalid_transaction()
 
     @test
-    def test_transfer_fail_no_state_address2(self):
+    def test_transfer_success_no_state_address2(self):
         ACCOUNT_AMOUNT1 = 500
         TRANSFER_VALUE = 200
         self.send_transaction(AccountMethod.TRANSFER,
@@ -117,7 +117,7 @@ class AccountTestCase(HelperTestCase):
         self.expect_get({self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1)})
         self.expect_get({self.account_address2: None})
 
-        self.expect_set({
+        self.expect_set(AccountMethod.TRANSFER, {
             self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1 - TRANSFER_VALUE),
             self.account_address2: AccountClient.get_account_model(0 + TRANSFER_VALUE)
         })
@@ -145,16 +145,3 @@ class AccountTestCase(HelperTestCase):
         self.expect_get({self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1)})
 
         self.expect_invalid_transaction()
-
-    # Commented due to failure secp256k1 package not allowing to create a zero private key
-    # @test
-    # def test_transfer_fail_from_zeroaddress(self):
-    #     ACCOUNT_AMOUNT1 = 500
-    #     TRANSFER_VALUE = 200
-    #     context = create_context('secp256k1')
-    #     self.send_transaction(AccountMethod.TRANSFER,
-    #                           AccountClient.get_transfer_payload(GENESIS_ADDRESS, TRANSFER_VALUE),
-    #                           [self.account_address1, self.account_address2], CryptoFactory(context).new_signer(Secp256k1PrivateKey.from_hex(ZERO_ADDRESS[:-6])))
-    #
-    #     self.expect_invalid_transaction()
-

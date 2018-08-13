@@ -45,12 +45,18 @@ def is_address(address):
 
 
 def add_event(context, event_type, attributes):
-    IS_TESTING = bool(os.getenv('IS_TESTING', default=False))
-    if not IS_TESTING:
-        LOGGER.info("add_event")
-        context.add_event(
-            event_type=event_type,
-            attributes=[(key, str(value)) for key, value in attributes.items()])
+    LOGGER.info("add_event")
+    context.add_event(
+        event_type=event_type,
+        attributes=attributes)
+
+
+def get_event_attributes(updated_state):
+    content_dict = {"entities_changed": json.dumps([{**{'address': key,
+                                         'type': value.__class__.__name__},
+                                      **from_proto_to_dict(value)}
+                                     for key, value in updated_state.items()])}
+    return [(key, str(value)) for key, value in content_dict.items()]
 
 
 def get_data(context, pb_class, address):
@@ -131,11 +137,7 @@ class BasicHandler(TransactionHandler):
         event_name = state_processor[transaction_payload.method].get(EMIT_EVENT, None)
         if event_name:
             add_event(context, event_name,
-                      {"entities_changed": json.dumps([{**{'address': key,
-                                                           'type': value.__class__.__name__},
-                                                        **from_proto_to_dict(value)}
-                                                        for key, value in updated_state.items()]),
-                       "header_signature": transaction.signature})
+                      get_event_attributes(updated_state))
 
     def make_address(self, appendix):
         address = self._prefix + appendix

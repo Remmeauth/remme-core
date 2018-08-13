@@ -16,7 +16,7 @@ import logging
 
 from remme.clients.pub_key import PubKeyClient
 from remme.tp.pub_key import PubKeyHandler, PUB_KEY_STORE_PRICE, PUB_KEY_MAX_VALIDITY
-from remme.protos.pub_key_pb2 import PubKeyStorage
+from remme.protos.pub_key_pb2 import PubKeyStorage, PubKeyMethod
 from remme.rest_api.pub_key import get_crt_export_bin_sig_rem_sig
 from remme.rest_api.pub_key_api_decorator import create_certificate
 from remme.shared.logging import test
@@ -94,7 +94,7 @@ class PubKeyTestCase(HelperTestCase):
         account.balance -= PUB_KEY_STORE_PRICE
         account.pub_keys.append(cert_address)
 
-        self.expect_set({
+        self.expect_set(PubKeyMethod.STORE, {
             self.account_address1: account,
             cert_address: data
         })
@@ -138,7 +138,7 @@ class PubKeyTestCase(HelperTestCase):
 
         data.revoked = True
 
-        self.expect_set({
+        self.expect_set(PubKeyMethod.REVOKE, {
             cert_address: data
         })
 
