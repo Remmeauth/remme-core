@@ -153,9 +153,11 @@ class WSEventSocketHandler(BasicWebSocketHandler):
         web_socks_to_notify = {}
         LOGGER.info(f"Received events: {event_list.events}")
         block_num = None
+        block_id = None
         for event in event_list.events:
             if event.event_type == SAWTOOTH_BLOCK_COMMIT_EVENT_TYPE:
                 block_num = get_value_from_key(event.attributes, "block_num")
+                block_id = get_value_from_key(event.attributes, "block_id")
             else:
                 event_response = {}
                 event_response['type'] = event.event_type
@@ -170,7 +172,9 @@ class WSEventSocketHandler(BasicWebSocketHandler):
                     web_socks_to_notify[web_sock] += [event_response]
 
         for web_sock, events in web_socks_to_notify.items():
-            await self._ws_send_message(web_sock, {Entity.EVENTS.value: events, "block_num": block_num})
+            await self._ws_send_message(web_sock, {Entity.EVENTS.value: events,
+                                                   "block_num": block_num,
+                                                   "block_id": block_id})
 
     async def listen_events(self, delta=5):
         while True:
