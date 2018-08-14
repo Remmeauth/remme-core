@@ -37,13 +37,14 @@ if __name__ == '__main__':
 
         print('Issuing {} tokens to address {}'.format(args.token_supply, target_address))
 
-        addresses_input_output = [GENESIS_ADDRESS, target_address]
+        addresses_input = [GENESIS_ADDRESS]
+        addresses_output = [GENESIS_ADDRESS, target_address]
 
         payload = TransactionPayload()
         payload.method = AccountMethod.GENESIS
         payload.data = account_client.get_genesis_payload(args.token_supply).SerializeToString()
 
-        batch_list = AccountClient().make_batch_list(payload, addresses_input_output)
+        batch_list = AccountClient().make_batch_list(payload, addresses_input, addresses_output)
 
         batch_file = open(OUTPUT_BATCH, 'wb')
         batch_file.write(batch_list.SerializeToString())

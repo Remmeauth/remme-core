@@ -277,15 +277,15 @@ class BasicClient:
                                      ClientBatchStatusRequest(batch_ids=data['batch_ids']))
         return {'data': resp['batch_statuses']}
 
-    def make_batch_list(self, payload_pb, addresses_input_output):
+    def make_batch_list(self, payload_pb, addresses_input, addresses_output):
         payload = payload_pb.SerializeToString()
         signer = self._signer
         header = TransactionHeader(
             signer_public_key=signer.get_public_key().as_hex(),
             family_name=self._family_handler.family_name,
             family_version=self._family_handler.family_versions[-1],
-            inputs=addresses_input_output,
-            outputs=addresses_input_output,
+            inputs=addresses_input,
+            outputs=addresses_output,
             dependencies=[],
             payload_sha512=hash512(payload),
             batcher_public_key=signer.get_public_key().as_hex(),
@@ -329,7 +329,7 @@ class BasicClient:
             if not is_address(address):
                 raise ClientException('one of addresses_input_output {} is not an address'.format(addresses_input_output))
 
-        batch_list = self.make_batch_list(payload, addresses_input_output)
+        batch_list = self.make_batch_list(payload, addresses_input_output, addresses_input_output)
 
         return get_batch_id(self._send_request('batches', batch_list, 'socket'))
 
