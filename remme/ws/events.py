@@ -14,7 +14,7 @@ from sawtooth_sdk.protobuf.events_pb2 import EventList, EventSubscription
 from google.protobuf.json_format import MessageToJson
 
 from remme.shared.utils import generate_random_key
-from remme.ws.basic import BasicWebSocketHandler, SocketException
+from remme.ws.basic import BasicWebSocketHandler, SocketException, SAWTOOTH_BLOCK_COMMIT_EVENT_TYPE
 from enum import Enum
 
 from remme.ws.constants import Entity, Status, ATOMIC_SWAP, Events
@@ -39,6 +39,11 @@ def process_event(type, attributes):
     if not data:
         data = entities_changed
     return transaction_id, data
+
+def get_value_from_key(attributes, key):
+    for item in attributes:
+        if item.key == key:
+            return item.value
 
 
 class WSEventSocketHandler(BasicWebSocketHandler):
@@ -148,21 +153,26 @@ class WSEventSocketHandler(BasicWebSocketHandler):
         event_list.ParseFromString(msg.content)
 
         web_socks_to_notify = {}
+        LOGGER.info(f"Received events: {event_list.events}")
+        block_num = None
         for event in event_list.events:
-            event_response = {}
-            event_response['type'] = event.event_type
-            event_response['transaction_id'], event_response['data'] = process_event(event.event_type, event.attributes)
+            if event.event_type == SAWTOOTH_BLOCK_COMMIT_EVENT_TYPE:
+                block_num = get_value_from_key(event.attributes, "block_num")
+            else:
+                event_response = {}
+                event_response['type'] = event.event_type
+                event_response['transaction_id'], event_response['data'] = process_event(event.event_type, event.attributes)
 
-            for web_sock in self._events[event_response['type']]:
-                if web_sock.closed:
-                    await self._handle_unsubscribe(web_sock)
-                    continue
-                if web_sock not in web_socks_to_notify:
-                    web_socks_to_notify[web_sock] = []
-                web_socks_to_notify[web_sock] += [event_response]
+                for web_sock in self._events[event_response['type']]:
+                    if web_sock.closed:
+                        await self._handle_unsubscribe(web_sock)
+                        continue
+                    if web_sock not in web_socks_to_notify:
+                        web_socks_to_notify[web_sock] = []
+                    web_socks_to_notify[web_sock] += [event_response]
 
         for web_sock, events in web_socks_to_notify.items():
-            await self._ws_send_message(web_sock, {Entity.EVENTS.value: events})
+            await self._ws_send_message(web_sock, {Entity.EVENTS.value: events, "block_num": block_num})
 
     async def listen_events(self, delta=5):
         while True:
@@ -171,4 +181,5 @@ class WSEventSocketHandler(BasicWebSocketHandler):
             await asyncio.sleep(delta)
 
     def _make_subscriptions(self):
-        return [EventSubscription(event_type=event_name) for event_name in self._events]
+        return [EventSubscription(event_type=event_name) for event_name in self._events] + \
+               [EventSubscription(event_type=SAWTOOTH_BLOCK_COMMIT_EVENT_TYPE)]

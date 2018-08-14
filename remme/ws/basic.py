@@ -29,7 +29,7 @@ from .utils import deserialize, serialize
 LOGGER = logging.getLogger(__name__)
 
 EMIT_EVENT = "emit_event"
-
+SAWTOOTH_BLOCK_COMMIT_EVENT_TYPE = "sawtooth/block-commit"
 
 class SocketException(BaseException):
     def __init__(self, web_sock, error_code, info=""):
