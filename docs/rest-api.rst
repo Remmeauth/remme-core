@@ -19,3 +19,39 @@ REST-API consists of several sections:
  `Public Key Infrastructure <http://localhost:8080/api/v1/ui/#/Node_management>`_ section - Unlike node management tools, it allows storing public key information on-chain.
 
  `X.509 <http://localhost:8080/api/v1/ui/#/Node_management>`_ section - Allows storing certificate information.
+
+**Example Request**
+
+*GET /block-info*
+
+Description: Gets the list of blocks within the blockchain storage.
+
+Arguments:
+
+* start (query) - return the list starting from the given number.
+* limit (query) - return a certain number of blocks
+
+200:
+
+.. code-block:: protobuf
+
+  {
+    "blocks": [
+      {
+        "block_num": 0,
+        "header_signature": "string",
+        "previous_header_signature": "string",
+        "signer_public_key": "string",
+        "timestamp": 0
+      }
+    ]
+  }
+
+500:
+Error processing this request
+
+.. code-block:: protobuf
+
+  {
+    "error": "string"
+  }
