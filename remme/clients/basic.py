@@ -308,14 +308,19 @@ class BasicClient:
     def get_user_address(self):
         return AccountHandler.make_address_from_data(self._signer.get_public_key().as_hex())
 
-    def _send_transaction(self, method, data_pb, addresses_input_output):
+    def _send_transaction(self, method, data_pb, addresses_input, addresses_output):
         '''
            Signs and sends transaction to the network using rest-api.
 
            :param str method: The method (defined in proto) for Transaction Processor to process the request.
            :param dict data: Dictionary that is required by TP to process the transaction.
-           :param str addresses_input_output: list of addresses(keys) for which to get and save state.
+           :param str addresses_input: list of addresses(keys) for which to get state.
+           :param str addresses_output: list of addresses(keys) for which to save state.
         '''
+        addresses_input_output = []
+        addresses_input_output.extend(addresses_input)
+        addresses_input_output.extend(addresses_output)
+        addresses_input_output = list(set(addresses_input_output))
         # forward transaction to test helper
         if self.test_helper:
             self.test_helper.send_transaction(method, data_pb, addresses_input_output)
@@ -329,7 +334,7 @@ class BasicClient:
             if not is_address(address):
                 raise ClientException('one of addresses_input_output {} is not an address'.format(addresses_input_output))
 
-        batch_list = self.make_batch_list(payload, addresses_input_output, addresses_input_output)
+        batch_list = self.make_batch_list(payload, addresses_input, addresses_output)
 
         return get_batch_id(self._send_request('batches', batch_list, 'socket'))
 
