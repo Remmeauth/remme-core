@@ -7,11 +7,15 @@ import weakref
 import asyncio
 
 from remme.protos.atomic_swap_pb2 import AtomicSwapInfo
+
+from remme.clients.block_info import BlockInfoClient
+from remme.rest_api.block_info import get_block_config
 from remme.settings import ZMQ_URL
-from sawtooth_sdk.protobuf.client_event_pb2 import ClientEventsSubscribeRequest, ClientEventsSubscribeResponse
+from sawtooth_sdk.protobuf.client_event_pb2 import ClientEventsSubscribeRequest, ClientEventsSubscribeResponse, ClientEventsUnsubscribeRequest
 from sawtooth_sdk.protobuf.validator_pb2 import Message
 from sawtooth_sdk.protobuf.events_pb2 import EventList, EventSubscription
 from google.protobuf.json_format import MessageToJson
+from remme.shared.exceptions import KeyNotFound
 
 from remme.shared.utils import generate_random_key
 from remme.ws.basic import BasicWebSocketHandler, SocketException, SAWTOOTH_BLOCK_COMMIT_EVENT_TYPE
@@ -48,6 +52,13 @@ class WSEventSocketHandler(BasicWebSocketHandler):
     def __init__(self, stream, loop):
         super().__init__(stream, loop)
         # events to subscribers
+        LOGGER.info(f'Requesting last block')
+        try:
+            self.last_block_num = BlockInfoClient().get_block_info_config().latest_block + 1
+        except KeyNotFound:
+            self.last_block_num = 0
+        LOGGER.info(f'last block {self.last_block_num}')
+        self.catch_up_subscribers = {}
         self._events = {event.value: {} for event in Events}
         self._events_updator_task = weakref.ref(
             asyncio.ensure_future(
@@ -56,7 +67,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
 
     # return what value to be mapped to web_sock
     async def subscribe(self, web_sock, entity, data):
-        if entity == Entity.EVENTS:
+        if entity in [Entity.EVENTS, Entity.CATCH_UP]:
             events = data.get('events', [])
 
             if not events:
@@ -65,12 +76,17 @@ class WSEventSocketHandler(BasicWebSocketHandler):
             for event in events:
                 if event not in self._events:
                     raise SocketException(web_sock, Status.WRONG_EVENT_TYPE, f"Event: {event} is not supported")
-                if web_sock in self._events[event]:
-                    raise SocketException(web_sock, Status.ALREADY_SUBSCRIBED, f"Socket is already subscribed to: {event}")
-                self._events[event][web_sock] = {}
+                # if web_sock in self._events[event]:
+                #     raise SocketException(web_sock, Status.ALREADY_SUBSCRIBED, f"Socket is already subscribed to: {event}")
+                self._events[event][web_sock] = {'is_catch_up': entity == Entity.CATCH_UP}
 
             LOGGER.info(f'Events being subscribed to: {events}')
-
+            if entity == Entity.CATCH_UP:
+                last_known_block_id = data.get('last_known_block_id', None)
+                if not last_known_block_id:
+                    raise SocketException(web_sock, Status.LAST_KNOWN_BLOCK_ID_NOT_PROVIDED,
+                                          f"Events being subscribed are not provided")
+                self.subscribe_events([last_known_block_id])
             return {'events': events}
 
     def unsubscribe(self, web_sock):
@@ -80,7 +96,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
                 del web_socks_dict[web_sock]
                 self._events[event] = web_socks_dict
 
-    def subscribe_events(self):
+    def subscribe_events(self, last_known_block_ids=[]):
         # Setup a connection to the validator
         LOGGER.info(f"Subscribing to events")
         ctx = zmq.Context()
@@ -88,7 +104,8 @@ class WSEventSocketHandler(BasicWebSocketHandler):
         self._socket.connect(ZMQ_URL)
         LOGGER.info(f"Connected to ZMQ")
 
-        request = ClientEventsSubscribeRequest(subscriptions=self._make_subscriptions()).SerializeToString()
+        request = ClientEventsSubscribeRequest(subscriptions=self._make_subscriptions(),
+                                               last_known_block_ids=last_known_block_ids).SerializeToString()
 
         # Construct the message wrapper
         correlation_id = generate_random_key()  # This must be unique for all in-process requests
@@ -99,8 +116,12 @@ class WSEventSocketHandler(BasicWebSocketHandler):
 
         # Send the request
         LOGGER.info(f"Sending subscription request.")
-        self._socket.send_multipart([msg.SerializeToString()])
 
+        try:
+            self._socket.send_multipart([msg.SerializeToString()], flags=zmq.NOBLOCK)
+        except zmq.ZMQError as e:
+            LOGGER.info(f"Could send multipart: {e}")
+            return
         LOGGER.info(f"Subscription request sent")
 
         # Receive the response
@@ -120,9 +141,25 @@ class WSEventSocketHandler(BasicWebSocketHandler):
 
         # Validate the response status
         if response.status != ClientEventsSubscribeResponse.OK:
-            LOGGER.info("Subscription failed: {}".format(response.response_message))
+            if response.status == ClientEventsSubscribeResponse.UNKNOWN_BLOCK:
+                raise SocketException(self._socket, Status.UNKNOWN_BLOCK,
+                                      f"Uknown block in: {last_known_block_ids}")
+            LOGGER.info("Subscription failed: {}".format(response))
             return
         LOGGER.info(f"Successfully subscribed")
+
+        # Unsubscribe from events
+        # # Construct the request
+        # request = ClientEventsUnsubscribeRequest().SerializeToString()
+        #
+        # # Construct the message wrapper
+        # msg = Message(
+        #     correlation_id=generate_random_key(),
+        #     message_type=Message.CLIENT_EVENTS_UNSUBSCRIBE_REQUEST,
+        #     content=request)
+        #
+        # # Send the request
+        # self._socket.send_multipart([msg.SerializeToString()])
 
     # The following code listens for events and logs them indefinitely.
     async def check_event(self):
@@ -154,22 +191,32 @@ class WSEventSocketHandler(BasicWebSocketHandler):
         LOGGER.info(f"Received events: {event_list.events}")
         block_num = None
         block_id = None
+        is_event_catch_up = False
         for event in event_list.events:
+            # assumed to be the first one in the list
             if event.event_type == SAWTOOTH_BLOCK_COMMIT_EVENT_TYPE:
-                block_num = get_value_from_key(event.attributes, "block_num")
+                block_num = int(get_value_from_key(event.attributes, "block_num"))
                 block_id = get_value_from_key(event.attributes, "block_id")
+                is_event_catch_up = block_num <= self.last_block_num
+                self.last_block_num = max(self.last_block_num, block_num)
             else:
                 event_response = {}
                 event_response['type'] = event.event_type
                 event_response['data'] = process_event(event.event_type, event.attributes)
 
-                for web_sock in self._events[event_response['type']]:
+                event = self._events[event_response['type']]
+                for web_sock in event:
                     if web_sock.closed:
                         await self._handle_unsubscribe(web_sock)
                         continue
-                    if web_sock not in web_socks_to_notify:
-                        web_socks_to_notify[web_sock] = []
-                    web_socks_to_notify[web_sock] += [event_response]
+
+                    if is_event_catch_up == event[web_sock]['is_catch_up']:
+                        if web_sock not in web_socks_to_notify:
+                            web_socks_to_notify[web_sock] = []
+
+                        web_socks_to_notify[web_sock] += [event_response]
+                        if self.last_block_num == block_num:
+                            self._events[event_response['type']][web_sock]['is_catch_up'] = False
 
         for web_sock, events in web_socks_to_notify.items():
             await self._ws_send_message(web_sock, {Entity.EVENTS.value: events,

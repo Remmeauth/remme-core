@@ -42,6 +42,7 @@ class Action(Enum):
 class Entity(Enum):
     BATCH_STATE = 'batch_state'
     EVENTS = 'events'
+    CATCH_UP = 'catch_up'
 
 
 @unique
@@ -103,5 +104,9 @@ class Status(IntEnum):
 
     # events being subscribed to are not provided
     EVENTS_NOT_PROVIDED = 114
+
+    LAST_KNOWN_BLOCK_ID_NOT_PROVIDED = 115
+
+    UNKNOWN_BLOCK = 116
 
     BATCH_RESPONSE = 200

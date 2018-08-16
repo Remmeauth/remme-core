@@ -119,6 +119,7 @@ class BasicClient:
     def get_value(self, address):
         result = self._send_request(f"state/{address}",
                                     conn_protocol='socket')
+        LOGGER.info(f'get_value: {get_value}')
         return base64.b64decode(result['data'])
 
     def get_batch(self, batch_id):
@@ -195,31 +196,41 @@ class BasicClient:
             raise ClientException('Suffix "%s" not supported' % suffix)
 
     def _handle_response(self, msg_type, resp_proto, req):
-        self._stream.wait_for_ready()
-        future = self._stream.send(
-            message_type=msg_type,
-            content=req.SerializeToString())
+        # Loops while NOT_READY
+        while True:
+            self._stream.wait_for_ready()
 
-        resp = resp_proto()
-        try:
-            resp.ParseFromString(future.result().content)
-        except (DecodeError, AttributeError):
-            raise ClientException(
-                'Failed to parse "content" string from validator')
-        except ValidatorConnectionError as vce:
-            LOGGER.error('Error: %s' % vce)
-            raise ClientException(
-                'Failed with ZMQ interaction: {0}'.format(vce))
+            future = self._stream.send(
+                message_type=msg_type,
+                content=req.SerializeToString())
 
-        data = message_to_dict(resp)
+            resp = resp_proto()
 
-        # NOTE: Not all protos have this status
-        with suppress(AttributeError):
-            if resp.status == resp_proto.NO_RESOURCE:
-                raise KeyNotFound("404")
+            try:
+                resp.ParseFromString(future.result().content)
+            except (DecodeError, AttributeError):
+                raise ClientException(
+                    'Failed to parse "content" string from validator')
+            except ValidatorConnectionError as vce:
+                LOGGER.error('Error: %s' % vce)
+                raise ClientException(
+                    'Failed with ZMQ interaction: {0}'.format(vce))
 
-        if resp.status != resp_proto.OK:
-            raise ClientException("Error: %s" % data)
+            data = message_to_dict(resp)
+
+            # NOTE: Not all protos have this status
+            with suppress(AttributeError):
+                if resp.status == resp_proto.NO_RESOURCE:
+                    raise KeyNotFound("404")
+
+            if resp.status != resp_proto.OK:
+                LOGGER.info(f'_handle_response: error: {data}')
+                if hasattr(resp_proto, 'NOT_READY') and resp_proto.NOT_READY == resp.status:
+                    time.sleep(5)
+                    continue
+                raise ClientException("Error: %s" % data)
+            else:
+                break
 
         return data
 
@@ -234,6 +245,7 @@ class BasicClient:
                                      ClientBlockListResponse,
                                      ClientBlockListRequest(
                                          paging=ClientPagingControls(limit=1)))
+
         block = resp['blocks'][0]
         header = BlockHeader()
         try:

@@ -96,7 +96,9 @@ services:
     depends_on:
       - validator
     volumes:
+      - user_keys:/root/.sawtooth/keys
       - ../config/remme-client-config.toml:/config/remme-client-config.toml
+      - ../config/remme-rest-api.toml:/config/remme-rest-api.toml
     entrypoint: python3 -m remme.ws --port=9080
 
   remme-rest-api:
