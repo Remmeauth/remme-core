@@ -20,9 +20,10 @@ import logging
 import toml
 from pkg_resources import resource_filename
 import connexion
+import aiohttp_cors
+
 from zmq.asyncio import ZMQEventLoop
 from sawtooth_sdk.messaging.stream import Stream
-# from flask_cors import CORS
 from remme.rest_api.api_methods_switcher import RestMethodsSwitcherResolver
 from remme.rest_api.api_handler import AioHttpApi
 from remme.rest_api.validator import proxy
@@ -50,27 +51,35 @@ if __name__ == '__main__':
     asyncio.set_event_loop(loop)
 
     app = connexion.AioHttpApp(__name__, specification_dir='.')
-    # patch
-    app.api_cls = AioHttpApi
-
     cors_config = cfg_rest["cors"]
-    # TODO: Replace on aiohttp staff
-    # CORS(app.app,
-    #      origins=cors_config["allow_origin"],
-    #      methods=cors_config["allow_methods"],
-    #      max_age=cors_config["max_age"],
-    #      supports_credentials=cors_config["allow_credentials"],
-    #      allow_headers=cors_config["allow_headers"],
-    #      expose_headers=cors_config["expose_headers"])
+    # enable CORS
+    if isinstance(cors_config["allow_origin"], str):
+        cors_config["allow_origin"] = [cors_config["allow_origin"]]
+
+    cors = aiohttp_cors.setup(app.app, defaults={
+        ao: aiohttp_cors.ResourceOptions(
+            allow_methods=cors_config["allow_methods"],
+            max_age=cors_config["max_age"],
+            allow_credentials=cors_config["allow_credentials"],
+            allow_headers=cors_config["allow_headers"],
+            expose_headers=cors_config["expose_headers"]
+        ) for ao in cors_config["allow_origin"]
+    })
+    # patch with update API cls
+    app.api_cls = AioHttpApi
+    # cors patch
+    app.api_cls.cors = cors
     # Proxy to sawtooth rest api
-    app.app.router.add_route('GET', '/api/v1/validator/{path:.*?}', proxy)
+    cors.add(app.app.router.add_route('GET', '/api/v1/validator/{path:.*?}',
+                                      proxy))
     # Remme ws
     logger.error(f'ZMQ url: {zmq_url}')
     stream = Stream(zmq_url)
     ws_handler = WsApplicationHandler(stream, loop=loop)
-    app.app.router.add_route('GET', '/ws', ws_handler.subscriptions)
+    cors.add(app.app.router.add_route('GET', '/ws', ws_handler.subscriptions))
     # Remme rest api spec
     app.add_api(resource_filename(__name__, 'openapi.yml'),
-                resolver=RestMethodsSwitcherResolver('remme.rest_api', cfg_rest["available_methods"]))
+                resolver=RestMethodsSwitcherResolver('remme.rest_api',
+                                                     cfg_rest["available_methods"]))
 
     app.run(port=arguments.port, host=arguments.bind)

@@ -2,7 +2,9 @@ import asyncio
 import logging
 
 from aiohttp import web
-from connexion.apis.aiohttp_api import AioHttpApi
+from connexion.handlers import AuthErrorHandler
+
+from connexion.apis.aiohttp_api import AioHttpApi, _HttpNotFoundError
 from connexion.lifecycle import ConnexionResponse
 
 
@@ -10,6 +12,46 @@ logger = logging.getLogger('connexion.apis.aiohttp_api')
 
 
 class AioHttpApi(AioHttpApi):
+
+    def add_auth_on_not_found(self, security, security_definitions):
+        """
+        Adds a 404 error handler to authenticate and only expose the 404 status if the security validation pass.
+        """
+        logger.debug('Adding path not found authentication')
+        not_found_error = AuthErrorHandler(
+            self, _HttpNotFoundError(),
+            security=security,
+            security_definitions=security_definitions
+        )
+        endpoint_name = "{}_not_found".format(self._api_name)
+        self.cors.add(self.subapp.router.add_route(
+            '*',
+            '/{not_found_path}',
+            not_found_error.function,
+            name=endpoint_name
+        ))
+
+    def _add_operation_internal(self, method, path, operation):
+        method = method.upper()
+        operation_id = operation.operation_id or path
+
+        logger.debug('... Adding %s -> %s', method, operation_id,
+                     extra=vars(operation))
+
+        handler = operation.function
+        endpoint_name = '{}_{}_{}'.format(
+            self._api_name,
+            AioHttpApi.normalize_string(path),
+            method.lower()
+        )
+        self.cors.add(self.subapp.router.add_route(
+            method, path, handler, name=endpoint_name
+        ))
+
+        if not path.endswith('/'):
+            self.cors.add(self.subapp.router.add_route(
+                method, path + '/', handler, name=endpoint_name + '_'
+            ))
 
     @classmethod
     async def get_response(cls, response, mimetype=None, request=None):
