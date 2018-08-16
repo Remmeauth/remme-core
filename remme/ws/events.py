@@ -221,7 +221,8 @@ class WSEventSocketHandler(BasicWebSocketHandler):
         for web_sock, events in web_socks_to_notify.items():
             await self._ws_send_message(web_sock, {Entity.EVENTS.value: events,
                                                    "block_num": block_num,
-                                                   "block_id": block_id})
+                                                   "block_id": block_id,
+                                                   "last_known_block_num": self.last_block_num})
 
     async def listen_events(self, delta=5):
         while True:
