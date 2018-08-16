@@ -21,6 +21,7 @@ import connexion
 # from flask_cors import CORS
 from remme.rest_api.api_methods_switcher import RestMethodsSwitcherResolver
 from remme.rest_api.api_handler import AioHttpApi
+from remme.rest_api.validator import proxy
 from remme.shared.logging import setup_logging
 
 if __name__ == '__main__':
@@ -43,7 +44,7 @@ if __name__ == '__main__':
     #      supports_credentials=cors_config["allow_credentials"],
     #      allow_headers=cors_config["allow_headers"],
     #      expose_headers=cors_config["expose_headers"])
-
+    app.app.router.add_route('GET', '/api/v1/validator/{path:.*?}', proxy)
     app.add_api(resource_filename(__name__, 'openapi.yml'),
                 resolver=RestMethodsSwitcherResolver('remme.rest_api', config["available_methods"]))
     app.run(port=arguments.port, host=arguments.bind)

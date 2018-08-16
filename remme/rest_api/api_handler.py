@@ -12,14 +12,13 @@ logger = logging.getLogger('connexion.apis.aiohttp_api')
 class AioHttpApi(AioHttpApi):
 
     @classmethod
-    @asyncio.coroutine
-    def get_response(cls, response, mimetype=None, request=None):
+    async def get_response(cls, response, mimetype=None, request=None):
         """Get response.
         This method is used in the lifecycle decorators
         :rtype: aiohttp.web.Response
         """
         while asyncio.iscoroutine(response):
-            response = yield from response
+            response = await response
 
         if isinstance(response, tuple) and isinstance(response[0], dict):
             response = web.json_response(response[0], status=response[1])
@@ -35,9 +34,10 @@ class AioHttpApi(AioHttpApi):
                      })
 
         if isinstance(response, ConnexionResponse):
-            response = cls._get_aiohttp_response_from_connexion(response, mimetype)
+            response = cls._get_aiohttp_response_from_connexion(response,
+                                                                mimetype)
 
-        logger.debug('Got data and status code (%d)',
-                     response.status, extra={'data': response.body, 'url': url})
+        logger.debug('Got data and status code (%d)', response.status,
+                     extra={'data': response.body, 'url': url})
 
         return response
