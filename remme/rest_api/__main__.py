@@ -70,7 +70,7 @@ if __name__ == '__main__':
     # cors patch
     app.api_cls.cors = cors
     # Proxy to sawtooth rest api
-    cors.add(app.app.router.add_route('GET', '/api/v1/validator/{path:.*?}',
+    cors.add(app.app.router.add_route('GET', '/validator/{path:.*?}',
                                       proxy))
     # Remme ws
     logger.error(f'ZMQ url: {zmq_url}')
