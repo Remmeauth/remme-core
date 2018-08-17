@@ -18,10 +18,7 @@ version: '3.4'
 services:
   validator:
     container_name: remme_validator
-    build:
-      context: ..
-      target: validator
-    image: remme/sawtooth-validator:latest
+    image: remme/sawtooth-validator:1.0.5
     volumes:
       - validator_keys:/etc/sawtooth/keys
       - chain_data:/var/lib/sawtooth/
@@ -38,26 +35,14 @@ services:
       - REMME_START_MODE=run
     entrypoint: sh /scripts/validator.sh
 
-  remme-build:
-    container_name: remme_build
-    build:
-      context: ..
-      target: release
-    image: remme/remme-core:latest
-
   validator-rest-api:
     container_name: remme_validator_rest_api
     image: hyperledger/sawtooth-rest-api:1.0.5
     network_mode: "service:validator"
-    depends_on:
-     - validator
     command: sawtooth-rest-api -v --connect tcp://127.0.0.1:4004 --bind 127.0.0.1:8008
 
   block-info-tp:
     container_name: remme_block_info_tp
-    build:
-      context: ..
-      target: sawtooth-block-info-tp
     image: remme/sawtooth-block-info-tp:1.0.4
     network_mode: "service:validator"
     command: block-info-tp -vv -C tcp://127.0.0.1:4004
@@ -70,9 +55,6 @@ services:
 
   poet-validator-registry:
     container_name: remme_poet_validator_registry
-    build:
-      context: ..
-      target: validator-registry
     image: remme/sawtooth-poet-validator-registry-tp:1.0.5
     network_mode: "service:validator"
     volumes:
@@ -91,8 +73,6 @@ services:
     container_name: remme_rest_api
     image: remme/remme-core:latest
     network_mode: "service:validator"
-    depends_on:
-      - validator
     volumes:
       - user_keys:/root/.sawtooth/keys
       - ${REMME_CONTAINER_EXPORTS_FOLDER:-./default_export}:/root/usr/share

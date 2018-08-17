@@ -19,16 +19,19 @@ include ./config/network-config.env
 
 .PHONY: release
 
+build:
+	docker-compose -f docker-compose/build.yml build
+
 restart_dev:
 	docker-compose -f docker-compose/base.yml -f docker-compose/genesis.yml down
 	docker-compose -f docker-compose/base.yml -f docker-compose/genesis.yml build
 	docker-compose -f docker-compose/base.yml -f docker-compose/genesis.yml up -d
 
-run_dev_no_genesis:
-	docker-compose -f docker-compose/base.yml up --build
+run_dev_no_genesis: build
+	docker-compose -f docker-compose/base.yml up
 
-run_dev:
-	docker-compose -f docker-compose/base.yml -f docker-compose/genesis.yml up --build
+run_dev: build
+	docker-compose -f docker-compose/base.yml -f docker-compose/genesis.yml up
 
 run_docs:
 	docker-compose -f docker-compose/docs.yml up --build
@@ -41,12 +44,13 @@ rebuild_docker:
 	docker-compose -f docker-compose/dev.yml build --no-cache
 
 release:
-	docker-compose -f docker-compose/dev.yml build
+	git checkout $(RELEASE_NUMBER)
+	docker-compose -f docker-compose/build.yml build
 	mkdir $(RELEASE_NUMBER)-release
 	mkdir $(RELEASE_NUMBER)-release/docker-compose
 	cp {run,genesis}.sh ./$(RELEASE_NUMBER)-release
-	cp docker-compose/{dev,run,genesis}.yml ./$(RELEASE_NUMBER)-release/docker-compose
-	cp .env ./$(RELEASE_NUMBER)-release
-	find ./$(RELEASE_NUMBER)-release -type f -name "docker-compose/{dev,run,genesis}.yml" | xargs sed -i "/.*build: ..*/d"
-	zip -r $(RELEASE_NUMBER)-release.zip $(RELEASE_NUMBER)-release
-	rm -rf $(RELEASE_NUMBER)-release
+	cp docker-compose/{base,genesis}.yml ./$(RELEASE_NUMBER)-release/docker-compose
+	docker tag remme/remme-core:latest remme/remme-core:$(RELEASE_NUMBER)
+	sed -i -e 's/remme-core:latest/remme-core:$(RELEASE_NUMBER)/' $(RELEASE_NUMBER)-release/docker-compose/*.yml
+	cp -R config ./$(RELEASE_NUMBER)-release
+	git checkout @{-1}

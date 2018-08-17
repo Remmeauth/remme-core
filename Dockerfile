@@ -14,9 +14,9 @@
 # ------------------------------------------------------------------------
 
 # TODO check if it works with a newer version of Debian
-FROM python:3.6.5-alpine as build
+FROM alpine:edge as build
 WORKDIR /root
-RUN apk --update --no-cache add rsync pkgconf build-base autoconf automake protobuf libtool libffi-dev python3-dev zeromq-dev openssl-dev
+RUN apk --update --no-cache add rsync pkgconf build-base autoconf automake python3 protobuf libtool libffi-dev python3-dev zeromq-dev openssl-dev
 RUN mkdir /install
 ENV PYTHONUSERBASE=/install
 COPY ./requirements.txt .
