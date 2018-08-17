@@ -39,6 +39,7 @@ def is_address(address):
 
 def get_data(context, pb_class, address):
     raw_data = context.get_state([address])
+    LOGGER.debug(f'Raw data: {raw_data}')
     if raw_data:
         try:
             data = pb_class()
@@ -54,11 +55,12 @@ def get_data(context, pb_class, address):
 
 def get_multiple_data(context, data):
     raw_data = context.get_state([el[0] for el in data])
+    raw_data = { entry.address: entry.data for entry in raw_data }
     datas = []
-    for i, (_, pb_class) in enumerate(data):
+    for address, pb_class in data:
         try:
             data = pb_class()
-            data.ParseFromString(raw_data[i].data)
+            data.ParseFromString(raw_data[address])
             datas.append(data)
         except Exception:
             datas.append(None)
