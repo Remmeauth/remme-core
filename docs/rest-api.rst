@@ -33,7 +33,7 @@ Arguments:
 
 200:
 
-.. code-block:: protobuf
+.. code-block:: json
 
   {
     "blocks": [
@@ -50,7 +50,7 @@ Arguments:
 500:
 Error processing this request
 
-.. code-block:: protobuf
+.. code-block:: json
 
   {
     "error": "string"
