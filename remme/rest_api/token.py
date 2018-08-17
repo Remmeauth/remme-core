@@ -12,16 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------
+import logging
 
 from remme.clients.account import AccountClient
 from remme.rest_api import handle_key_not_found
+
+
+logger = logging.getLogger(__name__)
 
 
 @handle_key_not_found
 def get(pub_key_user):
     client = AccountClient()
     address = client.make_address_from_data(pub_key_user)
-    print('Reading from address: {}'.format(address))
+    logger.debug('Reading from address: {}'.format(address))
     balance = client.get_balance(address)
     return {'balance': balance,
             'address': address}

@@ -16,7 +16,7 @@ The application developer must first open a web socket. This is accomplished by 
 
 .. code-block:: javascript
 
-    var ws = new WebSocket('ws:localhost:9080/ws')
+    var ws = new WebSocket('ws:localhost:8080/ws')
 
 ****************************
 Subscribing to Batch Changes

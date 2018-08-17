@@ -31,9 +31,7 @@ services:
     network_mode: bridge
     ports:
       - '0.0.0.0:${REMME_VALIDATOR_PORT:-8800}:8800'
-      - '0.0.0.0:${REMME_WS_PORT:-9080}:9080'
       - '0.0.0.0:${REMME_REST_API_PORT:-8080}:8080'
-      - '0.0.0.0:${REMME_VALIDATOR_REST_API_PORT:-8008}:8008'
     env_file:
       - ../config/network-config.env
     environment:
@@ -53,7 +51,7 @@ services:
     network_mode: "service:validator"
     depends_on:
      - validator
-    command: sawtooth-rest-api -v --connect tcp://127.0.0.1:4004 --bind 0.0.0.0:8008
+    command: sawtooth-rest-api -v --connect tcp://127.0.0.1:4004 --bind 127.0.0.1:8008
 
   block-info-tp:
     container_name: remme_block_info_tp
@@ -88,16 +86,6 @@ services:
     volumes:
       - ../config/remme-client-config.toml:/config/remme-client-config.toml
     entrypoint: python3 -m remme.tp --account --atomic-swap --pubkey
-
-  remme-ws:
-    container_name: remme_ws
-    image: remme/remme-core:latest
-    network_mode: "service:validator"
-    depends_on:
-      - validator
-    volumes:
-      - ../config/remme-client-config.toml:/config/remme-client-config.toml
-    entrypoint: python3 -m remme.ws --port=9080
 
   remme-rest-api:
     container_name: remme_rest_api

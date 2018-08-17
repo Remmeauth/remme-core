@@ -14,34 +14,72 @@
 # ------------------------------------------------------------------------
 
 import argparse
+import asyncio
+import logging
 
 import toml
 from pkg_resources import resource_filename
 import connexion
-from flask_cors import CORS
+import aiohttp_cors
+
+from zmq.asyncio import ZMQEventLoop
+from sawtooth_sdk.messaging.stream import Stream
 from remme.rest_api.api_methods_switcher import RestMethodsSwitcherResolver
+from remme.rest_api.api_handler import AioHttpApi
+from remme.rest_api.validator import proxy
 from remme.shared.logging import setup_logging
+from remme.ws import WsApplicationHandler
+
+
+logger = logging.getLogger(__name__)
+
 
 if __name__ == '__main__':
-    config = toml.load('/config/remme-rest-api.toml')["remme"]["rest_api"]
+    cfg_rest = toml.load('/config/remme-rest-api.toml')["remme"]["rest_api"]
+    cfg_ws = toml.load('/config/remme-client-config.toml')['remme']['client']
+    zmq_url = f'tcp://{ cfg_ws["validator_ip"] }:{ cfg_ws["validator_port"] }'
+
     setup_logging('rest-api')
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--port', type=int, default=config["port"])
-    parser.add_argument('--bind', default=config["bind"])
+    parser.add_argument('--port', type=int, default=cfg_rest["port"])
+    parser.add_argument('--bind', default=cfg_rest["bind"])
     arguments = parser.parse_args()
-    app = connexion.FlaskApp(__name__, specification_dir='.')
 
-    cors_config = config["cors"]
-    CORS(app.app,
-         origins=cors_config["allow_origin"],
-         methods=cors_config["allow_methods"],
-         max_age=cors_config["max_age"],
-         supports_credentials=cors_config["allow_credentials"],
-         allow_headers=cors_config["allow_headers"],
-         expose_headers=cors_config["expose_headers"])
+    loop = ZMQEventLoop()
+    asyncio.set_event_loop(loop)
 
+    app = connexion.AioHttpApp(__name__, specification_dir='.')
+    cors_config = cfg_rest["cors"]
+    # enable CORS
+    if isinstance(cors_config["allow_origin"], str):
+        cors_config["allow_origin"] = [cors_config["allow_origin"]]
+
+    cors = aiohttp_cors.setup(app.app, defaults={
+        ao: aiohttp_cors.ResourceOptions(
+            allow_methods=cors_config["allow_methods"],
+            max_age=cors_config["max_age"],
+            allow_credentials=cors_config["allow_credentials"],
+            allow_headers=cors_config["allow_headers"],
+            expose_headers=cors_config["expose_headers"]
+        ) for ao in cors_config["allow_origin"]
+    })
+    # patch with update API cls
+    app.api_cls = AioHttpApi
+    # cors patch
+    app.api_cls.cors = cors
+    # Proxy to sawtooth rest api
+    cors.add(app.app.router.add_route('GET', '/validator/{path:.*?}',
+                                      proxy))
+    # Remme ws
+    logger.error(f'ZMQ url: {zmq_url}')
+    stream = Stream(zmq_url)
+    ws_handler = WsApplicationHandler(stream, loop=loop)
+    cors.add(app.app.router.add_route('GET', '/ws', ws_handler.subscriptions))
+    # Remme rest api spec
     app.add_api(resource_filename(__name__, 'openapi.yml'),
-                resolver=RestMethodsSwitcherResolver('remme.rest_api', config["available_methods"]))
+                resolver=RestMethodsSwitcherResolver('remme.rest_api',
+                                                     cfg_rest["available_methods"]))
+
     app.run(port=arguments.port, host=arguments.bind)
