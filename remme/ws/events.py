@@ -27,9 +27,12 @@ LOGGER = logging.getLogger(__name__)
 
 
 def process_event(type, attributes):
+    transaction_id = None
     entities_changed = None
     data = {}
     for item in attributes:
+        if item.key == 'header_signature':
+            transaction_id = item.value
         if item.key == 'entities_changed':
             entities_changed = json.loads(item.value)
 
@@ -39,7 +42,7 @@ def process_event(type, attributes):
                 data = entity
     if not data:
         data = entities_changed
-    return data
+    return transaction_id, data
 
 
 def get_value_from_key(attributes, key):
@@ -202,7 +205,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
             else:
                 event_response = {}
                 event_response['type'] = event.event_type
-                event_response['data'] = process_event(event.event_type, event.attributes)
+                event_response['transaction_id'], event_response['data'] = process_event(event.event_type, event.attributes)
 
                 event = self._events[event_response['type']]
                 for web_sock in event:

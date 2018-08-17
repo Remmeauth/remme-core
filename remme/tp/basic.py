@@ -51,11 +51,12 @@ def add_event(context, event_type, attributes):
         attributes=attributes)
 
 
-def get_event_attributes(updated_state):
+def get_event_attributes(updated_state, header_signature):
     content_dict = {"entities_changed": json.dumps([{**{'address': key,
                                          'type': value.__class__.__name__},
                                       **from_proto_to_dict(value)}
-                                     for key, value in updated_state.items()])}
+                                     for key, value in updated_state.items()]),
+                    "header_signature": header_signature}
     return [(key, str(value)) for key, value in content_dict.items()]
 
 
@@ -137,7 +138,7 @@ class BasicHandler(TransactionHandler):
         event_name = state_processor[transaction_payload.method].get(EMIT_EVENT, None)
         if event_name:
             add_event(context, event_name,
-                      get_event_attributes(updated_state))
+                      get_event_attributes(updated_state, transaction.signature))
 
     def make_address(self, appendix):
         address = self._prefix + appendix
