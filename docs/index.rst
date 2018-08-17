@@ -29,6 +29,12 @@ Welcome to REMME's documentation!
    family-atomic-swap
    family-pub-key
 
+.. toctree::
+   :maxdepth: 2
+   :caption: SDK:
+
+   rest-api
+
 
 
 
