@@ -90,8 +90,8 @@ class AccountTestCase(HelperTestCase):
         self.send_transaction(AccountMethod.TRANSFER,
                               AccountClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
                               [self.account_address1, self.account_address2])
-        self.expect_get({self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1)})
-        self.expect_get({self.account_address2: AccountClient.get_account_model(ACCOUNT_AMOUNT2)})
+        self.expect_get({self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1),
+                         self.account_address2: AccountClient.get_account_model(ACCOUNT_AMOUNT2)})
 
         self.expect_invalid_transaction()
 
@@ -102,8 +102,7 @@ class AccountTestCase(HelperTestCase):
         self.send_transaction(AccountMethod.TRANSFER,
                               AccountClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
                               [self.account_address1, self.account_address2])
-        self.expect_get({self.account_address1: None})
-        self.expect_get({self.account_address2: AccountClient.get_account_model(ACCOUNT_AMOUNT2)})
+        self.expect_get({self.account_address1: None, self.account_address2: AccountClient.get_account_model(0)})
 
         self.expect_invalid_transaction()
 
@@ -114,8 +113,9 @@ class AccountTestCase(HelperTestCase):
         self.send_transaction(AccountMethod.TRANSFER,
                               AccountClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
                               [self.account_address1, self.account_address2])
-        self.expect_get({self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1)})
-        self.expect_get({self.account_address2: None})
+        self.expect_get({self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1),
+                         self.account_address2: None})
+        # self.expect_get({self.account_address2: None})
 
         self.expect_set({
             self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1 - TRANSFER_VALUE),
@@ -131,7 +131,7 @@ class AccountTestCase(HelperTestCase):
         self.send_transaction(AccountMethod.TRANSFER,
                               AccountClient.get_transfer_payload(self.account_address1, TRANSFER_VALUE),
                               [self.account_address1, self.account_address2])
-        self.expect_get({self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1)})
+        # self.expect_get({self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1)})
 
         self.expect_invalid_transaction()
 
@@ -142,7 +142,7 @@ class AccountTestCase(HelperTestCase):
         self.send_transaction(AccountMethod.TRANSFER,
                               AccountClient.get_transfer_payload(GENESIS_ADDRESS, TRANSFER_VALUE),
                               [self.account_address1, self.account_address2])
-        self.expect_get({self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1)})
+        # self.expect_get({self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1)})
 
         self.expect_invalid_transaction()
 
@@ -155,6 +155,5 @@ class AccountTestCase(HelperTestCase):
     #     self.send_transaction(AccountMethod.TRANSFER,
     #                           AccountClient.get_transfer_payload(GENESIS_ADDRESS, TRANSFER_VALUE),
     #                           [self.account_address1, self.account_address2], CryptoFactory(context).new_signer(Secp256k1PrivateKey.from_hex(ZERO_ADDRESS[:-6])))
-    #
+    
     #     self.expect_invalid_transaction()
-

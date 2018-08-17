@@ -76,33 +76,62 @@ class AtomicSwapClient(BasicClient):
         super().__init__(AtomicSwapHandler, test_helper=test_helper)
 
     def swap_init(self, swap_init_payload):
+        addresses_input = [
+            self.make_address_from_data(swap_init_payload.swap_id),
+            self.get_user_address(),
+            _make_settings_key(SETTINGS_SWAP_COMMISSION),
+        ]
+        addresses_output = [
+            self.make_address_from_data(swap_init_payload.swap_id),
+            self.get_user_address(),
+            ZERO_ADDRESS,
+        ]
         return self._send_transaction(AtomicSwapMethod.INIT, swap_init_payload,
-                                      [self.make_address_from_data(swap_init_payload.swap_id),
-                                       self.get_user_address(),
-                                       ZERO_ADDRESS,
-                                       _make_settings_key(SETTINGS_SWAP_COMMISSION)])
+                                      addresses_input, addresses_output)
 
     def swap_approve(self, swap_approve_payload):
         LOGGER.info('swap id: {}'.format(swap_approve_payload.swap_id))
         LOGGER.info('swap payload: {}'.format(swap_approve_payload))
+        addresses_input = [
+            self.make_address_from_data(swap_approve_payload.swap_id),
+            self.get_user_address(),
+        ]
+        addresses_output = [
+            self.make_address_from_data(swap_approve_payload.swap_id),
+        ]
         return self._send_transaction(AtomicSwapMethod.APPROVE, swap_approve_payload,
-                                      [self.make_address_from_data(swap_approve_payload.swap_id)])
+                                      addresses_input, addresses_output)
 
     def swap_expire(self, swap_expire_payload):
+        addresses_input = [
+            self.make_address_from_data(swap_expire_payload.swap_id),
+            self.get_user_address(),
+        ]
+        addresses_output = addresses_input
         return self._send_transaction(AtomicSwapMethod.EXPIRE, swap_expire_payload,
-                                      [self.make_address_from_data(swap_expire_payload.swap_id),
-                                       ZERO_ADDRESS,
-                                       self.get_user_address()])
+                                      addresses_input, addresses_output)
 
     def swap_set_secret_lock(self, swap_set_secret_lock_payload):
+        addresses_input = [
+            self.make_address_from_data(swap_set_secret_lock_payload.swap_id),
+            self.get_user_address(),
+        ]
+        addresses_output = [
+            self.make_address_from_data(swap_set_secret_lock_payload.swap_id),
+        ]
         return self._send_transaction(AtomicSwapMethod.SET_SECRET_LOCK, swap_set_secret_lock_payload,
-                                      [self.make_address_from_data(swap_set_secret_lock_payload.swap_id)])
+                                      addresses_input, addresses_output)
 
     def swap_close(self, swap_close_payload, receiver_address):
+        addresses_input = [
+            self.make_address_from_data(swap_close_payload.swap_id),
+            ZERO_ADDRESS,
+            receiver_address,
+            self.get_user_address(),
+        ]
+        addresses_output = addresses_input
         return self._send_transaction(AtomicSwapMethod.CLOSE, swap_close_payload,
-                                      [self.make_address_from_data(swap_close_payload.swap_id),
-                                       ZERO_ADDRESS,
-                                       receiver_address])
+                                      addresses_input, addresses_output)
 
     def swap_get(self, swap_id):
         atomic_swap_info = AtomicSwapInfo()

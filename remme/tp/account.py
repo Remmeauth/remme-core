@@ -79,7 +79,6 @@ class AccountHandler(BasicHandler):
 
     def _transfer_from_address(self, context, address, transfer_payload):
         signer_key = address
-        signer_account = get_account_by_address(context, address)
 
         if not transfer_payload.address_to.startswith(self._prefix) \
                 and transfer_payload.address_to not in [ZERO_ADDRESS]:
@@ -88,14 +87,14 @@ class AccountHandler(BasicHandler):
         if signer_key == transfer_payload.address_to:
             raise InvalidTransaction("Account cannot send tokens to itself.")
 
+        signer_account, receiver_account = get_multiple_data(context, [(signer_key, Account), (transfer_payload.address_to, Account)])
+
         # TODO transfer from genesis address using SETTINGS_KEY_GENESIS_OWNERS list of allowed addresses(0x0)
         # genesis_members_str = _get_setting_value(context, SETTINGS_KEY_GENESIS_OWNERS)
         # if not genesis_members_str:
         #     raise InvalidTransaction('REMchain is not configured to process genesis transfers.')
         #
         # genesis_members_list = genesis_members_str.split()
-
-        receiver_account = get_data(context, Account, transfer_payload.address_to)
 
         if not receiver_account:
             receiver_account = Account()

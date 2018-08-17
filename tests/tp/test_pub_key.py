@@ -80,20 +80,25 @@ class PubKeyTestCase(HelperTestCase):
 
         cert, key, _ = create_certificate(context.pub_key_payload, signer=context.client.get_signer())
         cert_address, transaction_payload = self._pre_parse_payload_and_exec(context, cert, key)
-        self.expect_get({cert_address: None})
+        crt_export, crt_bin, crt_sig, rem_sig, pub_key, \
+            valid_from, valid_to = get_crt_export_bin_sig_rem_sig(cert, key, context.client)
+
 
         account = AccountClient.get_account_model(PUB_KEY_STORE_PRICE)
-        self.expect_get({self.account_address1: account})
-        self.expect_get({_make_settings_key('remme.economy_enabled'): None})
 
         data = PubKeyStorage()
         data.owner = self.account_signer1.get_public_key().as_hex()
         data.payload.CopyFrom(transaction_payload)
         data.revoked = False
 
+        self.expect_get({cert_address: None, self.account_address1: account})
+        self.expect_get({_make_settings_key('remme.economy_enabled'): None})
+
+        context.client.store_pub_key(pub_key, rem_sig, crt_sig, valid_from, valid_to) 
+
         account.balance -= PUB_KEY_STORE_PRICE
         account.pub_keys.append(cert_address)
-
+        
         self.expect_set({
             self.account_address1: account,
             cert_address: data
@@ -116,7 +121,7 @@ class PubKeyTestCase(HelperTestCase):
 
         context.client.store_pub_key(pub_key, rem_sig, crt_sig, valid_from, valid_to)
 
-        self.expect_get({cert_address: None})
+        self.expect_get({cert_address: None, self.account_address1: None})
 
         self.expect_invalid_transaction()
 
