@@ -25,12 +25,6 @@ class AccountClient(BasicClient):
     def __init__(self):
         super().__init__(AccountHandler)
 
-    def _send_transaction(self, method, data_pb, extra_addresses_input_output):
-        addresses_input_output = [self.get_user_address()]
-        if extra_addresses_input_output:
-            addresses_input_output += extra_addresses_input_output
-        return super()._send_transaction(method, data_pb, addresses_input_output)
-
     @classmethod
     def get_transfer_payload(self, address_to, value):
         transfer = TransferPayload()
@@ -54,10 +48,11 @@ class AccountClient(BasicClient):
         return account
 
     def transfer(self, address_to, value):
-        extra_addresses_input_output = [address_to]
+        addresses_input = [address_to, self.get_user_address()]
+        addresses_output = addresses_input
         transfer = self.get_transfer_payload(address_to, value)
 
-        return self._send_transaction(AccountMethod.TRANSFER, transfer, extra_addresses_input_output)
+        return self._send_transaction(AccountMethod.TRANSFER, transfer, addresses_input, addresses_output)
 
     def get_account(self, address):
         account = Account()
