@@ -41,8 +41,6 @@ services:
     container_name: remme_validator_rest_api
     image: hyperledger/sawtooth-rest-api:1.0.5
     network_mode: "service:validator"
-    depends_on:
-     - validator
     command: sawtooth-rest-api -v --connect tcp://127.0.0.1:4004 --bind 0.0.0.0:8008
 
   block-info-tp:
@@ -77,8 +75,6 @@ services:
     container_name: remme_ws
     image: remme/remme-core:latest
     network_mode: "service:validator"
-    depends_on:
-      - validator
     volumes:
       - ../config/remme-client-config.toml:/config/remme-client-config.toml
     entrypoint: python3 -m remme.ws --port=9080
@@ -87,8 +83,6 @@ services:
     container_name: remme_rest_api
     image: remme/remme-core:latest
     network_mode: "service:validator"
-    depends_on:
-      - validator
     volumes:
       - user_keys:/root/.sawtooth/keys
       - ${REMME_CONTAINER_EXPORTS_FOLDER:-./default_export}:/root/usr/share
