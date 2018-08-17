@@ -28,7 +28,8 @@ run_dev_no_genesis:
 	docker-compose -f docker-compose/base.yml up --build
 
 run_dev:
-	docker-compose -f docker-compose/base.yml -f docker-compose/genesis.yml up --build
+	docker-compose -f docker-compose/build.yml build
+	docker-compose -f docker-compose/base.yml -f docker-compose/genesis.yml up
 
 run_docs:
 	docker-compose -f docker-compose/docs.yml up --build
