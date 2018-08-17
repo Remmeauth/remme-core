@@ -108,13 +108,17 @@ class HelperTestCase(TestCase):
         payload_pb.method = method
         payload_pb.data = pb_data.SerializeToString()
 
+        tp_process_request = factory.create_tp_process_request(payload_pb.SerializeToString(), address_access_list,
+                                                               address_access_list, [])
         self.validator.send(
-            factory.create_tp_process_request(payload_pb.SerializeToString(), address_access_list, address_access_list, [])
+            tp_process_request
         )
 
-    def expect_event(self, event_type, updated_state):
+        return tp_process_request.signature
+
+    def expect_event(self, signature, event_type, updated_state):
         received = self.validator.expect(
-            self._factory.create_add_event_request(event_type, get_event_attributes(updated_state)))
+            self._factory.create_add_event_request(event_type, get_event_attributes(updated_state, signature)))
         LOGGER.info('expect_event')
 
         self.validator.respond(
@@ -134,7 +138,7 @@ class HelperTestCase(TestCase):
                 }),
             received)
 
-    def expect_set(self, method, key_value):
+    def expect_set(self, signature, method, key_value):
         received = self.validator.expect(
             self._factory.create_set_request({key: value_pb.SerializeToString()
                                               for key, value_pb in key_value.items()}))
@@ -146,7 +150,7 @@ class HelperTestCase(TestCase):
         processor = self.handler.get_state_processor()[method]
         event_type = processor.get(EMIT_EVENT, None)
         if event_type:
-            self.expect_event(event_type, key_value)
+            self.expect_event(signature, event_type, key_value)
 
     def _expect_tp_response(self, response):
         self.validator.expect(

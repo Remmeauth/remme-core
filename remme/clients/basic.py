@@ -119,7 +119,6 @@ class BasicClient:
     def get_value(self, address):
         result = self._send_request(f"state/{address}",
                                     conn_protocol='socket')
-        LOGGER.info(f'get_value: {get_value}')
         return base64.b64decode(result['data'])
 
     def get_batch(self, batch_id):
@@ -330,8 +329,7 @@ class BasicClient:
         '''
         # forward transaction to test helper
         if self.test_helper:
-            self.test_helper.send_transaction(method, data_pb, addresses_input_output)
-            return
+            return self.test_helper.send_transaction(method, data_pb, addresses_input_output)
 
         payload = TransactionPayload()
         payload.method = method

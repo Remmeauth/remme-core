@@ -65,21 +65,22 @@ class PubKeyTestCase(HelperTestCase):
         transaction_payload = context.client.get_new_pub_key_payload(pub_key, rem_sig, crt_sig, valid_from, valid_to)
         cert_address = PubKeyHandler.make_address_from_data(pub_key)
 
+        transaction_signature = None
         if type == 'store':
-            context.client.store_pub_key(pub_key, rem_sig, crt_sig, valid_from, valid_to)
+            transaction_signature = context.client.store_pub_key(pub_key, rem_sig, crt_sig, valid_from, valid_to)
         elif type == 'revoke':
-            context.client.revoke_pub_key(cert_address)
+            transaction_signature = context.client.revoke_pub_key(cert_address)
         else:
             raise AssertionError('Type for pre parse not found')
 
-        return cert_address, transaction_payload
+        return transaction_signature, cert_address, transaction_payload
 
     @test
     def test_store_success(self):
         context = self.get_context()
 
         cert, key, _ = create_certificate(context.pub_key_payload, signer=context.client.get_signer())
-        cert_address, transaction_payload = self._pre_parse_payload_and_exec(context, cert, key)
+        transaction_signature, cert_address, transaction_payload = self._pre_parse_payload_and_exec(context, cert, key)
         self.expect_get({cert_address: None})
 
         account = AccountClient.get_account_model(PUB_KEY_STORE_PRICE)
@@ -94,7 +95,7 @@ class PubKeyTestCase(HelperTestCase):
         account.balance -= PUB_KEY_STORE_PRICE
         account.pub_keys.append(cert_address)
 
-        self.expect_set(PubKeyMethod.STORE, {
+        self.expect_set(transaction_signature, PubKeyMethod.STORE, {
             self.account_address1: account,
             cert_address: data
         })
@@ -127,7 +128,7 @@ class PubKeyTestCase(HelperTestCase):
         cert, key, key_export = create_certificate(context.pub_key_payload,
                                                    org_name='different',
                                                    signer=self.account_signer2)
-        cert_address, transaction_payload = self._pre_parse_payload_and_exec(context, cert, key, 'revoke')
+        transaction_signature, cert_address, transaction_payload = self._pre_parse_payload_and_exec(context, cert, key, 'revoke')
 
         data = PubKeyStorage()
         data.owner = context.client.get_signer().get_public_key().as_hex()
@@ -138,7 +139,7 @@ class PubKeyTestCase(HelperTestCase):
 
         data.revoked = True
 
-        self.expect_set(PubKeyMethod.REVOKE, {
+        self.expect_set(transaction_signature, PubKeyMethod.REVOKE, {
             cert_address: data
         })
 
