@@ -152,7 +152,7 @@ class PubKeyTestCase(HelperTestCase):
         cert, key, key_export = create_certificate(context.pub_key_payload,
                                                    org_name='different',
                                                    signer=self.account_signer2)
-        cert_address, transaction_payload = self._pre_parse_payload_and_exec(context, cert, key, 'revoke')
+        signature, cert_address, transaction_payload = self._pre_parse_payload_and_exec(context, cert, key, 'revoke')
 
         data = PubKeyStorage()
         data.owner = self.account_signer2.get_public_key().as_hex()
