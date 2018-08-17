@@ -43,7 +43,9 @@ test:
 rebuild_docker:
 	docker-compose -f docker-compose/dev.yml build --no-cache
 
-release: build
+release:
+	git checkout $(RELEASE_NUMBER)
+	docker-compose -f docker-compose/build.yml build
 	mkdir $(RELEASE_NUMBER)-release
 	mkdir $(RELEASE_NUMBER)-release/docker-compose
 	cp {run,genesis}.sh ./$(RELEASE_NUMBER)-release
@@ -51,3 +53,4 @@ release: build
 	docker tag remme/remme-core:latest remme/remme-core:$(RELEASE_NUMBER)
 	sed -i -e 's/remme-core:latest/remme-core:$(RELEASE_NUMBER)/' $(RELEASE_NUMBER)-release/docker-compose/*.yml
 	cp -R config ./$(RELEASE_NUMBER)-release
+	git checkout @{-1}
