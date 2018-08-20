@@ -12,12 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------
-
-import hashlib
-import json
-
 import logging
-import os
+import json
 
 from google.protobuf.text_format import ParseError
 from sawtooth_processor_test.message_factory import MessageFactory
@@ -59,9 +55,9 @@ def get_event_attributes(updated_state, header_signature):
                     "header_signature": header_signature}
     return [(key, str(value)) for key, value in content_dict.items()]
 
-
 def get_data(context, pb_class, address):
     raw_data = context.get_state([address])
+    LOGGER.debug(f'Raw data: {raw_data}')
     if raw_data:
         try:
             data = pb_class()
@@ -73,6 +69,20 @@ def get_data(context, pb_class, address):
             raise InternalError('Failed to deserialize data')
     else:
         return None
+
+
+def get_multiple_data(context, data):
+    raw_data = context.get_state([el[0] for el in data])
+    raw_data = { entry.address: entry.data for entry in raw_data }
+    datas = []
+    for address, pb_class in data:
+        try:
+            data = pb_class()
+            data.ParseFromString(raw_data[address])
+            datas.append(data)
+        except Exception:
+            datas.append(None)
+    return datas
 
 
 class BasicHandler(TransactionHandler):

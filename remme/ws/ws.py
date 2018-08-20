@@ -135,10 +135,7 @@ class WsApplicationHandler(object):
 
             batch = self._batch_ids[batch_id]
 
-            if not force_cleanup:
-                LOGGER.debug('Got update for batch "%s"', batch)
-                batch['state']['sum'] = hash_sum
-                batch['state']['data'] = batch_data
+            LOGGER.debug('Got update for batch "%s"', batch)
 
             for ws in list(batch['ws']):
                 wsdata = batch['ws'][ws]
@@ -163,6 +160,9 @@ class WsApplicationHandler(object):
                     continue
 
                 wsdata['updated'] = True
+
+            batch['state']['sum'] = hash_sum
+            batch['state']['data'] = batch_data
 
             LOGGER.debug('Batch update finish')
 
@@ -281,13 +281,14 @@ class WsApplicationHandler(object):
 
         batch_resp = client_batch_submit_pb2.ClientBatchStatusResponse()
         batch_resp.ParseFromString(resp)
-        LOGGER.debug('Batch: %s', resp)
-        LOGGER.info('Batch parsed: %s', batch_resp)
+        LOGGER.debug(f'Batch: {resp}')
+        LOGGER.info(f'Batch parsed: {batch_resp}')
 
         hash_sum = hashlib.sha256(batch_resp.SerializeToString()).hexdigest()
+        LOGGER.debug(f'got hashsum: {hash_sum}')
 
         data = message_to_dict(batch_resp)
-        LOGGER.debug('data: %s', data)
+        LOGGER.debug(f'data: {data}')
 
         try:
             batch_data = data['batch_statuses'][0]
@@ -295,7 +296,7 @@ class WsApplicationHandler(object):
             raise Exception(f'Batch with id "{batch_id}" not found')
 
         assert batch_id == batch_data['batch_id'], \
-            'Batches not matched (req: {0}, got: {1})'.format(batch_id, batch_data['batch_id'])
+            f'Batches not matched (req: {batch_id}, got: {batch_data["batch_id"]})'
 
         prep_resp = {
             'batch_statuses': batch_data

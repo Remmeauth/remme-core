@@ -84,66 +84,65 @@ class AccountTestCase(HelperTestCase):
 
         self.expect_ok()
 
-    # @test
-    # def test_transfer_fail_no_balance(self):
-    #     ACCOUNT_AMOUNT1 = 200
-    #     ACCOUNT_AMOUNT2 = 500
-    #     TRANSFER_VALUE = ACCOUNT_AMOUNT1 + 1
-    #     self.send_transaction(AccountMethod.TRANSFER,
-    #                           AccountClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
-    #                           [self.account_address1, self.account_address2])
-    #     self.expect_get({self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1)})
-    #     self.expect_get({self.account_address2: AccountClient.get_account_model(ACCOUNT_AMOUNT2)})
-    #
-    #     self.expect_invalid_transaction()
-    #
-    # @test
-    # def test_transfer_fail_no_state_address1(self):
-    #     ACCOUNT_AMOUNT2 = 500
-    #     TRANSFER_VALUE = 200
-    #     self.send_transaction(AccountMethod.TRANSFER,
-    #                           AccountClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
-    #                           [self.account_address1, self.account_address2])
-    #     self.expect_get({self.account_address1: None})
-    #     self.expect_get({self.account_address2: AccountClient.get_account_model(ACCOUNT_AMOUNT2)})
-    #
-    #     self.expect_invalid_transaction()
-    #
-    # @test
-    # def test_transfer_success_no_state_address2(self):
-    #     ACCOUNT_AMOUNT1 = 500
-    #     TRANSFER_VALUE = 200
-    #     signature = self.send_transaction(AccountMethod.TRANSFER,
-    #                           AccountClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
-    #                           [self.account_address1, self.account_address2])
-    #     self.expect_get({self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1)})
-    #     self.expect_get({self.account_address2: None})
-    #
-    #     self.expect_set(signature, AccountMethod.TRANSFER, {
-    #         self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1 - TRANSFER_VALUE),
-    #         self.account_address2: AccountClient.get_account_model(0 + TRANSFER_VALUE)
-    #     })
-    #
-    #     self.expect_ok()
-    #
-    # @test
-    # def test_transfer_fail_to_oneself(self):
-    #     ACCOUNT_AMOUNT1 = 500
-    #     TRANSFER_VALUE = 200
-    #     self.send_transaction(AccountMethod.TRANSFER,
-    #                           AccountClient.get_transfer_payload(self.account_address1, TRANSFER_VALUE),
-    #                           [self.account_address1, self.account_address2])
-    #     self.expect_get({self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1)})
-    #
-    #     self.expect_invalid_transaction()
-    #
-    # @test
-    # def test_transfer_fail_to_zeroaddress(self):
-    #     ACCOUNT_AMOUNT1 = 500
-    #     TRANSFER_VALUE = 200
-    #     self.send_transaction(AccountMethod.TRANSFER,
-    #                           AccountClient.get_transfer_payload(GENESIS_ADDRESS, TRANSFER_VALUE),
-    #                           [self.account_address1, self.account_address2])
-    #     self.expect_get({self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1)})
-    #
-    #     self.expect_invalid_transaction()
+    @test
+    def test_transfer_fail_no_balance(self):
+        ACCOUNT_AMOUNT1 = 200
+        ACCOUNT_AMOUNT2 = 500
+        TRANSFER_VALUE = ACCOUNT_AMOUNT1 + 1
+        self.send_transaction(AccountMethod.TRANSFER,
+                              AccountClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
+                              [self.account_address1, self.account_address2])
+        self.expect_get({self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1),
+                         self.account_address2: AccountClient.get_account_model(ACCOUNT_AMOUNT2)})
+
+        self.expect_invalid_transaction()
+
+    @test
+    def test_transfer_fail_no_state_address1(self):
+        ACCOUNT_AMOUNT2 = 500
+        TRANSFER_VALUE = 200
+        self.send_transaction(AccountMethod.TRANSFER,
+                              AccountClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
+                              [self.account_address1, self.account_address2])
+        self.expect_get({self.account_address1: None, self.account_address2: AccountClient.get_account_model(0)})
+
+        self.expect_invalid_transaction()
+
+    @test
+    def test_transfer_success_no_state_address2(self):
+        ACCOUNT_AMOUNT1 = 500
+        TRANSFER_VALUE = 200
+        signature = self.send_transaction(AccountMethod.TRANSFER,
+                              AccountClient.get_transfer_payload(self.account_address2, TRANSFER_VALUE),
+                              [self.account_address1, self.account_address2])
+        self.expect_get({self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1),
+                         self.account_address2: None})
+
+        self.expect_set(signature, AccountMethod.TRANSFER, {
+            self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1 - TRANSFER_VALUE),
+            self.account_address2: AccountClient.get_account_model(0 + TRANSFER_VALUE)
+        })
+
+        self.expect_ok()
+
+    @test
+    def test_transfer_fail_to_oneself(self):
+        ACCOUNT_AMOUNT1 = 500
+        TRANSFER_VALUE = 200
+        self.send_transaction(AccountMethod.TRANSFER,
+                              AccountClient.get_transfer_payload(self.account_address1, TRANSFER_VALUE),
+                              [self.account_address1, self.account_address2])
+        # self.expect_get({self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1)})
+
+        self.expect_invalid_transaction()
+
+    @test
+    def test_transfer_fail_to_zeroaddress(self):
+        ACCOUNT_AMOUNT1 = 500
+        TRANSFER_VALUE = 200
+        self.send_transaction(AccountMethod.TRANSFER,
+                              AccountClient.get_transfer_payload(GENESIS_ADDRESS, TRANSFER_VALUE),
+                              [self.account_address1, self.account_address2])
+        # self.expect_get({self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1)})
+
+        self.expect_invalid_transaction()

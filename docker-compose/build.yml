@@ -11,21 +11,37 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ------------------------------------------------------------------------
 
-version: '2.1'
+version: '3.4'
 
 services:
-  remme-docs:
-    container_name: remme_docs
-    build: ..
+  validator:
+    build:
+      context: ..
+      target: validator
+    image: remme/sawtooth-validator:1.0.5
+
+  block-info-tp:
+    build:
+      context: ..
+      target: sawtooth-block-info-tp
+    image: remme/sawtooth-block-info-tp:1.0.4
+
+  poet-validator-registry:
+    build:
+      context: ..
+      target: validator-registry
+    image: remme/sawtooth-poet-validator-registry:1.0.5
+
+  remme-tp:
+    build:
+      context: ..
+      target: release
     image: remme/remme-core:latest
-    volumes:
-      - ..:/root/remme
-      - ../README.rst:/root/remme/docs/README.rst
-    ports:
-      - '${REMME_DOCS_SERVER_PORT:-8000}:8000'
-    entrypoint: |
-      bash -c "
-        sphinx-autobuild -H 0.0.0.0 -p 8000 remme/docs remme/docs/html
-      "
+
+  remme-rest-api:
+    build:
+      context: ..
+      target: release
+    image: remme/remme-core:latest
+

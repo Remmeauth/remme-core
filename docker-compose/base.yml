@@ -18,10 +18,7 @@ version: '3.4'
 services:
   validator:
     container_name: remme_validator
-    build:
-      context: ..
-      target: validator
-    image: remme/sawtooth-validator:latest
+    image: remme/sawtooth-validator:1.0.5
     volumes:
       - validator_keys:/etc/sawtooth/keys
       - chain_data:/var/lib/sawtooth/
@@ -31,35 +28,21 @@ services:
     network_mode: bridge
     ports:
       - '0.0.0.0:${REMME_VALIDATOR_PORT:-8800}:8800'
-      - '0.0.0.0:${REMME_WS_PORT:-9080}:9080'
       - '0.0.0.0:${REMME_REST_API_PORT:-8080}:8080'
-      - '0.0.0.0:${REMME_VALIDATOR_REST_API_PORT:-8008}:8008'
     env_file:
       - ../config/network-config.env
     environment:
       - REMME_START_MODE=run
     entrypoint: sh /scripts/validator.sh
 
-  remme-build:
-    container_name: remme_build
-    build:
-      context: ..
-      target: release
-    image: remme/remme-core:latest
-
   validator-rest-api:
     container_name: remme_validator_rest_api
     image: hyperledger/sawtooth-rest-api:1.0.5
     network_mode: "service:validator"
-    depends_on:
-     - validator
-    command: sawtooth-rest-api -v --connect tcp://127.0.0.1:4004 --bind 0.0.0.0:8008
+    command: sawtooth-rest-api -v --connect tcp://127.0.0.1:4004 --bind 127.0.0.1:8008
 
   block-info-tp:
     container_name: remme_block_info_tp
-    build:
-      context: ..
-      target: sawtooth-block-info-tp
     image: remme/sawtooth-block-info-tp:1.0.4
     network_mode: "service:validator"
     command: block-info-tp -vv -C tcp://127.0.0.1:4004
@@ -72,9 +55,6 @@ services:
 
   poet-validator-registry:
     container_name: remme_poet_validator_registry
-    build:
-      context: ..
-      target: validator-registry
     image: remme/sawtooth-poet-validator-registry-tp:1.0.5
     network_mode: "service:validator"
     volumes:
@@ -89,24 +69,10 @@ services:
       - ../config/remme-client-config.toml:/config/remme-client-config.toml
     entrypoint: python3 -m remme.tp --account --atomic-swap --pubkey
 
-  remme-ws:
-    container_name: remme_ws
-    image: remme/remme-core:latest
-    network_mode: "service:validator"
-    depends_on:
-      - validator
-    volumes:
-      - user_keys:/root/.sawtooth/keys
-      - ../config/remme-client-config.toml:/config/remme-client-config.toml
-      - ../config/remme-rest-api.toml:/config/remme-rest-api.toml
-    entrypoint: python3 -m remme.ws --port=9080
-
   remme-rest-api:
     container_name: remme_rest_api
     image: remme/remme-core:latest
     network_mode: "service:validator"
-    depends_on:
-      - validator
     volumes:
       - user_keys:/root/.sawtooth/keys
       - ${REMME_CONTAINER_EXPORTS_FOLDER:-./default_export}:/root/usr/share

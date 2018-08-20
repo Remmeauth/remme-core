@@ -24,9 +24,10 @@ from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
-from remme.tp.basic import BasicHandler, get_data
+from remme.tp.basic import BasicHandler, get_data, get_multiple_data
 from remme.tp.account import AccountHandler, get_account_by_address
 
+from remme.protos.account_pb2 import Account
 from remme.protos.pub_key_pb2 import (
     PubKeyStorage,
     NewPubKeyPayload, RevokePubKeyPayload, PubKeyMethod
@@ -64,7 +65,10 @@ class PubKeyHandler(BasicHandler):
     def _store_pub_key(self, context, signer_pubkey, transaction_payload):
         address = self.make_address_from_data(transaction_payload.public_key)
         LOGGER.info('Pub key address {}'.format(address))
-        data = get_data(context, PubKeyStorage, address)
+
+        account_address = AccountHandler.make_address_from_data(signer_pubkey)
+        LOGGER.info('Account address {}'.format(address))
+        data, account = get_multiple_data(context, [(address, PubKeyStorage), (account_address, Account)])
         if data:
             raise InvalidTransaction('This pub key is already registered.')
 
@@ -104,8 +108,8 @@ class PubKeyHandler(BasicHandler):
         data.payload.CopyFrom(transaction_payload)
         data.revoked = False
 
-        account_address = AccountHandler.make_address_from_data(signer_pubkey)
-        account = get_account_by_address(context, account_address)
+        if not account:
+            account = Account()
         if _get_setting_value(context, 'remme.economy_enabled', 'true').lower() == 'true':
             if account.balance < PUB_KEY_STORE_PRICE:
                 raise InvalidTransaction('Not enough tokens to register a new pub key. Current balance: {}'
