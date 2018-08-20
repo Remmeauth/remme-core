@@ -4,6 +4,7 @@ import logging
 from aiohttp import web
 from connexion.handlers import AuthErrorHandler
 
+from connexion import NoContent
 from connexion.apis.aiohttp_api import AioHttpApi, _HttpNotFoundError
 from connexion.lifecycle import ConnexionResponse
 
@@ -53,6 +54,15 @@ class AioHttpApi(AioHttpApi):
                 method, path + '/', handler, name=endpoint_name + '_'
             ))
 
+    @staticmethod
+    def _json_response(response, status=200):
+        if isinstance(response, web.Response):
+            return response
+
+        if response is NoContent:
+            return web.Response(status=status)
+        return web.json_response(response, status=status)
+
     @classmethod
     async def get_response(cls, response, mimetype=None, request=None):
         """Get response.
@@ -62,10 +72,10 @@ class AioHttpApi(AioHttpApi):
         while asyncio.iscoroutine(response):
             response = await response
 
-        if isinstance(response, tuple) and isinstance(response[0], dict):
-            response = web.json_response(response[0], status=response[1])
-        elif isinstance(response, dict):
-            response = web.json_response(response)
+        if isinstance(response, tuple):
+            response = cls._json_response(response[0], response[1])
+        else:
+            response = cls._json_response(response)
 
         url = str(request.url) if request else ''
 
