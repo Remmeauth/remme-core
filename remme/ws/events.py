@@ -63,10 +63,16 @@ class WSEventSocketHandler(BasicWebSocketHandler):
         LOGGER.info(f'last block {self.last_block_num}')
         self.catch_up_subscribers = {}
         self._events = {event.value: {} for event in Events}
+
+        ctx = zmq.Context()
+        self._socket = ctx.socket(zmq.DEALER)
+        self._socket.connect(ZMQ_URL)
+        LOGGER.info(f"Connected to ZMQ")
+
         self._events_updator_task = weakref.ref(
             asyncio.ensure_future(
                 self.listen_events(), loop=self._loop))
-        self.subscribe_events()
+
 
     # return what value to be mapped to web_sock
     async def subscribe(self, web_sock, entity, data):
@@ -85,8 +91,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
 
             LOGGER.info(f'Events being subscribed to: {events}')
 
-            if last_known_block_id:
-                self.subscribe_events([last_known_block_id])
+            self.subscribe_events(last_known_block_id)
 
             return {'events': events}
 
@@ -97,16 +102,12 @@ class WSEventSocketHandler(BasicWebSocketHandler):
                 del web_socks_dict[web_sock]
                 self._events[event] = web_socks_dict
 
-    def subscribe_events(self, last_known_block_ids=[]):
+    def subscribe_events(self, last_known_block_id=None):
         # Setup a connection to the validator
         LOGGER.info(f"Subscribing to events")
-        ctx = zmq.Context()
-        self._socket = ctx.socket(zmq.DEALER)
-        self._socket.connect(ZMQ_URL)
-        LOGGER.info(f"Connected to ZMQ")
 
         request = ClientEventsSubscribeRequest(subscriptions=self._make_subscriptions(),
-                                               last_known_block_ids=last_known_block_ids).SerializeToString()
+                                               last_known_block_ids=[last_known_block_id] if last_known_block_id else []).SerializeToString()
 
         # Construct the message wrapper
         correlation_id = generate_random_key()  # This must be unique for all in-process requests

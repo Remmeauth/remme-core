@@ -77,7 +77,7 @@ if __name__ == '__main__':
     stream = Stream(zmq_url)
     ws_handler = WsApplicationHandler(stream, loop=loop)
     ws_event_handler = WSEventSocketHandler(stream, loop=loop)
-    app.router.add_route('GET', '/ws/events', ws_event_handler.on_websocket_connect)
+    cors.add(app.app.router.add_route('GET', '/ws/events', ws_event_handler.on_websocket_connect))
     cors.add(app.app.router.add_route('GET', '/ws', ws_handler.subscriptions))
     # Remme rest api spec
     app.add_api(resource_filename(__name__, 'openapi.yml'),
