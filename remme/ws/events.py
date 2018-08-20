@@ -70,9 +70,9 @@ class WSEventSocketHandler(BasicWebSocketHandler):
 
     # return what value to be mapped to web_sock
     async def subscribe(self, web_sock, entity, data):
-        if entity in [Entity.EVENTS, Entity.CATCH_UP]:
+        if entity in [Entity.EVENTS]:
             events = data.get('events', [])
-
+            last_known_block_id = data.get('last_known_block_id', None)
             if not events:
                 raise SocketException(web_sock, Status.EVENTS_NOT_PROVIDED, f"Events being subscribed are not provided")
 
@@ -81,15 +81,13 @@ class WSEventSocketHandler(BasicWebSocketHandler):
                     raise SocketException(web_sock, Status.WRONG_EVENT_TYPE, f"Event: {event} is not supported")
                 # if web_sock in self._events[event]:
                 #     raise SocketException(web_sock, Status.ALREADY_SUBSCRIBED, f"Socket is already subscribed to: {event}")
-                self._events[event][web_sock] = {'is_catch_up': entity == Entity.CATCH_UP}
+                self._events[event][web_sock] = {'is_catch_up': bool(last_known_block_id)}
 
             LOGGER.info(f'Events being subscribed to: {events}')
-            if entity == Entity.CATCH_UP:
-                last_known_block_id = data.get('last_known_block_id', None)
-                if not last_known_block_id:
-                    raise SocketException(web_sock, Status.LAST_KNOWN_BLOCK_ID_NOT_PROVIDED,
-                                          f"Events being subscribed are not provided")
+
+            if last_known_block_id:
                 self.subscribe_events([last_known_block_id])
+
             return {'events': events}
 
     def unsubscribe(self, web_sock):
@@ -213,13 +211,15 @@ class WSEventSocketHandler(BasicWebSocketHandler):
                         await self._handle_unsubscribe(web_sock)
                         continue
 
-                    if is_event_catch_up == event[web_sock]['is_catch_up']:
-                        if web_sock not in web_socks_to_notify:
-                            web_socks_to_notify[web_sock] = []
+                    if is_event_catch_up and not event[web_sock]['is_catch_up']:
+                        continue
 
-                        web_socks_to_notify[web_sock] += [event_response]
-                        if self.last_block_num == block_num:
-                            self._events[event_response['type']][web_sock]['is_catch_up'] = False
+                    if web_sock not in web_socks_to_notify:
+                        web_socks_to_notify[web_sock] = []
+
+                    web_socks_to_notify[web_sock] += [event_response]
+                    if self.last_block_num == block_num:
+                        self._events[event_response['type']][web_sock]['is_catch_up'] = False
 
         for web_sock, events in web_socks_to_notify.items():
             await self._ws_send_message(web_sock, {Entity.EVENTS.value: events,

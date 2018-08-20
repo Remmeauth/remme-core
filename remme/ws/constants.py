@@ -42,7 +42,6 @@ class Action(Enum):
 class Entity(Enum):
     BATCH_STATE = 'batch_state'
     EVENTS = 'events'
-    CATCH_UP = 'catch_up'
 
 
 @unique
