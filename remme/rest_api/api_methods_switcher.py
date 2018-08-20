@@ -17,6 +17,7 @@ class RestMethodsSwitcherResolver(RestyResolver):
         self.allow_all_requests = rules == '*' or rules is None
         if not self.allow_all_requests:
             try:
+                rules = [ '/' + rule for rule in rules ]
                 self.allowed_operations = rules
             except IndexError:
                 raise ValueError('Could not parse {} env var value'.format(REST_METHODS_ENV_KEY))
