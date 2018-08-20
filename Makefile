@@ -24,7 +24,7 @@ build:
 
 restart_dev:
 	docker-compose -f docker-compose/base.yml -f docker-compose/genesis.yml down
-	docker-compose -f docker-compose/base.yml -f docker-compose/genesis.yml build
+	docker-compose -f docker-compose/build.yml build
 	docker-compose -f docker-compose/base.yml -f docker-compose/genesis.yml up -d
 
 run_dev_no_genesis: build
