@@ -82,5 +82,11 @@ services:
 
 volumes:
   user_keys:
+    external:
+      name: remme_user_keys
   validator_keys:
+    external:
+      name: remme_validator_keys
   chain_data:
+    external:
+      name: remme_chain_data
