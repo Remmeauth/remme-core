@@ -39,3 +39,5 @@ services:
 
 volumes:
   genesis_data:
+    external:
+      name: remme_genesis_data
