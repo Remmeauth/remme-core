@@ -91,7 +91,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
 
             LOGGER.info(f'Events being subscribed to: {events}')
 
-            self.subscribe_events(last_known_block_id)
+            self.subscribe_events(web_sock, last_known_block_id)
 
             return {'events': events}
 
@@ -102,7 +102,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
                 del web_socks_dict[web_sock]
                 self._events[event] = web_socks_dict
 
-    def subscribe_events(self, last_known_block_id=None):
+    def subscribe_events(self, web_sock, last_known_block_id=None):
         # Setup a connection to the validator
         LOGGER.info(f"Subscribing to events")
 
@@ -122,8 +122,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
         try:
             self._socket.send_multipart([msg.SerializeToString()], flags=zmq.NOBLOCK)
         except zmq.ZMQError as e:
-            LOGGER.info(f"Could send multipart: {e}")
-            return
+            raise SocketException(web_sock, Status.EVENTS_NOT_PROVIDED, f"Couldn't send multipart: {e}")
         LOGGER.info(f"Subscription request sent")
 
         # Receive the response
@@ -144,7 +143,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
         # Validate the response status
         if response.status != ClientEventsSubscribeResponse.OK:
             if response.status == ClientEventsSubscribeResponse.UNKNOWN_BLOCK:
-                raise SocketException(self._socket, Status.UNKNOWN_BLOCK,
+                raise SocketException(web_sock, Status.UNKNOWN_BLOCK,
                                       f"Uknown block in: {last_known_block_ids}")
             LOGGER.info("Subscription failed: {}".format(response))
             return
