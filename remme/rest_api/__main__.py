@@ -29,14 +29,15 @@ from remme.rest_api.api_handler import AioHttpApi
 from remme.rest_api.validator import proxy
 from remme.shared.logging import setup_logging
 from remme.ws import WsApplicationHandler
+from remme.settings.default import load_toml_with_defaults, DEFAULT_CLIENT_CONFIG, DEFAULT_REST_API_CONFIG
 
 
 logger = logging.getLogger(__name__)
 
 
 if __name__ == '__main__':
-    cfg_rest = toml.load('/config/remme-rest-api.toml')["remme"]["rest_api"]
-    cfg_ws = toml.load('/config/remme-client-config.toml')['remme']['client']
+    cfg_rest = load_toml_with_defaults('/config/remme-rest-api.toml', ["remme", "rest_api"], DEFAULT_REST_API_CONFIG)
+    cfg_ws = load_toml_with_defaults('/config/remme-client-config.toml', ['remme', 'client'], DEFAULT_CLIENT_CONFIG)
     zmq_url = f'tcp://{ cfg_ws["validator_ip"] }:{ cfg_ws["validator_port"] }'
 
     setup_logging('rest-api')
