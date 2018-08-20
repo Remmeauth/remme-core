@@ -91,7 +91,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
 
             LOGGER.info(f'Events being subscribed to: {events}')
 
-            self.subscribe_events(web_sock, last_known_block_id)
+            await self.subscribe_events(web_sock, last_known_block_id)
 
             return {'events': events}
 
@@ -102,7 +102,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
                 del web_socks_dict[web_sock]
                 self._events[event] = web_socks_dict
 
-    def subscribe_events(self, web_sock, last_known_block_id=None):
+    async def subscribe_events(self, web_sock, last_known_block_id=None):
         # Setup a connection to the validator
         LOGGER.info(f"Subscribing to events")
 
@@ -145,8 +145,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
             if response.status == ClientEventsSubscribeResponse.UNKNOWN_BLOCK:
                 raise SocketException(web_sock, Status.UNKNOWN_BLOCK,
                                       f"Uknown block in: {last_known_block_ids}")
-            LOGGER.info("Subscription failed: {}".format(response))
-            return
+            raise SocketException(web_sock, 0, f"Subscription failed: Couldn't send multipart: {e}")
         LOGGER.info(f"Successfully subscribed")
 
         # Unsubscribe from events
