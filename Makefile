@@ -23,15 +23,15 @@ build:
 	docker-compose -f docker-compose/build.yml build
 
 restart_dev:
-	docker-compose -f docker-compose/base.yml -f docker-compose/genesis.yml down
+	docker-compose -f docker-compose/base.yml -f docker-compose/genesis.yml --project-name remme down
 	docker-compose -f docker-compose/build.yml build
-	docker-compose -f docker-compose/base.yml -f docker-compose/genesis.yml up -d
+	docker-compose -f docker-compose/base.yml -f docker-compose/genesis.yml --project-name remme up -d
 
 run_dev_no_genesis: build
 	docker-compose -f docker-compose/base.yml up
 
 run_dev: build
-	docker-compose -f docker-compose/base.yml -f docker-compose/genesis.yml up
+	docker-compose -f docker-compose/base.yml -f docker-compose/genesis.yml --project-name remme up
 
 run_docs:
 	docker-compose -f docker-compose/docs.yml up --build
