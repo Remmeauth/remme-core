@@ -55,7 +55,7 @@ services:
 
   poet-validator-registry:
     container_name: remme_poet_validator_registry
-    image: remme/sawtooth-poet-validator-registry-tp:1.0.5
+    image: remme/sawtooth-poet-validator-registry:1.0.5
     network_mode: "service:validator"
     volumes:
       - ../config/remme-genesis-config.toml:/config/remme-genesis-config.toml

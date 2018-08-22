@@ -17,6 +17,7 @@
 FROM alpine:edge as build
 WORKDIR /root
 RUN apk --update --no-cache add rsync pkgconf build-base autoconf automake python3 protobuf libtool libffi-dev python3-dev zeromq-dev openssl-dev
+RUN pip3 install --upgrade pip
 RUN mkdir /install
 ENV PYTHONUSERBASE=/install
 COPY ./requirements.txt .

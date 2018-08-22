@@ -8,6 +8,7 @@ exports_folder = "./default_export"
 # Can be "*" or
 # { atomic-swap = "*" }
 # { atomic-swap = ["GET", "POST"] }
+# available_methods = { node_key = "GET", transaction = "POST", batch_status = "GET", block-config = "GET", block-info = "GET", token = "GET", user = "GET", pub_key = "POST", certificate = "POST", network = "GET" }
 available_methods = "*"
 
 [remme.rest_api.cors]
