@@ -15,21 +15,19 @@
 
 import argparse
 
-import toml
-
 from sawtooth_sdk.processor.core import TransactionProcessor
 
 from remme.tp.atomic_swap import AtomicSwapHandler
 from remme.tp.pub_key import PubKeyHandler
 from remme.tp.account import AccountHandler
-
 from remme.shared.logging import setup_logging
+from remme.settings.default import load_toml_with_defaults, DEFAULT_CLIENT_CONFIG
 
 
 TP_HANDLERS = [AccountHandler, PubKeyHandler, AtomicSwapHandler]
 
 if __name__ == '__main__':
-    config = toml.load('/config/remme-client-config.toml')['remme']['client']
+    config = load_toml_with_defaults('/config/remme-client-config.toml', ['remme', 'client'], DEFAULT_CLIENT_CONFIG)
     parser = argparse.ArgumentParser(description='Transaction processor.')
     parser.add_argument('-v', '--verbosity', type=int, default=2)
     parser.add_argument('--account', action='store_true')

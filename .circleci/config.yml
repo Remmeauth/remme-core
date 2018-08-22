@@ -35,7 +35,7 @@ jobs:
       - checkout
       - run:
           name: Build Docker images
-          command: make build_docker
+          command: make build
       - run:
           name: Push to Docker
           command: |

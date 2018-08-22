@@ -4,6 +4,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [0.5.0-alpha] - 2018-08-20
+### Added
+- Access to additional blocks metadata (e.g. time) via REST API (with the help of Sawtooth BlockInfo transaction
+  processor).
+### Changed
+- All services (REMME REST API, Sawtooth REST API and WebSockets) are now available on a single endpoint on the
+  following paths:
+  - REMME REST API at `/api/v1`;
+  - Sawtooth REST API at `/validator`;
+  - WebSockets at `/ws`.
+- Docker configuration was revised to have much more compact and fast images.
+- No need to install `protoc` compiler on the host machine.
+- Docker Compose configuration changes:
+  - Containers are now connected in a bridge network. This increases the overall security and simplifies the
+    firewall setup.
+  - Containers and volumes have pre-defined names to simplify their management.
+- Configuration
+  - The majority of settings are now available as TOML files in the `/configuration` directory.
+  - `network-config.yml` is reserved for stuff required before Docker Compose starts up (IP and ports allocation).
+  - Genesis block is now confgured in `remme-genesis-config.toml`.
+  - REST API: `remme-rest-api.toml`.
+  - Interaction between REMME and Sawtooth Core modules: `remme-client-config.toml`.
+  - `sawtooth-validator` configuration (as described in Sawtooth documentation): `sawtooth-validator-config.toml`
+  - List of addresses for initial connection in `seeds-list.txt`.
+- Sawtooth was upgraded to 1.0.5
+
 
 ## [0.4.0-alpha] - 2018-07-16
 ### Added
