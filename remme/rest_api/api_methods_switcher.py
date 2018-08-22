@@ -1,8 +1,9 @@
-import os
+import logging
+import re
 from connexion.resolver import RestyResolver
 from connexion.resolver import Resolution
 
-REST_METHODS_ENV_KEY = 'REMME_REST_API_AVAILABLE_METHODS'
+LOGGER = logging.getLogger(__name__)
 
 
 def access_denied_function(*args, **kwargs):
@@ -10,45 +11,35 @@ def access_denied_function(*args, **kwargs):
 
 
 class RestMethodsSwitcherResolver(RestyResolver):
-
     def __init__(self, default_module_name, rules="*", collection_endpoint_name='search'):
-        self.request_path = None
-        self.request_method = None
         self.allow_all_requests = rules == '*' or rules is None
         if not self.allow_all_requests:
-            try:
-                rules = [ '/' + rule for rule in rules ]
+            if isinstance(rules, dict):
                 self.allowed_operations = rules
-            except IndexError:
-                raise ValueError('Could not parse {} env var value'.format(REST_METHODS_ENV_KEY))
-
+            else:
+                raise ValueError(f'The set of validation rules must be a dict, got {type(rules)}.')
         super().__init__(default_module_name, collection_endpoint_name)
 
     def resolve(self, operation):
-        if self.is_allowed_operation(operation):
+        is_allowed_operation = False
+        if not self.allow_all_requests:
+            path = re.match(r'^/?([a-z0-9_-]+)(/.*$)?', operation.path)[1]
+            method = operation.method.upper()
+            if path in self.allowed_operations.keys():
+                allowed_operations = self.allowed_operations[path]
+                if isinstance(allowed_operations, str):
+                    if allowed_operations == '*' or allowed_operations == method:
+                        is_allowed_operation = True
+                elif isinstance(allowed_operations, list):
+                    if method in allowed_operations:
+                        is_allowed_operation = True
+                else:
+                    raise ValueError(f'Unexpected type for operation specification: {type(allowed_operations)}. Expected dict or str.')
+        else:
+            is_allowed_operation = True
+        if is_allowed_operation:
+            LOGGER.debug(f'Allowing method {operation.method.upper()} on path {operation.path}')
             return super().resolve(operation)
+        LOGGER.debug(f'Disabling method {operation.method.upper()} on path {operation.path}')
         return Resolution(access_denied_function, operation.path + operation.method)
 
-    def is_allowed_operation(self, operation):
-        self.request_path = get_clear_method_path(operation.path)
-        self.request_method = operation.method.upper()
-
-        return self.allow_all_requests or self.path_and_method_allowed()
-
-    def path_and_method_allowed(self):
-        return self.request_path_allowed() \
-               and (self.method_allowed_in_path())
-
-    def method_allowed_in_path(self):
-        return self.all_methods_allowed_in_path() \
-               or self.request_method in self.allowed_operations[self.request_path]
-
-    def all_methods_allowed_in_path(self):
-        return '*' in self.allowed_operations[self.request_path]
-
-    def request_path_allowed(self):
-        return self.request_path in self.allowed_operations
-
-
-def get_clear_method_path(path):
-    return path.split('/{')[0]
