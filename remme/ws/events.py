@@ -148,19 +148,6 @@ class WSEventSocketHandler(BasicWebSocketHandler):
             raise SocketException(web_sock, 0, f"Subscription failed: Couldn't send multipart: {e}")
         LOGGER.info(f"Successfully subscribed")
 
-        # Unsubscribe from events
-        # # Construct the request
-        # request = ClientEventsUnsubscribeRequest().SerializeToString()
-        #
-        # # Construct the message wrapper
-        # msg = Message(
-        #     correlation_id=generate_random_key(),
-        #     message_type=Message.CLIENT_EVENTS_UNSUBSCRIBE_REQUEST,
-        #     content=request)
-        #
-        # # Send the request
-        # self._socket.send_multipart([msg.SerializeToString()])
-
     # The following code listens for events and logs them indefinitely.
     async def check_event(self):
         LOGGER.info(f"Checking for new events...")
