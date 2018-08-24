@@ -51,10 +51,16 @@ DEFAULT_REST_API_CONFIG = {
     'exports_folder': './default_export',
     'available_methods': '*',
     'allow_origin': '*',
-    'expose_headers': '*',
-    'allow_headers': '*',
-    'allow_methods': ['GET', 'POST', 'PUT', 'DELETE'],
-    'max_age': 10000,
-    'allow_credentials': False,
+    'swagger': {
+        'enable_ui': True,
+        'enable_json': True
+    },
+    'cors': {
+        'expose_headers': '*',
+        'allow_headers': '*',
+        'allow_methods': ['GET', 'POST', 'PUT', 'DELETE'],
+        'max_age': 10000,
+        'allow_credentials': False
+    }
 }
 

@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 
 if __name__ == '__main__':
-    cfg_rest = load_toml_with_defaults('/config/remme-rest-api.toml', ["remme", "rest_api"], DEFAULT_REST_API_CONFIG)
+    cfg_rest = load_toml_with_defaults('/config/remme-rest-api.toml', ['remme', 'rest_api'], DEFAULT_REST_API_CONFIG)
     cfg_ws = load_toml_with_defaults('/config/remme-client-config.toml', ['remme', 'client'], DEFAULT_CLIENT_CONFIG)
     zmq_url = f'tcp://{ cfg_ws["validator_ip"] }:{ cfg_ws["validator_port"] }'
 
@@ -51,7 +51,9 @@ if __name__ == '__main__':
     loop = ZMQEventLoop()
     asyncio.set_event_loop(loop)
 
-    app = connexion.AioHttpApp(__name__, specification_dir='.')
+    app = connexion.AioHttpApp(__name__, specification_dir='.',
+                               swagger_ui=cfg_rest['swagger']['enable_ui'],
+                               swagger_json=cfg_rest['swagger']['enable_json'])
     cors_config = cfg_rest["cors"]
     # enable CORS
     if isinstance(cors_config["allow_origin"], str):
