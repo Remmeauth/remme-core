@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import toml
+from pkg_resources import resource_filename
+
+LOGGER = logging.getLogger(__name__)
 
 
 def _merge_deep(a, b):
@@ -24,43 +28,13 @@ def _merge_deep(a, b):
     return merged
 
 
-def load_toml_with_defaults(filename, subpath=None, defaults=None):
-    value = toml.load(filename)
-    if isinstance(subpath, list):
-        for key in subpath:
-            value = value[key]
-    if isinstance(defaults, dict):
+def load_toml_with_defaults(filename):
+    defaults = toml.load(resource_filename(__name__, 'default_config.toml'))
+    try:
+        value = toml.load(filename)
         value = _merge_deep(defaults, value)
-    return value
-
-DEFAULT_CLIENT_CONFIG = {
-    'validator_ip': '127.0.0.1',
-    'validator_port': 4004,
-    'validator_rest_api_url': 'http://127.0.0.1:8008',
-}
-
-DEFAULT_GENESIS_CONFIG = {
-    'token_supply': 1000000000000,
-    'economy_enabled': True,
-    'consensus': 'poet-simulator',
-}
-
-DEFAULT_REST_API_CONFIG = {
-    'bind': '0.0.0.0',
-    'port': 8080,
-    'exports_folder': './default_export',
-    'available_methods': '*',
-    'allow_origin': '*',
-    'swagger': {
-        'enable_ui': True,
-        'enable_json': True
-    },
-    'cors': {
-        'expose_headers': '*',
-        'allow_headers': '*',
-        'allow_methods': ['GET', 'POST', 'PUT', 'DELETE'],
-        'max_age': 10000,
-        'allow_credentials': False
-    }
-}
+        return value
+    except IOError:
+        LOGGER.warn(f'Configuration file {filename} not found, reverting to defaults.')
+        return defaults
 
