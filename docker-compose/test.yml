@@ -13,20 +13,24 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-version: '2.1'
+# FIXME Circle CI doesn't support Compose format > 3.2. Upgrade when we move to Jenkins.
+version: '3.2'
 
 services:
   tests:
-    build: ..
-    image: remme/remme-core:latest
-    depends_on:
-      - remme-tp
-    expose:
-      - 4004
+    container_name: remme_tests
+    image: remme/remme-core-dev:latest
+    network_mode: bridge
+    volumes:
+      - ../config/remme-client-config.toml:/config/remme-client-config.toml
     environment:
-      TEST_BIND: "tcp://eth0:4004"
+      - TEST_BIND=tcp://127.0.0.1:4004
+    entrypoint: python3 -m unittest discover ./tests
 
   remme-tp:
-    build: ..
-    image: remme/remme-core:latest
-    entrypoint: python3 -m remme.tp tcp://tests:4004 --account --atomic-swap --pubkey
+    container_name: remme_tests_tp
+    image: remme/remme-core-dev:latest
+    network_mode: "service:tests"
+    volumes:
+      - ../config/remme-client-config.toml:/config/remme-client-config.toml
+    entrypoint: python3 -m remme.tp --account --atomic-swap --pubkey

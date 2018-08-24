@@ -1,8 +1,9 @@
-import os
+import logging
+import re
 from connexion.resolver import RestyResolver
 from connexion.resolver import Resolution
 
-REST_METHODS_ENV_KEY = 'REMME_REST_API_AVAILABLE_METHODS'
+LOGGER = logging.getLogger(__name__)
 
 
 def access_denied_function(*args, **kwargs):
@@ -10,69 +11,35 @@ def access_denied_function(*args, **kwargs):
 
 
 class RestMethodsSwitcherResolver(RestyResolver):
-
-    def __init__(self, default_module_name, collection_endpoint_name='search'):
-        rules = os.getenv(REST_METHODS_ENV_KEY)
-        self.request_path = None
-        self.request_method = None
-        self.allow_all_requests = rules == '*' \
-                                  or rules == None
+    def __init__(self, default_module_name, rules="*", collection_endpoint_name='search'):
+        self.allow_all_requests = rules == '*' or rules is None
         if not self.allow_all_requests:
-            try:
-                self.allowed_operations = get_allowed_operations(rules)
-            except IndexError:
-                raise ValueError('Could not parse {} env var value'.format(REST_METHODS_ENV_KEY))
-
+            if isinstance(rules, dict):
+                self.allowed_operations = rules
+            else:
+                raise ValueError(f'The set of validation rules must be a dict, got {type(rules)}.')
         super().__init__(default_module_name, collection_endpoint_name)
 
     def resolve(self, operation):
-        if self.is_allowed_operation(operation):
+        is_allowed_operation = False
+        if not self.allow_all_requests:
+            path = re.match(r'^/?([a-z0-9_-]+)(/.*$)?', operation.path)[1]
+            method = operation.method.upper()
+            if path in self.allowed_operations.keys():
+                allowed_operations = self.allowed_operations[path]
+                if isinstance(allowed_operations, str):
+                    if allowed_operations == '*' or allowed_operations == method:
+                        is_allowed_operation = True
+                elif isinstance(allowed_operations, list):
+                    if method in allowed_operations:
+                        is_allowed_operation = True
+                else:
+                    raise ValueError(f'Unexpected type for operation specification: {type(allowed_operations)}. Expected dict or str.')
+        else:
+            is_allowed_operation = True
+        if is_allowed_operation:
+            LOGGER.debug(f'Allowing method {operation.method.upper()} on path {operation.path}')
             return super().resolve(operation)
+        LOGGER.debug(f'Disabling method {operation.method.upper()} on path {operation.path}')
         return Resolution(access_denied_function, operation.path + operation.method)
 
-    def is_allowed_operation(self, operation):
-        self.request_path = get_clear_method_path(operation.path)
-        self.request_method = operation.method.upper()
-
-        return self.allow_all_requests or self.path_and_method_allowed()
-
-    def path_and_method_allowed(self):
-        return self.request_path_allowed() \
-               and (self.method_allowed_in_path())
-
-    def method_allowed_in_path(self):
-        return self.all_methods_allowed_in_path() \
-               or self.request_method in self.allowed_operations[self.request_path]
-
-    def all_methods_allowed_in_path(self):
-        return '*' in self.allowed_operations[self.request_path]
-
-    def request_path_allowed(self):
-        return self.request_path in self.allowed_operations
-
-
-def get_allowed_method(method_str):
-    return method_str.split(':')[0]
-
-
-def get_allowed_request_types(method):
-    return method.split(':')[1].split(',')
-
-
-def get_allowed_methods(enviroment_var):
-    return enviroment_var.split(';')
-
-
-def get_clear_method_path(path):
-    return path.split('/{')[0]
-
-
-def get_allowed_operations(rules):
-    methods = get_allowed_methods(rules)
-
-    allowed_operations = {}
-    for method_str in methods:
-        method = get_allowed_method(method_str)
-        allowed_operations[method] = get_allowed_request_types(method_str)
-
-    return allowed_operations

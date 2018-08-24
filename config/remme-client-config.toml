@@ -1,0 +1,4 @@
+[remme.client]
+validator_ip = "127.0.0.1"
+validator_port = 4004
+validator_rest_api_url = "http://127.0.0.1:8008"

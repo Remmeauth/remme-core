@@ -13,50 +13,44 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-PROTO_SRC_DIR = ./protos
-PROTO_DST_DIR = ./remme/protos
 RELEASE_NUMBER ?= $(shell git describe --abbrev=0 --tags)
 
-include .env
+include ./config/network-config.env
 
 .PHONY: release
 
+build:
+	docker-compose -f docker-compose/build.yml build
+
 restart_dev:
-	docker-compose -f docker-compose/dev.yml -f docker-compose/genesis.yml -f docker-compose/run.yml down
-	docker-compose -f docker-compose/dev.yml -f docker-compose/genesis.yml -f docker-compose/run.yml build
-	docker-compose -f docker-compose/dev.yml -f docker-compose/genesis.yml -f docker-compose/run.yml up -d
+	docker-compose -f docker-compose/base.yml -f docker-compose/genesis.yml --project-name remme down
+	docker-compose -f docker-compose/build.yml build
+	docker-compose -f docker-compose/base.yml -f docker-compose/genesis.yml --project-name remme up -d
 
-run_dev_no_genesis: build_docker
-	docker-compose -f docker-compose/dev.yml -f docker-compose/run.yml up
+run_dev_no_genesis: build
+	docker-compose -f docker-compose/base.yml up
 
-run_dev: build_docker
-	docker-compose -f docker-compose/dev.yml -f docker-compose/genesis.yml -f docker-compose/run.yml up
+run_dev: build
+	docker-compose -f docker-compose/base.yml -f docker-compose/genesis.yml --project-name remme up
 
-run_docs: build_docker
-	docker-compose -f docker-compose/docs.yml up
+run_docs:
+	docker-compose -f docker-compose/docs.yml up --build
 
-poet_enroll_validators_list:
-	docker exec -it $(shell docker-compose -f docker-compose/dev.yml ps -q validator) bash -c "poet registration \
-	create -k /etc/sawtooth/keys/validator.priv -o enroll_poet.batch && sawtooth batch submit -f enroll_poet.batch --url http://rest-api:8080"
-
-test: build_docker
-	docker-compose -f docker-compose/test.yml -f docker-compose/run-test.yml up --abort-on-container-exit
-
-build_protobuf:
-	protoc -I=$(PROTO_SRC_DIR) --python_out=$(PROTO_DST_DIR) $(PROTO_SRC_DIR)/*.proto
-
-build_docker:
-	docker-compose -f docker-compose/dev.yml build
+test:
+	docker build --target build -t remme/remme-core-dev:latest .
+	docker-compose -f docker-compose/test.yml up --build --abort-on-container-exit
 
 rebuild_docker:
 	docker-compose -f docker-compose/dev.yml build --no-cache
 
-release: build_docker
+release:
+	git checkout $(RELEASE_NUMBER)
+	docker-compose -f docker-compose/build.yml build
 	mkdir $(RELEASE_NUMBER)-release
 	mkdir $(RELEASE_NUMBER)-release/docker-compose
 	cp {run,genesis}.sh ./$(RELEASE_NUMBER)-release
-	cp docker-compose/{dev,run,genesis}.yml ./$(RELEASE_NUMBER)-release/docker-compose
-	cp .env ./$(RELEASE_NUMBER)-release
-	find ./$(RELEASE_NUMBER)-release -type f -name "docker-compose/{dev,run,genesis}.yml" | xargs sed -i "/.*build: ..*/d"
-	zip -r $(RELEASE_NUMBER)-release.zip $(RELEASE_NUMBER)-release
-	rm -rf $(RELEASE_NUMBER)-release
+	cp docker-compose/{base,genesis}.yml ./$(RELEASE_NUMBER)-release/docker-compose
+	docker tag remme/remme-core:latest remme/remme-core:$(RELEASE_NUMBER)
+	sed -i -e 's/remme-core:latest/remme-core:$(RELEASE_NUMBER)/' $(RELEASE_NUMBER)-release/docker-compose/*.yml
+	cp -R config ./$(RELEASE_NUMBER)-release
+	git checkout @{-1}

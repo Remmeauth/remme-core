@@ -150,6 +150,28 @@ paths:
               - pub_keys
         500:
           $ref: '#/responses/500GeneralError'
+  /network:
+    get:
+      operationId: remme.rest_api.network.get
+      summary: Retrieve the synchronization of node and list of active peers
+      tags:
+        - Network
+      responses:
+        200:
+          description: The addresses of public keys for the specified user
+          schema:
+            properties:
+              is_synced:
+                type: boolean
+                description: The status of node sync
+              peer_count:
+                type: integer
+                description: The count of active peers
+            required:
+              - is_synced
+              - peer_count
+        500:
+          $ref: '#/responses/500GeneralError'
   /certificate/p12:
     put:
       operationId: remme.rest_api.pub_key.put_p12
@@ -429,6 +451,42 @@ paths:
           description: No batch with the given id found
         500:
           $ref: '#/responses/500GeneralError'
+
+  /block-config:
+    get:
+      summary: Get Block Config
+      operationId: remme.rest_api.block_info.get_block_config
+      responses:
+        200:
+          $ref: '#/responses/BlockConfig'
+        500:
+          $ref: '#/responses/500GeneralError'
+
+  /block-info:
+    get:
+      summary: Get blocks
+      operationId: remme.rest_api.block_info.get_block_info
+      parameters:
+        - name: start
+          description: Starting block number of the block list
+          in: query
+          type: integer
+        - name: limit
+          description: Number of blocks to return in descending order
+          in: query
+          type: integer
+      responses:
+        200:
+          description: List of blocks (BlockInfo type)
+          schema:
+            properties:
+              blocks:
+                type: array
+                items:
+                  $ref: '#/definitions/BlockInfo'
+        500:
+          $ref: '#/responses/500GeneralError'
+
   /personal:
     get:
       summary: Get the list of public keys
@@ -588,16 +646,14 @@ responses:
         error:
           type: string
           description: Error description
+
   SwapInfo:
     description: Swap info fields
     schema:
       properties:
-        is_closed:
-          description: is swap close
-          type: boolean
-        is_approved:
-          description: Receiver address
-          type: boolean
+        state:
+          description: The current state the swap is in.
+          type: string
         sender_address:
           $ref: '#/definitions/Address'
         receiver_address:
@@ -623,6 +679,22 @@ responses:
         is_initiator:
           description: Is Alice initiator of a transaction on the REMchain side
           type: boolean
+  BlockConfig:
+    description: Block Config
+    schema:
+      properties:
+        latest_block:
+          type: integer
+          description: Latest block
+        oldest_block:
+          type: integer
+          description: Oldest block
+        target_count:
+          type: integer
+          description: Target count.
+        sync_tolerance:
+          type: integer
+          description: Public key for the component internal to the validator that signed the BlockHeader
 
 parameters:
   swap_init_payload:
@@ -886,6 +958,24 @@ definitions:
         type: string
         description: hex-encoded public key
         pattern: '^[0-9a-f]{128}$'
+  BlockInfo:
+    properties:
+      block_num:
+        type: integer
+        description: Block number
+      timestamp:
+        type: integer
+        description: Approximately when this block was committed, as a Unix UTC timestamp
+      previous_header_signature:
+        type: string
+        description: The header_signature of the previous block that was added to the chain.
+      signer_public_key:
+        type: string
+        description: Public key for the component internal to the validator that signed the BlockHeader
+      header_signature:
+        type: string
+        description: The signature derived from signing the header
+
   BatchId:
     type: string
     description: The hex-encoded identifier of the batch in which the transaction was submitted

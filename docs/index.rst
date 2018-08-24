@@ -18,6 +18,7 @@ Welcome to REMME's documentation!
    architecture
    remme-framework
    remme-client
+   remme-ws
    generated/modules
 
 .. toctree::
@@ -27,6 +28,12 @@ Welcome to REMME's documentation!
    family-account
    family-atomic-swap
    family-pub-key
+
+.. toctree::
+   :maxdepth: 2
+   :caption: SDK:
+
+   rest-api
 
 
 

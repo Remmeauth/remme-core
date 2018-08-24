@@ -19,21 +19,12 @@ jobs:
     machine:
       docker_layer_caching: true
     steps:
-      - run:
-          name: Install proto3
-          command: |
-            curl -OL https://github.com/google/protobuf/releases/download/v3.5.1/protoc-3.5.1-linux-x86_64.zip && \
-            unzip protoc-3.5.1-linux-x86_64.zip -d protoc3 && \
-            sudo mv protoc3/bin/* /usr/local/bin/ && \
-            sudo mv protoc3/include/* /usr/local/include/ && \
-            rm protoc-3.5.1-linux-x86_64.zip && \
-            rm -rf protoc3
       - checkout
       - run:
           name: Clone submodules
           command: |
             git submodule init && \
-            git submodule update
+            git submodule update --init
       - run:
           name: Run tests
           command: make test
@@ -44,7 +35,7 @@ jobs:
       - checkout
       - run:
           name: Build Docker images
-          command: make build_docker
+          command: make build
       - run:
           name: Push to Docker
           command: |

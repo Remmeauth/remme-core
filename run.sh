@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-source .env
-docker-compose -f docker-compose/dev.yml -f docker-compose/run.yml up
+source ./bash/network-config.env
+docker-compose -f docker-compose/base.yml --project-name remme up

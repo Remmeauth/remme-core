@@ -5,6 +5,8 @@ from remme.clients.atomic_swap import AtomicSwapClient, get_swap_init_payload, g
     get_swap_expire_payload, get_swap_set_secret_lock_payload, get_swap_close_payload
 from google.protobuf.json_format import MessageToJson
 
+from remme.rest_api import handle_key_not_found
+
 client = AtomicSwapClient()
 
 LOGGER = logging.getLogger(__name__)
@@ -34,6 +36,7 @@ def set_secret_lock(**data):
     return client.swap_set_secret_lock(payload)
 
 
+@handle_key_not_found
 def close(**data):
     data = data['payload']
     swap_info = client.swap_get(data['swap_id'])
@@ -42,6 +45,7 @@ def close(**data):
     return client.swap_close(payload, receiver_address=swap_info.receiver_address)
 
 
+@handle_key_not_found
 def get_swap_info(swap_id):
     swap_info = client.swap_get(swap_id)
     LOGGER.info(f'Get swap info {swap_info}')

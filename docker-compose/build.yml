@@ -11,14 +11,37 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ------------------------------------------------------------------------
 
-version: '2.1'
+version: '3.4'
 
 services:
+  validator:
+    build:
+      context: ..
+      target: validator
+    image: remme/sawtooth-validator:1.0.5
+
+  block-info-tp:
+    build:
+      context: ..
+      target: sawtooth-block-info-tp
+    image: remme/sawtooth-block-info-tp:1.0.4
+
+  poet-validator-registry:
+    build:
+      context: ..
+      target: validator-registry
+    image: remme/sawtooth-poet-validator-registry:1.0.5
+
   remme-tp:
-    entrypoint: python3 -m remme.tp tcp://validator:4004 --account --atomic-swap --pubkey
+    build:
+      context: ..
+      target: release
+    image: remme/remme-core:latest
 
   remme-rest-api:
-    depends_on:
-      - remme-tp
+    build:
+      context: ..
+      target: release
+    image: remme/remme-core:latest
+

@@ -33,6 +33,9 @@ from sawtooth_sdk.protobuf.transaction_pb2 import (
     Transaction, TransactionHeader
 )
 from sawtooth_sdk.messaging.stream import Stream
+from sawtooth_sdk.protobuf.client_peers_pb2 import (
+    ClientPeersGetRequest, ClientPeersGetResponse
+)
 from sawtooth_sdk.protobuf.client_batch_submit_pb2 import (
     ClientBatchSubmitRequest, ClientBatchSubmitResponse,
     ClientBatchStatusRequest, ClientBatchStatusResponse,
@@ -43,26 +46,29 @@ from sawtooth_signing import CryptoFactory, ParseError, create_context
 from sawtooth_signing.secp256k1 import Secp256k1PrivateKey
 
 from remme.protos.transaction_pb2 import TransactionPayload
-from remme.settings import REST_API_URL, PRIV_KEY_FILE, ZMQ_URL
 from remme.shared.exceptions import ClientException, KeyNotFound
 from remme.shared.utils import hash512, get_batch_id, message_to_dict
-from remme.settings import REST_API_URL, PRIV_KEY_FILE
 from remme.shared.exceptions import ClientException
 from remme.shared.exceptions import KeyNotFound
 from remme.shared.utils import hash512
 from remme.tp.account import AccountHandler, is_address
-
+from remme.settings import PRIV_KEY_FILE
+from remme.settings.default import load_toml_with_defaults
 
 LOGGER = logging.getLogger(__name__)
 
 
 class BasicClient:
+    def __init__(self, family_handler, test_helper=None, keyfile=None):
+        config = load_toml_with_defaults('/config/remme-client-config.toml')['remme']['client']
 
-    def __init__(self, family_handler, test_helper=None, keyfile=PRIV_KEY_FILE):
-        self.url = REST_API_URL
+        self.url = config['validator_rest_api_url']
         self._family_handler = family_handler
         self.test_helper = test_helper
-        self._stream = Stream(ZMQ_URL)
+        self._stream = Stream(f'tcp://{ config["validator_ip"] }:{ config["validator_port"] }')
+
+        if keyfile is None:
+            keyfile = PRIV_KEY_FILE
 
         try:
             self._signer = self.get_signer_priv_key_from_file(keyfile)
@@ -97,7 +103,7 @@ class BasicClient:
                 with open(keyfile, 'w') as fd:
                     fd.write(private_key.as_hex())
             except OSError as err:
-                raise ClientException('Failed to write private key: {0}'.format(err))
+                raise ClientException(f'Failed to write private key: {err}')
         return CryptoFactory(context).new_signer(private_key)
 
     def make_address(self, suffix):
@@ -110,11 +116,13 @@ class BasicClient:
         return self._family_handler.is_address(address)
 
     def get_value(self, address):
-        result = self._send_request("state/{}".format(address), conn_protocol='socket')
+        result = self._send_request(f"state/{address}",
+                                    conn_protocol='socket')
         return base64.b64decode(result['data'])
 
     def get_batch(self, batch_id):
-        result = self._send_request("batch_statuses?id={}".format(batch_id), conn_protocol='socket')
+        result = self._send_request(f"batch_statuses?id={batch_id}",
+                                    conn_protocol='socket')
         return result['data'][0]
 
     def get_signer(self):
@@ -214,6 +222,12 @@ class BasicClient:
 
         return data
 
+    def fetch_peers(self):
+        resp = self._handle_response(Message.CLIENT_PEERS_GET_REQUEST,
+                                     ClientPeersGetResponse,
+                                     ClientPeersGetRequest())
+        return {'data': resp['peers']}
+
     def get_root_block(self):
         resp = self._handle_response(Message.CLIENT_BLOCK_LIST_REQUEST,
                                      ClientBlockListResponse,
@@ -262,15 +276,15 @@ class BasicClient:
                                      ClientBatchStatusRequest(batch_ids=data['batch_ids']))
         return {'data': resp['batch_statuses']}
 
-    def make_batch_list(self, payload_pb, addresses_input_output):
+    def make_batch_list(self, payload_pb, addresses_input, addresses_output):
         payload = payload_pb.SerializeToString()
         signer = self._signer
         header = TransactionHeader(
             signer_public_key=signer.get_public_key().as_hex(),
             family_name=self._family_handler.family_name,
             family_version=self._family_handler.family_versions[-1],
-            inputs=addresses_input_output,
-            outputs=addresses_input_output,
+            inputs=addresses_input,
+            outputs=addresses_output,
             dependencies=[],
             payload_sha512=hash512(payload),
             batcher_public_key=signer.get_public_key().as_hex(),
@@ -293,14 +307,19 @@ class BasicClient:
     def get_user_address(self):
         return AccountHandler.make_address_from_data(self._signer.get_public_key().as_hex())
 
-    def _send_transaction(self, method, data_pb, addresses_input_output):
+    def _send_transaction(self, method, data_pb, addresses_input, addresses_output):
         '''
            Signs and sends transaction to the network using rest-api.
 
            :param str method: The method (defined in proto) for Transaction Processor to process the request.
            :param dict data: Dictionary that is required by TP to process the transaction.
-           :param str addresses_input_output: list of addresses(keys) for which to get and save state.
+           :param str addresses_input: list of addresses(keys) for which to get state.
+           :param str addresses_output: list of addresses(keys) for which to save state.
         '''
+        addresses_input_output = []
+        addresses_input_output.extend(addresses_input)
+        addresses_input_output.extend(addresses_output)
+        addresses_input_output = list(set(addresses_input_output))
         # forward transaction to test helper
         if self.test_helper:
             self.test_helper.send_transaction(method, data_pb, addresses_input_output)
@@ -314,7 +333,7 @@ class BasicClient:
             if not is_address(address):
                 raise ClientException('one of addresses_input_output {} is not an address'.format(addresses_input_output))
 
-        batch_list = self.make_batch_list(payload, addresses_input_output)
+        batch_list = self.make_batch_list(payload, addresses_input, addresses_output)
 
         return get_batch_id(self._send_request('batches', batch_list, 'socket'))
 

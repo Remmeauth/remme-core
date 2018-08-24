@@ -17,6 +17,7 @@ version: '2.1'
 
 services:
   remme-docs:
+    container_name: remme_docs
     build: ..
     image: remme/remme-core:latest
     volumes:
@@ -24,8 +25,6 @@ services:
       - ../README.rst:/root/remme/docs/README.rst
     ports:
       - '${REMME_DOCS_SERVER_PORT:-8000}:8000'
-    env_file:
-      - ../.env
     entrypoint: |
       bash -c "
         sphinx-autobuild -H 0.0.0.0 -p 8000 remme/docs remme/docs/html

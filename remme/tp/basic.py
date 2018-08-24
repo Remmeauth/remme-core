@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------
+import logging
 
-import hashlib
 from google.protobuf.text_format import ParseError
 from sawtooth_processor_test.message_factory import MessageFactory
 from sawtooth_sdk.processor.exceptions import InternalError
@@ -21,7 +21,10 @@ from sawtooth_sdk.processor.handler import TransactionHandler
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
 from remme.protos.transaction_pb2 import TransactionPayload
-from remme.shared.utils import hash512
+from remme.shared.utils import hash512, message_to_dict
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 def is_address(address):
@@ -33,8 +36,10 @@ def is_address(address):
     except (AssertionError, ValueError):
         return False
 
+
 def get_data(context, pb_class, address):
     raw_data = context.get_state([address])
+    LOGGER.debug(f'Raw data: {raw_data}')
     if raw_data:
         try:
             data = pb_class()
@@ -46,6 +51,20 @@ def get_data(context, pb_class, address):
             raise InternalError('Failed to deserialize data')
     else:
         return None
+
+
+def get_multiple_data(context, data):
+    raw_data = context.get_state([el[0] for el in data])
+    raw_data = { entry.address: entry.data for entry in raw_data }
+    datas = []
+    for address, pb_class in data:
+        try:
+            data = pb_class()
+            data.ParseFromString(raw_data[address])
+            datas.append(data)
+        except Exception:
+            datas.append(None)
+    return datas
 
 
 class BasicHandler(TransactionHandler):
