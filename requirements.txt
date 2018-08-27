@@ -1,7 +1,7 @@
 colorlog==3.1.4
 sawtooth-sdk==1.0.5
 sawtooth-signing==1.0.1
-cryptography==2.2.2
+cryptography==2.3
 protobuf==3.5.2
 connexion==1.5.2
 requests==2.18.4

@@ -18,12 +18,12 @@ from remme.protos.account_pb2 import AccountMethod
 from remme.clients.account import AccountClient
 from remme.tp.account import AccountHandler, TransactionPayload
 from remme.settings import GENESIS_ADDRESS
-from remme.settings.default import load_toml_with_defaults, DEFAULT_GENESIS_CONFIG 
+from remme.settings.default import load_toml_with_defaults
 
 OUTPUT_BATCH = '/genesis/batch/token-proposal.batch'
 
 if __name__ == '__main__':
-    parameters = load_toml_with_defaults('/config/remme-genesis-config.toml', ['remme', 'genesis'], DEFAULT_GENESIS_CONFIG)
+    parameters = load_toml_with_defaults('/config/remme-genesis-config.toml')['remme']['genesis']
 
     parser = argparse.ArgumentParser(description='File with a public key to assign initial supply.')
     parser.add_argument('--token-supply', default=parameters['token_supply'])
