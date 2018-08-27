@@ -53,14 +53,14 @@ from remme.shared.exceptions import KeyNotFound
 from remme.shared.utils import hash512
 from remme.tp.account import AccountHandler, is_address
 from remme.settings import PRIV_KEY_FILE
-from remme.settings.default import load_toml_with_defaults, DEFAULT_CLIENT_CONFIG
+from remme.settings.default import load_toml_with_defaults
 
 LOGGER = logging.getLogger(__name__)
 
 
 class BasicClient:
     def __init__(self, family_handler, test_helper=None, keyfile=None):
-        config = load_toml_with_defaults('/config/remme-client-config.toml', ['remme', 'client'], DEFAULT_CLIENT_CONFIG)
+        config = load_toml_with_defaults('/config/remme-client-config.toml')['remme']['client']
 
         self.url = config['validator_rest_api_url']
         self._family_handler = family_handler

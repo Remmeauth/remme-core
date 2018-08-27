@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [0.5.0-alpha] - 2018-08-20
+## [0.5.0-alpha] - 2018-08-24
 ### Added
 - Access to additional blocks metadata (e.g. time) via REST API (with the help of Sawtooth BlockInfo transaction
   processor).
@@ -29,7 +29,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - `sawtooth-validator` configuration (as described in Sawtooth documentation): `sawtooth-validator-config.toml`
   - List of addresses for initial connection in `seeds-list.txt`.
 - Sawtooth was upgraded to 1.0.5
-
+### Fixed
+- Swagger UI always opens correctly.
+### Security
+- Upgrade py-cryptography to eliminate CVE-2018-10903.
 
 ## [0.4.0-alpha] - 2018-07-16
 ### Added
