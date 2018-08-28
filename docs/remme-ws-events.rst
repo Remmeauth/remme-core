@@ -17,7 +17,17 @@ There are two layers that an emitting event goes through before being delivered 
 Adding a new event
 ==================
 
-In order to opt-in transaction processor method, it is enough to add a line in existing `get_state_processor`.
+Before registering the event withing a transaction processor, one needs to create it's name as such at `remme/ws/constants.py`:
+
+.. code-block:: python
+
+ @unique
+ class Events(Enum):
+    ...
+    SWAP_INIT = 'atomic-swap-init'
+    ...
+
+Afterwards, to opt-in transaction processor method, it is enough to add a line in existing `get_state_processor`.
 
 .. code-block:: python
 
@@ -62,7 +72,22 @@ Here is an example of the message:
      }
  }
 
-Possible actions are:
+Unsubscribe from events
+-----------------------
+
+One can only unsubscribe from all events at once at this point, as such:
+
+.. code-block:: json
+
+ {
+    "action": "unsubscribe",
+    "data": {
+        "entity": "events"
+     }
+ }
+
+Possible actions
+----------------
 
 .. list-table::
    :widths: 8, 50
@@ -73,7 +98,29 @@ Possible actions are:
    * - subscribe
      - Subscribes to the specified type of messages and list of events. Requires `entity` and `events` provided.
    * - unsubscribe
-     - Unsubscribes from all events at once.e
+     - Unsubscribes from all events at once.
+
+Registered events
+-----------------
+
+.. list-table::
+   :widths: 8, 50
+   :header-rows: 1
+
+   * - Key
+     - Value
+   * - SWAP_INIT
+     - atomic-swap-init
+   * - SWAP_CLOSE
+     - atomic-swap-close
+   * - SWAP_APPROVE
+     - atomic-swap-approve
+   * - SWAP_EXPIRE
+     - atomic-swap-expire
+   * - SWAP_SET_SECRET_LOCK
+     - atomic-swap-set-secret-lock
+   * - ACCOUNT_TRANSFER
+     - account-transfer
 
 Event Catch Up
 --------------
@@ -232,4 +279,4 @@ The format provided looks as following:
 
 .. note::
 
- The format transferred from the transaction processor is universal and any custom formatting may be added specified in `remme/ws/events.py` at `process_event(type, attributes)`.
+ The format transferred from the transaction processor is universal and any custom formatting may be added specified in `remme/ws/events.py` at `process_event(type, attributes)`.h
