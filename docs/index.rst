@@ -19,6 +19,7 @@ Welcome to REMME's documentation!
    remme-framework
    remme-client
    remme-ws
+   remme-ws-events
    generated/modules
 
 .. toctree::
