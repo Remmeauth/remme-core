@@ -62,7 +62,7 @@ class BasicClient:
         config = load_toml_with_defaults('/config/remme-client-config.toml')['remme']['client']
 
         self.url = config['validator_rest_api_url']
-        self._family_handler = family_handler
+        self._family_handler = family_handler() if callable(family_handler) else None
         self.test_helper = test_helper
         self._stream = Stream(f'tcp://{ config["validator_ip"] }:{ config["validator_port"] }')
 
@@ -307,7 +307,7 @@ class BasicClient:
         self._signer = new_signer
 
     def get_user_address(self):
-        return AccountHandler.make_address_from_data(self._signer.get_public_key().as_hex())
+        return AccountHandler().make_address_from_data(self._signer.get_public_key().as_hex())
 
     def _send_transaction(self, method, data_pb, addresses_input, addresses_output):
         '''

@@ -233,7 +233,7 @@ def generate_key_export(key, encryption_algorithm):
 def is_valid_token_balance():
     account_client = AccountClient()
     signer_pub_key = account_client.get_signer().get_public_key().as_hex()
-    signer_balance = account_client.get_balance(AccountHandler.make_address_from_data(signer_pub_key))
+    signer_balance = account_client.get_balance(AccountHandler().make_address_from_data(signer_pub_key))
     return signer_balance >= PUB_KEY_STORE_PRICE
 
 
