@@ -33,6 +33,11 @@ def get(pub_key_user):
 
 def post(payload):
     client = AccountClient()
+    signer_account = client.get_account(client.get_signer_address())
+    if not payload['amount']:
+        return {'error': 'Could not transfer with zero amount'}, 400
+    if signer_account.balance < payload['amount']:
+        return {'error': 'Not enough transferable balance of sender'}, 400
     address_to = client.make_address_from_data(payload['pub_key_to'])
     result = client.transfer(address_to, payload['amount'])
     return {'batch_id': result['batch_id']}

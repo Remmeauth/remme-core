@@ -131,6 +131,9 @@ class BasicClient:
     def get_public_key(self):
         return self.get_signer().get_public_key().as_hex()
 
+    def get_signer_address(self):
+        return self.make_address_from_data(self.get_public_key())
+
     def _get_prefix(self):
         return self._family_handler.namespaces[-1]
 
