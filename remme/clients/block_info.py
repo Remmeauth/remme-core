@@ -2,7 +2,6 @@ import logging
 
 from remme.clients.basic import BasicClient
 from remme.protos.block_info_pb2 import BlockInfo, BlockInfoConfig
-from remme.shared.exceptions import KeyNotFound
 
 LOGGER = logging.getLogger(__name__)
 
@@ -22,11 +21,11 @@ class BlockInfoClient(BasicClient):
 
     def get_many_block_info(self, start, limit):
         result = []
-        if not(start and limit):
+        if not (start and limit):
             block_config = None
             try:
                 block_config = self.get_block_info_config()
-            except:
+            except Exception:
                 return []
 
             if not start:
@@ -38,7 +37,7 @@ class BlockInfoClient(BasicClient):
         if limit - start > 0:
             limit = start
 
-        for i in range(start-limit, start):
+        for i in range(start - limit, start):
             result += [self.get_block_info(i)]
         result.reverse()
         return result
