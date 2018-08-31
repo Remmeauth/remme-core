@@ -84,9 +84,13 @@ class RestApiTestCase(HelperTestCase):
         self.assertTrue('batch_id' in response.get_json())
 
     @test
+    @mock.patch('remme.clients.basic.BasicClient.get_root_block',
+                return_value=(None, None))
+    @mock.patch('remme.clients.basic.BasicClient.fetch_state',
+                return_value={'data': base64.b64encode(Account(balance=100).SerializeToString())})
     @mock.patch('remme.clients.basic.BasicClient.submit_batches',
                 return_value={'link': 'http://rest-api:8080/batch_statuses?id=c6bcb01255c1870a5d42fe2dde5e91fb0c5992ec0b49932cdab901539bf977f75bb7699c053cea16668ba732a7d597dd0c2b80f157f1a2514932078bb761de4b'})
-    def test_token_send(self, req_mock):
+    def test_token_send(self, req_mock, fetch_state_mock, block_mock):
         response = self.client.post('/api/v1/token',
                                     data=json.dumps({
                                         "pub_key_to": "03823c7a9e285246985089824f3aaa51fb8675d08d84b151833ca5febce37ad61e",

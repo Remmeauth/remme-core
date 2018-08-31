@@ -16,11 +16,12 @@
 import logging
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
-from remme.protos.account_pb2  import Account, GenesisStatus, AccountMethod, GenesisPayload, \
+from remme.protos.account_pb2 import (
+    Account, GenesisStatus, AccountMethod, GenesisPayload,
     TransferPayload
+)
 from remme.settings import GENESIS_ADDRESS, ZERO_ADDRESS
 from remme.tp.basic import *
-from remme.shared.singleton import singleton
 
 LOGGER = logging.getLogger(__name__)
 
@@ -34,8 +35,8 @@ def get_account_by_address(context, address):
         return Account()
     return account
 
+
 # TODO: ensure receiver_account.balance += transfer_payload.amount is within uint64
-@singleton
 class AccountHandler(BasicHandler):
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
@@ -79,6 +80,9 @@ class AccountHandler(BasicHandler):
 
     def _transfer_from_address(self, context, address, transfer_payload):
         signer_key = address
+
+        if not transfer_payload.value:
+            raise InvalidTransaction("Could not transfer with zero amount")
 
         if not transfer_payload.address_to.startswith(self._prefix) \
                 and transfer_payload.address_to not in [ZERO_ADDRESS]:
