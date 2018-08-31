@@ -1,14 +1,25 @@
-************
-Introduction
-************
+********
+Web Auth
+********
 
 Overview
 ========
 
-REMME uses python framework Sawtooth by Hyperledger to develop business logic on top of it. A custom consensus is planned to be implemented using Rust language.
-The node at its services are wrapped in **Docker containers** and may be run in "one-click".
+One of the most prominent needs of any organisation and platform is to authenticate and authorize its members.
 
-In order to interact with the node, JS client is provided that uses ES6 standard.
+In order to help with affairs, REMME has built web auth demo of how a secure login systems works and how to implement it.
+
+We've build a login mechanism with REMchain storage in mind to check against user certificate's hash and its validity.
+
+We also added a 2nd factor option such as Google Authenticator in case of a certificate being stolen by the third party.
+
+You may check out the live version at  `Web Auth Demo <https://webauth-testnet.remme.io/register>`_
+
+How to use DEMO
+===============
+
+Before proceeding `Web Auth Demo <https://webauth-testnet.remme.io/register>`_ one needs to generate keystore file.
+It can be done at `FAQ page <http://remchain.webflow.io/faq>`_
 
 How to run Production version
 =============================
