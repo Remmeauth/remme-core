@@ -32,7 +32,6 @@ from sawtooth_sdk.protobuf.client_state_pb2 import (
 from sawtooth_sdk.protobuf.transaction_pb2 import (
     Transaction, TransactionHeader
 )
-from sawtooth_sdk.messaging.stream import Stream
 from sawtooth_sdk.protobuf.client_peers_pb2 import (
     ClientPeersGetRequest, ClientPeersGetResponse
 )
@@ -48,12 +47,12 @@ from sawtooth_signing.secp256k1 import Secp256k1PrivateKey
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.shared.exceptions import ClientException, KeyNotFound
 from remme.shared.utils import hash512, get_batch_id, message_to_dict
-from remme.shared.exceptions import ClientException
-from remme.shared.exceptions import KeyNotFound
+from remme.shared.stream import Stream
 from remme.shared.utils import hash512
 from remme.tp.account import AccountHandler, is_address
 from remme.settings import PRIV_KEY_FILE
 from remme.settings.default import load_toml_with_defaults
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -63,7 +62,7 @@ class BasicClient:
         config = load_toml_with_defaults('/config/remme-client-config.toml')['remme']['client']
 
         self.url = config['validator_rest_api_url']
-        self._family_handler = family_handler
+        self._family_handler = family_handler() if callable(family_handler) else None
         self.test_helper = test_helper
         self._stream = Stream(f'tcp://{ config["validator_ip"] }:{ config["validator_port"] }')
 
@@ -130,6 +129,9 @@ class BasicClient:
 
     def get_public_key(self):
         return self.get_signer().get_public_key().as_hex()
+
+    def get_signer_address(self):
+        return self.make_address_from_data(self.get_public_key())
 
     def _get_prefix(self):
         return self._family_handler.namespaces[-1]
@@ -305,7 +307,7 @@ class BasicClient:
         self._signer = new_signer
 
     def get_user_address(self):
-        return AccountHandler.make_address_from_data(self._signer.get_public_key().as_hex())
+        return AccountHandler().make_address_from_data(self._signer.get_public_key().as_hex())
 
     def _send_transaction(self, method, data_pb, addresses_input, addresses_output):
         '''

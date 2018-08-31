@@ -1,7 +1,6 @@
 import hashlib
-import json
 
-from google.protobuf.json_format import MessageToDict, MessageToJson
+from google.protobuf.json_format import MessageToDict
 from sawtooth_signing import create_context
 from web3 import Web3
 
@@ -12,11 +11,13 @@ def generate_random_key():
 
 # kecak256
 def hash256(data):
-    return hashlib.sha3_256(data.encode('utf-8') if isinstance(data, str) else data).hexdigest()
+    return hashlib.sha3_256(data.encode('utf-8')
+                            if isinstance(data, str) else data).hexdigest()
 
 
 def hash512(data):
-    return hashlib.sha512(data.encode('utf-8') if isinstance(data, str) else data).hexdigest()
+    return hashlib.sha512(data.encode('utf-8')
+                          if isinstance(data, str) else data).hexdigest()
 
 
 def web3_hash(data):
@@ -24,7 +25,8 @@ def web3_hash(data):
 
 
 def from_proto_to_dict(proto_obj):
-    return MessageToDict(proto_obj, preserving_proto_field_name=True, including_default_value_fields=True)
+    return MessageToDict(proto_obj, preserving_proto_field_name=True,
+                         including_default_value_fields=True)
 
 
 class AttrDict(dict):
@@ -44,3 +46,14 @@ def message_to_dict(message):
         message,
         including_default_value_fields=True,
         preserving_proto_field_name=True)
+
+
+class Singleton:
+
+    _instances = {}
+
+    def __new__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls) \
+                .__new__(cls, *args, **kwargs)
+        return cls._instances[cls]
