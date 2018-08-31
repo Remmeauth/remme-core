@@ -1,9 +1,10 @@
-
+import logging
 from remme.clients.block_info import BlockInfoClient
 from remme.rest_api import handle_key_not_found
 from remme.shared.utils import from_proto_to_dict
 
 block_info_client = BlockInfoClient()
+logger = logging.getLogger(__name__)
 
 
 @handle_key_not_found
@@ -15,8 +16,8 @@ def get_block_config():
 
 
 @handle_key_not_found
-def get_block_info(start=None, limit=None):
-    return { 'blocks': [interpret_block_info(block) for block in block_info_client.get_many_block_info(start, limit)] }
+def get_block_info(start, limit):
+    return {'blocks': [interpret_block_info(block) for block in block_info_client.get_many_block_info(start, limit)]}
 
 
 def interpret_block_info(block_info):
