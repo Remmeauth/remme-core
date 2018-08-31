@@ -48,12 +48,12 @@ def message_to_dict(message):
         preserving_proto_field_name=True)
 
 
-class Singleton:
+class Singleton(type):
 
     _instances = {}
 
-    def __new__(cls, *args, **kwargs):
+    def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
             cls._instances[cls] = super(Singleton, cls) \
-                .__new__(cls, *args, **kwargs)
+                .__call__(*args, **kwargs)
         return cls._instances[cls]
