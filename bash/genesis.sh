@@ -1,5 +1,5 @@
 if [ "$REMME_START_MODE" = "genesis" ]; then
-    if [ ! -f /root/.sawtooth/keys/key.priv ]; then
+    if [ ! -f /etc/sawtooth/keys/validator.priv ]; then
         sawtooth keygen key
     fi
     if [ ! -e /genesis/batch ]; then
