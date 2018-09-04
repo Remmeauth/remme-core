@@ -10,6 +10,12 @@ Welcome to REMME's documentation!
 
    remme-launch
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Use cases:
+
+   use-case-web-auth
+
 
 .. toctree::
    :maxdepth: 2
