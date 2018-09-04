@@ -1,12 +1,13 @@
 import asyncio
 import logging
+from urllib.parse import parse_qs
 
 from aiohttp import web
 from connexion.handlers import AuthErrorHandler
 
 from connexion import NoContent
 from connexion.apis.aiohttp_api import AioHttpApi, _HttpNotFoundError
-from connexion.lifecycle import ConnexionResponse
+from connexion.lifecycle import ConnexionRequest, ConnexionResponse
 
 
 logger = logging.getLogger('connexion.apis.aiohttp_api')
@@ -53,6 +54,33 @@ class AioHttpApi(AioHttpApi):
             self.cors.add(self.subapp.router.add_route(
                 method, path + '/', handler, name=endpoint_name + '_'
             ))
+
+    @classmethod
+    async def get_request(cls, req):
+        """Convert aiohttp request to connexion
+
+        :param req: instance of aiohttp.web.Request
+        :return: connexion request instance
+        :rtype: ConnexionRequest
+        """
+        url = str(req.url)
+        logger.debug('Getting data and status code',
+                     extra={'has_body': req.has_body, 'url': url})
+        query = parse_qs(req.rel_url.query_string)
+        headers = {k.decode(): v.decode() for k, v in req.raw_headers}
+        body = None
+        if req.can_read_body:
+            body = await req.read()
+
+        return ConnexionRequest(url=url,
+                                method=req.method.lower(),
+                                path_params=dict(req.match_info),
+                                query=query,
+                                headers=headers,
+                                body=body,
+                                json_getter=lambda: cls.jsonifier.loads(body),
+                                files={},
+                                context=req)
 
     @staticmethod
     def _json_response(response, status=200):

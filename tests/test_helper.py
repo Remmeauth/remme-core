@@ -61,7 +61,7 @@ class HelperTestCase(TestCase):
                                       return_value=cls.validator)
         cls._zmq_patcher_obj = cls._zmq_patcher.start()
 
-        cls.handler = handler
+        cls.handler = handler()
         cls.client_class = client_class
 
         cls._pk_patcher = mock.patch('remme.clients.basic.BasicClient.get_signer_priv_key_from_file',
@@ -70,12 +70,11 @@ class HelperTestCase(TestCase):
 
         # generate token account addresses
         cls.account_signer1 = cls.get_new_signer()
-        cls.account_address1 = AccountHandler.make_address_from_data(cls.account_signer1.get_public_key().as_hex())
+        cls.account_address1 = AccountHandler().make_address_from_data(cls.account_signer1.get_public_key().as_hex())
         cls.account_signer2 = cls.get_new_signer()
-        cls.account_address2 = AccountHandler.make_address_from_data(cls.account_signer2.get_public_key().as_hex())
+        cls.account_address2 = AccountHandler().make_address_from_data(cls.account_signer2.get_public_key().as_hex())
 
         cls._factory = cls.handler.get_message_factory(cls.account_signer1)
-
 
     @classmethod
     def tearDownClass(cls):

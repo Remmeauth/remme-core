@@ -17,12 +17,11 @@ import json
 
 from google.protobuf.text_format import ParseError
 from sawtooth_processor_test.message_factory import MessageFactory
-from sawtooth_sdk.processor.exceptions import InternalError
-from sawtooth_sdk.processor.handler import TransactionHandler
-from sawtooth_sdk.processor.exceptions import InvalidTransaction
-
+from sawtooth_sdk.processor.exceptions import InternalError, InvalidTransaction
 from remme.protos.transaction_pb2 import TransactionPayload
-from remme.shared.utils import hash512, from_proto_to_dict
+
+from remme.shared.utils import hash512, Singleton, from_proto_to_dict
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -81,7 +80,7 @@ def get_data(context, pb_class, address):
 
 def get_multiple_data(context, data):
     raw_data = context.get_state([el[0] for el in data])
-    raw_data = { entry.address: entry.data for entry in raw_data }
+    raw_data = {entry.address: entry.data for entry in raw_data}
     datas = []
     for address, pb_class in data:
         try:
@@ -93,10 +92,11 @@ def get_multiple_data(context, data):
     return datas
 
 
-class BasicHandler(TransactionHandler):
+class BasicHandler(metaclass=Singleton):
     """
         BasicHandler contains shared logic...
     """
+
     def __init__(self, name, versions):
         self._family_name = name
         self._family_versions = versions
@@ -148,6 +148,7 @@ class BasicHandler(TransactionHandler):
             raise InvalidTransaction('Cannot decode transaction payload')
 
         addresses = context.set_state({k: v.SerializeToString() for k, v in updated_state.items()})
+
         if len(addresses) < len(updated_state):
             raise InternalError('Failed to update all of states. Updated: {}. '
                                 'Full list of states to update: {}.'

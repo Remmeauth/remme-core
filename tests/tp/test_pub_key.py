@@ -63,7 +63,7 @@ class PubKeyTestCase(HelperTestCase):
             valid_from, valid_to = get_crt_export_bin_sig_rem_sig(cert, key, context.client)
 
         transaction_payload = context.client.get_new_pub_key_payload(pub_key, rem_sig, crt_sig, valid_from, valid_to)
-        cert_address = PubKeyHandler.make_address_from_data(pub_key)
+        cert_address = PubKeyHandler().make_address_from_data(pub_key)
 
         transaction_signature = None
         if type == 'store':
@@ -115,7 +115,7 @@ class PubKeyTestCase(HelperTestCase):
         crt_export, crt_bin, crt_sig, rem_sig, pub_key, \
             valid_from, valid_to = get_crt_export_bin_sig_rem_sig(cert, key, context.client)
 
-        cert_address = PubKeyHandler.make_address_from_data(pub_key)
+        cert_address = PubKeyHandler().make_address_from_data(pub_key)
 
         valid_from = int(valid_from - PUB_KEY_MAX_VALIDITY.total_seconds())
         valid_to = int(valid_to + PUB_KEY_MAX_VALIDITY.total_seconds())

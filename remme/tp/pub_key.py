@@ -25,14 +25,13 @@ from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
 from remme.tp.basic import BasicHandler, get_data, get_multiple_data, PB_CLASS, PROCESSOR
-from remme.tp.account import AccountHandler, get_account_by_address
+from remme.tp.account import AccountHandler
 
 from remme.protos.account_pb2 import Account
 from remme.protos.pub_key_pb2 import (
     PubKeyStorage,
     NewPubKeyPayload, RevokePubKeyPayload, PubKeyMethod
 )
-from remme.shared.singleton import singleton
 from remme.settings.helper import _get_setting_value
 
 LOGGER = logging.getLogger(__name__)
@@ -45,7 +44,6 @@ PUB_KEY_MAX_VALIDITY = timedelta(365)
 PUB_KEY_STORE_PRICE = 10
 
 
-@singleton
 class PubKeyHandler(BasicHandler):
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
@@ -66,7 +64,7 @@ class PubKeyHandler(BasicHandler):
         address = self.make_address_from_data(transaction_payload.public_key)
         LOGGER.info('Pub key address {}'.format(address))
 
-        account_address = AccountHandler.make_address_from_data(signer_pubkey)
+        account_address = AccountHandler().make_address_from_data(signer_pubkey)
         LOGGER.info('Account address {}'.format(address))
         data, account = get_multiple_data(context, [(address, PubKeyStorage), (account_address, Account)])
         if data:

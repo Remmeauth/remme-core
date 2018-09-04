@@ -32,8 +32,8 @@ if __name__ == '__main__':
     account_client = AccountClient()
 
     if parameters['economy_enabled']:
-        zero_address = AccountHandler.make_address('0' * 64)
-        target_address = AccountHandler.make_address_from_data(account_client.get_signer().get_public_key().as_hex())
+        zero_address = AccountHandler().make_address('0' * 64)
+        target_address = AccountHandler().make_address_from_data(account_client.get_signer().get_public_key().as_hex())
 
         print('Issuing {} tokens to address {}'.format(args.token_supply, target_address))
 
