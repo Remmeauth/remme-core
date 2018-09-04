@@ -46,7 +46,6 @@ class BlockInfoClient(BasicClient):
     def get_block_info_config(self):
         bic = BlockInfoConfig()
         bic.ParseFromString(self.get_value(CONFIG_ADDRESS))
-        LOGGER.info(f'get_block_info_config: {bic}')
         return bic
 
     def create_block_address(self, block_num):

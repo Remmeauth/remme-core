@@ -24,7 +24,7 @@ from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
-from remme.tp.basic import BasicHandler, get_data, get_multiple_data
+from remme.tp.basic import BasicHandler, get_data, get_multiple_data, PB_CLASS, PROCESSOR
 from remme.tp.account import AccountHandler, get_account_by_address
 
 from remme.protos.account_pb2 import Account
@@ -53,12 +53,12 @@ class PubKeyHandler(BasicHandler):
     def get_state_processor(self):
         return {
             PubKeyMethod.STORE: {
-                'pb_class': NewPubKeyPayload,
-                'processor': self._store_pub_key
+                PB_CLASS: NewPubKeyPayload,
+                PROCESSOR: self._store_pub_key
             },
             PubKeyMethod.REVOKE: {
-                'pb_class': RevokePubKeyPayload,
-                'processor': self._revoke_pub_key
+                PB_CLASS: RevokePubKeyPayload,
+                PROCESSOR: self._revoke_pub_key
             }
         }
 

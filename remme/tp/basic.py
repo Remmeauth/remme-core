@@ -28,6 +28,8 @@ LOGGER = logging.getLogger(__name__)
 
 # Key flag for transaction processor to emit event
 EMIT_EVENT = 'emit_event'
+PB_CLASS = 'pb_class'
+PROCESSOR = 'processor'
 
 
 def is_address(address):
@@ -41,17 +43,23 @@ def is_address(address):
 
 
 def add_event(context, event_type, attributes):
-    LOGGER.info("add_event")
     context.add_event(
         event_type=event_type,
         attributes=attributes)
 
 
 def get_event_attributes(updated_state, header_signature):
-    content_dict = {"entities_changed": json.dumps([{**{'address': key,
-                                         'type': value.__class__.__name__},
-                                      **from_proto_to_dict(value)}
-                                     for key, value in updated_state.items()]),
+    content_dict = {"entities_changed": json.dumps(
+                                        [
+                                            {
+                                                **{
+                                                    'address': key,
+                                                    'type': value.__class__.__name__
+                                                },
+                                                **from_proto_to_dict(value)
+                                            }
+                                            for key, value in updated_state.items()
+                                        ]),
                     "header_signature": header_signature}
     return [(key, str(value)) for key, value in content_dict.items()]
 
@@ -129,9 +137,9 @@ class BasicHandler(TransactionHandler):
 
         state_processor = self.get_state_processor()
         try:
-            data_pb = state_processor[transaction_payload.method]['pb_class']()
+            data_pb = state_processor[transaction_payload.method][PB_CLASS]()
             data_pb.ParseFromString(transaction_payload.data)
-            processor = state_processor[transaction_payload.method]['processor']
+            processor = state_processor[transaction_payload.method][PROCESSOR]
             updated_state = processor(context, transaction.header.signer_public_key, data_pb)
         except KeyError:
             raise InvalidTransaction('Unknown value {} for the pub_key operation type.'.

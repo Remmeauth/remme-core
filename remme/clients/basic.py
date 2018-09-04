@@ -51,9 +51,10 @@ from remme.shared.utils import hash512, get_batch_id, message_to_dict
 from remme.shared.exceptions import ClientException
 from remme.shared.exceptions import KeyNotFound
 from remme.shared.utils import hash512
-from remme.tp.account import AccountHandler, is_address
+from remme.tp.account import AccountHandler
 from remme.settings import PRIV_KEY_FILE
 from remme.settings.default import load_toml_with_defaults
+from remme.tp.basic import is_address
 
 LOGGER = logging.getLogger(__name__)
 
