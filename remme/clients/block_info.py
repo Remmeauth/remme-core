@@ -2,7 +2,6 @@ import logging
 
 from remme.clients.basic import BasicClient
 from remme.protos.block_info_pb2 import BlockInfo, BlockInfoConfig
-from remme.shared.exceptions import KeyNotFound
 
 LOGGER = logging.getLogger(__name__)
 
@@ -12,22 +11,22 @@ BLOCK_INFO_NAMESPACE = NAMESPACE + '00'
 
 
 class BlockInfoClient(BasicClient):
-    def __init__(self):
-        super().__init__(None)
 
     def get_block_info(self, block_num):
         bi = BlockInfo()
-        bi.ParseFromString(self.get_value(self.create_block_address(block_num)))
+        bi_addr = self.create_block_address(block_num)
+        bi_state = self.get_value(bi_addr)
+        bi.ParseFromString(bi_state)
         return bi
 
-    def get_many_block_info(self, start, limit):
-        result = []
-        if not(start and limit):
+    def get_blocks_info(self, start, limit):
+        blocks = []
+        if not (start and limit):
             block_config = None
             try:
                 block_config = self.get_block_info_config()
-            except:
-                return []
+            except Exception:
+                return blocks
 
             if not start:
                 start = block_config.latest_block + 1
@@ -38,15 +37,22 @@ class BlockInfoClient(BasicClient):
         if limit - start > 0:
             limit = start
 
-        for i in range(start-limit, start):
-            result += [self.get_block_info(i)]
-        result.reverse()
-        return result
+        for i in range(start - limit, start):
+            bi = self.get_block_info(i)
+            blocks.append(self.interpret_block_info(bi))
+
+        return list(reversed(blocks))
 
     def get_block_info_config(self):
         bic = BlockInfoConfig()
         bic.ParseFromString(self.get_value(CONFIG_ADDRESS))
         return bic
 
-    def create_block_address(self, block_num):
+    @staticmethod
+    def create_block_address(block_num):
         return BLOCK_INFO_NAMESPACE + hex(block_num)[2:].zfill(62)
+
+    @staticmethod
+    def interpret_block_info(block_info):
+        return {"block_num": block_info.block_num + 1,
+                "timestamp": block_info.timestamp}

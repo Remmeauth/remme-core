@@ -16,9 +16,7 @@ import logging
 
 from google.protobuf.text_format import ParseError
 from sawtooth_processor_test.message_factory import MessageFactory
-from sawtooth_sdk.processor.exceptions import InternalError
-from sawtooth_sdk.processor.handler import TransactionHandler
-from sawtooth_sdk.processor.exceptions import InvalidTransaction
+from sawtooth_sdk.processor.exceptions import InternalError, InvalidTransaction
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.shared.utils import hash512, Singleton
 
@@ -66,7 +64,7 @@ def get_multiple_data(context, data):
     return datas
 
 
-class BasicHandler(TransactionHandler, Singleton):
+class BasicHandler(metaclass=Singleton):
     """
         BasicHandler contains shared logic...
     """
