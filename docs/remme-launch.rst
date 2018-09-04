@@ -5,6 +5,8 @@ Introduction
 Overview
 ========
 
+REMchain - a multipurpose blockchain service allowing one to store certificate's hash and other important data for verification purposes.
+
 REMME uses python framework Sawtooth by Hyperledger to develop business logic on top of it. A custom consensus is planned to be implemented using Rust language.
 The node at its services are wrapped in **Docker containers** and may be run in "one-click".
 
