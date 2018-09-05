@@ -24,7 +24,6 @@ from remme.settings import GENESIS_ADDRESS, ZERO_ADDRESS
 from remme.tp.basic import PB_CLASS, PROCESSOR, BasicHandler, get_data, get_multiple_data
 from remme.ws.basic import EMIT_EVENT
 from remme.ws.constants import Events
-from remme.tp.basic import *
 
 
 LOGGER = logging.getLogger(__name__)

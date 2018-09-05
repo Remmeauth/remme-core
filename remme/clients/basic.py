@@ -53,7 +53,7 @@ from remme.shared.exceptions import KeyNotFound
 from remme.shared.utils import hash512
 
 from remme.shared.stream import Stream
-from remme.tp.account import AccountHandler, is_address
+from remme.tp.account import *
 from remme.settings import PRIV_KEY_FILE
 from remme.settings.default import load_toml_with_defaults
 from remme.tp.basic import is_address
@@ -218,7 +218,6 @@ class BasicClient:
                 raise ClientException(
                     'Failed to parse "content" string from validator')
             except ValidatorConnectionError as vce:
-                LOGGER.error('Error: %s' % vce)
                 raise ClientException(
                     'Failed with ZMQ interaction: {0}'.format(vce))
 

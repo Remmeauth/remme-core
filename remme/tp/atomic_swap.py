@@ -246,7 +246,7 @@ class AtomicSwapHandler(BasicHandler):
             raise InvalidTransaction('Transaction cannot be closed before it\'s approved.')
 
         transfer_payload = AccountClient.get_transfer_payload(swap_info.receiver_address, swap_info.amount)
-        token_updated_state = AccountHandler._transfer_from_address(context,
+        token_updated_state = AccountHandler()._transfer_from_address(context,
                                                                     ZERO_ADDRESS,
                                                                     transfer_payload)
         swap_info.secret_key = swap_close_payload.secret_key
