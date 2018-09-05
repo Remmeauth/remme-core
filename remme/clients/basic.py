@@ -202,40 +202,33 @@ class BasicClient:
             raise ClientException('Suffix "%s" not supported' % suffix)
 
     def _handle_response(self, msg_type, resp_proto, req):
-        # Loops while NOT_READY
-        while True:
-            self._stream.wait_for_ready()
+        self._stream.wait_for_ready()
 
-            future = self._stream.send(
-                message_type=msg_type,
-                content=req.SerializeToString())
+        future = self._stream.send(
+            message_type=msg_type,
+            content=req.SerializeToString())
 
-            resp = resp_proto()
+        resp = resp_proto()
 
-            try:
-                resp.ParseFromString(future.result().content)
-            except (DecodeError, AttributeError):
-                raise ClientException(
-                    'Failed to parse "content" string from validator')
-            except ValidatorConnectionError as vce:
-                raise ClientException(
-                    'Failed with ZMQ interaction: {0}'.format(vce))
+        try:
+            resp.ParseFromString(future.result().content)
+        except (DecodeError, AttributeError):
+            raise ClientException(
+                'Failed to parse "content" string from validator')
+        except ValidatorConnectionError as vce:
+            raise ClientException(
+                'Failed with ZMQ interaction: {0}'.format(vce))
 
-            data = message_to_dict(resp)
+        data = message_to_dict(resp)
 
-            # NOTE: Not all protos have this status
-            with suppress(AttributeError):
-                if resp.status == resp_proto.NO_RESOURCE:
-                    raise KeyNotFound("404")
+        # NOTE: Not all protos have this status
+        with suppress(AttributeError):
+            if resp.status == resp_proto.NO_RESOURCE:
+                raise KeyNotFound("404")
 
-            if resp.status != resp_proto.OK:
-                LOGGER.info(f'_handle_response: error: {data}')
-                if hasattr(resp_proto, 'NOT_READY') and resp_proto.NOT_READY == resp.status:
-                    time.sleep(5)
-                    continue
-                raise ClientException("Error: %s" % data)
-            else:
-                break
+        if resp.status != resp_proto.OK:
+            LOGGER.info(f'_handle_response: error: {data}')
+            raise ClientException("Error: %s" % data)
 
         return data
 
