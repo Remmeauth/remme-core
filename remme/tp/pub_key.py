@@ -118,6 +118,8 @@ class PubKeyHandler(BasicHandler):
                                                   GENESIS_ADDRESS,
                                                   PUB_KEY_STORE_PRICE)
             state.update(transfer_state)
+            # update account from transfer state
+            account = transfer_state[account_address]
 
         if address not in account.pub_keys:
             account.pub_keys.append(address)

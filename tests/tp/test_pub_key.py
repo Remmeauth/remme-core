@@ -23,6 +23,7 @@ from remme.shared.logging import test
 from tests.test_helper import HelperTestCase
 from remme.clients.account import AccountClient
 from remme.settings.helper import _make_settings_key
+from remme.settings import GENESIS_ADDRESS
 
 LOGGER = logging.getLogger(__name__)
 
@@ -83,8 +84,8 @@ class PubKeyTestCase(HelperTestCase):
         crt_export, crt_bin, crt_sig, rem_sig, pub_key, \
             valid_from, valid_to = get_crt_export_bin_sig_rem_sig(cert, key, context.client)
 
-
         account = AccountClient.get_account_model(PUB_KEY_STORE_PRICE)
+        genesis_account = AccountClient.get_account_model(0)
 
         data = PubKeyStorage()
         data.owner = self.account_signer1.get_public_key().as_hex()
@@ -93,15 +94,20 @@ class PubKeyTestCase(HelperTestCase):
 
         self.expect_get({cert_address: None, self.account_address1: account})
         self.expect_get({_make_settings_key('remme.economy_enabled'): None})
+        self.expect_get({self.account_address1: account,
+                         GENESIS_ADDRESS: genesis_account})
 
-        context.client.store_pub_key(pub_key, rem_sig, crt_sig, valid_from, valid_to) 
+        context.client.store_pub_key(pub_key, rem_sig, crt_sig,
+                                     valid_from, valid_to)
 
         account.balance -= PUB_KEY_STORE_PRICE
         account.pub_keys.append(cert_address)
-        
+        genesis_account.balance += PUB_KEY_STORE_PRICE
+
         self.expect_set({
             self.account_address1: account,
-            cert_address: data
+            cert_address: data,
+            GENESIS_ADDRESS: genesis_account
         })
 
         self.expect_ok()
