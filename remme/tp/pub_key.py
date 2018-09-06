@@ -24,8 +24,11 @@ from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
+from remme.settings import GENESIS_ADDRESS
 from remme.tp.basic import BasicHandler, get_data, get_multiple_data
 from remme.tp.account import AccountHandler
+
+from remme.clients.account import AccountClient
 
 from remme.protos.account_pb2 import Account
 from remme.protos.pub_key_pb2 import (
@@ -108,17 +111,18 @@ class PubKeyHandler(BasicHandler):
 
         if not account:
             account = Account()
+
+        state = {account_address: account, address: data}
         if _get_setting_value(context, 'remme.economy_enabled', 'true').lower() == 'true':
-            if account.balance < PUB_KEY_STORE_PRICE:
-                raise InvalidTransaction('Not enough tokens to register a new pub key. Current balance: {}'
-                                         .format(account.balance))
-            account.balance -= PUB_KEY_STORE_PRICE
+            transfer_state = self.create_transfer(context, account_address,
+                                                  GENESIS_ADDRESS,
+                                                  PUB_KEY_STORE_PRICE)
+            state.update(transfer_state)
 
         if address not in account.pub_keys:
             account.pub_keys.append(address)
 
-        return {address: data,
-                account_address: account}
+        return state
 
     def _revoke_pub_key(self, context, signer_pubkey, transaction_payload):
         data = get_data(context, PubKeyStorage, transaction_payload.address)
