@@ -227,7 +227,7 @@ class BasicClient:
                 raise KeyNotFound("404")
 
         if resp.status != resp_proto.OK:
-            LOGGER.info(f'_handle_response: error: {data}')
+            LOGGER.error(f'The response indicated a not successfult request: {data}')
             raise ClientException("Error: %s" % data)
 
         return data

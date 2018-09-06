@@ -55,7 +55,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
     def __init__(self, stream, loop):
         super().__init__(stream, loop)
         # events to subscribers
-        LOGGER.info(f'Requesting last block')
+        LOGGER.debug(f'Starting the event socket handler.')
         while True:
             try:
                 self.last_block_num = BlockInfoClient().get_block_info_config().latest_block + 1
@@ -64,14 +64,14 @@ class WSEventSocketHandler(BasicWebSocketHandler):
             except ClientException:
                 continue
             break
-        LOGGER.info(f'last block {self.last_block_num}')
+        LOGGER.debug(f'Received the last block num: {self.last_block_num}')
         self.catch_up_subscribers = {}
         self._events = {event.value: {} for event in Events}
 
         ctx = zmq.Context()
         self._socket = ctx.socket(zmq.DEALER)
         self._socket.connect(ZMQ_URL)
-        LOGGER.info(f"Connected to ZMQ")
+        LOGGER.debug(f"Connected to ZMQ")
 
         self._events_updator_task = weakref.ref(
             asyncio.ensure_future(
@@ -93,7 +93,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
                 #     raise SocketException(web_sock, Status.ALREADY_SUBSCRIBED, f"Socket is already subscribed to: {event}")
                 self._events[event][web_sock] = {'is_catch_up': bool(last_known_block_id)}
 
-            LOGGER.info(f'Events being subscribed to: {events}')
+            LOGGER.debug(f'Subscribing to following events: {events}')
 
             await self.subscribe_events(web_sock, last_known_block_id)
 
@@ -108,7 +108,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
 
     async def subscribe_events(self, web_sock, last_known_block_id=None):
         # Setup a connection to the validator
-        LOGGER.info(f"Subscribing to events")
+        LOGGER.debug(f"Subscription started")
 
         request = ClientEventsSubscribeRequest(subscriptions=self._make_subscriptions(),
                                                last_known_block_ids=[last_known_block_id] if last_known_block_id else []).SerializeToString()
@@ -121,13 +121,13 @@ class WSEventSocketHandler(BasicWebSocketHandler):
             content=request)
 
         # Send the request
-        LOGGER.info(f"Sending subscription request.")
+        LOGGER.debug(f"Sending subscription request.")
 
         try:
             self._socket.send_multipart([msg.SerializeToString()], flags=zmq.NOBLOCK)
         except zmq.ZMQError as e:
             raise SocketException(web_sock, Status.EVENTS_NOT_PROVIDED, f"Couldn't send multipart: {e}")
-        LOGGER.info(f"Subscription request sent")
+        LOGGER.debug(f"Subscription request is sent")
 
         # Receive the response
         resp = self._socket.recv_multipart()[-1]
@@ -138,7 +138,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
 
         # Validate the response type
         if msg.message_type != Message.CLIENT_EVENTS_SUBSCRIBE_RESPONSE:
-            LOGGER.info(f"Unexpected message type")
+            LOGGER.error(f"Unexpected message type")
 
         # Parse the response
         response = ClientEventsSubscribeResponse()
@@ -150,7 +150,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
                 raise SocketException(web_sock, Status.UNKNOWN_BLOCK,
                                       f"Uknown block in: {last_known_block_ids}")
             raise SocketException(web_sock, 0, f"Subscription failed: Couldn't send multipart: {e}")
-        LOGGER.info(f"Successfully subscribed")
+        LOGGER.debug(f"Successfully subscribed")
 
     # The following code listens for events and logs them indefinitely.
     async def check_event(self):
@@ -160,7 +160,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
         try:
             resp = self._socket.recv_multipart(flags=zmq.NOBLOCK)[-1]
         except zmq.Again as e:
-            LOGGER.info("No message received yet")
+            LOGGER.debug("No message received yet")
             return
 
         # Parse the message wrapper
@@ -171,7 +171,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
 
         # Validate the response type
         if msg.message_type != Message.CLIENT_EVENTS:
-            LOGGER.info("Unexpected message type")
+            LOGGER.error("Unexpected message type")
             return
 
         # Parse the response
@@ -179,7 +179,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
         event_list.ParseFromString(msg.content)
 
         web_socks_to_notify = {}
-        LOGGER.info(f"Received events: {event_list.events}")
+        LOGGER.debug(f"Received the following events list: {event_list.events}")
         block_num = None
         block_id = None
         is_event_catch_up = False
