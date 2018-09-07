@@ -9,18 +9,18 @@ One of the most prominent needs of any organisation and platform is to authentic
 
 In order to help with affairs, REMME has built web auth demo of how a secure login systems works and how to implement it.
 
-We've built a login mechanism with REMchain storage in mind to check against user certificate's hash and its validity.
+We've developed a login mechanism with REMchain storage in mind to check against user certificate's hash and its validity.
 
-We also added a 2nd factor option such as Google Authenticator in case of a certificate being stolen by the third party.
+Addiotionally, We added support to a 2nd factor option such as Google Authenticator in case of a certificate being stolen by the third party.
 
-You may check out the live version at  `Web Auth Demo <https://webauth-testnet.remme.io/register>`_
+You may check out the live version at `Web Auth Demo <https://webauth-testnet.remme.io/register>`_
 
 ************************
 How to use Web Auth Demo
 ************************
 
-Generate keystore file
-======================
+1. Generate keystore file
+=========================
 
 1. Before proceeding to demo, one needs to generate a keystore file, which is used whenever user sends a transaction to REMchain and has the following form:
 
@@ -36,10 +36,11 @@ It can be generated at `FAQ page <http://remchain.webflow.io/faq>`_ by clicking 
 2. Afterwards, in order to create a certificate, one has to get some tokens on their balance. Thus by providing an email address in the very same form and pressing "Submit", the public key provided will receive tokens to its address.
 
 .. note::
+
  You may check if tokens refill is done by monitoring `Block Explorer <https://explorer-testnet.remme.io/>`_ for your transaction.
 
-Generate and register certificate
-=================================
+2. Generate and register certificate
+====================================
 
 1. Go to `Web Auth Register Page <https://webauth-testnet.remme.io/register>`_ where you will be asked to provide a REMchain keystore file you have just received.
 2. Provide certificate details. Some general information about the owner as well as certificate password for local keychain for MacOS storage is required (other OS's is optional). Then press "Create User" and the transaction on the blockchain will be sent for you.
@@ -47,8 +48,8 @@ Generate and register certificate
 
 Later on, Chrome and Safari allow to choose the certificate from the keychain's list directly as requested by the website.
 
-Save the certificate to local keystore
-======================================
+3. Save the certificate to local keystore
+=========================================
 
 If everything went well, the certificate with a `.p12` extension was downloaded.
 To save it to your local keystore, it is enough to open the file and follow instructions.
@@ -61,21 +62,22 @@ You will be asked to enter the password you mentioned during the registration st
 
  Choose the certificate, then enter its' password and press OK. New certificate was successfully imported into Firefox browser.
 
-Login using certificate
-=======================
+4. Login using certificate
+==========================
 
 1. Once a certificate is generated and stored on a user's local storage, one may log into the system by visiting `Login Page <https://webauth-testnet.remme.io/login/>`_
 2. By clicking on a "login" button, a user will be prompted to choose a certificate for authentication purposes.
 3. The next step will prompt to perform the 2nd factor, if one has check-marked during the registration step. Press "Login" to skip the step.
 4. Success. You are now logged in using your certificate! You will be directed to a classified resource.
 
-Revoke certificate
-==================
+Revoke certificate (Optional)
+=============================
 
 1. At the upper right corner, by clicking a dropdown arrow, one will find a "Revoke" button, which allows to revoke current certificate one has logged in with.
 2. Once you expired the certificate, it is recommended to remove it locally: for MacOS user from the key chain (Chrome: Settings => Search for "Manage Certificates") and if Firefox browser is used - one has to remove it from preferences:
 
 .. note::
+
  In case of a Firefox browser, in order to delete the certificate, do the the following:
 
  `Preferences > Advanced > "Certificates" tab > View Certificates > "Your certificates" tab > Right click old certificate > Delete`
