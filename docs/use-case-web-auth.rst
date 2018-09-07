@@ -48,7 +48,8 @@ Generate and register certificate
 
 Later on, Chrome and Safari allow to choose the certificate from the keychain's list directly as requested by the website.
 
-In case of a Firefox, one needs to import the certificate manually:
+In case of a Firefox browser, one needs to import the certificate manually with the following instructions:
+
 `Preferences > Advanced > "Certificates" tab > View Certificates > "Your certificates" tab > Import`
 
 Login using certificate
@@ -63,7 +64,8 @@ Revoke certificate
 ==================
 
 1. At the upper right corner, by clicking a dropdown arrow, one will find a "Revoke" button, which allows to revoke current certificate one has logged in with.
-2. Once you expired the certificate, it is recommended to remove it locally: for MacOS user from the key chain (Chrome: Settings => Search for "Manage Certificates") and if Firefox is used - remove it from preferences
+2. Once you expired the certificate, it is recommended to remove it locally: for MacOS user from the key chain (Chrome: Settings => Search for "Manage Certificates") and if Firefox browser is used - one has to remove it from preferences:
+
 `Preferences > Advanced > "Certificates" tab > View Certificates > "Your certificates" tab > Right click old certificate > Delete`
 
 ***********************
