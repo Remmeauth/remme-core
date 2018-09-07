@@ -44,13 +44,22 @@ Generate and register certificate
 1. Go to `Web Auth Register Page <https://webauth-testnet.remme.io/register>`_ where you will be asked to provide a REMchain keystore file you have just received.
 2. Provide certificate details. Some general information about the owner as well as certificate password for local keychain for MacOS storage is required (other OS's is optional). Then press "Create User" and the transaction on the blockchain will be sent for you.
 3. You may see the transaction appeared on the blockchain. At this point you will be asked weather you would like to add additional measure of security such as a second factor authentication. You may skip this step as well.
-4. Now the certificate is generated for you and you may save it within your local machine's key storage for further use. In case of a MacOS, the keychain will prompt you to enter the password you mentioned in "details" step right away, as you try to open the downloaded file.
 
 Later on, Chrome and Safari allow to choose the certificate from the keychain's list directly as requested by the website.
 
-In case of a Firefox browser, one needs to import the certificate manually with the following instructions:
+Save the certificate to local keystore
+======================================
 
-`Preferences > Advanced > "Certificates" tab > View Certificates > "Your certificates" tab > Import`
+If everything went well, the certificate with a `.p12` extension was downloaded.
+To save it to your local keystore, it is enough to open the file and follow instructions.
+You will be asked to enter the password you mentioned during the registration step above.
+
+.. note::
+ In case of a Firefox browser, one needs to import the certificate manually with the following instructions:
+
+ `Preferences > Advanced > "Certificates" tab > View Certificates > "Your certificates" tab > Import`
+
+ Choose the certificate, then enter its' password and press OK. New certificate was successfully imported into Firefox browser.
 
 Login using certificate
 =======================
@@ -66,7 +75,10 @@ Revoke certificate
 1. At the upper right corner, by clicking a dropdown arrow, one will find a "Revoke" button, which allows to revoke current certificate one has logged in with.
 2. Once you expired the certificate, it is recommended to remove it locally: for MacOS user from the key chain (Chrome: Settings => Search for "Manage Certificates") and if Firefox browser is used - one has to remove it from preferences:
 
-`Preferences > Advanced > "Certificates" tab > View Certificates > "Your certificates" tab > Right click old certificate > Delete`
+.. note::
+ In case of a Firefox browser, in order to delete the certificate, do the the following:
+
+ `Preferences > Advanced > "Certificates" tab > View Certificates > "Your certificates" tab > Right click old certificate > Delete`
 
 ***********************
 How to run DEMO locally
