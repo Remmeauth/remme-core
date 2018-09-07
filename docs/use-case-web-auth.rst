@@ -19,8 +19,8 @@ You may check out the live version at `Web Auth Demo <https://webauth-testnet.re
 How to use Web Auth Demo
 ************************
 
-1. Generate keystore file
-=========================
+1. Generate a keystore file
+===========================
 
 1. Before proceeding to demo, one needs to generate a keystore file, which is used whenever user sends a transaction to REMchain and has the following form:
 
@@ -31,16 +31,16 @@ How to use Web Auth Demo
   "privateKey":"67cc68c0eb28224def574bb646a621cb1fdc0665260ecc63c3d5090a425a3a97"
  }
 
-It can be generated at `FAQ page <http://remchain.webflow.io/faq>`_ by clicking "Get Tokens" button and then going through "generate" link. A `keystore.txt` file will be generated for you and may be further used within web-auth demo.
+It can be generated at `FAQ page <http://remchain.webflow.io/faq>`_ by clicking *"Get Tokens"* button and then going through *"generate"* link. A `keystore.txt` file will be generated for you and may be further used within web-auth demo.
 
 2. Afterwards, in order to create a certificate, one has to get some tokens on their balance. Thus by providing an email address in the very same form and pressing "Submit", the public key provided will receive tokens to its address.
 
 .. note::
 
- You may check if tokens refill is done by monitoring `Block Explorer <https://explorer-testnet.remme.io/>`_ for your transaction.
+ You may check if tokens are refilled by monitoring `Block Explorer <https://explorer-testnet.remme.io/>`_ for your transaction.
 
-2. Generate and register certificate
-====================================
+2. Generate and register a certificate
+======================================
 
 1. Go to `Web Auth Register Page <https://webauth-testnet.remme.io/register>`_ where you will be asked to provide a REMchain keystore file you have just received.
 2. Provide certificate details. Some general information about the owner as well as certificate password for local keychain for MacOS storage is required (other OS's is optional). Then press "Create User" and the transaction on the blockchain will be sent for you.
