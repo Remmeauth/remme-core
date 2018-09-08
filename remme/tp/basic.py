@@ -150,15 +150,6 @@ class BasicHandler(metaclass=Singleton):
         if not transfer_payload.value:
             raise InvalidTransaction("Could not transfer with zero amount")
 
-        if not transfer_payload.address_to.startswith(self._prefix) \
-                and transfer_payload.address_to not in [ZERO_ADDRESS,
-                                                        GENESIS_ADDRESS]:
-            raise InvalidTransaction("Receiver address has to be of "
-                                     "an account type")
-
-        if signer_key == transfer_payload.address_to:
-            raise InvalidTransaction("Account cannot send tokens to itself.")
-
         signer_account, receiver_account = get_multiple_data(context, [
             (signer_key, Account),
             (transfer_payload.address_to, Account)

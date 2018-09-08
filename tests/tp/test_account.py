@@ -125,14 +125,13 @@ class AccountTestCase(HelperTestCase):
         self.expect_ok()
 
     @test
-    def test_transfer_fail_to_oneself(self):
-        ACCOUNT_AMOUNT1 = 500
+    def test_transfer_fail_to_zeroaddress(self):
         TRANSFER_VALUE = 200
         self.send_transaction(AccountMethod.TRANSFER,
-                              AccountClient.get_transfer_payload(self.account_address1, TRANSFER_VALUE),
+                              AccountClient.get_transfer_payload(
+                                  GENESIS_ADDRESS, TRANSFER_VALUE
+                              ),
                               [self.account_address1, self.account_address2])
-        # self.expect_get({self.account_address1: AccountClient.get_account_model(ACCOUNT_AMOUNT1)})
-
         self.expect_invalid_transaction()
 
     # Commented due to failure secp256k1 package not allowing to create a zero private key

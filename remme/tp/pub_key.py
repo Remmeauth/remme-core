@@ -24,11 +24,9 @@ from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
-from remme.settings import GENESIS_ADDRESS
+from remme.settings import SETTINGS_STORAGE_PUB_KEY
 from remme.tp.basic import BasicHandler, get_data, get_multiple_data
 from remme.tp.account import AccountHandler
-
-from remme.clients.account import AccountClient
 
 from remme.protos.account_pb2 import Account
 from remme.protos.pub_key_pb2 import (
@@ -113,13 +111,25 @@ class PubKeyHandler(BasicHandler):
             account = Account()
 
         state = {account_address: account, address: data}
-        if _get_setting_value(context, 'remme.economy_enabled', 'true').lower() == 'true':
-            transfer_state = self.create_transfer(context, account_address,
-                                                  GENESIS_ADDRESS,
-                                                  PUB_KEY_STORE_PRICE)
-            state.update(transfer_state)
-            # update account from transfer state
-            account = transfer_state[account_address]
+        is_economy_enabled = _get_setting_value(context,
+                                                'remme.economy_enabled',
+                                                'true').lower()
+        if is_economy_enabled == 'true':
+            storage_pub_key = _get_setting_value(context,
+                                                 SETTINGS_STORAGE_PUB_KEY)
+            if not storage_pub_key:
+                raise InvalidTransaction('The storage public key not set.')
+
+            storage_address = AccountHandler() \
+                .make_address_from_data(storage_pub_key)
+
+            if storage_address != account_address:
+                transfer_state = self.create_transfer(context, account_address,
+                                                      storage_address,
+                                                      PUB_KEY_STORE_PRICE)
+                state.update(transfer_state)
+                # update account from transfer state
+                account = transfer_state[account_address]
 
         if address not in account.pub_keys:
             account.pub_keys.append(address)
