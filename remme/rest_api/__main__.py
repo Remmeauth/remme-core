@@ -26,6 +26,7 @@ from zmq.asyncio import ZMQEventLoop
 from remme.rest_api.api_methods_switcher import RestMethodsSwitcherResolver
 from remme.rest_api.api_handler import AioHttpApi
 from remme.rest_api.validator import proxy
+from remme.settings import ZMQ_URL
 from remme.shared.logging import setup_logging
 from remme.shared.stream import Stream
 from remme.ws import WsApplicationHandler
@@ -38,8 +39,6 @@ logger = logging.getLogger(__name__)
 
 if __name__ == '__main__':
     cfg_rest = load_toml_with_defaults('/config/remme-rest-api.toml')['remme']['rest_api']
-    cfg_ws = load_toml_with_defaults('/config/remme-client-config.toml')['remme']['client']
-    zmq_url = f'tcp://{ cfg_ws["validator_ip"] }:{ cfg_ws["validator_port"] }'
 
     setup_logging('rest-api')
 
@@ -77,7 +76,7 @@ if __name__ == '__main__':
     cors.add(app.app.router.add_route('GET', '/validator/{path:.*?}',
                                       proxy))
     # Remme ws
-    stream = Stream(zmq_url)
+    stream = Stream(ZMQ_URL)
     ws_handler = WsApplicationHandler(stream, loop=loop)
     ws_event_handler = WSEventSocketHandler(stream, loop=loop)
     cors.add(app.app.router.add_route('GET', '/ws/events', ws_event_handler.on_websocket_connect))
