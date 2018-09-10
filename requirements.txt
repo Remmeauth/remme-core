@@ -10,5 +10,5 @@ aiohttp==3.2.1
 aiohttp-jinja2==1.0.0
 aiohttp-cors==0.7.0
 ujson==1.35
-web3==4.4.1
 toml==0.9.4
+pysha3==1.0.2
