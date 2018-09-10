@@ -47,7 +47,7 @@ Then one needs to generate a `keystore.txt` file and enter public key informatio
 
 .. note::
 
- You may check if tokens are refilled by monitoring `Block Explorer <https://blockexplorer.remme.io//>`_ for your transaction.
+ You may check if tokens are refilled by monitoring `Block Explorer <https://blockexplorer.remme.io/>`_ for your transaction.
 
  .. figure:: img/web-auth/remme-blockchain-explorer-recent.png
 
