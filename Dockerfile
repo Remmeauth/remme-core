@@ -35,12 +35,10 @@ RUN protoc -I=./remme/protos --python_out=./remme/remme/protos ./remme/protos/*.
 COPY ./setup.py ./remme
 RUN pip3 install --user ./remme
 COPY ./tests ./tests
-COPY ./bash /scripts
+COPY ./bash /install/scripts/
 
 FROM base as release
 COPY --from=build /install /install
-# Way to remove that
-COPY ./bash /scripts
 
 FROM hyperledger/sawtooth-validator:1.0.5 as validator
 COPY ./bash /scripts
