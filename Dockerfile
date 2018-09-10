@@ -14,9 +14,9 @@
 # ------------------------------------------------------------------------
 
 # TODO check if it works with a newer version of Debian
-FROM alpine:edge as build
+FROM alpine:3.8 as build
 WORKDIR /root
-RUN apk --update --no-cache add rsync pkgconf build-base autoconf automake python3 protobuf libtool libffi-dev python3-dev zeromq-dev openssl-dev
+RUN apk --update --no-cache add rsync pkgconf build-base autoconf automake python3=3.6.6-r0 protobuf=3.5.2-r0 libtool=2.4.6-r5 libffi-dev=3.2.1-r4 python3-dev=3.6.6-r0 zeromq-dev=4.2.3-r0 openssl-dev=1.0.2o-r2
 RUN pip3 install --upgrade pip
 RUN mkdir /install
 ENV PYTHONUSERBASE=/install
@@ -35,8 +35,8 @@ RUN pip3 install --user ./remme
 COPY ./tests ./tests
 COPY ./bash /scripts
 
-FROM alpine:edge as release
-RUN apk --update --no-cache add --force python3 libffi openssl libzmq
+FROM alpine:3.8 as release
+RUN apk --update --no-cache add --force python3=3.6.6-r0 libffi=3.2.1-r4 openssl=1.0.2o-r2 libzmq=4.2.3-r0
 COPY --from=build /install /install
 ENV PYTHONUSERBASE=/install
 COPY ./bash /scripts
