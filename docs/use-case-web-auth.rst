@@ -31,25 +31,25 @@ How to use Web Auth Demo
   "privateKey":"67cc68c0eb28224def574bb646a621cb1fdc0665260ecc63c3d5090a425a3a97"
  }
 
-It can be generated at `FAQ page <http://remchain.webflow.io/faq>`_ by clicking *"Get Tokens"* button and then going through *"generate"* link.
+It can be generated in the form by clicking *Claim Tokens* button in `Blockchain explorer <https://blockexplorer.remme.io/>`_ at the top right corner.
 
-.. figure:: img/web-auth/remme-faq-get-tokens.png
+.. figure:: img/web-auth/remme-claim-tokens-button.png
 
-.. figure:: img/web-auth/remme-faq-click-generate.png
+Then one needs to generate a `keystore.txt` file and enter public key information from its contents:
 
-A `keystore.txt` file will be generated for you and may be further used within web-auth demo.
+.. figure:: img/web-auth/remme-claim-tokens-form.png
 
 .. figure:: img/web-auth/remme-faq-notice-file.png
 
-2. Afterwards, in order to create a certificate, one has to get some tokens on their balance. Thus by providing an email address in the very same form and pressing "Submit", the public key provided will receive tokens to its address.
+.. figure:: img/web-auth/remme-keystore-file.png
 
-.. figure:: img/web-auth/remme-faq-enter-info.png
+2. Afterwards, in order to create a certificate, one has to get some tokens on their balance. Thus by providing a Discord nickname in the very same form and pressing "Submit", the public key provided will receive tokens to its address.
 
 .. note::
 
- You may check if tokens are refilled by monitoring `Block Explorer <https://explorer-testnet.remme.io/>`_ for your transaction.
+ You may check if tokens are refilled by monitoring `Block Explorer <https://blockexplorer.remme.io//>`_ for your transaction.
 
- .. figure:: img/web-auth/remme-faq-enter-info.png
+ .. figure:: img/web-auth/remme-blockchain-explorer-recent.png
 
 2. Generate and register a certificate
 ======================================
@@ -89,14 +89,32 @@ You will be asked to enter the password you mentioned during the registration st
 ==========================
 
 1. Once a certificate is generated and stored on a user's local storage, one may log into the system by visiting `Login Page <https://webauth-testnet.remme.io/login/>`_
+
+.. figure:: img/web-auth/remme-downloaded-file.png
+
 2. By clicking on a "login" button, a user will be prompted to choose a certificate for authentication purposes.
-3. The next step will prompt to perform the 2nd factor, if one has check-marked during the registration step. Press "Login" to skip the step.
+
+.. figure:: img/web-auth/remme-login-select-certificate.png
+
+.. figure:: img/web-auth/remme-login-enter-password.png
+
+3. The next step will prompt to perform the 2nd factor, if one has check-marked during the registration step. Press "Login" to skip the step or enter the secret code.
+
+.. figure:: img/web-auth/remme-login-2.png
+
 4. Success. You are now logged in using your certificate! You will be directed to a classified resource.
+
+.. figure:: img/web-auth/remme-login-success.png
 
 Revoke certificate (Optional)
 =============================
 
-1. At the upper right corner, by clicking a dropdown arrow, one will find a "Revoke" button, which allows to revoke current certificate one has logged in with.
+At one point, the certificate may loose its actuallity die to organisation member leaving the company or the certificate gets compromised.
+
+1. At the right upper corner, by clicking a dropdown arrow, one will find a "Revoke" button, which allows to revoke current certificate one has logged in with.
+
+.. figure:: img/web-auth/remme-revoke-button.png
+
 2. Once you expired the certificate, it is recommended to remove it locally: for MacOS user from the key chain (Chrome: Settings => Search for "Manage Certificates") and if Firefox browser is used - one has to remove it from preferences:
 
 .. note::
