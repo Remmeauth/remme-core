@@ -74,7 +74,7 @@ services:
     image: remme/remme-core:latest
     network_mode: "service:validator"
     volumes:
-      - user_keys:/root/.sawtooth/keys
+      - user_keys:/etc/sawtooth/keys
       - ${REMME_CONTAINER_EXPORTS_FOLDER:-./default_export}:/root/usr/share
       - ../config/remme-client-config.toml:/config/remme-client-config.toml
     entrypoint: python3 -m remme.rest_api
