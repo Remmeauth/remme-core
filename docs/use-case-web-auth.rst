@@ -31,27 +31,50 @@ How to use Web Auth Demo
   "privateKey":"67cc68c0eb28224def574bb646a621cb1fdc0665260ecc63c3d5090a425a3a97"
  }
 
-It can be generated at `FAQ page <http://remchain.webflow.io/faq>`_ by clicking *"Get Tokens"* button and then going through *"generate"* link. A `keystore.txt` file will be generated for you and may be further used within web-auth demo.
+It can be generated at `FAQ page <http://remchain.webflow.io/faq>`_ by clicking *"Get Tokens"* button and then going through *"generate"* link.
+
+.. figure:: img/web-auth/remme-faq-get-tokens.png
+
+.. figure:: img/web-auth/remme-faq-click-generate.png
+
+A `keystore.txt` file will be generated for you and may be further used within web-auth demo.
+
+.. figure:: img/web-auth/remme-faq-notice-file.png
 
 2. Afterwards, in order to create a certificate, one has to get some tokens on their balance. Thus by providing an email address in the very same form and pressing "Submit", the public key provided will receive tokens to its address.
+
+.. figure:: img/web-auth/remme-faq-enter-info.png
 
 .. note::
 
  You may check if tokens are refilled by monitoring `Block Explorer <https://explorer-testnet.remme.io/>`_ for your transaction.
 
+ .. figure:: img/web-auth/remme-faq-enter-info.png
+
 2. Generate and register a certificate
 ======================================
 
 1. Go to `Web Auth Register Page <https://webauth-testnet.remme.io/register>`_ where you will be asked to provide a REMchain keystore file you have just received.
-2. Provide certificate details. Some general information about the owner as well as certificate password for local keychain for MacOS storage is required (other OS's is optional). Then press "Create User" and the transaction on the blockchain will be sent for you.
-3. You may see the transaction appeared on the blockchain. At this point you will be asked weather you would like to add additional measure of security such as a second factor authentication. You may skip this step as well.
 
-Later on, Chrome and Safari allow to choose the certificate from the keychain's list directly as requested by the website.
+.. figure:: img/web-auth/remme-register-page.png
+
+2. Provide certificate details. Some general information about the owner as well as certificate password for local keychain for MacOS storage is required (other OS's is optional). Then press "Create User" and the transaction on the blockchain will be sent for you.
+
+.. figure:: img/web-auth/remme-registration-details.png
+
+3. You may see the transaction appeared on the blockchain. At this point you will be asked weather you would like to add additional measure of security such as a second factor authentication.
+
+.. figure:: img/web-auth/remme-registration-second-factor.png
+
+4. Success 🎉 . A new certificate was registered on the REMchain.
 
 3. Save the certificate to local keystore
 =========================================
 
 If everything went well, the certificate with a `.p12` extension was downloaded.
+
+.. figure:: img/web-auth/remme-downloaded-file.png
+
 To save it to your local keystore, it is enough to open the file and follow instructions.
 You will be asked to enter the password you mentioned during the registration step above.
 
