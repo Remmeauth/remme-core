@@ -101,8 +101,6 @@ class HelperTestCase(TestCase):
         if account_signer is not None:
             factory = self.handler.get_message_factory(account_signer)
 
-
-        LOGGER.info('send_transaction')
         payload_pb = TransactionPayload()
         payload_pb.method = method
         payload_pb.data = pb_data.SerializeToString()
