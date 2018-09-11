@@ -1,6 +1,7 @@
 import json
 from enum import unique
 
+import time
 import zmq
 import logging
 import weakref
@@ -62,6 +63,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
             except KeyNotFound:
                 self.last_block_num = 0
             except ClientException:
+                time.sleep(5)
                 continue
             break
         LOGGER.debug(f'Received the last block num: {self.last_block_num}')
