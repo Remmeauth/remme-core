@@ -13,32 +13,41 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
+# contains only those dependencies which are common for all other stages
 FROM alpine:3.8 as base
+ENV INSTALL_DIR=/projects/install
+ENV PYTHONUSERBASE=$INSTALL_DIR
 RUN apk --update --no-cache add --force python3 libffi openssl libzmq
-RUN mkdir /install
-ENV PYTHONUSERBASE=/install
-WORKDIR /root
 
-FROM base as build
-RUN apk --update --no-cache add rsync pkgconf build-base autoconf automake protobuf libtool libffi-dev python3-dev zeromq-dev openssl-dev
-RUN pip3 install --upgrade pip
-COPY ./requirements.txt .
-RUN pip3 install --user -r ./requirements.txt
-COPY ./remme/rest_api/swagger-index.patch .
-RUN cd $(python3 -c "import connexion, os; print(os.path.dirname(connexion.__file__) + '/vendor/swagger-ui')") && \
-    sh update.sh 3.17.0 && \
-    patch -p0 < /root/swagger-index.patch && \
-    cd /root
-COPY ./remme ./remme/remme
-COPY ./protos ./remme/protos
-RUN protoc -I=./remme/protos --python_out=./remme/remme/protos ./remme/protos/*.proto
-COPY ./setup.py ./remme
-RUN pip3 install --user ./remme
+# setting up dependencies required for install binaries and contains application source code
+FROM base as build-common
+RUN apk --update --no-cache add rsync pkgconf build-base autoconf automake protobuf libtool libffi-dev python3-dev zeromq-dev openssl-dev && \
+    pip3 install --upgrade pip && \
+    pip3 install poetry
+ENV PROJECT_DIR=/projects/remme
+WORKDIR $PROJECT_DIR
+COPY ./pyproject.toml .
+COPY ./remme ./remme
+COPY ./protos ./protos
+RUN protoc -I=./protos --python_out=./remme/protos ./protos/*.proto && \
+    poetry config settings.virtualenvs.in-project true
+
+# used for running tests on the project
+FROM build-common as test
 COPY ./tests ./tests
-COPY ./scripts/node /install/scripts
+RUN poetry install
+
+# the intermediate stage that builds dependencies for the release image
+FROM build-common as build-release
+COPY ./README.rst ./README.rst
+RUN mkdir -p $INSTALL_DIR && \
+    poetry build --format=wheel --no-interaction && \
+    pip3 install --user --ignore-installed ./dist/*.whl
 
 FROM base as release
-COPY --from=build /install /install
+COPY --from=build-release $INSTALL_DIR $INSTALL_DIR
+RUN mkdir -p /projects/scripts
+COPY ./scripts/node /projects/scripts
 
 FROM hyperledger/sawtooth-validator:1.0.5 as validator
 COPY ./scripts/node /scripts
