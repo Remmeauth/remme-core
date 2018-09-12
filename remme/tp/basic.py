@@ -18,9 +18,7 @@ from google.protobuf.text_format import ParseError
 from sawtooth_processor_test.message_factory import MessageFactory
 from sawtooth_sdk.processor.exceptions import InternalError, InvalidTransaction
 from remme.protos.transaction_pb2 import TransactionPayload
-from remme.protos.account_pb2 import TransferPayload, Account
 from remme.shared.utils import hash512, Singleton
-from remme.settings import GENESIS_ADDRESS, ZERO_ADDRESS
 
 
 LOGGER = logging.getLogger(__name__)
@@ -137,51 +135,3 @@ class BasicHandler(metaclass=Singleton):
     def make_address_from_data(self, data):
         appendix = hash512(data)[:64]
         return self.make_address(appendix)
-
-    @classmethod
-    def create_transfer(cls, context, address_from, address_to, amount):
-        transfer_payload = TransferPayload(address_to=address_to, value=amount)
-        return cls() \
-            ._transfer_from_address(context, address_from, transfer_payload)
-
-    def _transfer_from_address(self, context, address, transfer_payload):
-        signer_key = address
-
-        if not transfer_payload.value:
-            raise InvalidTransaction("Could not transfer with zero amount")
-
-        signer_account, receiver_account = get_multiple_data(context, [
-            (signer_key, Account),
-            (transfer_payload.address_to, Account)
-        ])
-
-        # TODO transfer from genesis address using SETTINGS_KEY_GENESIS_OWNERS
-        # list of allowed addresses(0x0)
-        # genesis_members_str = _get_setting_value(context,
-        #                                          SETTINGS_KEY_GENESIS_OWNERS)
-        # if not genesis_members_str:
-        #     raise InvalidTransaction('REMchain is not configured '
-        #                              'to process genesis transfers.')
-        #
-        # genesis_members_list = genesis_members_str.split()
-
-        if not receiver_account:
-            receiver_account = Account()
-        if not signer_account:
-            signer_account = Account()
-
-        if signer_account.balance < transfer_payload.value:
-            raise InvalidTransaction(
-                "Not enough transferable balance. Sender's current balance: "
-                f"{signer_account.balance}")
-
-        receiver_account.balance += transfer_payload.value
-        signer_account.balance -= transfer_payload.value
-
-        LOGGER.info(f'Transferred {transfer_payload.value} tokens from '
-                    f'{signer_key} to {transfer_payload.address_to}')
-
-        return {
-            signer_key: signer_account,
-            transfer_payload.address_to: receiver_account
-        }

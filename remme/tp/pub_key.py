@@ -124,9 +124,9 @@ class PubKeyHandler(BasicHandler):
                 .make_address_from_data(storage_pub_key)
 
             if storage_address != account_address:
-                transfer_state = self.create_transfer(context, account_address,
-                                                      storage_address,
-                                                      PUB_KEY_STORE_PRICE)
+                transfer_state = AccountHandler() \
+                    .create_transfer(context, account_address, storage_address,
+                                     PUB_KEY_STORE_PRICE)
                 state.update(transfer_state)
                 # update account from transfer state
                 account = transfer_state[account_address]
