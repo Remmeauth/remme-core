@@ -26,8 +26,9 @@ LOGGER = logging.getLogger(__name__)
 
 
 def setup_logging(name, verbosity=2):
-    Path('/var/log/sawtooth').mkdir(parents=True, exist_ok=True)
-    Path('/var/log/sawtooth/{}-debug.log'.format(name)).touch(exist_ok=True)
+    LOG_DIR = '/var/log'
+    Path(LOG_DIR).mkdir(parents=True, exist_ok=True)
+    Path(f'{LOG_DIR}/{name}-debug.log').touch(exist_ok=True)
 
     log_config = get_log_config(filename='{}_log_config.toml'.format(name))
 
@@ -39,7 +40,7 @@ def setup_logging(name, verbosity=2):
         log_configuration(log_config=log_config)
     else:
         log_dir = get_log_dir()
-        log_configuration(log_dir=log_dir, name=name)
+        log_configuration(log_dir=LOG_DIR, name=name)
 
     init_console_logging(verbose_level=verbosity)
 
