@@ -20,3 +20,7 @@ class KeyNotFound(Exception):
 
 class ClientException(Exception):
     pass
+
+
+class ValidatorNotReadyException(Exception):
+    pass

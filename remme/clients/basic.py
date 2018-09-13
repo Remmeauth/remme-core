@@ -45,7 +45,7 @@ from sawtooth_signing import CryptoFactory, ParseError, create_context
 from sawtooth_signing.secp256k1 import Secp256k1PrivateKey
 
 from remme.protos.transaction_pb2 import TransactionPayload
-from remme.shared.exceptions import ClientException, KeyNotFound
+from remme.shared.exceptions import ClientException, KeyNotFound, ValidatorNotReadyException
 from remme.shared.utils import hash512, get_batch_id, message_to_dict
 
 from remme.shared.exceptions import ClientException
@@ -227,8 +227,10 @@ class BasicClient:
                 raise KeyNotFound("404")
 
         if resp.status != resp_proto.OK:
-            LOGGER.error(f'The response indicated a not successfult request: {data}')
-            raise ClientException("Error: %s" % data)
+            LOGGER.error(f'The response indicated a not successful request: {data}')
+            if hasattr(resp_proto, 'NOT_READY') and resp_proto.NOT_READY == resp.status:
+                raise ValidatorNotReadyException()
+            raise ClientException(f"Error: {data}")
 
         return data
 

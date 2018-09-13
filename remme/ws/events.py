@@ -16,7 +16,7 @@ from sawtooth_sdk.protobuf.client_event_pb2 import ClientEventsSubscribeRequest,
 from sawtooth_sdk.protobuf.validator_pb2 import Message
 from sawtooth_sdk.protobuf.events_pb2 import EventList, EventSubscription
 from google.protobuf.json_format import MessageToJson
-from remme.shared.exceptions import KeyNotFound, ClientException
+from remme.shared.exceptions import KeyNotFound, ClientException, ValidatorNotReadyException
 
 from remme.shared.utils import generate_random_key
 from remme.ws.basic import BasicWebSocketHandler, SocketException, SAWTOOTH_BLOCK_COMMIT_EVENT_TYPE
@@ -62,7 +62,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
                 self.last_block_num = BlockInfoClient().get_block_info_config().latest_block + 1
             except KeyNotFound:
                 self.last_block_num = 0
-            except ClientException:
+            except ValidatorNotReadyException:
                 time.sleep(5)
                 continue
             break
@@ -91,8 +91,6 @@ class WSEventSocketHandler(BasicWebSocketHandler):
             for event in events:
                 if event not in self._events:
                     raise SocketException(web_sock, Status.WRONG_EVENT_TYPE, f"Event: {event} is not supported")
-                # if web_sock in self._events[event]:
-                #     raise SocketException(web_sock, Status.ALREADY_SUBSCRIBED, f"Socket is already subscribed to: {event}")
                 self._events[event][web_sock] = {'is_catch_up': bool(last_known_block_id)}
 
             LOGGER.debug(f'Subscribing to following events: {events}')

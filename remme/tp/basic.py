@@ -48,17 +48,13 @@ def add_event(context, event_type, attributes):
 
 
 def get_event_attributes(updated_state, header_signature):
-    content_dict = {"entities_changed": json.dumps(
-                                        [
-                                            {
-                                                **{
-                                                    'address': key,
-                                                    'type': value.__class__.__name__
-                                                },
-                                                **from_proto_to_dict(value)
-                                            }
-                                            for key, value in updated_state.items()
-                                        ]),
+    entities_changed_list = [{**{
+                                    'address': key,
+                                    'type': value.__class__.__name__
+                                 },
+                              **from_proto_to_dict(value)}
+                              for key, value in updated_state.items()]
+    content_dict = {"entities_changed": json.dumps(entities_changed_list),
                     "header_signature": header_signature}
     return [(key, str(value)) for key, value in content_dict.items()]
 
