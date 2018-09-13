@@ -14,13 +14,21 @@
     container_name: harvester
     environment:
       - 'DELAYED_START=10'
-      - 'LOGIO_HARVESTER_NODENAME=Docker'
-      - 'LOGIO_HARVESTER_STREAMNAME=UnifiedLogs'
-#      - "LOGIO_HARVESTER_LOGFILES=/opt/test-log.log"
-      - 'LOGS_DIRECTORIES=/opt/logs'
-      - 'LOG_FILE_PATTERN=*-json.log'
+      - 'LOGIO_HARVESTER_NODENAME=REMME'
+      - 'LOGIO_HARVESTER1STREAMNAME=validator_debug'
+      - 'LOGIO_HARVESTER1LOGSTREAMS=/opt/logs/validator/' 
+      - 'LOGIO_HARVESTER1FILEPATTERN=validator-debug.log'
+      - 'LOGIO_HARVESTER2STREAMNAME=validator_error'
+      - 'LOGIO_HARVESTER2LOGSTREAMS=/opt/logs/validator/' 
+      - 'LOGIO_HARVESTER2FILEPATTERN=validator-error.log'
+      - 'LOGIO_HARVESTER3STREAMNAME=rest_api_debug'
+      - 'LOGIO_HARVESTER3LOGSTREAMS=/opt/logs/rest-api/'
+      - 'LOGIO_HARVESTER3FILEPATTERN=rest-api-debug.log'
+      - 'LOGIO_HARVESTER4STREAMNAME=rest_api_error'
+      - 'LOGIO_HARVESTER4LOGSTREAMS=/opt/logs/rest-api/'
+      - 'LOGIO_HARVESTER4FILEPATTERN=rest-api-error.log'
     volumes:
-      - '/var/lib/docker/containers/:/opt/logs'
+      - '../logs/:/opt/logs'
     links:
       - logioweb:logio
     user: root
