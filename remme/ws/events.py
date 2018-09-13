@@ -63,7 +63,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
             except KeyNotFound:
                 self.last_block_num = 0
             except ValidatorNotReadyException:
-                time.sleep(5)
+                asyncio.ensure_future(asyncio.sleep(5), loop=self._loop)
                 continue
             break
         LOGGER.debug(f'Received the last block num: {self.last_block_num}')
