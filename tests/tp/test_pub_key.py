@@ -17,12 +17,14 @@ import logging
 from remme.clients.pub_key import PubKeyClient
 from remme.tp.pub_key import PubKeyHandler, PUB_KEY_STORE_PRICE, PUB_KEY_MAX_VALIDITY
 from remme.protos.pub_key_pb2 import PubKeyStorage, PubKeyMethod
+from remme.tp.account import AccountHandler
 from remme.rest_api.pub_key import get_crt_export_bin_sig_rem_sig
 from remme.rest_api.pub_key_api_decorator import create_certificate
 from remme.shared.logging import test
 from tests.test_helper import HelperTestCase
 from remme.clients.account import AccountClient
-from remme.settings.helper import _make_settings_key
+from remme.settings.helper import _make_settings_key, get_setting_from_key_value
+from remme.settings import SETTINGS_STORAGE_PUB_KEY
 
 LOGGER = logging.getLogger(__name__)
 
@@ -87,6 +89,11 @@ class PubKeyTestCase(HelperTestCase):
 
         account = AccountClient.get_account_model(PUB_KEY_STORE_PRICE)
 
+        storage_account = AccountClient.get_account_model(0)
+        storage_signer = self.get_new_signer()
+        storage_pub_key = storage_signer.get_public_key().as_hex()
+        storage_address = AccountHandler().make_address_from_data(storage_pub_key)
+
         data = PubKeyStorage()
         data.owner = self.account_signer1.get_public_key().as_hex()
         data.payload.CopyFrom(transaction_payload)
@@ -94,15 +101,26 @@ class PubKeyTestCase(HelperTestCase):
 
         self.expect_get({cert_address: None, self.account_address1: account})
         self.expect_get({_make_settings_key('remme.economy_enabled'): None})
+        self.expect_get({
+            _make_settings_key(SETTINGS_STORAGE_PUB_KEY):
+                get_setting_from_key_value(SETTINGS_STORAGE_PUB_KEY,
+                                           storage_pub_key)
+        })
+        LOGGER.error(f'a {self.account_address1} b {storage_address} bpk {storage_pub_key}')
+        self.expect_get({self.account_address1: account,
+                         storage_address: storage_account})
 
-        context.client.store_pub_key(pub_key, rem_sig, crt_sig, valid_from, valid_to) 
+        context.client.store_pub_key(pub_key, rem_sig, crt_sig,
+                                     valid_from, valid_to)
 
         account.balance -= PUB_KEY_STORE_PRICE
         account.pub_keys.append(cert_address)
+        storage_account.balance += PUB_KEY_STORE_PRICE
 
         self.expect_set(transaction_signature, PubKeyMethod.STORE, {
             self.account_address1: account,
-            cert_address: data
+            cert_address: data,
+            storage_address: storage_account
         })
 
         self.expect_ok()

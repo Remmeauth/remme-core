@@ -24,6 +24,7 @@ from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
+from remme.settings import SETTINGS_STORAGE_PUB_KEY
 from remme.tp.basic import BasicHandler, get_data, get_multiple_data, PB_CLASS, PROCESSOR
 from remme.tp.account import AccountHandler
 
@@ -108,17 +109,32 @@ class PubKeyHandler(BasicHandler):
 
         if not account:
             account = Account()
-        if _get_setting_value(context, 'remme.economy_enabled', 'true').lower() == 'true':
-            if account.balance < PUB_KEY_STORE_PRICE:
-                raise InvalidTransaction('Not enough tokens to register a new pub key. Current balance: {}'
-                                         .format(account.balance))
-            account.balance -= PUB_KEY_STORE_PRICE
+
+        state = {account_address: account, address: data}
+        is_economy_enabled = _get_setting_value(context,
+                                                'remme.economy_enabled',
+                                                'true').lower()
+        if is_economy_enabled == 'true':
+            storage_pub_key = _get_setting_value(context,
+                                                 SETTINGS_STORAGE_PUB_KEY)
+            if not storage_pub_key:
+                raise InvalidTransaction('The storage public key not set.')
+
+            storage_address = AccountHandler() \
+                .make_address_from_data(storage_pub_key)
+
+            if storage_address != account_address:
+                transfer_state = AccountHandler() \
+                    .create_transfer(context, account_address, storage_address,
+                                     PUB_KEY_STORE_PRICE)
+                state.update(transfer_state)
+                # update account from transfer state
+                account = transfer_state[account_address]
 
         if address not in account.pub_keys:
             account.pub_keys.append(address)
 
-        return {address: data,
-                account_address: account}
+        return state
 
     def _revoke_pub_key(self, context, signer_pubkey, transaction_payload):
         data = get_data(context, PubKeyStorage, transaction_payload.address)
