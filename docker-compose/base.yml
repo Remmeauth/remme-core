@@ -20,7 +20,7 @@ services:
     container_name: remme_validator
     image: remme/sawtooth-validator:1.0.5
     volumes:
-      - validator_keys:/etc/sawtooth/keys
+      - user_keys:/etc/sawtooth/keys
       - chain_data:/var/lib/sawtooth/
       - ../config/remme-genesis-config.toml:/config/remme-genesis-config.toml
       - ../config/sawtooth-validator-config.toml:/etc/sawtooth/validator.toml

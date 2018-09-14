@@ -21,7 +21,6 @@ services:
       - remme-genesis
     volumes:
       - genesis_data:/genesis/batch
-      - user_keys:/etc/sawtooth/keys
     environment:
       - REMME_START_MODE=genesis
 
