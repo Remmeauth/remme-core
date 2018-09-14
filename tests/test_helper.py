@@ -82,8 +82,8 @@ class HelperTestCase(TestCase):
         cls._zmq_patcher.stop()
         cls._pk_patcher.stop()
 
-    @staticmethod
-    def get_new_signer():
+    @classmethod
+    def get_new_signer(cls):
         context = create_context('secp256k1')
         return CryptoFactory(context).new_signer(
             context.new_random_private_key())
