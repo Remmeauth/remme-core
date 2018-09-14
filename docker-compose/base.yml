@@ -82,5 +82,4 @@ services:
 
 volumes:
   user_keys:
-  validator_keys:
   chain_data:
