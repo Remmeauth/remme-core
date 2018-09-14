@@ -89,7 +89,7 @@ class PubKeyClient(BasicClient):
                                                valid_to)
 
         crt_address = self.make_address_from_data(public_key)
-        account_address = AccountHandler.make_address_from_data(self._signer.get_public_key().as_hex())
+        account_address = AccountHandler().make_address_from_data(self._signer.get_public_key().as_hex())
         settings_address = _make_settings_key('remme.economy_enabled')
         addresses_input = [crt_address, account_address, settings_address, self.get_user_address()]
         addresses_output = [crt_address, self.get_user_address()]

@@ -34,7 +34,7 @@ run_dev: build
 	docker-compose -f docker-compose/base.yml -f docker-compose/genesis.yml --project-name remme up
 
 run_docs:
-	docker-compose -f docker-compose/docs.yml up --build
+	sphinx-build -b html docs html
 
 test:
 	docker build --target build -t remme/remme-core-dev:latest .

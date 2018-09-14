@@ -23,11 +23,11 @@ import connexion
 import aiohttp_cors
 
 from zmq.asyncio import ZMQEventLoop
-from sawtooth_sdk.messaging.stream import Stream
 from remme.rest_api.api_methods_switcher import RestMethodsSwitcherResolver
 from remme.rest_api.api_handler import AioHttpApi
 from remme.rest_api.validator import proxy
 from remme.shared.logging import setup_logging
+from remme.shared.stream import Stream
 from remme.ws import WsApplicationHandler
 from remme.settings.default import load_toml_with_defaults
 

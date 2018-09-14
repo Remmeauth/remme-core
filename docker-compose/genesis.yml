@@ -21,7 +21,6 @@ services:
       - remme-genesis
     volumes:
       - genesis_data:/genesis/batch
-      - user_keys:/root/.sawtooth/keys
     environment:
       - REMME_START_MODE=genesis
 
@@ -29,13 +28,13 @@ services:
     container_name: remme_genesis
     image: remme/remme-core:latest
     volumes:
-      - user_keys:/root/.sawtooth/keys
+      - user_keys:/etc/sawtooth/keys
       - genesis_data:/genesis/batch
       - ../config/remme-client-config.toml:/config/remme-client-config.toml
       - ../config/remme-genesis-config.toml:/config/remme-genesis-config.toml
     environment:
       - REMME_START_MODE=genesis
-    command: sh /scripts/genesis.sh
+    command: sh /install/scripts/genesis.sh
 
 volumes:
   genesis_data:

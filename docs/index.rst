@@ -8,7 +8,14 @@ Welcome to REMME's documentation!
 .. toctree::
    :maxdepth: 2
 
-   README
+   remme-launch
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Use cases:
+
+   use-case-web-auth
+
 
 .. toctree::
    :maxdepth: 2
@@ -19,6 +26,7 @@ Welcome to REMME's documentation!
    remme-framework
    remme-client
    remme-ws
+   remme-ws-events
    generated/modules
 
 .. toctree::
