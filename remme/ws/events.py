@@ -51,21 +51,14 @@ def get_value_from_key(attributes, key):
         if item.key == key:
             return item.value
 
-
 class WSEventSocketHandler(BasicWebSocketHandler):
     def __init__(self, stream, loop):
         super().__init__(stream, loop)
         # events to subscribers
         LOGGER.debug(f'Starting the event socket handler.')
-        while True:
-            try:
-                self.last_block_num = BlockInfoClient().get_block_info_config().latest_block + 1
-            except KeyNotFound:
-                self.last_block_num = 0
-            except ValidatorNotReadyException:
-                asyncio.ensure_future(asyncio.sleep(5), loop=self._loop)
-                continue
-            break
+        self.last_block_num = None
+        self._last_block_task = asyncio.ensure_future(self.request_last_block(), loop=self._loop)
+
         LOGGER.debug(f'Received the last block num: {self.last_block_num}')
         self.catch_up_subscribers = {}
         self._events = {event.value: {} for event in Events}
@@ -79,6 +72,24 @@ class WSEventSocketHandler(BasicWebSocketHandler):
             asyncio.ensure_future(
                 self.listen_events(), loop=self._loop))
 
+    async def request_last_block(self):
+        while True:
+            try:
+                self.last_block_num = BlockInfoClient().get_block_info_config().latest_block + 1
+            except KeyNotFound:
+                self.last_block_num = 0
+            except ValidatorNotReadyException:
+                await asyncio.sleep(5, loop=self._loop)
+                continue
+            break
+
+    async def on_shutdown(self):
+        await super().on_shutdown()
+
+        if not self._last_block_task.cancelled():
+            self._last_block_task.cancel()
+        else:
+            self._last_block_task = None
 
     # return what value to be mapped to web_sock
     async def subscribe(self, web_sock, entity, data):
@@ -155,7 +166,9 @@ class WSEventSocketHandler(BasicWebSocketHandler):
     # The following code listens for events and logs them indefinitely.
     async def check_event(self):
         LOGGER.info(f"Checking for new events...")
-
+        if self.last_block_num is None:
+            LOGGER.debug(f"Last block number not ready!")
+            return
         resp = None
         try:
             resp = self._socket.recv_multipart(flags=zmq.NOBLOCK)[-1]
