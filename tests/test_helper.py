@@ -50,7 +50,7 @@ class HelperTestCase(TestCase):
 
         cls.validator.listen(url)
 
-        for item in TP_HANDLERS:
+        for _ in range(len(TP_HANDLERS)):
             if not cls.validator.register_processor():
                 raise Exception('Failed to register processor')
 
