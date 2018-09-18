@@ -53,7 +53,6 @@ from remme.shared.exceptions import KeyNotFound
 from remme.shared.utils import hash512
 
 from remme.shared.stream import Stream
-from remme.tp.account import *
 from remme.settings import PRIV_KEY_FILE
 from remme.settings.default import load_toml_with_defaults
 from remme.tp.basic import is_address
@@ -318,6 +317,8 @@ class BasicClient:
         self._signer = new_signer
 
     def get_user_address(self):
+        from remme.tp.account import AccountHandler
+
         return AccountHandler().make_address_from_data(self._signer.get_public_key().as_hex())
 
     def _send_transaction(self, method, data_pb, addresses_input, addresses_output):
