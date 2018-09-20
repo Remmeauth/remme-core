@@ -33,4 +33,4 @@ services:
     network_mode: "service:tests"
     volumes:
       - ../config/remme-client-config.toml:/config/remme-client-config.toml
-    entrypoint: python3 -m remme.tp --account --atomic-swap --pubkey
+    entrypoint: python3 -m remme.tp

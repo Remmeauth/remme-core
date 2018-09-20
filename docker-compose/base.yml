@@ -73,6 +73,8 @@ services:
     container_name: remme_rest_api
     image: remme/remme-core:latest
     network_mode: "service:validator"
+    environment:
+      - REMME_CONTAINER_EXPORTS_FOLDER=./default_export
     volumes:
       - user_keys:/etc/sawtooth/keys
       - ${REMME_CONTAINER_EXPORTS_FOLDER:-./default_export}:/root/usr/share
