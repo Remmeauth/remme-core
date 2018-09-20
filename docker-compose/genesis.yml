@@ -33,6 +33,7 @@ services:
       - genesis_data:/genesis/batch
       - ../config/remme-client-config.toml:/config/remme-client-config.toml
       - ../config/remme-genesis-config.toml:/config/remme-genesis-config.toml
+      - ../config/remme-log-config.toml:/etc/sawtooth/log_config.toml
     environment:
       - REMME_START_MODE=genesis
     command: sh /install/scripts/genesis.sh

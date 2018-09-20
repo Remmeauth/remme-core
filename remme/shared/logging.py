@@ -19,11 +19,11 @@ from sawtooth_sdk.processor.log import init_console_logging
 from sawtooth_sdk.processor.log import log_configuration
 from sawtooth_sdk.processor.config import get_log_config
 from sawtooth_sdk.processor.config import get_log_dir
-from pathlib import Path
 
 LOGGER = logging.getLogger(__name__)
 
 # TODO move to f-strings after websockets move to 3.6
+
 
 def setup_logging(name, verbosity=2):
     Path('/var/log/sawtooth').mkdir(parents=True, exist_ok=True)
@@ -35,6 +35,7 @@ def setup_logging(name, verbosity=2):
         log_config = get_log_config(filename='{}_log_config.yaml'.format(name))
 
     if log_config is not None:
+        LOGGER.info(f'Found and loaded logging configuration: {log_config}')
         log_configuration(log_config=log_config)
     else:
         log_dir = get_log_dir()
@@ -45,7 +46,7 @@ def setup_logging(name, verbosity=2):
 
 def test(func):
     def wrapper(*args, **kwargs):
-        LOGGER.info('Testing: {} with args: {}, kwargs: {}'.format(func.__name__, args, kwargs))
+        LOGGER.info(f'Testing: {func.__name__} with args: {args}, '
+                    f'kwargs: {kwargs}')
         return func(*args, **kwargs)
     return wrapper
-
