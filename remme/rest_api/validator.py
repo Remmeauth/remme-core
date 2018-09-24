@@ -31,8 +31,7 @@ async def proxy(request):
     async with aiohttp.ClientSession() as session:
         async with session.request(request.method, target_url,
                                    headers=request.headers, params=get_data,
-                                   data=data, timeout=PROXY_TIMEOUT) as resp:
-            res = resp
+                                   data=data, timeout=PROXY_TIMEOUT) as res:
             raw = await res.read()
 
     logger.debug("-----------------------------------------------------------")
