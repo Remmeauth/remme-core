@@ -18,20 +18,20 @@ version: '3.4'
 services:
   logioweb:
     image: 'quay.io/blacklabelops/logio:latest'
+    network_mode: bridge
     container_name: logioweb
+    ports:
+      - '0.0.0.0:28778:28778'
     environment:
       - 'LOGIO_ADMIN_USER='
       - 'LOGIO_ADMIN_PASSWORD='
-#      - LOGIO_CERTIFICATE_DNAME=
-    ports:
-      - '28778:28778'
-#    volumes:
-#      - '/opt/server'
+
   harvester:
     image: 'quay.io/blacklabelops/logio:latest'
+    network_mode: "service:logioweb"
     container_name: harvester
     environment:
-      - 'DELAYED_START=10'
+      - 'LOGIO_HARVESTER_MASTER_HOST=127.0.0.1'
       - 'LOGIO_HARVESTER_NODENAME=REMME'
       - 'LOGIO_HARVESTER1STREAMNAME=validator_debug'
       - 'LOGIO_HARVESTER1LOGSTREAMS=/opt/logs/'
@@ -47,7 +47,9 @@ services:
       - 'LOGIO_HARVESTER4FILEPATTERN=rest-api-error.log'
     volumes:
       - 'logs:/opt/logs'
-    links:
-      - logioweb:logio
     user: root
     command: harvester
+
+volumes:
+  logs:
+

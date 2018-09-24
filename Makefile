@@ -31,10 +31,13 @@ run_dev_no_genesis: build
 	docker-compose -f docker-compose/base.yml up
 
 run_dev: build
-	docker-compose -f docker-compose/base.yml -f docker-compose/genesis.yml -f docker-compose/logio.yml --project-name remme up
+	docker-compose -f docker-compose/base.yml -f docker-compose/genesis.yml --project-name remme up
 
 run_docs:
 	docker-compose -f docker-compose/docs.yml up --build
+
+run_logio:
+	docker-compose -f docker-compose/logio.yml --project-name remme up 
 
 test:
 	docker build --target build -t remme/remme-core-dev:latest .
