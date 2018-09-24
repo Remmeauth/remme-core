@@ -34,17 +34,12 @@ if __name__ == '__main__':
     parser.add_argument('--atomic-swap', action='store_true')
     parser.add_argument('--pubkey', action='store_true')
     args = parser.parse_args()
-    setup_logging('remme', args.verbosity)
+    setup_logging('tp', args.verbosity)
 
     processor = TransactionProcessor(url=f'tcp://{ config["validator_ip"] }:{ config["validator_port"] }')
 
-    if args.account:
-        processor.add_handler(AccountHandler())
-    if args.atomic_swap:
-        processor.add_handler(AtomicSwapHandler())
-    if args.pubkey:
-        processor.add_handler(PubKeyHandler())
-
+    for handler in TP_HANDLERS:
+        processor.add_handler(handler)
     try:
         processor.start()
     except KeyboardInterrupt:

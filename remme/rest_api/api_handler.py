@@ -100,23 +100,17 @@ class AioHttpApi(AioHttpApi):
         while asyncio.iscoroutine(response):
             response = await response
 
-        if isinstance(response, tuple):
+        logger.debug('Getting data', extra={'data': response})
+
+        if isinstance(response, ConnexionResponse):
+            response = cls._get_aiohttp_response_from_connexion(response,
+                                                                mimetype)
+        elif isinstance(response, tuple):
             response = cls._json_response(response[0], response[1])
         else:
             response = cls._json_response(response)
 
         url = str(request.url) if request else ''
-
-        logger.debug('Getting data and status code',
-                     extra={
-                         'data': response,
-                         'url': url
-                     })
-
-        if isinstance(response, ConnexionResponse):
-            response = cls._get_aiohttp_response_from_connexion(response,
-                                                                mimetype)
-
         logger.debug('Got data and status code (%d)', response.status,
                      extra={'data': response.body, 'url': url})
 
