@@ -14,13 +14,13 @@
 # ------------------------------------------------------------------------
 
 FROM alpine:3.8 as base
-RUN apk --update --no-cache add --force python3=3.6.6-r0 libffi=3.2.1-r4 openssl=1.0.2o-r2 libzmq=4.2.3-r0
+RUN apk --update --no-cache add --force python3 libffi openssl libzmq
 RUN mkdir /install
 ENV PYTHONUSERBASE=/install
 WORKDIR /root
 
 FROM base as build
-RUN apk --update --no-cache add rsync pkgconf build-base autoconf automake protobuf=3.5.2-r0 libtool=2.4.6-r5 libffi-dev=3.2.1-r4 python3-dev=3.6.6-r0 zeromq-dev=4.2.3-r0 openssl-dev=1.0.2o-r2
+RUN apk --update --no-cache add rsync pkgconf build-base autoconf automake protobuf libtool libffi-dev python3-dev zeromq-dev openssl-dev
 RUN pip3 install --upgrade pip
 COPY ./requirements.txt .
 RUN pip3 install --user -r ./requirements.txt
