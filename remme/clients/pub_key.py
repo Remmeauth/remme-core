@@ -36,8 +36,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 class PubKeyClient(BasicClient):
-    def __init__(self, test_helper=None):
-        super().__init__(PubKeyHandler, test_helper=test_helper)
+    def __init__(self):
+        super().__init__(PubKeyHandler)
 
     @classmethod
     def get_new_pub_key_payload(self, public_key, entity_hash, entity_hash_signature, valid_from, valid_to,
