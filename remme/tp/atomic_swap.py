@@ -24,10 +24,17 @@ from remme.protos.atomic_swap_pb2 import (
 )
 from remme.settings import SETTINGS_SWAP_COMMISSION, ZERO_ADDRESS
 from remme.settings.helper import _get_setting_value
-from remme.tp.basic import BasicHandler, get_data
+
+from remme.tp.basic import BasicHandler, get_data, add_event, PROCESSOR, PB_CLASS
 from remme.shared.utils import web3_hash
+
 from remme.clients.account import AccountClient
 from remme.tp.account import AccountHandler, get_account_by_address
+
+from remme.ws.basic import EMIT_EVENT
+from remme.ws.constants import Events
+
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -52,24 +59,29 @@ class AtomicSwapHandler(BasicHandler):
     def get_state_processor(self):
         return {
             AtomicSwapMethod.INIT: {
-                'pb_class': AtomicSwapInitPayload,
-                'processor': self._swap_init
+                PB_CLASS: AtomicSwapInitPayload,
+                PROCESSOR: self._swap_init,
+                EMIT_EVENT: Events.SWAP_INIT.value
             },
             AtomicSwapMethod.APPROVE: {
-                'pb_class': AtomicSwapApprovePayload,
-                'processor': self._swap_approve
+                PB_CLASS: AtomicSwapApprovePayload,
+                PROCESSOR: self._swap_approve,
+                EMIT_EVENT: Events.SWAP_APPROVE.value
             },
             AtomicSwapMethod.EXPIRE: {
-                'pb_class': AtomicSwapExpirePayload,
-                'processor': self._swap_expire
+                PB_CLASS: AtomicSwapExpirePayload,
+                PROCESSOR: self._swap_expire,
+                EMIT_EVENT: Events.SWAP_EXPIRE.value
             },
             AtomicSwapMethod.SET_SECRET_LOCK: {
-                'pb_class': AtomicSwapSetSecretLockPayload,
-                'processor': self._swap_set_lock
+                PB_CLASS: AtomicSwapSetSecretLockPayload,
+                PROCESSOR: self._swap_set_lock,
+                EMIT_EVENT: Events.SWAP_SET_SECRET_LOCK.value
             },
             AtomicSwapMethod.CLOSE: {
-                'pb_class': AtomicSwapClosePayload,
-                'processor': self._swap_close
+                PB_CLASS: AtomicSwapClosePayload,
+                PROCESSOR: self._swap_close,
+                EMIT_EVENT: Events.SWAP_CLOSE.value
             },
         }
 
@@ -235,8 +247,10 @@ class AtomicSwapHandler(BasicHandler):
 
         transfer_payload = AccountClient.get_transfer_payload(swap_info.receiver_address, swap_info.amount)
         token_updated_state = AccountHandler()._transfer_from_address(context,
-                                                                      ZERO_ADDRESS,
-                                                                      transfer_payload)
+                                                                    ZERO_ADDRESS,
+                                                                    transfer_payload)
+        swap_info.secret_key = swap_close_payload.secret_key
+
         swap_info.state = AtomicSwapInfo.CLOSED
 
         return {**self.get_state_update(swap_info), **token_updated_state}

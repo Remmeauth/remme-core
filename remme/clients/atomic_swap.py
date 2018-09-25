@@ -80,6 +80,7 @@ class AtomicSwapClient(BasicClient):
             self.make_address_from_data(swap_init_payload.swap_id),
             self.get_user_address(),
             _make_settings_key(SETTINGS_SWAP_COMMISSION),
+            ZERO_ADDRESS
         ]
         addresses_output = [
             self.make_address_from_data(swap_init_payload.swap_id),

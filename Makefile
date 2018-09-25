@@ -41,7 +41,7 @@ test:
 	docker-compose -f docker-compose/test.yml up --build --abort-on-container-exit
 
 rebuild_docker:
-	docker-compose -f docker-compose/dev.yml build --no-cache
+	docker-compose -f docker-compose/base.yml build --no-cache
 
 release:
 	git checkout $(RELEASE_NUMBER)

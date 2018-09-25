@@ -15,8 +15,10 @@
 
 import argparse
 from remme.protos.account_pb2 import AccountMethod
+from remme.protos.transaction_pb2 import TransactionPayload
+
 from remme.clients.account import AccountClient
-from remme.tp.account import AccountHandler, TransactionPayload
+from remme.tp.account import AccountHandler
 from remme.settings import GENESIS_ADDRESS
 from remme.settings.default import load_toml_with_defaults
 

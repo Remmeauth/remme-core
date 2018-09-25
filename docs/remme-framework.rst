@@ -87,8 +87,8 @@ The key way to enable relevant transaction type processing is to provide a custo
     def get_state_processor(self):
         return {
             AccountMethod.TRANSFER: {
-                'pb_class': TransferPayload,
-                'processor': self._transfer
+                PB_CLASS: TransferPayload,
+                PROCESSOR: self._transfer
             }
         }
 

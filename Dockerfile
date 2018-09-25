@@ -54,3 +54,4 @@ RUN apt-get update && \
 WORKDIR /
 COPY ./blockinfo_fix.patch /blockinfo_fix.patch
 RUN patch -p0 < /blockinfo_fix.patch
+

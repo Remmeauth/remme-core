@@ -15,6 +15,21 @@
 
 from enum import Enum, IntEnum, unique
 
+# to be replaced with a family name if applicable
+ATOMIC_SWAP = 'atomic-swap'
+ACCOUNT = 'account'
+
+
+@unique
+class Events(Enum):
+    SWAP_INIT = f'{ATOMIC_SWAP}-init'
+    SWAP_CLOSE = f'{ATOMIC_SWAP}-close'
+    SWAP_APPROVE = f'{ATOMIC_SWAP}-approve'
+    SWAP_EXPIRE = f'{ATOMIC_SWAP}-expire'
+    SWAP_SET_SECRET_LOCK = f'{ATOMIC_SWAP}-set-secret-lock'
+
+    ACCOUNT_TRANSFER = f'{ACCOUNT}-transfer'
+
 
 @unique
 class Action(Enum):
@@ -25,8 +40,15 @@ class Action(Enum):
 
 @unique
 class Entity(Enum):
-
     BATCH_STATE = 'batch_state'
+    EVENTS = 'events'
+
+
+@unique
+class Type(Enum):
+    MESSAGE = 'message'
+    ERROR = 'error'
+    STATUS = 'status'
 
 
 @unique
@@ -69,5 +91,21 @@ class Status(IntEnum):
 
     # validator connection failed
     NO_VALIDATOR = 110
+
+    # missing data
+    MISSING_DATA = 111
+
+    # wrong event type provided
+    WRONG_EVENT_TYPE = 112
+
+    # socket is already subscribed
+    ALREADY_SUBSCRIBED = 113
+
+    # events being subscribed to are not provided
+    EVENTS_NOT_PROVIDED = 114
+
+    LAST_KNOWN_BLOCK_ID_NOT_PROVIDED = 115
+
+    UNKNOWN_BLOCK = 116
 
     BATCH_RESPONSE = 200

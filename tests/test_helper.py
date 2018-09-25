@@ -28,9 +28,10 @@ from remme.protos.transaction_pb2 import TransactionPayload
 from remme.shared.utils import AttrDict
 from remme.clients.basic import BasicClient
 from remme.clients.account import AccountClient
-from remme.tp.account import AccountHandler
+from remme.tp.account import AccountHandler, EMIT_EVENT
 
 from remme.tp.__main__ import TP_HANDLERS
+from remme.tp.basic import get_event_attributes
 
 LOGGER = logging.getLogger(__name__)
 
@@ -99,13 +100,27 @@ class HelperTestCase(TestCase):
         factory = self._factory
         if account_signer is not None:
             factory = self.handler.get_message_factory(account_signer)
-        LOGGER.info('send_transaction')
+
         payload_pb = TransactionPayload()
         payload_pb.method = method
         payload_pb.data = pb_data.SerializeToString()
+
+        tp_process_request = factory.create_tp_process_request(payload_pb.SerializeToString(), address_access_list,
+                                                               address_access_list, [])
         self.validator.send(
-            factory.create_tp_process_request(payload_pb.SerializeToString(), address_access_list, address_access_list, [])
+            tp_process_request
         )
+
+        return tp_process_request.signature
+
+    def expect_event(self, signature, event_type, updated_state):
+        received = self.validator.expect(
+            self._factory.create_add_event_request(event_type, get_event_attributes(updated_state, signature)))
+        LOGGER.info('expect_event')
+
+        self.validator.respond(
+            self._factory.create_add_event_response(),
+            received)
 
     def expect_get(self, key_value):
         LOGGER.info('expect_get: {}'.format(key_value))
@@ -125,7 +140,7 @@ class HelperTestCase(TestCase):
         self.validator.respond(
             self._factory.create_get_response(resp_dict), received)
 
-    def expect_set(self, key_value):
+    def expect_set(self, signature, method, key_value):
         received = self.validator.expect(
             self._factory.create_set_request({key: value_pb.SerializeToString()
                                               if value_pb is not None else None
@@ -134,6 +149,11 @@ class HelperTestCase(TestCase):
         print('sending set response...')
         self.validator.respond(
             self._factory.create_set_response(key_value), received)
+
+        processor = self.handler.get_state_processor()[method]
+        event_type = processor.get(EMIT_EVENT, None)
+        if event_type:
+            self.expect_event(signature, event_type, key_value)
 
     def _expect_tp_response(self, response):
         self.validator.expect(

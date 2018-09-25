@@ -40,7 +40,6 @@ def set_secret_lock(**data):
 def close(**data):
     data = data['payload']
     swap_info = client.swap_get(data['swap_id'])
-    LOGGER.info('swap_info: {}'.format(swap_info))
     payload = get_swap_close_payload(**data)
     return client.swap_close(payload, receiver_address=swap_info.receiver_address)
 

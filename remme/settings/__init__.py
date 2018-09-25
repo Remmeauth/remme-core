@@ -1,5 +1,11 @@
 import os
 
+from remme.settings.default import load_toml_with_defaults
+
+cfg_rest = load_toml_with_defaults('/config/remme-rest-api.toml')['remme']['rest_api']
+cfg_ws = load_toml_with_defaults('/config/remme-client-config.toml')['remme']['client']
+ZMQ_URL = f'tcp://{ cfg_ws["validator_ip"] }:{ cfg_ws["validator_port"] }'
+
 KEY_DIR = '/etc/sawtooth/keys'
 PRIV_KEY_FILE = os.path.join(KEY_DIR, 'validator.priv')
 PUB_KEY_FILE = os.path.join(KEY_DIR, 'validator.pub')
