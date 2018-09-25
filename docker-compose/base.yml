@@ -26,6 +26,7 @@ services:
       - ../config/sawtooth-validator-config.toml:/etc/sawtooth/validator.toml
       - ../config/seeds-list.txt:/config/seeds-list.txt
       - ../config/remme-log-config.toml:/etc/sawtooth/log_config.toml
+      - logs:/var/log/sawtooth
     network_mode: bridge
     ports:
       - '0.0.0.0:${REMME_VALIDATOR_PORT:-8800}:8800'
@@ -92,9 +93,11 @@ services:
       - ../config/remme-rest-api.toml:/config/remme-rest-api.toml
       - ../config/remme-log-config.toml:/etc/sawtooth/log_config.toml
       - ../config/remme-rest-api-log-config.toml:/etc/sawtooth/rest-api_log_config.toml
+      - logs:/var/log/
     entrypoint: python3 -m remme.rest_api
 
 volumes:
   user_keys:
   validator_keys:
   chain_data:
+  logs:
