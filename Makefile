@@ -20,6 +20,7 @@ include ./config/network-config.env
 .PHONY: release
 
 build:
+	git submodule update --init
 	docker-compose -f docker-compose/build.yml build
 
 restart_dev:
