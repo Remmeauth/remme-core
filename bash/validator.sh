@@ -57,7 +57,7 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
     sawadm genesis $GENESIS_BATCHES
 fi
 
-if [ "$REMME_START_MODE" = "run" ]; then
+if [ "$REMME_START_MODE" = "run" ] && [ -s "/config/seeds-list.txt" ]; then
     SEEDS=$(sed ':a;N;$!ba;s/\n/,/g' /config/seeds-list.txt)
     ADDITIONAL_ARGS="$ADDITIONAL_ARGS --seeds $SEEDS --peers $SEEDS"
 fi
