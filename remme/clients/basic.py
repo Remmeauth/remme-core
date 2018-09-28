@@ -63,12 +63,11 @@ LOGGER = logging.getLogger(__name__)
 
 
 class BasicClient:
-    def __init__(self, family_handler=None, test_helper=None, keyfile=None):
+    def __init__(self, family_handler=None, keyfile=None):
         config = load_toml_with_defaults('/config/remme-client-config.toml')['remme']['client']
 
         self.url = config['validator_rest_api_url']
         self._family_handler = family_handler() if callable(family_handler) else None
-        self.test_helper = test_helper
         self._stream = Stream(f'tcp://{ config["validator_ip"] }:{ config["validator_port"] }')
 
         if keyfile is None:
@@ -334,9 +333,6 @@ class BasicClient:
         addresses_input_output.extend(addresses_input)
         addresses_input_output.extend(addresses_output)
         addresses_input_output = list(set(addresses_input_output))
-        # forward transaction to test helper
-        if self.test_helper:
-            return self.test_helper.send_transaction(method, data_pb, addresses_input_output)
 
         payload = TransactionPayload()
         payload.method = method

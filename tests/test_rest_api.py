@@ -22,6 +22,9 @@ from tests.test_helper import HelperTestCase
 
 class RestApiTestCase(HelperTestCase):
 
+    def setUp(self):
+        pass
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass(AccountHandler, AccountClient)

@@ -83,6 +83,13 @@ class HelperTestCase(TestCase):
         cls._zmq_patcher.stop()
         cls._pk_patcher.stop()
 
+    def setUp(self):
+        # patch send_transaction
+        self._st_patcher = mock.patch('remme.clients.basic.BasicClient._send_transaction',
+                                      side_effect=self.send_transaction)
+        self._st_patcher_obj = self._st_patcher.start()
+        self.addCleanup(self._st_patcher.stop)
+
     @staticmethod
     def get_new_signer():
         context = create_context('secp256k1')
@@ -91,22 +98,26 @@ class HelperTestCase(TestCase):
 
     def get_context(self):
         context = AttrDict()
-        context.client = self.client_class(test_helper=self)
+        context.client = self.client_class()
         context.client.set_signer(self.account_signer1)
 
         return context
 
-    def send_transaction(self, method, pb_data, address_access_list, account_signer=None):
+    def send_transaction(self, method, pb_data, addresses_input, addresses_output=None, account_signer=None):
         factory = self._factory
         if account_signer is not None:
             factory = self.handler.get_message_factory(account_signer)
+
+        if addresses_output is None:
+            addresses_output = addresses_input
 
         payload_pb = TransactionPayload()
         payload_pb.method = method
         payload_pb.data = pb_data.SerializeToString()
 
-        tp_process_request = factory.create_tp_process_request(payload_pb.SerializeToString(), address_access_list,
-                                                               address_access_list, [])
+        tp_process_request = factory.create_tp_process_request(
+            payload_pb.SerializeToString(), addresses_input,
+            addresses_output, [])
         self.validator.send(
             tp_process_request
         )
