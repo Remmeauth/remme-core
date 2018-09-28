@@ -30,9 +30,6 @@ if __name__ == '__main__':
     config = load_toml_with_defaults('/config/remme-client-config.toml')['remme']['client']
     parser = argparse.ArgumentParser(description='Transaction processor.')
     parser.add_argument('-v', '--verbosity', type=int, default=2)
-    parser.add_argument('--account', action='store_true')
-    parser.add_argument('--atomic-swap', action='store_true')
-    parser.add_argument('--pubkey', action='store_true')
     args = parser.parse_args()
     setup_logging('tp', args.verbosity)
 

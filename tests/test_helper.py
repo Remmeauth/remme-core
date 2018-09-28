@@ -44,7 +44,7 @@ class RemmeMockValidator(MockValidator):
 
 class HelperTestCase(TestCase):
     @classmethod
-    def setUpClass(cls, handler, client_class=None):
+    def setUpClass(cls, handler=None, client_class=None):
         url = os.getenv('TEST_BIND', 'tcp://127.0.0.1:4004')
 
         cls.validator = RemmeMockValidator()
@@ -61,7 +61,7 @@ class HelperTestCase(TestCase):
                                       return_value=cls.validator)
         cls._zmq_patcher_obj = cls._zmq_patcher.start()
 
-        cls.handler = handler()
+        cls.handler = handler() if callable(handler) else None
         cls.client_class = client_class
 
         cls._pk_patcher = mock.patch('remme.clients.basic.BasicClient.get_signer_priv_key_from_file',
@@ -74,7 +74,8 @@ class HelperTestCase(TestCase):
         cls.account_signer2 = cls.get_new_signer()
         cls.account_address2 = AccountHandler().make_address_from_data(cls.account_signer2.get_public_key().as_hex())
 
-        cls._factory = cls.handler.get_message_factory(cls.account_signer1)
+        if cls.handler:
+            cls._factory = cls.handler.get_message_factory(cls.account_signer1)
 
     @classmethod
     def tearDownClass(cls):

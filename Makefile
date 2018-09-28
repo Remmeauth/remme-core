@@ -47,6 +47,9 @@ run:
 run_bg:
 	$(RUN_SCRIPT) -u -b
 
+restart_bg:
+	make stop && make build_dev && make run_genesis_bg
+
 stop:
 	$(RUN_SCRIPT) -d
 

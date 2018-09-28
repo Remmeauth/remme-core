@@ -17,49 +17,46 @@ import argparse
 import asyncio
 import logging
 
-import toml
-from pkg_resources import resource_filename
-import connexion
+from aiohttp import web
 import aiohttp_cors
 
 from zmq.asyncio import ZMQEventLoop
-from remme.rest_api.api_methods_switcher import RestMethodsSwitcherResolver
-from remme.rest_api.api_handler import AioHttpApi
-from remme.rest_api.validator import proxy
-from remme.settings import ZMQ_URL
 from remme.shared.logging_setup import setup_logging
+
 from remme.shared.stream import Stream
-from remme.ws import WsApplicationHandler
-from remme.ws.events import WSEventSocketHandler
+from remme.settings import ZMQ_URL
+from remme.ws import WsApplicationHandler, WsEventSocketHandler
 from remme.settings.default import load_toml_with_defaults
+
+from .base import JsonRpc
+from .validator import proxy
 
 
 logger = logging.getLogger(__name__)
 
 
 if __name__ == '__main__':
-    cfg_rest = load_toml_with_defaults('/config/remme-rest-api.toml')['remme']['rest_api']
+    cfg_rpc = load_toml_with_defaults(
+        '/config/remme-rpc-api.toml'
+    )['remme']['rpc_api']
 
-    setup_logging('rest-api')
-
+    setup_logging('rpc-api')
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--port', type=int, default=cfg_rest["port"])
-    parser.add_argument('--bind', default=cfg_rest["bind"])
+    parser.add_argument('--port', type=int, default=cfg_rpc["port"])
+    parser.add_argument('--bind', default=cfg_rpc["bind"])
     arguments = parser.parse_args()
 
     loop = ZMQEventLoop()
     asyncio.set_event_loop(loop)
 
-    app = connexion.AioHttpApp(__name__, specification_dir='.',
-                               swagger_ui=cfg_rest['swagger']['enable_ui'],
-                               swagger_json=cfg_rest['swagger']['enable_json'])
-    cors_config = cfg_rest["cors"]
+    app = web.Application(loop=loop)
+    cors_config = cfg_rpc["cors"]
     # enable CORS
     if isinstance(cors_config["allow_origin"], str):
         cors_config["allow_origin"] = [cors_config["allow_origin"]]
 
-    cors = aiohttp_cors.setup(app.app, defaults={
+    cors = aiohttp_cors.setup(app, defaults={
         ao: aiohttp_cors.ResourceOptions(
             allow_methods=cors_config["allow_methods"],
             max_age=cors_config["max_age"],
@@ -68,22 +65,21 @@ if __name__ == '__main__':
             expose_headers=cors_config["expose_headers"]
         ) for ao in cors_config["allow_origin"]
     })
-    # patch with update API cls
-    app.api_cls = AioHttpApi
-    # cors patch
-    app.api_cls.cors = cors
-    # Proxy to sawtooth rest api
-    cors.add(app.app.router.add_route('GET', '/validator/{path:.*?}',
-                                      proxy))
+    rpc = JsonRpc(loop=loop, max_workers=1)
+    rpc.load_from_modules(cfg_rpc['available_modules'])
+    cors.add(app.router.add_route('GET', '/', rpc))
+    cors.add(app.router.add_route('POST', '/', rpc))
+    # FIXME: Remove in future
+    cors.add(app.router.add_route('GET', '/validator/{path:.*?}', proxy))
+
     # Remme ws
     stream = Stream(ZMQ_URL)
     ws_handler = WsApplicationHandler(stream, loop=loop)
-    ws_event_handler = WSEventSocketHandler(stream, loop=loop)
-    cors.add(app.app.router.add_route('GET', '/ws/events', ws_event_handler.on_websocket_connect))
-    cors.add(app.app.router.add_route('GET', '/ws', ws_handler.subscriptions))
-    # Remme rest api spec
-    app.add_api(resource_filename(__name__, 'openapi.yml'),
-                resolver=RestMethodsSwitcherResolver('remme.rest_api',
-                                                     cfg_rest["available_methods"]))
+    cors.add(app.router.add_route('GET', '/ws', ws_handler.subscriptions))
+    ws_event_handler = WsEventSocketHandler(stream, loop=loop)
+    # FIXME: Merge with one ws in future
+    cors.add(app.router.add_route('GET', '/ws/events', ws_event_handler.subscriptions))
 
-    app.run(port=arguments.port, host=arguments.bind)
+    logger.info('All server parts loaded')
+
+    web.run_app(app, host=arguments.bind, port=arguments.port)

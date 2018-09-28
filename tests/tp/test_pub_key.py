@@ -18,13 +18,13 @@ from remme.clients.pub_key import PubKeyClient
 from remme.tp.pub_key import PubKeyHandler, PUB_KEY_STORE_PRICE, PUB_KEY_MAX_VALIDITY
 from remme.protos.pub_key_pb2 import PubKeyStorage, PubKeyMethod
 from remme.tp.account import AccountHandler
-from remme.rest_api.pub_key import get_crt_export_bin_sig_rem_sig
-from remme.rest_api.pub_key_api_decorator import create_certificate
 from remme.shared.logging_setup import test
-from tests.test_helper import HelperTestCase
 from remme.clients.account import AccountClient
 from remme.settings.helper import _make_settings_key, get_setting_from_key_value
 from remme.settings import SETTINGS_STORAGE_PUB_KEY
+
+from tests.test_helper import HelperTestCase
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -62,7 +62,7 @@ class PubKeyTestCase(HelperTestCase):
 
     def _pre_parse_payload_and_exec(self, context, cert, key, type='store'):
         crt_export, crt_bin, crt_sig, rem_sig, pub_key, \
-            valid_from, valid_to = get_crt_export_bin_sig_rem_sig(cert, key, context.client)
+            valid_from, valid_to = PubKeyClient.get_crt_export_bin_sig_rem_sig(cert, key, context.client)
 
         transaction_payload = context.client.get_new_pub_key_payload(pub_key, rem_sig, crt_sig, valid_from, valid_to)
         cert_address = PubKeyHandler().make_address_from_data(pub_key)
@@ -81,11 +81,11 @@ class PubKeyTestCase(HelperTestCase):
     def test_store_success(self):
         context = self.get_context()
 
-        cert, key, _ = create_certificate(context.pub_key_payload, signer=context.client.get_signer())
+        cert, key, _ = PubKeyClient.create_certificate(context.pub_key_payload, signer=context.client.get_signer())
 
         transaction_signature, cert_address, transaction_payload = self._pre_parse_payload_and_exec(context, cert, key)
         crt_export, crt_bin, crt_sig, rem_sig, pub_key, \
-            valid_from, valid_to = get_crt_export_bin_sig_rem_sig(cert, key, context.client)
+            valid_from, valid_to = PubKeyClient.get_crt_export_bin_sig_rem_sig(cert, key, context.client)
 
         account = AccountClient.get_account_model(PUB_KEY_STORE_PRICE)
 
@@ -106,7 +106,6 @@ class PubKeyTestCase(HelperTestCase):
                 get_setting_from_key_value(SETTINGS_STORAGE_PUB_KEY,
                                            storage_pub_key)
         })
-        LOGGER.error(f'a {self.account_address1} b {storage_address} bpk {storage_pub_key}')
         self.expect_get({self.account_address1: account,
                          storage_address: storage_account})
 
@@ -129,9 +128,9 @@ class PubKeyTestCase(HelperTestCase):
     def test_store_fail_invalid_validity_date(self):
         context = self.get_context()
 
-        cert, key, _ = create_certificate(context.pub_key_payload, signer=context.client.get_signer())
+        cert, key, _ = PubKeyClient.create_certificate(context.pub_key_payload, signer=context.client.get_signer())
         crt_export, crt_bin, crt_sig, rem_sig, pub_key, \
-            valid_from, valid_to = get_crt_export_bin_sig_rem_sig(cert, key, context.client)
+            valid_from, valid_to = PubKeyClient.get_crt_export_bin_sig_rem_sig(cert, key, context.client)
 
         cert_address = PubKeyHandler().make_address_from_data(pub_key)
 
@@ -148,9 +147,11 @@ class PubKeyTestCase(HelperTestCase):
     def test_revoke_success(self):
         context = self.get_context()
 
-        cert, key, key_export = create_certificate(context.pub_key_payload,
-                                                   org_name='different',
-                                                   signer=self.account_signer2)
+        cert, key, key_export = PubKeyClient.create_certificate(
+            context.pub_key_payload,
+            org_name='different',
+            signer=self.account_signer2
+        )
         transaction_signature, cert_address, transaction_payload = self._pre_parse_payload_and_exec(context, cert, key, 'revoke')
 
         data = PubKeyStorage()
@@ -172,9 +173,11 @@ class PubKeyTestCase(HelperTestCase):
     def test_revoke_fail_wrong_signer(self):
         context = self.get_context()
 
-        cert, key, key_export = create_certificate(context.pub_key_payload,
-                                                   org_name='different',
-                                                   signer=self.account_signer2)
+        cert, key, key_export = PubKeyClient.create_certificate(
+            context.pub_key_payload,
+            org_name='different',
+            signer=self.account_signer2
+        )
         signature, cert_address, transaction_payload = self._pre_parse_payload_and_exec(context, cert, key, 'revoke')
 
         data = PubKeyStorage()

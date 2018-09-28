@@ -14,7 +14,6 @@
 # ------------------------------------------------------------------------
 
 import logging
-from pathlib import Path
 from sawtooth_sdk.processor.log import init_console_logging
 from sawtooth_sdk.processor.log import log_configuration
 from sawtooth_sdk.processor.config import get_log_config

@@ -24,3 +24,15 @@ class ClientException(Exception):
 
 class ValidatorNotReadyException(Exception):
     pass
+
+
+class ResourceHeaderInvalid(ClientException):
+    pass
+
+
+class InvalidResourceId(ClientException):
+    pass
+
+
+class CountInvalid(ClientException):
+    pass

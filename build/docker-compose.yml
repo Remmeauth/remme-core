@@ -41,3 +41,9 @@ services:
       context: ..
       dockerfile: docker/development.dockerfile
     image: remme/remme-core:latest
+
+  remme-rpc-api:
+    build:
+      context: ..
+      dockerfile: docker/development.dockerfile
+    image: remme/remme-core:latest

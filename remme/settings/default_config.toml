@@ -27,26 +27,17 @@ economy_enabled = true
 consensus = "poet-simulator"
 
 
-[remme.rest_api]
+[remme.rpc_api]
 bind = "0.0.0.0"
 port = 8080
 
 # Path of the host folder where container exported data will be stored
 exports_folder = "./default_export"
 
-# Can be "*" or
-# { atomic-swap = "*" }
-# { atomic-swap = ["GET", "POST"] }
-# available_methods = { node_key = "GET", transaction = "POST", batch_status = "GET", block-config = "GET", block-info = "GET", token = "GET", user = "GET", pub_key = "POST", certificate = "POST", network = "GET" }
-available_methods = "*"
+# List of available modules for rpc
+available_modules = "pkc,transaction,block_info,account,network,atomic_swap,state"
 
-[remme.rest_api.swagger]
-# Enable/disable Swagger UI
-enable_ui = true
-# Enable/disable exposing Swagger JSON specification
-enable_json = true
-
-[remme.rest_api.cors]
+[remme.rpc_api.cors]
 # The origin, or list of origins to allow requests from.
 # The origin(s) may be regular expressions, case-sensitive strings, or else an asterisk.
 # allow_origin = ["...", "..."]

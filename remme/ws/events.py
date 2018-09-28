@@ -1,7 +1,6 @@
 import json
 from enum import unique
 
-import time
 import zmq
 import logging
 import weakref
@@ -10,7 +9,6 @@ import asyncio
 from remme.protos.atomic_swap_pb2 import AtomicSwapInfo
 
 from remme.clients.block_info import BlockInfoClient
-from remme.rest_api.block_info import get_block_config
 from remme.settings import ZMQ_URL
 from sawtooth_sdk.protobuf.client_event_pb2 import ClientEventsSubscribeRequest, ClientEventsSubscribeResponse, ClientEventsUnsubscribeRequest
 from sawtooth_sdk.protobuf.validator_pb2 import Message
@@ -51,13 +49,16 @@ def get_value_from_key(attributes, key):
         if item.key == key:
             return item.value
 
-class WSEventSocketHandler(BasicWebSocketHandler):
+
+class WsEventSocketHandler(BasicWebSocketHandler):
     def __init__(self, stream, loop):
         super().__init__(stream, loop)
         # events to subscribers
         LOGGER.debug(f'Starting the event socket handler.')
         self.last_block_num = None
-        self._last_block_task = asyncio.ensure_future(self.request_last_block(), loop=self._loop)
+        self._last_block_task = weakref.ref(
+            asyncio.ensure_future(
+                self.request_last_block(), loop=self._loop))
 
         LOGGER.debug(f'Received the last block num: {self.last_block_num}')
         self.catch_up_subscribers = {}
@@ -159,8 +160,8 @@ class WSEventSocketHandler(BasicWebSocketHandler):
         if response.status != ClientEventsSubscribeResponse.OK:
             if response.status == ClientEventsSubscribeResponse.UNKNOWN_BLOCK:
                 raise SocketException(web_sock, Status.UNKNOWN_BLOCK,
-                                      f"Uknown block in: {last_known_block_ids}")
-            raise SocketException(web_sock, 0, f"Subscription failed: Couldn't send multipart: {e}")
+                                      f"Uknown block in: {last_known_block_id}")
+            raise SocketException(web_sock, 0, "Subscription failed: Couldn't send multipart")
         LOGGER.debug(f"Successfully subscribed")
 
     # The following code listens for events and logs them indefinitely.
@@ -233,7 +234,7 @@ class WSEventSocketHandler(BasicWebSocketHandler):
     async def listen_events(self, delta=5):
         while True:
             LOGGER.debug('Start events fetching...')
-            await asyncio.gather(*[self.check_event()])
+            await self.check_event()
             await asyncio.sleep(delta)
 
     def _make_subscriptions(self):
