@@ -1,22 +1,16 @@
 version = 1
 disable_existing_loggers = false
 
-[formatters.simple]
+[formatters.default]
 format = "[%(asctime)s.%(msecs)03d [%(threadName)s] %(module)s %(levelname)s] %(message)s"
 datefmt = "%H:%M:%S"
 
-[handlers.debug]
-level = "DEBUG"
-formatter = "simple"
-class = "logging.FileHandler"
-filename = "/var/log/sawtooth/rest-api-debug.log"
-
-[handlers.error]
+[handlers.main]
 level = "ERROR"
-formatter = "simple"
+formatter = "default"
 class = "logging.FileHandler"
-filename = "/var/log/sawtooth/rest-api-error.log"
+filename = "/var/log/rest-api-error.log"
 
 [root]
 level = "ERROR"
-handlers = ["error", "debug"]
+handlers = ["main"]

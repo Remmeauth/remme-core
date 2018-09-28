@@ -18,7 +18,7 @@ version: '3.4'
 services:
   validator:
     container_name: remme_validator
-    image: remme/sawtooth-validator:1.0.5
+    image: remme/sawtooth-validator:latest
     volumes:
       - validator_keys:/etc/sawtooth/keys
       - chain_data:/var/lib/sawtooth/
@@ -47,7 +47,7 @@ services:
 
   block-info-tp:
     container_name: remme_block_info_tp
-    image: remme/sawtooth-block-info-tp:1.0.4
+    image: remme/sawtooth-block-info-tp:latest
     network_mode: "service:validator"
     command: block-info-tp -vv -C tcp://127.0.0.1:4004
     volumes:
@@ -64,7 +64,7 @@ services:
 
   poet-validator-registry:
     container_name: remme_poet_validator_registry
-    image: remme/sawtooth-poet-validator-registry:1.0.5
+    image: remme/sawtooth-poet-validator-registry:latest
     network_mode: "service:validator"
     volumes:
       - ../config/remme-genesis-config.toml:/config/remme-genesis-config.toml
