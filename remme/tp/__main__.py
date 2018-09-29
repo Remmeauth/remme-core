@@ -20,7 +20,7 @@ from sawtooth_sdk.processor.core import TransactionProcessor
 from remme.tp.atomic_swap import AtomicSwapHandler
 from remme.tp.pub_key import PubKeyHandler
 from remme.tp.account import AccountHandler
-from remme.shared.logging import setup_logging
+from remme.shared.logging_setup import setup_logging
 from remme.settings.default import load_toml_with_defaults
 
 

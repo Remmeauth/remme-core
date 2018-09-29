@@ -22,7 +22,7 @@ from remme.tp.atomic_swap import AtomicSwapHandler
 from remme.protos.atomic_swap_pb2 import AtomicSwapInfo, AtomicSwapMethod
 from remme.settings import SETTINGS_SWAP_COMMISSION
 from remme.settings.helper import _make_settings_key, get_setting_from_key_value
-from remme.shared.logging import test
+from remme.shared.logging_setup import test
 from remme.shared.utils import generate_random_key, hash256, web3_hash
 from tests.test_helper import HelperTestCase
 from remme.clients.account import AccountClient

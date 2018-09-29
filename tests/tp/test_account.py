@@ -18,7 +18,7 @@ import secp256k1
 from remme.protos.account_pb2 import AccountMethod, GenesisStatus, Account
 
 from remme.settings import GENESIS_ADDRESS
-from remme.shared.logging import test
+from remme.shared.logging_setup import test
 from tests.test_helper import HelperTestCase
 from remme.clients.account import AccountClient
 from remme.tp.account import AccountHandler

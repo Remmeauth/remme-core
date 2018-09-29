@@ -27,7 +27,7 @@ from remme.rest_api.api_methods_switcher import RestMethodsSwitcherResolver
 from remme.rest_api.api_handler import AioHttpApi
 from remme.rest_api.validator import proxy
 from remme.settings import ZMQ_URL
-from remme.shared.logging import setup_logging
+from remme.shared.logging_setup import setup_logging
 from remme.shared.stream import Stream
 from remme.ws import WsApplicationHandler
 from remme.ws.events import WSEventSocketHandler

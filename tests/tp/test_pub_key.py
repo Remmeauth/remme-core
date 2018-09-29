@@ -20,7 +20,7 @@ from remme.protos.pub_key_pb2 import PubKeyStorage, PubKeyMethod
 from remme.tp.account import AccountHandler
 from remme.rest_api.pub_key import get_crt_export_bin_sig_rem_sig
 from remme.rest_api.pub_key_api_decorator import create_certificate
-from remme.shared.logging import test
+from remme.shared.logging_setup import test
 from tests.test_helper import HelperTestCase
 from remme.clients.account import AccountClient
 from remme.settings.helper import _make_settings_key, get_setting_from_key_value

@@ -12,7 +12,7 @@ from sawtooth_sdk.protobuf.transaction_pb2 import TransactionHeader
 
 from remme.rest_api.api_methods_switcher import RestMethodsSwitcherResolver
 from remme.shared.utils import hash512
-from remme.shared.logging import test
+from remme.shared.logging_setup import test
 from remme.protos.account_pb2 import AccountMethod, TransferPayload, Account
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.clients.account import AccountClient

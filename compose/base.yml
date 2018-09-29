@@ -25,7 +25,7 @@ services:
       - ../config/remme-genesis-config.toml:/config/remme-genesis-config.toml
       - ../config/sawtooth-validator-config.toml:/etc/sawtooth/validator.toml
       - ../config/seeds-list.txt:/config/seeds-list.txt
-      - ../config/remme-log-config.toml:/etc/sawtooth/log_config.toml
+      - ../config/log/validator.toml:/etc/sawtooth/log_config.toml
       - logs:/var/log/sawtooth
     network_mode: bridge
     ports:
@@ -41,17 +41,19 @@ services:
     container_name: remme_validator_rest_api
     image: hyperledger/sawtooth-rest-api:1.0.5
     network_mode: "service:validator"
-    command: sawtooth-rest-api -v --connect tcp://127.0.0.1:4004 --bind 127.0.0.1:8008
     volumes:
-      - ../config/remme-log-config.toml:/etc/sawtooth/log_config.toml
+      - ../config/log/validator-rest-api.toml:/etc/sawtooth/log_config.toml
+      - logs:/var/log/sawtooth
+    command: sawtooth-rest-api -v --connect tcp://127.0.0.1:4004 --bind 127.0.0.1:8008
 
   block-info-tp:
     container_name: remme_block_info_tp
     image: remme/sawtooth-block-info-tp:latest
     network_mode: "service:validator"
-    command: block-info-tp -vv -C tcp://127.0.0.1:4004
     volumes:
-      - ../config/remme-log-config.toml:/etc/sawtooth/log_config.toml
+      - ../config/log/block-info-tp.toml:/etc/sawtooth/log_config.toml
+      - logs:/var/log/sawtooth
+    command: block-info-tp -vv -C tcp://127.0.0.1:4004
 
   settings-tp:
     container_name: remme_settings_tp
@@ -59,8 +61,8 @@ services:
     network_mode: "service:validator"
     entrypoint: settings-tp -vv -C tcp://127.0.0.1:4004
     volumes:
-      - ../config/remme-log-config.toml:/etc/sawtooth/log_config.toml
-      - ../config/remme-tp-log-config.toml:/etc/sawtooth/tp_log_config.toml
+      - ../config/log/settings-tp.toml:/etc/sawtooth/log_config.toml
+      - logs:/var/log/sawtooth
 
   poet-validator-registry:
     container_name: remme_poet_validator_registry
@@ -68,7 +70,8 @@ services:
     network_mode: "service:validator"
     volumes:
       - ../config/remme-genesis-config.toml:/config/remme-genesis-config.toml
-      - ../config/remme-log-config.toml:/etc/sawtooth/log_config.toml
+      - ../config/log/poet-validator-registry.toml:/etc/sawtooth/log_config.toml
+      - logs:/var/log/sawtooth
     entrypoint: sh /scripts/poet-validator-registry.sh
 
   remme-tp:
@@ -77,7 +80,8 @@ services:
     network_mode: "service:validator"
     volumes:
       - ../config/remme-client-config.toml:/config/remme-client-config.toml
-      - ../config/remme-log-config.toml:/etc/sawtooth/log_config.toml
+      - ../config/log/remme-tp.toml:/etc/sawtooth/log_config.toml
+      - logs:/var/log
     entrypoint: python3 -m remme.tp --account --atomic-swap --pubkey
 
   remme-rest-api:
@@ -91,9 +95,8 @@ services:
       - ${REMME_CONTAINER_EXPORTS_FOLDER:-./default_export}:/root/usr/share
       - ../config/remme-client-config.toml:/config/remme-client-config.toml
       - ../config/remme-rest-api.toml:/config/remme-rest-api.toml
-      - ../config/remme-log-config.toml:/etc/sawtooth/log_config.toml
-      - ../config/remme-rest-api-log-config.toml:/etc/sawtooth/rest-api_log_config.toml
-      - logs:/var/log/
+      - ../config/log/remme-rest-api.toml:/etc/sawtooth/log_config.toml
+      - logs:/var/log
     entrypoint: python3 -m remme.rest_api
 
 volumes:
