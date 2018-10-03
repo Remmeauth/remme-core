@@ -15,23 +15,36 @@
 version: '3.4'
 
 services:
+  remme-base:
+    build:
+      context: ..
+      target: base
+    image: remme-local-build-base:latest
+
+  remme-build:
+    build:
+      context: ..
+      target: build
+    image: remme-local-build:latest
+
+
   validator:
     build:
       context: ..
       target: validator
-    image: remme/sawtooth-validator:1.0.5
+    image: remme/sawtooth-validator:latest
 
   block-info-tp:
     build:
       context: ..
       target: sawtooth-block-info-tp
-    image: remme/sawtooth-block-info-tp:1.0.4
+    image: remme/sawtooth-block-info-tp:latest
 
   poet-validator-registry:
     build:
       context: ..
       target: validator-registry
-    image: remme/sawtooth-poet-validator-registry:1.0.5
+    image: remme/sawtooth-poet-validator-registry:latest
 
   remme-tp:
     build:
@@ -44,4 +57,3 @@ services:
       context: ..
       target: release
     image: remme/remme-core:latest
-

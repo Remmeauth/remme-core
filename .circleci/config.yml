@@ -21,11 +21,6 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Clone submodules
-          command: |
-            git submodule init && \
-            git submodule update --init
-      - run:
           name: Run tests
           command: make test
   deploy:
@@ -40,8 +35,7 @@ jobs:
           name: Push to Docker
           command: |
             docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD && \
-            docker tag remme/remme-core:latest remme/remme-core:$CIRCLE_TAG && \
-            docker push remme/remme-core
+            make docker_push
 
 workflows:
   version: 2
