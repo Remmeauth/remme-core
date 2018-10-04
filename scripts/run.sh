@@ -50,12 +50,13 @@ if [ $RUN_LOGIO -eq 1 ]; then
     COMPOSE_FILES="-f ./compose/logio.yml"
 fi
 
-COMMAND="docker-compose $COMPOSE_FILES --project-name remme"
-
 ADDITIONAL_ARGS=""
 if [ $BG_MODE -eq 1 ]; then
+    COMPOSE_FILES="$COMPOSE_FILES -f ./compose/bg.yml"
     ADDITIONAL_ARGS="$ADDITIONAL_ARGS -d"
 fi
+
+COMMAND="docker-compose $COMPOSE_FILES --project-name remme"
 
 if [ "$OPERATION" == "u" ]; then
     $COMMAND up $ADDITIONAL_ARGS
