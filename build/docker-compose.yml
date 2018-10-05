@@ -24,7 +24,7 @@ services:
   remme-build:
     build:
       context: ..
-      target: build
+      target: build-common
     image: remme-local-build:latest
 
 
