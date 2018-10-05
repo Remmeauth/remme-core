@@ -23,10 +23,13 @@ services:
     network_mode: bridge
     environment:
       - TEST_BIND=tcp://127.0.0.1:4004
-    entrypoint: python3 -m unittest discover ./tests
+    entrypoint: poetry run python3 -m unittest discover ./tests
 
   remme-tp:
     container_name: remme_tests_tp
     image: remme/remme-core-dev:latest
     network_mode: "service:tests"
-    entrypoint: python3 -m remme.tp
+    volumes:
+      - ../config/remme-client-config.toml:/config/remme-client-config.toml
+      - ../config/log/remme-tp.toml:/etc/sawtooth/log_config.toml
+    entrypoint: poetry run python3 -m remme.tp
