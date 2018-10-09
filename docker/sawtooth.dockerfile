@@ -1,12 +1,12 @@
-FROM hyperledger/sawtooth-validator:1.0.5 as validator
+FROM remme/sawtooth-validator:latest as validator
 COPY ./scripts/node /scripts
 RUN chmod +x /scripts/toml-to-env.py
 
-FROM hyperledger/sawtooth-poet-validator-registry-tp:1.0.5 as validator-registry
+FROM remme/sawtooth-poet-validator-registry-tp:latest as validator-registry
 COPY ./scripts/node /scripts
 RUN chmod +x /scripts/toml-to-env.py
 
-FROM hyperledger/sawtooth-block-info-tp:1.0.4 as sawtooth-block-info-tp
+FROM remme/sawtooth-block-info-tp:latest as sawtooth-block-info-tp
 RUN apt-get update && \
     apt-get install patch
 WORKDIR /

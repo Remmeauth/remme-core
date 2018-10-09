@@ -20,6 +20,10 @@ services:
     logging:
       driver: none
   
+  consensus-devmode:
+    logging:
+      driver: none
+
   validator-rest-api:
     logging:
       driver: none

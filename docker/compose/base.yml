@@ -37,9 +37,15 @@ services:
       - REMME_START_MODE=run
     entrypoint: sh /scripts/validator.sh
 
+  consensus-devmode:
+    container_name: remme_consensus_devmode
+    image: remme/sawtooth-devmode-rust:latest
+    network_mode: "service:validator"
+    entrypoint: devmode-rust -vv --connect tcp://127.0.0.1:5005
+
   validator-rest-api:
     container_name: remme_validator_rest_api
-    image: hyperledger/sawtooth-rest-api:1.0.5
+    image: remme/sawtooth-rest-api:latest
     network_mode: "service:validator"
     volumes:
       - ../../config/log/validator-rest-api.toml:/etc/sawtooth/log_config.toml
@@ -57,7 +63,7 @@ services:
 
   settings-tp:
     container_name: remme_settings_tp
-    image: hyperledger/sawtooth-settings-tp:1.0.5
+    image: remme/sawtooth-settings-tp:latest
     network_mode: "service:validator"
     entrypoint: settings-tp -vv -C tcp://127.0.0.1:4004
     volumes:
