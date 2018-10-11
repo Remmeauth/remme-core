@@ -42,17 +42,19 @@ while getopts ":gudbl" opt; do
       esac
 done
 
-COMPOSE_FILES="-f ./compose/base.yml"
+COMPOSE_DIR=./docker/compose
+
+COMPOSE_FILES="-f $COMPOSE_DIR/base.yml"
 if [ $GENESIS_MODE -eq 1 ]; then
-    COMPOSE_FILES="$COMPOSE_FILES -f ./compose/genesis.yml"
+    COMPOSE_FILES="$COMPOSE_FILES -f $COMPOSE_DIR/genesis.yml"
 fi
 if [ $RUN_LOGIO -eq 1 ]; then
-    COMPOSE_FILES="-f ./compose/logio.yml"
+    COMPOSE_FILES="-f $COMPOSE_DIR/logio.yml"
 fi
 
 ADDITIONAL_ARGS=""
 if [ $BG_MODE -eq 1 ]; then
-    COMPOSE_FILES="$COMPOSE_FILES -f ./compose/bg.yml"
+    COMPOSE_FILES="$COMPOSE_FILES -f $COMPOSE_DIR/bg.yml"
     ADDITIONAL_ARGS="$ADDITIONAL_ARGS -d"
 fi
 

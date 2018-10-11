@@ -23,6 +23,9 @@ BUILD_DIR=./build
 build:
 	$(BUILD_DIR)/build.sh
 
+build_dev:
+	$(BUILD_DIR)/build-dev.sh
+
 clean:
 	$(BUILD_DIR)/clean.sh
 
