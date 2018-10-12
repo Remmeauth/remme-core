@@ -19,7 +19,7 @@ version: '3.2'
 services:
   tests:
     container_name: remme_tests
-    image: remme/remme-core-dev:latest
+    image: remme/remme-core:latest
     network_mode: bridge
     environment:
       - TEST_BIND=tcp://127.0.0.1:4004
@@ -27,7 +27,7 @@ services:
 
   remme-tp:
     container_name: remme_tests_tp
-    image: remme/remme-core-dev:latest
+    image: remme/remme-core:latest
     network_mode: "service:tests"
     volumes:
       - ../config/remme-client-config.toml:/config/remme-client-config.toml

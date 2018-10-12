@@ -15,45 +15,29 @@
 version: '3.4'
 
 services:
-  remme-base:
-    build:
-      context: ..
-      target: base
-    image: remme-local-build-base:latest
-
-  remme-build:
-    build:
-      context: ..
-      target: build-common
-    image: remme-local-build:latest
-
-
   validator:
     build:
       context: ..
+      dockerfile: docker/sawtooth.dockerfile
       target: validator
     image: remme/sawtooth-validator:latest
 
   block-info-tp:
     build:
       context: ..
+      dockerfile: docker/sawtooth.dockerfile
       target: sawtooth-block-info-tp
     image: remme/sawtooth-block-info-tp:latest
 
   poet-validator-registry:
     build:
       context: ..
+      dockerfile: docker/sawtooth.dockerfile
       target: validator-registry
     image: remme/sawtooth-poet-validator-registry:latest
 
   remme-tp:
     build:
       context: ..
-      target: release
-    image: remme/remme-core:latest
-
-  remme-rest-api:
-    build:
-      context: ..
-      target: release
+      dockerfile: docker/development.dockerfile
     image: remme/remme-core:latest

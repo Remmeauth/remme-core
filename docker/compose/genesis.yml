@@ -31,8 +31,8 @@ services:
     volumes:
       - user_keys:/etc/sawtooth/keys
       - genesis_data:/genesis/batch
-      - ../config/remme-client-config.toml:/config/remme-client-config.toml
-      - ../config/remme-genesis-config.toml:/config/remme-genesis-config.toml
+      - ../../config/remme-client-config.toml:/config/remme-client-config.toml
+      - ../../config/remme-genesis-config.toml:/config/remme-genesis-config.toml
     environment:
       - REMME_START_MODE=genesis
     command: sh /projects/scripts/genesis.sh

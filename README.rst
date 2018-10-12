@@ -49,7 +49,7 @@ Clone this repository to your machine:
 
 When you have this repository cloned go the project directory and run
 
-1. ``make build``
+1. ``make build_dev`` (``make build`` for more compact but slower builds)
 2. ``make run_genesis`` or ``make run`` if you are working on an existing chain.
 
 **NOTE:** on further runs you might want to run ``make run`` to persist the
