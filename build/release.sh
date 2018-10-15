@@ -3,15 +3,12 @@
 IMAGES=$(docker images | grep -Po '(?<=remme\/)[a-z-]+(?=\s+latest)')
 RELEASE_NUMBER=$(git describe --abbrev=0 --tags)
 
-COMPOSE_DIR=./compose
+COMPOSE_DIR=./docker/compose
 RELEASE_DIR=./remme-core-$RELEASE_NUMBER-release
-COMPOSE_RELEASE_DIR=$RELEASE_DIR/compose
+COMPOSE_RELEASE_DIR=$RELEASE_DIR/docker/compose
 
-./build/clean.sh
-./build/build.sh
-
-mkdir $RELEASE_DIR
-mkdir $COMPOSE_RELEASE_DIR
+mkdir -p $RELEASE_DIR
+mkdir -p $COMPOSE_RELEASE_DIR
 
 cp $COMPOSE_DIR/base.yml ./$COMPOSE_RELEASE_DIR
 cp $COMPOSE_DIR/genesis.yml ./$COMPOSE_RELEASE_DIR
