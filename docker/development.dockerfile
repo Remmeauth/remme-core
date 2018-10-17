@@ -11,3 +11,4 @@ COPY ./remme ./remme
 COPY ./protos ./protos
 RUN protoc -I=./protos --python_out=./remme/protos ./protos/*.proto
 COPY ./tests ./tests
+COPY ./scripts/node /project/scripts
