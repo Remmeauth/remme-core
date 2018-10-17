@@ -13,9 +13,6 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-# TODO The problem was already fix in Sawtooth master branch, waiting for a release
-# https://github.com/Remmeauth/remme-core/pull/58
-
 import logging
 import asyncio
 import hashlib
@@ -23,7 +20,6 @@ import weakref
 import re
 
 import aiohttp
-from aiohttp import web
 
 from sawtooth_sdk.protobuf.validator_pb2 import Message
 from sawtooth_sdk.protobuf import client_batch_submit_pb2
@@ -31,6 +27,7 @@ from sawtooth_sdk.messaging.exceptions import ValidatorConnectionError
 
 from remme.shared.utils import message_to_dict
 
+from .basic import BasicWebSocketHandler
 from .constants import Action, Entity, Status
 from .utils import deserialize, create_res_payload, validate_payload
 
@@ -38,15 +35,11 @@ from .utils import deserialize, create_res_payload, validate_payload
 LOGGER = logging.getLogger(__name__)
 
 
-class WsApplicationHandler(object):
+class WsApplicationHandler(BasicWebSocketHandler):
 
-    def __init__(self, stream, *, loop):
-        self._stream = stream
+    def __init__(self, stream, loop):
+        super().__init__(stream, loop)
         self._subscribers = []
-        self._subscriber_lock = asyncio.Lock()
-        self._accepting = True
-
-        self._loop = loop
         self._batch_ids = {}
         self._batch_update_started = False
         self._batch_updator_task = None
@@ -68,26 +61,6 @@ class WsApplicationHandler(object):
         else:
             self._batch_updator_task = None
         self._batch_update_started = False
-
-    async def subscriptions(self, request):
-        if not self._accepting:
-            return web.Response(status=503)
-
-        web_sock = web.WebSocketResponse()
-        await web_sock.prepare(request)
-
-        async for msg in web_sock:
-            if msg.type == aiohttp.WSMsgType.TEXT:
-                await self._handle_message(web_sock, msg.data)
-            elif msg.type == aiohttp.WSMsgType.ERROR:
-                LOGGER.warning(
-                    'Web socket connection closed with exception %s',
-                    web_sock.exception())
-                await web_sock.close()
-
-        await self._handle_unsubscribe(web_sock)
-
-        return web_sock
 
     @staticmethod
     async def _ws_send(ws, action, id=None, data=None, type='response'):
@@ -147,12 +120,13 @@ class WsApplicationHandler(object):
 
                 updated, id_ = wsdata['updated'], wsdata['id']
                 if updated and batch['state']['sum'] == hash_sum:
-                    LOGGER.debug('Already updated state for conn "%s" and batch_id "%s"',
-                                 ws, batch_id)
+                    LOGGER.debug(f'Already updated state for conn "{ws}" '
+                                 f'and batch_id "{batch_id}"')
                     continue
 
                 try:
-                    await self._ws_send(ws, Status.BATCH_RESPONSE, id_, batch_data, 'message')
+                    await self._ws_send(ws, Status.BATCH_RESPONSE,
+                                        id_, batch_data, 'message')
                 except Exception as e:
                     LOGGER.error('Send sock err: %s', e)
                     self._handle_unsubscribe_batches(ws, [batch_id])
@@ -169,7 +143,9 @@ class WsApplicationHandler(object):
         while self._batch_update_started:
             LOGGER.debug('Start list batches fetching...')
 
-            await asyncio.gather(*(_update_batch(batch_id) for batch_id in self._batch_ids.keys()))
+            await asyncio.gather(
+                *(_update_batch(batch_id)
+                  for batch_id in self._batch_ids.keys()))
             await asyncio.sleep(delta)
 
     def _handle_subscribe_batches(self, web_sock, batch_ids, id_):
@@ -223,7 +199,8 @@ class WsApplicationHandler(object):
                                         payload['id'])
                     return
                 self._subscribers.append((web_sock, {'batch_ids': batch_ids}))
-                self._handle_subscribe_batches(web_sock, batch_ids, payload['id'])
+                self._handle_subscribe_batches(web_sock, batch_ids,
+                                               payload['id'])
                 LOGGER.info('Subscribed: %s', web_sock)
 
         await self._ws_send(web_sock, Status.SUBSCRIBED, payload['id'])
@@ -247,12 +224,14 @@ class WsApplicationHandler(object):
                 try:
                     entity = Entity(payload['entity'])
                 except ValueError:
-                    await self._ws_send(web_sock, Status.INVALID_ENTITY, payload['id'])
+                    await self._ws_send(web_sock, Status.INVALID_ENTITY,
+                                        payload['id'])
                     return
 
                 if entity == Entity.BATCH_STATE:
                     self._handle_unsubscribe_batches(web_sock, batch_ids)
-                    await self._ws_send(web_sock, Status.UNSUBSCRIBED, payload['id'])
+                    await self._ws_send(web_sock, Status.UNSUBSCRIBED,
+                                        payload['id'])
 
             LOGGER.info('Unsubscribed: %s', web_sock)
 
@@ -296,7 +275,8 @@ class WsApplicationHandler(object):
             raise Exception(f'Batch with id "{batch_id}" not found')
 
         assert batch_id == batch_data['batch_id'], \
-            f'Batches not matched (req: {batch_id}, got: {batch_data["batch_id"]})'
+            f'Batches not matched (req: {batch_id}, ' \
+            f'got: {batch_data["batch_id"]})'
 
         prep_resp = {
             'batch_statuses': batch_data

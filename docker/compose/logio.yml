@@ -39,10 +39,10 @@ services:
       - 'LOGIO_HARVESTER2STREAMNAME=validator_error'
       - 'LOGIO_HARVESTER2LOGSTREAMS=/opt/logs/'
       - 'LOGIO_HARVESTER2FILEPATTERN=validator-error.log'
-      - 'LOGIO_HARVESTER3STREAMNAME=rest_api_debug'
+      - 'LOGIO_HARVESTER3STREAMNAME=rpc_api_debug'
       - 'LOGIO_HARVESTER3LOGSTREAMS=/opt/logs/'
       - 'LOGIO_HARVESTER3FILEPATTERN=rest-api-debug.log'
-      - 'LOGIO_HARVESTER4STREAMNAME=rest_api_error'
+      - 'LOGIO_HARVESTER4STREAMNAME=rpc_api_error'
       - 'LOGIO_HARVESTER4LOGSTREAMS=/opt/logs/'
       - 'LOGIO_HARVESTER4FILEPATTERN=rest-api-error.log'
     volumes:

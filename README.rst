@@ -21,9 +21,8 @@ For an end-user
    (``<version_number>-release.zip``). Unpack it.
 2. Start node: Open a terminal inside the unpacked folder and run
    ``./run.sh``.
-3. You can now use our REST API. By default it is started on
-   http://localhost:8080. Fancy Swagger UI with documentation is available on
-   http://localhost:8080/api/v1/ui. The API port can be changed in
+3. You can now use our RPC API. By default it is started on
+   http://localhost:8080. The API port can be changed in
    ``config/network-config.env`` file.
 
 On the first run you will need to initialize the genesis block. To make

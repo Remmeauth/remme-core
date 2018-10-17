@@ -15,10 +15,6 @@
 
 import logging
 import asyncio
-import hashlib
-import random
-import weakref
-import re
 
 import aiohttp
 from aiohttp import web
@@ -31,6 +27,7 @@ LOGGER = logging.getLogger(__name__)
 EMIT_EVENT = "emit_event"
 SAWTOOTH_BLOCK_COMMIT_EVENT_TYPE = "sawtooth/block-commit"
 
+
 class SocketException(BaseException):
     def __init__(self, web_sock, error_code, info=""):
         self.web_sock = web_sock
@@ -38,7 +35,7 @@ class SocketException(BaseException):
         self.info = info
 
 
-class BasicWebSocketHandler():
+class BasicWebSocketHandler:
     def __init__(self, stream, loop):
         self._stream = stream
         # mapping unique id => something valuable
@@ -57,7 +54,7 @@ class BasicWebSocketHandler():
             await ws.close(code=aiohttp.WSCloseCode.GOING_AWAY,
                            message='Server shutdown')
 
-    async def on_websocket_connect(self, request):
+    async def subscriptions(self, request):
         if not self._accepting:
             return web.Response(status=503)
 
@@ -88,13 +85,17 @@ class BasicWebSocketHandler():
         }
 
     async def _ws_send_status(self, ws, status):
-        await self._ws_send(ws, self.get_response_payload(Type.STATUS, {'status': status}))
+        payload = self.get_response_payload(Type.STATUS, {'status': status})
+        await self._ws_send(ws, payload)
 
     async def _ws_send_message(self, ws, data):
-        await self._ws_send(ws, self.get_response_payload(Type.MESSAGE, data))
+        payload = self.get_response_payload(Type.MESSAGE, data)
+        await self._ws_send(ws, payload)
 
     async def _ws_send_error(self, ws, error, info=""):
-        await self._ws_send(ws, self.get_response_payload(Type.ERROR, {'status': error, 'info': info}))
+        payload = self.get_response_payload(Type.ERROR,
+                                            {'status': error, 'info': info})
+        await self._ws_send(ws, payload)
 
     async def _ws_send(self, ws, payload):
         return await ws.send_str(serialize(payload))
@@ -147,7 +148,8 @@ class BasicWebSocketHandler():
             raise SocketException(web_sock, Status.INVALID_ENTITY)
 
         with await self._subscriber_lock:
-            self._subscribers[web_sock] = await self.subscribe(web_sock, entity, data)
+            self._subscribers[web_sock] = \
+                await self.subscribe(web_sock, entity, data)
             LOGGER.info('Subscribed: %s', web_sock)
 
             await self._ws_send_status(web_sock, Status.SUBSCRIBED)

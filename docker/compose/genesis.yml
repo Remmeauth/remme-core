@@ -35,7 +35,7 @@ services:
       - ../../config/remme-genesis-config.toml:/config/remme-genesis-config.toml
     environment:
       - REMME_START_MODE=genesis
-    command: sh /projects/scripts/genesis.sh
+    command: sh /project/scripts/genesis.sh
 
 volumes:
   genesis_data:

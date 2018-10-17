@@ -54,5 +54,8 @@ class BlockInfoClient(BasicClient):
 
     @staticmethod
     def interpret_block_info(block_info):
-        return {"block_num": block_info.block_num + 1,
-                "timestamp": block_info.timestamp}
+        return {"block_number": block_info.block_num + 1,
+                "timestamp": block_info.timestamp,
+                "previous_header_signature": block_info.previous_block_id,
+                "signer_public_key": block_info.signer_public_key,
+                "header_signature": block_info.header_signature}

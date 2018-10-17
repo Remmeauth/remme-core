@@ -37,4 +37,3 @@ def load_toml_with_defaults(filename):
     except IOError:
         LOGGER.warn(f'Configuration file {filename} not found, reverting to defaults.')
         return defaults
-

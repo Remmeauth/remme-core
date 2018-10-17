@@ -41,7 +41,7 @@ Welcome to REMME's documentation!
    :maxdepth: 2
    :caption: SDK:
 
-   rest-api
+   rpc-api
 
 
 

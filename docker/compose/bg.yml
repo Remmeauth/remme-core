@@ -36,6 +36,6 @@ services:
     logging:
       driver: none
 
-  remme-rest-api:
+  remme-rpc-api:
     logging:
       driver: none

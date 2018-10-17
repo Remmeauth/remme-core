@@ -6,6 +6,7 @@ RUN apk --update --no-cache add --force python3 libffi openssl libzmq && \
 COPY ./pyproject.* ./
 COPY ./remme ./remme
 COPY ./protos ./protos
+COPY ./scripts/node /project/scripts
 RUN apk --update --no-cache add --virtual .build_deps rsync pkgconf build-base autoconf automake protobuf libtool libffi-dev python3-dev zeromq-dev openssl-dev && \
     poetry config settings.virtualenvs.create false && \
     poetry install --no-dev && \
