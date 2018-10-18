@@ -13,6 +13,8 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
+# pylint: disable=invalid-name
+
 import argparse
 from remme.protos.account_pb2 import AccountMethod
 from remme.protos.transaction_pb2 import TransactionPayload

@@ -79,3 +79,9 @@ release:
 
 clean_chain_data:
 	docker volume rm remme_chain_data
+
+lint:
+	pylint `find . -name "*.py"`
+
+lint_html:
+	pylint --output-format=json `find . -name "*.py"` | pylint-json2html -o report.html
