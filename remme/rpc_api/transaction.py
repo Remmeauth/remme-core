@@ -13,6 +13,7 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 import base64
+import logging
 from contextlib import suppress
 
 from aiohttp_json_rpc import (
@@ -20,7 +21,9 @@ from aiohttp_json_rpc import (
     RpcInvalidParamsError,
 )
 from google.protobuf.message import DecodeError
-from sawtooth_sdk.protobuf.transaction_pb2 import Transaction
+from sawtooth_sdk.protobuf.transaction_pb2 import (
+    Transaction, TransactionHeader
+)
 
 from remme.shared.exceptions import ClientException, KeyNotFound
 from remme.clients.account import AccountClient
@@ -29,7 +32,7 @@ from remme.clients.pub_key import PubKeyClient
 
 __all__ = (
     'send_raw_transaction',
-    'send_tokens',
+    # 'send_tokens',
     'get_batch_status',
 
     'list_receipts',
@@ -39,6 +42,8 @@ __all__ = (
     'fetch_batch',
     'fetch_transaction',
 )
+
+logger = logging.getLogger(__name__)
 
 
 async def send_tokens(request):
@@ -91,6 +96,23 @@ async def send_raw_transaction(request):
         raise RpcGenericServerDefinedError(
             error_code=-32050,
             message='Failed to parse transaction proto'
+        )
+
+    try:
+        tr_head_pb = TransactionHeader()
+        tr_head_pb.ParseFromString(tr_pb.header)
+    except DecodeError:
+        raise RpcGenericServerDefinedError(
+            error_code=-32050,
+            message='Failed to parse transaction head proto'
+        )
+
+    prefix, public_key = tr_head_pb.signer_public_key[:2], \
+        tr_head_pb.signer_public_key[2:]
+    if prefix in ('02', '03') and len(public_key) != 64:
+        raise RpcGenericServerDefinedError(
+            error_code=-32050,
+            message='Signer public key format is not valid'
         )
 
     client = PubKeyClient()
