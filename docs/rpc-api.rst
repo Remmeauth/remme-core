@@ -21,15 +21,307 @@ RPC-API consists of several modules:
 
 All communications with rpc api are going through `/ POST` or `WS` connection.
 
-**Example of method RPC**
 
+======================
+JSON RPC API Reference
+======================
 
-  *POST / Method `get_balance`*
+| **send_raw_transaction**
 
-  .. code-block:: json
+| Submit a transaction to the node
 
-    curl -X POST -H "Content-Type: application/json" --data '{"method":"get_balance","params":{"public_key": "026f65b58af77f04e964440adab165a4c4d9d8e99072d457254ebb0187facb0543"},"id":1,"jsonrpc":"2.0"}' http://127.0.0.1:8080
+*Parameters*
 
-  .. code-block:: json
+* data - base64 of serialized transaction protobuf
 
-    {"jsonrpc": "2.0", "id": 1, "result": 1000000000000}
+*Returns*
+
+* the id of the batch the transaction was included into
+
+| **get_node_public_key**
+
+| Submit a transaction to the node
+
+*Parameters*
+
+* none
+
+*Returns*
+
+* the public key of a node
+
+| **get_batch_status**
+
+| Get current batch status from the node
+
+*Parameters*
+
+* batch_id - the id of a batch to check
+
+*Returns*
+
+* status
+
+| **get_block_number**
+
+| Get latest block number
+
+*Parameters*
+
+* none
+
+*Returns*
+
+* the number of blocks present on this node
+
+| **get_blocks**
+
+| Get blocks from the node
+
+*Parameters*
+
+* start (default: 0) - the number of the block to start with
+
+* limit (default: 0) - the number of the last block
+
+*Returns*
+
+`array of structures`
+
+* block_number - the number of the block
+* timestamp
+* previous_header_signature
+* signer_public_key
+* header_signature
+
+| **set_node_key**
+
+| Set new private key for node sender
+
+*Parameters*
+
+* private_key - the private key this node should operate
+
+*Returns*
+
+* true | false
+
+| **export_node_key**
+
+| Show current private key of node
+
+*Parameters*
+
+* none
+
+*Returns*
+
+* private key
+
+| **get_balance**
+
+| Show balance for some public key
+
+*Parameters*
+
+* public_key - the public key of a user
+
+*Returns*
+
+* current amount of tokens on user's account
+
+| **get_public_keys_list**
+
+| Show list of public keys stored on an address
+
+*Parameters*
+
+* public_key - the public key of a user
+
+*Returns*
+
+* addresses of public keys on remchain
+
+| **get_public_key_info**
+
+| Show info of some public key
+
+*Parameters*
+
+* public_key - the PEM-encoded public key
+
+   or
+
+* public_key_address - the address of a key on REMchain
+
+*Returns*
+
+* is_revoked
+* owner_public_key
+* valid_from
+* valid_to
+* is_valid
+
+| **get_atomic_swap_info**
+
+| Show info of atomic swap request
+
+*Parameters*
+
+* swap_id
+
+*Returns*
+
+* state
+* sender_address
+* sender_address_non_local
+* receiver_address
+* amount
+* email_address_encrypted_optional
+* swap_id
+* secret_lock
+* secret_key
+* created_at
+* is_initiator
+
+| **get_atomic_swap_public_key**
+
+| Show public key for atomic swap
+
+*Parameters*
+
+* none
+
+*Returns*
+
+* A public key with which to enсrypt sensitive data during the swap. (e.g email address)
+
+| **get_node_info**
+
+| Show node info
+
+*Parameters*
+
+* none
+
+*Returns*
+
+* is_synced - status for node sync with actual blocks
+* peer_count - count of connected peers
+
+| **list_batches**
+
+*Parameters*
+
+* ids (array, optional)
+* start (string, optional)
+* limit (integer, optional)
+* head (string, optional)
+* reverse (string, optional)
+
+*Returns*
+
+https://sawtooth.hyperledger.org/docs/core/releases/latest/rest_api/endpoint_specs.html#get--batches
+
+| **fetch_batch**
+
+*Parameters*
+
+* id (string)
+
+*Returns*
+
+https://sawtooth.hyperledger.org/docs/core/releases/latest/rest_api/endpoint_specs.html#get--batches-batch_id
+
+| **list_transactions**
+
+*Parameters*
+
+* ids (array, optional)
+* start (string, optional)
+* limit (integer, optional)
+* head (string, optional)
+* reverse (string, optional)
+
+*Returns*
+
+https://sawtooth.hyperledger.org/docs/core/releases/latest/rest_api/endpoint_specs.html#get--transactions
+
+| **fetch_transaction**
+
+*Parameters*
+
+* id (string)
+
+*Returns*
+
+https://sawtooth.hyperledger.org/docs/core/releases/latest/rest_api/endpoint_specs.html#get--transactions-transaction_id
+
+| **list_blocks**
+
+*Parameters*
+
+* ids (array, optional)
+* start (string, optional)
+* limit (integer, optional)
+* head (string, optional)
+* reverse (string, optional)
+
+*Returns*
+
+https://sawtooth.hyperledger.org/docs/core/releases/latest/rest_api/endpoint_specs.html#get--blocks
+
+| **fetch_block**
+
+*Parameters*
+
+* id (string)
+
+*Returns*
+
+https://sawtooth.hyperledger.org/docs/core/releases/latest/rest_api/endpoint_specs.html#get--blocks-block_id
+
+| **list_state**
+
+*Parameters*
+
+* address (string, optional)
+* start (string, optional)
+* limit (integer, optional)
+* head (string, optional)
+* reverse (string, optional)
+
+*Returns*
+
+https://sawtooth.hyperledger.org/docs/core/releases/latest/rest_api/endpoint_specs.html#get--state
+
+| **fetch_state**
+
+*Parameters*
+
+* address (string)
+* head (string, optional)
+
+*Returns*
+
+https://sawtooth.hyperledger.org/docs/core/releases/latest/rest_api/endpoint_specs.html#get--state-address
+
+| **list_receipts**
+
+*Parameters*
+
+* ids (array)
+
+*Returns*
+
+https://sawtooth.hyperledger.org/docs/core/releases/latest/rest_api/endpoint_specs.html#get--receipts
+
+| **fetch_peers**
+
+*Parameters*
+
+* none
+
+*Returns*
+
+https://sawtooth.hyperledger.org/docs/core/releases/latest/rest_api/endpoint_specs.html#get--peers
