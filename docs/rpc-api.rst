@@ -161,6 +161,8 @@ JSON RPC API Reference
 * valid_from
 * valid_to
 * is_valid
+* entity_hash
+* entity_hash_signature
 
 | **get_atomic_swap_info**
 
