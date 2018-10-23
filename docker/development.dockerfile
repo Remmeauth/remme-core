@@ -5,6 +5,7 @@ RUN apk --update --no-cache add --force python3 libffi openssl libzmq && \
     pip3 install poetry
 RUN apk --update --no-cache add rsync pkgconf build-base autoconf automake protobuf libtool libffi-dev python3-dev zeromq-dev openssl-dev
 COPY ./pyproject.* ./
+COPY ./README.* ./
 RUN poetry config settings.virtualenvs.create false && \
     poetry install
 COPY ./remme ./remme
