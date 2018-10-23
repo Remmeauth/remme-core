@@ -95,7 +95,9 @@ async def get_public_key_info(request):
                 'is_valid': (not pub_key_data.revoked and valid_from < now and
                              now < valid_to),
                 'valid_from': valid_from,
-                'valid_to': valid_to}
+                'valid_to': valid_to,
+                'entity_hash': pub_key_data.payload.entity_hash,
+                'entity_hash_signature': pub_key_data.payload.entity_hash_signature}
     except KeyNotFound:
         raise RpcGenericServerDefinedError(
             error_code=-32050,
