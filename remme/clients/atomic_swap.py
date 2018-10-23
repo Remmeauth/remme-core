@@ -22,6 +22,7 @@ from sawtooth_sdk.protobuf.setting_pb2 import Setting
 from remme.settings import SETTINGS_SWAP_COMMISSION, ZERO_ADDRESS, SETTINGS_PUB_KEY_ENCRYPTION
 from remme.settings.helper import _make_settings_key
 from remme.clients.basic import BasicClient
+from remme.clients.block_info import BLOCK_INFO_NAMESPACE, CONFIG_ADDRESS
 
 LOGGER = logging.getLogger(__name__)
 
@@ -80,7 +81,9 @@ class AtomicSwapClient(BasicClient):
             self.make_address_from_data(swap_init_payload.swap_id),
             self.get_user_address(),
             _make_settings_key(SETTINGS_SWAP_COMMISSION),
-            ZERO_ADDRESS
+            ZERO_ADDRESS,
+            CONFIG_ADDRESS,
+            BLOCK_INFO_NAMESPACE,
         ]
         addresses_output = [
             self.make_address_from_data(swap_init_payload.swap_id),
@@ -107,8 +110,13 @@ class AtomicSwapClient(BasicClient):
         addresses_input = [
             self.make_address_from_data(swap_expire_payload.swap_id),
             self.get_user_address(),
+            CONFIG_ADDRESS,
+            BLOCK_INFO_NAMESPACE,
         ]
-        addresses_output = addresses_input
+        addresses_output = [
+            self.make_address_from_data(swap_expire_payload.swap_id),
+            self.get_user_address(),
+        ]
         return self._send_transaction(AtomicSwapMethod.EXPIRE, swap_expire_payload,
                                       addresses_input, addresses_output)
 
