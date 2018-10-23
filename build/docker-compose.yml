@@ -36,13 +36,7 @@ services:
       target: validator-registry
     image: remme/sawtooth-poet-validator-registry:latest
 
-  remme-tp:
-    build:
-      context: ..
-      dockerfile: docker/development.dockerfile
-    image: remme/remme-core:latest
-
-  remme-rpc-api:
+  remme-build:
     build:
       context: ..
       dockerfile: docker/development.dockerfile

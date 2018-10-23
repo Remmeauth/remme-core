@@ -4,6 +4,7 @@ RUN apk --update --no-cache add --force python3 libffi openssl libzmq && \
     pip3 install --upgrade pip && \
     pip3 install poetry
 COPY ./pyproject.* ./
+COPY ./README.* ./
 COPY ./remme ./remme
 COPY ./protos ./protos
 COPY ./scripts/node /project/scripts
