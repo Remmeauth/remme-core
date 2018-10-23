@@ -15,6 +15,6 @@
 version: '3.4'
 
 services:
-  remme-tp:
+  remme-build:
     build:
       dockerfile: docker/release.dockerfile
