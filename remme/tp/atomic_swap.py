@@ -168,7 +168,7 @@ class AtomicSwapHandler(BasicHandler):
         block = self._get_latest_block_info(context)
         block_time = self.get_datetime_from_timestamp(block.timestamp)
 
-        if not (block_time - datetime.timedelta(hours=1) < created_at < block_time):
+        if not (block_time - datetime.timedelta(hours=1) < created_at <= block_time):
             raise InvalidTransaction('Transaction is created a long time ago '
                                      'or timestamp is assigned set.')
         # END
