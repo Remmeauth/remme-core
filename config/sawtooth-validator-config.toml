@@ -3,5 +3,5 @@
 
 peering = "dynamic"
 # TODO use it with 0 only when in genesis mode
-minimum_peer_connectivity = 0
+minimum_peer_connectivity = 1
 scheduler = "parallel"
