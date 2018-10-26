@@ -47,6 +47,11 @@ if [ "$SAWTOOTH_BUILD_GIT_REF" != "$SAWTOOTH_REPO_GIT_REF" ]; then
     build_sawtooth_image block-info-tp
     build_sawtooth_image devmode-rust
 
+    docker build \
+        -f docker/bare-validator.dockerfile \
+        -t remme/sawtooth-bare-validator:latest \
+        --build-arg SAWTOOTH_REPO_GIT_REF=$SAWTOOTH_REPO_GIT_REF .
+
     echo "Doing cleanup..."
     cd ..
     rm -rf sawtooth-core

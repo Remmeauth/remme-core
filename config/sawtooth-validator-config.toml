@@ -2,6 +2,5 @@
 # https://sawtooth.hyperledger.org/docs/core/releases/1.0.5/sysadmin_guide/configuring_sawtooth/validator_configuration_file.html
 
 peering = "dynamic"
-# TODO use it with 0 only when in genesis mode
 minimum_peer_connectivity = 1
 scheduler = "parallel"
