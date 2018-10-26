@@ -20,6 +20,8 @@ services:
       context: ..
       dockerfile: docker/sawtooth.dockerfile
       target: validator
+      args:
+        SAWTOOTH_REPO_GIT_REF: $SAWTOOTH_REPO_GIT_REF
     image: remme/sawtooth-validator:latest
 
   block-info-tp:
@@ -28,13 +30,6 @@ services:
       dockerfile: docker/sawtooth.dockerfile
       target: sawtooth-block-info-tp
     image: remme/sawtooth-block-info-tp:latest
-
-  poet-validator-registry:
-    build:
-      context: ..
-      dockerfile: docker/sawtooth.dockerfile
-      target: validator-registry
-    image: remme/sawtooth-poet-validator-registry:latest
 
   remme-build:
     build:

@@ -21,13 +21,16 @@ RUN_SCRIPT=./scripts/run.sh
 BUILD_DIR=./build
 
 build:
-	$(BUILD_DIR)/build.sh
+	$(BUILD_DIR)/build.sh -r
 
 build_dev:
-	$(BUILD_DIR)/build-dev.sh
+	$(BUILD_DIR)/build.sh
 
 clean:
 	$(BUILD_DIR)/clean.sh
+
+clean_all:
+	$(BUILD_DIR)/clean.sh -a
 
 docker_push:
 	$(BUILD_DIR)/push-docker.sh
