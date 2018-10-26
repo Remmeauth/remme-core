@@ -1,3 +1,6 @@
 [submodule "protos"]
 	path = protos
 	url = https://github.com/Remmeauth/remme-protobuf.git
+[submodule "vendor/sawtooth-core"]
+	path = vendor/sawtooth-core
+	url = https://github.com/hyperledger/sawtooth-core.git
