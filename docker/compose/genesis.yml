@@ -21,7 +21,6 @@ services:
       - remme-genesis
     volumes:
       - genesis_data:/genesis/batch
-      - validator_keys:/etc/sawtooth/keys
     environment:
       - REMME_START_MODE=genesis
 
@@ -30,6 +29,7 @@ services:
     image: remme/remme-core:latest
     volumes:
       - genesis_data:/genesis/batch
+      - validator_keys:/etc/sawtooth/keys
       - ../../config/remme-client-config.toml:/config/remme-client-config.toml
       - ../../config/remme-genesis-config.toml:/config/remme-genesis-config.toml
     environment:
