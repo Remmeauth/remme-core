@@ -91,7 +91,7 @@ services:
     environment:
       - REMME_CONTAINER_EXPORTS_FOLDER=./default_export
     volumes:
-      - user_keys:/etc/sawtooth/keys
+      - validator_keys:/etc/sawtooth/keys
       - ${REMME_CONTAINER_EXPORTS_FOLDER:-./default_export}:/root/usr/share
       - ../../config/remme-client-config.toml:/config/remme-client-config.toml
       - ../../config/remme-rpc-api.toml:/config/remme-rpc-api.toml
@@ -100,7 +100,6 @@ services:
     entrypoint: python3 -m remme.rpc_api
 
 volumes:
-  user_keys:
   validator_keys:
   chain_data:
   logs:
