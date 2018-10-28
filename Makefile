@@ -76,3 +76,6 @@ test:
 
 release:
 	$(BUILD_DIR)/release.sh
+
+clean_chain_data:
+	docker volume rm remme_chain_data
