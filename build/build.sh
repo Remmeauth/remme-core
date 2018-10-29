@@ -19,4 +19,4 @@ echo "Updating git submodules..."
 git submodule update --init
 
 echo "Running REMME build..."
-docker-compose -f ./build/docker-compose.yml -f ./build/docker-compose-release.yml build
+docker-compose $COMPOSE_FILES build
