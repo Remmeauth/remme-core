@@ -2,7 +2,20 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
-and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+and this project adheres to
+
+### [0.5.2-alpha] - 2018-09-27
+### Fixed
+- Several starting up issues
+
+## [0.5.1-alpha] - 2018-09-13
+### Changes
+- Batches submitted from REST API are now signed by the key of the validator (the same as the key for
+  block signing). This is required for compatibility with the upcoming update of Sawtooth which will
+  remove performance limitations for batches submitted with the validator key.
+- Versions of critical non-Python dependencies are now fixed.
+### Fixed
+- A couple of minor bugs in BlockInfo component.
 
 ## [0.5.0-alpha] - 2018-08-24
 ### Added
