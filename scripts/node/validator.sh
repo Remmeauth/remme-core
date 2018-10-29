@@ -1,3 +1,5 @@
+# TODO add BlockInfo back when new Sawtooth implementation stabilizes
+
 eval `python3 /scripts/toml-to-env.py`
 
 ADDITIONAL_ARGS=""
@@ -16,30 +18,14 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
     sawset genesis -k /etc/sawtooth/keys/validator.priv
     GENESIS_BATCHES="config-genesis.batch"
 
-    if [ "$REMME_CONSENSUS" = "poet-simulator" ]; then
+    if [ "$REMME_CONSENSUS" = "devmode" ]; then
         sawset proposal create \
             -k /etc/sawtooth/keys/validator.priv \
-            sawtooth.consensus.algorithm=poet \
-            "sawtooth.poet.report_public_key_pem=$(cat /etc/sawtooth/simulator_rk_pub.pem)" \
-            "sawtooth.poet.valid_enclave_measurements=$(poet enclave --enclave-module simulator measurement)" \
-            "sawtooth.poet.valid_enclave_basenames=$(poet enclave --enclave-module simulator basename)" \
-            sawtooth.poet.enclave_module_name=sawtooth_poet_simulator.poet_enclave_simulator.poet_enclave_simulator \
-            remme.economy_enabled=$REMME_ECONOMY_ENABLED \
-            -o poet_config.batch
+            sawtooth.consensus.min_wait_time=5 \
+            -o devmode.batch
 
-        poet registration create \
-            -k /etc/sawtooth/keys/validator.priv \
-            --enclave-module simulator \
-            -o poet_genesis.batch
-
-        GENESIS_BATCHES="$GENESIS_BATCHES poet_config.batch poet_genesis.batch"
+        GENESIS_BATCHES="$GENESIS_BATCHES devmode.batch"
     fi
-
-    sawset proposal create \
-        -k /etc/sawtooth/keys/validator.priv \
-        sawtooth.validator.batch_injectors=block_info \
-        "sawtooth.validator.block_validation_rules=NofX:1,block_info;XatY:block_info,0;local:0" \
-        -o block_config.batch
 
     sawset proposal create \
         -k /etc/sawtooth/keys/validator.priv \
@@ -49,11 +35,19 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
         remme.settings.swap_comission=100 \
         -o settings_config.batch
 
-    GENESIS_BATCHES="$GENESIS_BATCHES block_config.batch settings_config.batch"
+    GENESIS_BATCHES="$GENESIS_BATCHES settings_config.batch"
 
     if [ "$REMME_ECONOMY_ENABLED" = "True" ]; then
         GENESIS_BATCHES="$GENESIS_BATCHES /genesis/batch/token-proposal.batch"
     fi
+
+    sawset proposal create \
+        -k /etc/sawtooth/keys/validator.priv \
+        sawtooth.validator.batch_injectors=block_info \
+        "sawtooth.validator.block_validation_rules=NofX:1,block_info;XatY:block_info,0;local:0" \
+        -o block_info_config.batch
+    
+    GENESIS_BATCHES="$GENESIS_BATCHES block_info_config.batch"
 
     sawadm genesis $GENESIS_BATCHES
 fi
@@ -66,5 +60,6 @@ fi
 sawtooth-validator -vv \
     --endpoint tcp://$REMME_VALIDATOR_IP:$REMME_VALIDATOR_PORT \
     --bind component:tcp://127.0.0.1:4004 \
+    --bind consensus:tcp://127.0.0.1:5005 \
     --bind network:tcp://0.0.0.0:8800 \
     $ADDITIONAL_ARGS

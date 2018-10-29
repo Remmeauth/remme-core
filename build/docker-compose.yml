@@ -15,26 +15,11 @@
 version: '3.4'
 
 services:
-  validator:
+  sawtooth:
     build:
       context: ..
       dockerfile: docker/sawtooth.dockerfile
-      target: validator
-    image: remme/sawtooth-validator:latest
-
-  block-info-tp:
-    build:
-      context: ..
-      dockerfile: docker/sawtooth.dockerfile
-      target: sawtooth-block-info-tp
-    image: remme/sawtooth-block-info-tp:latest
-
-  poet-validator-registry:
-    build:
-      context: ..
-      dockerfile: docker/sawtooth.dockerfile
-      target: validator-registry
-    image: remme/sawtooth-poet-validator-registry:latest
+    image: remme/sawtooth:latest
 
   remme-build:
     build:

@@ -7,17 +7,29 @@ from aiohttp_json_rpc import (
 )
 from google.protobuf.json_format import MessageToJson
 
-from remme.clients.atomic_swap import AtomicSwapClient
+from remme.clients.atomic_swap import AtomicSwapClient, get_swap_init_payload
 from remme.shared.exceptions import KeyNotFound
 
 
 __all__ = (
     'get_atomic_swap_info',
     'get_atomic_swap_public_key',
+    # TODO: Comment (remove) this before release
+    # 'swap_init',
 )
 
 
 LOGGER = logging.getLogger(__name__)
+
+
+async def swap_init(request):
+    client = AtomicSwapClient()
+    try:
+        payload = request.params['payload']
+    except KeyError as e:
+        raise RpcInvalidParamsError(message='Missed payload')
+    payload = get_swap_init_payload(**payload)
+    return client.swap_init(payload)
 
 
 async def get_atomic_swap_info(request):

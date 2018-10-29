@@ -21,10 +21,10 @@ RUN_SCRIPT=./scripts/run.sh
 BUILD_DIR=./build
 
 build:
-	$(BUILD_DIR)/build.sh
+	$(BUILD_DIR)/build.sh -r
 
 build_dev:
-	$(BUILD_DIR)/build-dev.sh
+	$(BUILD_DIR)/build.sh
 
 clean:
 	$(BUILD_DIR)/clean.sh
@@ -76,3 +76,6 @@ test:
 
 release:
 	$(BUILD_DIR)/release.sh
+
+clean_chain_data:
+	docker volume rm remme_chain_data

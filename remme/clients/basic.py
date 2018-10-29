@@ -186,9 +186,10 @@ class BasicClient(Router):
         payload.method = method
         payload.data = data_pb.SerializeToString()
 
-        for address in addresses_input_output:
-            if not is_address(address):
-                raise ClientException('one of addresses_input_output {} is not an address'.format(addresses_input_output))
+        # NOTE: Not all addresses could be in the same format
+        # for address in addresses_input_output:
+        #     if not is_address(address):
+        #         raise ClientException('one of addresses_input_output {} is not an address'.format(addresses_input_output))
 
         batch_list = self.make_batch_list(payload, addresses_input, addresses_output)
 

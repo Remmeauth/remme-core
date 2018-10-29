@@ -27,6 +27,9 @@ from remme.shared.utils import generate_random_key, hash256, web3_hash
 from tests.test_helper import HelperTestCase
 from remme.clients.account import AccountClient
 from remme.tp.account import ZERO_ADDRESS
+from remme.clients.block_info import CONFIG_ADDRESS, BLOCK_INFO_NAMESPACE, \
+    BlockInfoClient
+from remme.protos.block_info_pb2 import BlockInfo, BlockInfoConfig
 
 LOGGER = logging.getLogger(__name__)
 
@@ -64,6 +67,19 @@ class AtomicSwapTestCase(HelperTestCase):
         context.swap_info = swap_info
         return context
 
+    def expect_latest_block(self, timestamp):
+        bc = BlockInfoConfig(latest_block=1, oldest_block=1,
+                             target_count=1, sync_tolerance=100)
+
+        self.expect_get({CONFIG_ADDRESS: bc})
+
+        block_info = BlockInfo(block_num=1, previous_block_id='some hash',
+                               signer_public_key='some pub key',
+                               header_signature='some sig',
+                               timestamp=timestamp)
+        self.expect_get({
+            BlockInfoClient.create_block_address(bc.latest_block): block_info})
+
     # TEST: INIT
     @test
     def test_swap_init_success(self):
@@ -83,6 +99,8 @@ class AtomicSwapTestCase(HelperTestCase):
         signature = context.client.swap_init(get_swap_init_payload(**init_data))
 
         self.expect_get({context.swap_address: None})
+
+        self.expect_latest_block(init_data['created_at'] + 20)
 
         self.expect_get({
             _make_settings_key(SETTINGS_SWAP_COMMISSION):
@@ -300,11 +318,11 @@ class AtomicSwapTestCase(HelperTestCase):
         self.expect_get({context.swap_address: context.swap_info})
 
         self.expect_invalid_transaction()
-    #
-    # # END TEST
-    #
-    # # TEST: EXPIRE
-    #
+
+    # END TEST
+
+    # TEST: EXPIRE
+
     @test
     def test_swap_expire_success_initiator(self):
         context = self.get_context()
@@ -318,6 +336,8 @@ class AtomicSwapTestCase(HelperTestCase):
         context.swap_info.is_initiator = True
 
         self.expect_get({context.swap_address: context.swap_info})
+
+        self.expect_latest_block(context.swap_info.created_at + 48 * 3600)
 
         updated_state = self.transfer(ZERO_ADDRESS, context.swap_info.amount, self.account_address1, 0, context.swap_info.amount)
 
@@ -345,6 +365,8 @@ class AtomicSwapTestCase(HelperTestCase):
 
         self.expect_get({context.swap_address: context.swap_info})
 
+        self.expect_latest_block(context.swap_info.created_at + 48 * 3600)
+
         updated_state = self.transfer(ZERO_ADDRESS, context.swap_info.amount, self.account_address1, 0,
                                       context.swap_info.amount)
 
@@ -369,6 +391,8 @@ class AtomicSwapTestCase(HelperTestCase):
 
         self.expect_get({context.swap_address: context.swap_info})
 
+        self.expect_latest_block(context.swap_info.created_at)
+
         self.expect_invalid_transaction()
 
     @test
@@ -386,6 +410,8 @@ class AtomicSwapTestCase(HelperTestCase):
 
         self.expect_get({context.swap_address: context.swap_info})
 
+        self.expect_latest_block(context.swap_info.created_at)
+
         self.expect_invalid_transaction()
 
     @test
@@ -402,6 +428,8 @@ class AtomicSwapTestCase(HelperTestCase):
         context.swap_info.is_initiator = True
 
         self.expect_get({context.swap_address: context.swap_info})
+
+        self.expect_latest_block(context.swap_info.created_at)
 
         self.expect_invalid_transaction()
 

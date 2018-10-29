@@ -8,6 +8,10 @@ RUN_LOGIO=0
 
 source ./config/network-config.env
 
+export REMME_REST_API_PORT
+export REMME_VALIDATOR_PORT
+export REMME_VALIDATOR_IP
+
 function check_op {
     if [ $OPERATION_SPECIFIED -eq 1 ]; then
         echo "Cannot specify two operations at once! You have already specified -$OPERATION"
