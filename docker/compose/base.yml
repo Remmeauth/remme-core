@@ -26,7 +26,7 @@ services:
       - ../../config/sawtooth-validator-config.toml:/etc/sawtooth/validator.toml
       - ../../config/seeds-list.txt:/config/seeds-list.txt
       - ../../config/log/validator.toml:/etc/sawtooth/log_config.toml
-      - logs:/var/log/sawtooth
+      - logs:/var/log
     network_mode: bridge
     ports:
       - '0.0.0.0:${REMME_VALIDATOR_PORT:-8800}:8800'
@@ -48,8 +48,8 @@ services:
     image: remme/sawtooth:latest
     network_mode: "service:validator"
     volumes:
-      - ../../config/log/validator-rest-api.toml:/etc/sawtooth/log_config.toml
-      - logs:/var/log/sawtooth
+      - ../../config/log/validator-rest-api.toml:/etc/sawtooth/rest_api_log_config.toml
+      - logs:/var/log
     command: sawtooth-rest-api -v --connect tcp://127.0.0.1:4004 --bind 127.0.0.1:8008
 
   block-info-tp:
@@ -57,8 +57,8 @@ services:
     image: remme/sawtooth:latest
     network_mode: "service:validator"
     volumes:
-      - ../../config/log/block-info-tp.toml:/etc/sawtooth/log_config.toml
-      - logs:/var/log/sawtooth
+      - ../../config/log/block-info-tp.toml:/etc/sawtooth/block_info_log_config.toml
+      - logs:/var/log
     command: block-info-tp -vv -C tcp://127.0.0.1:4004
 
   settings-tp:
@@ -67,8 +67,8 @@ services:
     network_mode: "service:validator"
     entrypoint: settings-tp -vv -C tcp://127.0.0.1:4004
     volumes:
-      - ../../config/log/settings-tp.toml:/etc/sawtooth/log_config.toml
-      - logs:/var/log/sawtooth
+      - ../../config/log/settings-tp.toml:/etc/sawtooth/settings_log_config.toml
+      - logs:/var/log
 
   remme-tp:
     container_name: remme_tp

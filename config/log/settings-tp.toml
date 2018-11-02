@@ -9,7 +9,7 @@ datefmt = "%H:%M:%S"
 level = "INFO"
 formatter = "standard"
 class = "logging.handlers.RotatingFileHandler"
-filename = "/var/log/sawtooth/settings-tp.log"
+filename = "/var/log/settings-tp.log"
 maxBytes = 50000000
 backupCount = 20
 
