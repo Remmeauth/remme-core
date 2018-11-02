@@ -31,7 +31,6 @@ from remme.shared.utils import (
 from remme.shared.stream import Stream
 from remme.settings import PRIV_KEY_FILE
 from remme.settings.default import load_toml_with_defaults
-from remme.tp.basic import is_address
 from remme.clients.router import Router
 from remme.shared.exceptions import (
     ClientException,

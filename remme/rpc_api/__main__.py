@@ -31,7 +31,6 @@ from remme.ws import WsApplicationHandler, WsEventSocketHandler
 from remme.settings.default import load_toml_with_defaults
 
 from .base import JsonRpc
-from .validator import proxy
 
 
 logger = logging.getLogger(__name__)
@@ -71,8 +70,6 @@ if __name__ == '__main__':
     rpc.load_from_modules(cfg_rpc['available_modules'])
     cors.add(app.router.add_route('GET', '/', rpc))
     cors.add(app.router.add_route('POST', '/', rpc))
-    # FIXME: Remove in future
-    cors.add(app.router.add_route('GET', '/validator/{path:.*?}', proxy))
 
     # Remme ws
     stream = Stream(ZMQ_URL)

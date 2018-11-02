@@ -61,7 +61,6 @@ class WsEventSocketHandler(BasicWebSocketHandler):
                 self.request_last_block(), loop=self._loop))
 
         LOGGER.debug(f'Received the last block num: {self.last_block_num}')
-        self.catch_up_subscribers = {}
         self._events = {event.value: {} for event in Events}
 
         ctx = zmq.Context()

@@ -81,18 +81,14 @@ class Router:
 
         data = message_to_dict(resp)
 
-        # NOTE: Not all protos have this status
         with suppress(AttributeError):
+            LOGGER.debug(f'The response parsed data: {data}')
             if resp.status == resp_proto.NO_RESOURCE:
-                raise KeyNotFound("404")
-
-        if resp.status != resp_proto.OK:
-            LOGGER.error(f'The response indicated a not successful '
-                         f'request: {data}')
-            if hasattr(resp_proto, 'NOT_READY') and \
-               resp_proto.NOT_READY == resp.status:
-                raise ValidatorNotReadyException()
-            raise ClientException(f"Error: {data}")
+                raise KeyNotFound('Resource not found')
+            elif resp.status == resp_proto.NOT_READY:
+                raise ValidatorNotReadyException('Validator is not ready yet')
+            elif resp.status != resp_proto.OK:
+                raise ClientException('Error occured')
 
         return data
 
