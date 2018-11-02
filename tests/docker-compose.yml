@@ -31,5 +31,4 @@ services:
     network_mode: "service:tests"
     volumes:
       - ../config/remme-client-config.toml:/config/remme-client-config.toml
-      - ../config/log/remme-tp.toml:/etc/sawtooth/log_config.toml
     entrypoint: poetry run python3 -m remme.tp
