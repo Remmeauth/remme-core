@@ -9,7 +9,7 @@ datefmt = "%H:%M:%S"
 level = "INFO"
 formatter = "standard"
 class = "logging.handlers.RotatingFileHandler"
-filename = "/var/log/remme-tp.log"
+filename = "/var/log/remme/remme-tp.log"
 maxBytes = 50000000
 backupCount = 20
 

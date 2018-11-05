@@ -261,7 +261,8 @@ class WsApplicationHandler(BasicWebSocketHandler):
         batch_resp = client_batch_submit_pb2.ClientBatchStatusResponse()
         batch_resp.ParseFromString(resp)
         LOGGER.debug(f'Batch: {resp}')
-        LOGGER.info(f'Batch parsed: {batch_resp}')
+        batch_resp_str = repr(batch_resp).replace("\n", "")
+        LOGGER.debug(f'Batch parsed: {batch_resp_str}')
 
         hash_sum = hashlib.sha256(batch_resp.SerializeToString()).hexdigest()
         LOGGER.debug(f'got hashsum: {hash_sum}')
