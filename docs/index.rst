@@ -27,7 +27,6 @@ Welcome to REMME's documentation!
    remme-client
    remme-ws
    remme-ws-events
-   generated/modules
 
 .. toctree::
    :maxdepth: 2
