@@ -29,10 +29,6 @@ from cryptography.hazmat.backends import default_backend
 __all__ = (
     'get_node_public_key',
     'get_public_key_info',
-
-    # FIXME: Make separate module
-    'set_node_key',
-    'export_node_key',
 )
 
 logger = logging.getLogger(__name__)
@@ -41,21 +37,6 @@ logger = logging.getLogger(__name__)
 async def get_node_public_key(request):
     client = PubKeyClient()
     return client.get_public_key()
-
-
-async def set_node_key(request):
-    try:
-        private_key = request.params['private_key']
-    except KeyError:
-        raise RpcInvalidParamsError(message='Missed private key')
-
-    PubKeyClient.set_priv_key_to_file(private_key)
-    return True
-
-
-async def export_node_key(request):
-    client = PubKeyClient()
-    return client.get_private_key()
 
 
 async def get_public_key_info(request):
@@ -99,7 +80,4 @@ async def get_public_key_info(request):
                 'entity_hash': pub_key_data.payload.entity_hash,
                 'entity_hash_signature': pub_key_data.payload.entity_hash_signature}
     except KeyNotFound:
-        raise RpcGenericServerDefinedError(
-            error_code=-32050,
-            message='Public key info not found'
-        )
+        raise KeyNotFound('Public key info not found')

@@ -17,12 +17,12 @@ from aiohttp_json_rpc.exceptions import (
     RpcInternalError,
     RpcError,
 )
+
+from remme.shared.exceptions import RemmeRpcError
 from .utils import load_methods
 
 
-__all__ = (
-    'JsonRpc',
-)
+LOGGER = logging.getLogger(__name__)
 
 
 class JsonRpc(JsonRpc):
@@ -50,6 +50,14 @@ class JsonRpc(JsonRpc):
             *(('', method) for method in load_methods('remme.rpc_api',
                                                       modules)))
 
+    @property
+    def rpc_methods(self):
+        if not hasattr(self, '_rpc_methods'):
+            self._rpc_methods = {
+                method.__name__ for method in load_methods('remme.rpc_api')
+            }
+        return self._rpc_methods
+
     async def handle_http_request(self, http_request):
         raw_msg = await http_request.read()
         try:
@@ -67,9 +75,14 @@ class JsonRpc(JsonRpc):
             if msg.data['method'] not in http_request.methods:
                 self.logger.debug('method %s is unknown or restricted',
                                   msg.data['method'])
+                if msg.data['method'] in self.rpc_methods:
+                    err_msg = 'Method is disabled by the node administrator'
+                else:
+                    err_msg = 'Method not found'
 
                 return self._http_send_str(http_request, encode_error(
-                    RpcMethodNotFoundError(msg_id=msg.data.get('id', None))
+                    RpcMethodNotFoundError(msg_id=msg.data.get('id', None),
+                                           message=err_msg)
                 ))
 
             # call method
@@ -93,7 +106,8 @@ class JsonRpc(JsonRpc):
 
             except (RpcGenericServerDefinedError,
                     RpcInvalidRequestError,
-                    RpcInvalidParamsError) as error:
+                    RpcInvalidParamsError,
+                    RemmeRpcError) as error:
 
                 return self._http_send_str(
                     http_request,

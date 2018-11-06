@@ -25,7 +25,7 @@ from sawtooth_sdk.protobuf.transaction_pb2 import (
     Transaction, TransactionHeader
 )
 
-from remme.shared.exceptions import ClientException, KeyNotFound
+from remme.shared.exceptions import KeyNotFound
 from remme.clients.account import AccountClient
 from remme.clients.pub_key import PubKeyClient
 
@@ -116,14 +116,8 @@ async def send_raw_transaction(request):
         )
 
     client = PubKeyClient()
-    try:
-        response = client.send_raw_transaction(tr_pb)
-        return response['data']
-    except Exception as e:
-        raise RpcGenericServerDefinedError(
-            error_code=-32050,
-            message=f'Send batch with transaction failed: {e}'
-        )
+    response = client.send_raw_transaction(tr_pb)
+    return response['data']
 
 
 async def list_receipts(request):
@@ -134,16 +128,8 @@ async def list_receipts(request):
         raise RpcInvalidParamsError(message='Missed ids')
     try:
         return client.list_receipts(ids)
-    except ClientException as e:
-        raise RpcGenericServerDefinedError(
-            error_code=-32050,
-            message=f'Got error response from validator: {e}'
-        )
     except KeyNotFound:
-        raise RpcGenericServerDefinedError(
-            error_code=-32050,
-            message=f'Transactions with ids "{ids}" not found'
-        )
+        raise KeyNotFound(f'Transactions with ids "{ids}" not found')
 
 
 async def list_batches(request):
@@ -153,13 +139,8 @@ async def list_batches(request):
     limit = request.params.get('limit')
     head = request.params.get('head')
     reverse = request.params.get('reverse')
-    try:
-        return client.list_batches(ids, start, limit, head, reverse)
-    except ClientException as e:
-        raise RpcGenericServerDefinedError(
-            error_code=-32050,
-            message=f'Got error response from validator: {e}'
-        )
+
+    return client.list_batches(ids, start, limit, head, reverse)
 
 
 async def fetch_batch(request):
@@ -171,16 +152,8 @@ async def fetch_batch(request):
     client = AccountClient()
     try:
         return client.fetch_batch(id)
-    except ClientException as e:
-        raise RpcGenericServerDefinedError(
-            error_code=-32050,
-            message=f'Got error response from validator: {e}'
-        )
     except KeyNotFound:
-        raise RpcGenericServerDefinedError(
-            error_code=-32050,
-            message=f'Batch with id "{id}" not found'
-        )
+        raise KeyNotFound(f'Batch with id "{id}" not found')
 
 
 async def get_batch_status(request):
@@ -190,13 +163,8 @@ async def get_batch_status(request):
         raise RpcInvalidParamsError(message='Missed id')
 
     client = AccountClient()
-    try:
-        return client.get_batch_status(id)
-    except ClientException as e:
-        raise RpcGenericServerDefinedError(
-            error_code=-32050,
-            message=f'Got error response from validator: {e}'
-        )
+
+    return client.get_batch_status(id)
 
 
 async def list_transactions(request):
@@ -206,13 +174,8 @@ async def list_transactions(request):
     limit = request.params.get('limit')
     head = request.params.get('head')
     reverse = request.params.get('reverse')
-    try:
-        return client.list_transactions(ids, start, limit, head, reverse)
-    except ClientException as e:
-        raise RpcGenericServerDefinedError(
-            error_code=-32050,
-            message=f'Got error response from validator: {e}'
-        )
+
+    return client.list_transactions(ids, start, limit, head, reverse)
 
 
 async def fetch_transaction(request):
@@ -224,13 +187,5 @@ async def fetch_transaction(request):
     client = AccountClient()
     try:
         return client.fetch_transaction(id)
-    except ClientException as e:
-        raise RpcGenericServerDefinedError(
-            error_code=-32050,
-            message=f'Got error response from validator: {e}'
-        )
     except KeyNotFound:
-        raise RpcGenericServerDefinedError(
-            error_code=-32050,
-            message=f'Transaction with id "{id}" not found'
-        )
+        raise KeyNotFound(f'Transaction with id "{id}" not found')

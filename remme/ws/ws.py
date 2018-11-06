@@ -99,6 +99,7 @@ class WsApplicationHandler(BasicWebSocketHandler):
 
         async def _update_batch(batch_id):
             force_cleanup = False
+            batch_data = hash_sum = None
             try:
                 batch_data, hash_sum = self.get_batch(batch_id)
                 LOGGER.debug('Fetched %s with sum %s', batch_data, hash_sum)
@@ -180,7 +181,6 @@ class WsApplicationHandler(BasicWebSocketHandler):
         LOGGER.info('Sending initial most recent event to new subscriber')
 
         params = payload.get('parameters', {})
-        batch_ids = params.get('batch_ids', [])
 
         try:
             entity = Entity(payload['entity'])
@@ -190,7 +190,13 @@ class WsApplicationHandler(BasicWebSocketHandler):
 
         with await self._subscriber_lock:
             if entity == Entity.BATCH_STATE:
-                batch_ids = params.get('batch_ids', [])
+                batch_ids = list(filter(None, params.get('batch_ids', [])))
+                if not batch_ids:
+                    LOGGER.debug('No batch ids on subscription')
+                    await self._ws_send(web_sock, Status.INVALID_PARAMS,
+                                        payload['id'])
+                    return
+
                 err_ids = self._validate_ids(batch_ids)
                 if err_ids:
                     msg = 'Invalid batch ids: %s' % ', '.join(err_ids)
@@ -289,4 +295,5 @@ class WsApplicationHandler(BasicWebSocketHandler):
 
     @staticmethod
     def valid_resource_id(resource_id):
-        return bool(re.fullmatch('[0-9a-f]{128}', str(resource_id)))
+        return resource_id is None or \
+            bool(re.fullmatch('[0-9a-f]{128}', str(resource_id)))

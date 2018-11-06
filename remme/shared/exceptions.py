@@ -12,27 +12,40 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------
+from aiohttp_json_rpc.exceptions import RpcError
 
 
-class KeyNotFound(Exception):
-    pass
+class RemmeRpcError(RpcError):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.message = args[0] or self.MESSAGE
 
 
-class ClientException(Exception):
-    pass
+class ClientException(RemmeRpcError):
+    ERROR_CODE = -32000
 
 
-class ValidatorNotReadyException(Exception):
-    pass
+class KeyNotFound(RemmeRpcError):
+    MESSAGE = 'Resource not found'
+    ERROR_CODE = -32001
 
 
-class ResourceHeaderInvalid(ClientException):
-    pass
+class ValidatorNotReadyException(RemmeRpcError):
+    MESSAGE = 'Validator is not ready yet'
+    ERROR_CODE = -32002
 
 
-class InvalidResourceId(ClientException):
-    pass
+class ResourceHeaderInvalid(RemmeRpcError):
+    MESSAGE = 'Invalid or missing header'
+    ERROR_CODE = -32003
 
 
-class CountInvalid(ClientException):
-    pass
+class InvalidResourceId(RemmeRpcError):
+    MESSAGE = 'Invalid or missing resource id'
+    ERROR_CODE = -32004
+
+
+class CountInvalid(RemmeRpcError):
+    MESSAGE = 'Invalid limit count'
+    ERROR_CODE = -32005

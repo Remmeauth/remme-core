@@ -17,6 +17,7 @@ RPC-API consists of several modules:
 * `network` provides info about peers and node sync
 * `atomic_swap` show atomic swap info
 * `state` shows entries for the current blockchain state
+* `personal` allow to work with node configurations (private keys etc.)
 
 
 All communications with rpc api are going through `/ POST` or `WS` connection.
