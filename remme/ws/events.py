@@ -150,7 +150,8 @@ class WsEventSocketHandler(BasicWebSocketHandler):
 
         # Validate the response type
         if msg.message_type != Message.CLIENT_EVENTS_SUBSCRIBE_RESPONSE:
-            LOGGER.error(f"Unexpected message type")
+            LOGGER.error(f"Skip unexpected message type")
+            return
 
         # Parse the response
         response = ClientEventsSubscribeResponse()
