@@ -37,7 +37,6 @@ or `Wikipedia <https://en.wikipedia.org/wiki/Merkle_tree>`_
 We are more interested in how one forms an **address** (a hex-encoded **70** character string representing 35 bytes).
 
 .. figure:: img/state_address_format.svg
-
    This image by `Intel Corporation <https://www.intel.com/>`_ is licenced under
    `CC BY 4.0 <https://creativecommons.org/licenses/by/4.0/>`_
 

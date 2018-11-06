@@ -62,9 +62,9 @@ To start receiving new events, we need to send a message where we provide the li
 
 Here is an example of the message:
 
-.. code-block:: json
+.. code-block::json
 
- {
+  {
     "action": "subscribe",
     "data": {
         "entity": "events",
@@ -77,7 +77,7 @@ Unsubscribe from events
 
 One can only unsubscribe from all events at once at this point, as such:
 
-.. code-block:: json
+.. code-block::json
 
  {
     "action": "unsubscribe",
@@ -127,7 +127,7 @@ Event Catch Up
 
 In order to receive event meesages starting from historical block, the block id needs to be provided as such:
 
-.. code-block:: json
+.. code-block::json
 
  {
     "action": "subscribe",
