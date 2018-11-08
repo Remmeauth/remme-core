@@ -72,6 +72,15 @@ class WsEventSocketHandler(BasicWebSocketHandler):
         self._events_updator_task = weakref.ref(
             asyncio.ensure_future(
                 self.listen_events(), loop=self._loop))
+        self._events_collector_task = weakref.ref(
+            asyncio.ensure_future(
+                self.collect_msg_to_queue(), loop=self._loop))
+
+        self._event_lock = asyncio.Lock()
+        self._event_queue = {
+            Message.CLIENT_EVENTS_SUBSCRIBE_RESPONSE: asyncio.Queue(),
+            Message.CLIENT_EVENTS: asyncio.Queue(),
+        }
 
     async def request_last_block(self):
         while True:
@@ -118,6 +127,27 @@ class WsEventSocketHandler(BasicWebSocketHandler):
                 del web_socks_dict[web_sock]
                 self._events[event] = web_socks_dict
 
+    async def collect_msg_to_queue(self):
+        while True:
+            await asyncio.sleep(2)
+            try:
+                resp = await self._loop.run_in_executor(None, lambda: self._socket.recv_multipart(flags=zmq.NOBLOCK)[-1])
+            except zmq.Again as e:
+                LOGGER.debug("No message received yet")
+                continue
+
+            # Parse the message wrapper
+            msg = Message()
+            msg.ParseFromString(resp)
+
+            try:
+                queue = self._event_queue[msg.message_type]
+            except KeyError:
+                LOGGER.error("Unexpected message type")
+                continue
+
+            await queue.put(msg)
+
     async def subscribe_events(self, web_sock, last_known_block_id=None):
         # Setup a connection to the validator
         LOGGER.debug(f"Subscription started")
@@ -135,18 +165,12 @@ class WsEventSocketHandler(BasicWebSocketHandler):
         # Send the request
         LOGGER.debug(f"Sending subscription request.")
 
-        try:
-            self._socket.send_multipart([msg.SerializeToString()], flags=zmq.NOBLOCK)
-        except zmq.ZMQError as e:
-            raise SocketException(web_sock, Status.EVENTS_NOT_PROVIDED, f"Couldn't send multipart: {e}")
+        await self._loop.run_in_executor(None, lambda: self._socket.send_multipart([msg.SerializeToString()]))
         LOGGER.debug(f"Subscription request is sent")
 
-        # Receive the response
-        resp = self._socket.recv_multipart()[-1]
+        msg = await self._event_queue[Message.CLIENT_EVENTS_SUBSCRIBE_RESPONSE].get()
 
-        # Parse the message wrapper
-        msg = Message()
-        msg.ParseFromString(resp)
+        LOGGER.info(f"message type {msg.message_type}")
 
         # Validate the response type
         if msg.message_type != Message.CLIENT_EVENTS_SUBSCRIBE_RESPONSE:
@@ -171,16 +195,12 @@ class WsEventSocketHandler(BasicWebSocketHandler):
         if self.last_block_num is None:
             LOGGER.debug(f"Last block number not ready!")
             return
-        resp = None
-        try:
-            resp = self._socket.recv_multipart(flags=zmq.NOBLOCK)[-1]
-        except zmq.Again as e:
-            LOGGER.debug("No message received yet")
-            return
 
-        # Parse the message wrapper
-        msg = Message()
-        msg.ParseFromString(resp)
+        try:
+            msg = self._event_queue[Message.CLIENT_EVENTS].get_nowait()
+        except asyncio.QueueEmpty:
+            LOGGER.debug("No message prepared yet")
+            return
 
         LOGGER.info(f"message type {msg.message_type}")
 
