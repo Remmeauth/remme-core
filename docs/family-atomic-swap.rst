@@ -109,16 +109,17 @@ Inputs and Outputs
     * **Swap address** - 70 characters concatenation of 6 chars atomic swap family prefix + 64 chars hash of the swap id.
     * **ZERO_ADDRESS** - reserved address used for locking funds *on chain*.
     * **SETTINGS_SWAP_COMMISSION** - *settings* address for retrieving operation commision amount
+    * **SETTINGS_KEY_GENESIS_OWNERS** - *settings* address for retrieving list of addresses which has access to send tokens
     * **CONFIG_ADDRESS** - address for retrieving block configuration info
     * **BLOCK_INFO_NAMESPACE** - namespace for retrieving any block info (in this case the latest one from block config)
 
 The inputs and outputs for account family transactions in respect to their payloads refer to following addresses:
 
-* **InitPayload**: Swap address, signer's and funds receiver's account addresses, ZERO_ADDRESS, SETTINGS_SWAP_COMMISSION, CONFIG_ADDRESS (only input), BLOCK_INFO_NAMESPACE (only input)
+* **InitPayload**: Swap address, signer's and funds receiver's account addresses, ZERO_ADDRESS, SETTINGS_SWAP_COMMISSION, SETTINGS_KEY_GENESIS_OWNERS, CONFIG_ADDRESS (only input), BLOCK_INFO_NAMESPACE (only input)
 * **AtomicSwapApprovePayload**: Swap address
-* **AtomicSwapExpirePayload**: Swap address, ZERO_ADDRESS, signer's account address, CONFIG_ADDRESS (only input), BLOCK_INFO_NAMESPACE (only input)
+* **AtomicSwapExpirePayload**: Swap address, ZERO_ADDRESS, signer's account address, CONFIG_ADDRESS (only input), BLOCK_INFO_NAMESPACE (only input), SETTINGS_KEY_GENESIS_OWNERS
 * **AtomicSwapSetSecretLockPayload**: Swap address
-* **AtomicSwapClosePayload**: Swap address, ZERO_ADDRESS, receiver's account address
+* **AtomicSwapClosePayload**: Swap address, ZERO_ADDRESS, receiver's account address, SETTINGS_KEY_GENESIS_OWNERS
 
 Family
 ------

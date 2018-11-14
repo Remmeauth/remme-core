@@ -20,7 +20,7 @@ from remme.clients.atomic_swap import AtomicSwapClient, get_swap_init_payload, g
     get_swap_approve_payload, get_swap_expire_payload, get_swap_set_secret_lock_payload
 from remme.tp.atomic_swap import AtomicSwapHandler
 from remme.protos.atomic_swap_pb2 import AtomicSwapInfo, AtomicSwapMethod
-from remme.settings import SETTINGS_SWAP_COMMISSION
+from remme.settings import SETTINGS_SWAP_COMMISSION, SETTINGS_KEY_GENESIS_OWNERS
 from remme.settings.helper import _make_settings_key, get_setting_from_key_value
 from remme.shared.logging_setup import test
 from remme.shared.utils import generate_random_key, hash256, web3_hash
@@ -107,8 +107,15 @@ class AtomicSwapTestCase(HelperTestCase):
                 get_setting_from_key_value(SETTINGS_SWAP_COMMISSION, context.COMMISSION)
         })
 
-        TOTAL_TRANSFERED = context.AMOUNT+context.COMMISSION
+        TOTAL_TRANSFERED = context.AMOUNT + context.COMMISSION
         self.expect_get({self.account_address1: AccountClient.get_account_model(TOTAL_TRANSFERED)})
+
+        self.expect_get({
+            _make_settings_key(SETTINGS_KEY_GENESIS_OWNERS):
+                get_setting_from_key_value(
+                    SETTINGS_KEY_GENESIS_OWNERS,
+                    self.account_signer1.get_public_key().as_hex())
+        })
 
         updated_state = self.transfer(self.account_address1, TOTAL_TRANSFERED, ZERO_ADDRESS, 0, TOTAL_TRANSFERED)
 
@@ -192,6 +199,12 @@ class AtomicSwapTestCase(HelperTestCase):
         signature = context.client.swap_close(get_swap_close_payload(**close_data), context.swap_info.receiver_address)
 
         self.expect_get({context.swap_address: context.swap_info})
+        self.expect_get({
+            _make_settings_key(SETTINGS_KEY_GENESIS_OWNERS):
+                get_setting_from_key_value(
+                    SETTINGS_KEY_GENESIS_OWNERS,
+                    self.account_signer1.get_public_key().as_hex())
+        })
         updated_state = self.transfer(ZERO_ADDRESS, context.AMOUNT, self.account_address2, 0, context.AMOUNT)
 
         swap_info = context.swap_info
@@ -339,6 +352,12 @@ class AtomicSwapTestCase(HelperTestCase):
 
         self.expect_latest_block(context.swap_info.created_at + 48 * 3600)
 
+        self.expect_get({
+            _make_settings_key(SETTINGS_KEY_GENESIS_OWNERS):
+                get_setting_from_key_value(
+                    SETTINGS_KEY_GENESIS_OWNERS,
+                    self.account_signer1.get_public_key().as_hex())
+        })
         updated_state = self.transfer(ZERO_ADDRESS, context.swap_info.amount, self.account_address1, 0, context.swap_info.amount)
 
         context.swap_info.state = AtomicSwapInfo.EXPIRED
@@ -367,6 +386,12 @@ class AtomicSwapTestCase(HelperTestCase):
 
         self.expect_latest_block(context.swap_info.created_at + 48 * 3600)
 
+        self.expect_get({
+            _make_settings_key(SETTINGS_KEY_GENESIS_OWNERS):
+                get_setting_from_key_value(
+                    SETTINGS_KEY_GENESIS_OWNERS,
+                    self.account_signer1.get_public_key().as_hex())
+        })
         updated_state = self.transfer(ZERO_ADDRESS, context.swap_info.amount, self.account_address1, 0,
                                       context.swap_info.amount)
 
