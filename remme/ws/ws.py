@@ -21,11 +21,13 @@ import re
 
 import aiohttp
 
+from sawtooth_sdk.messaging.future import FutureTimeoutError
 from sawtooth_sdk.protobuf.validator_pb2 import Message
 from sawtooth_sdk.protobuf import client_batch_submit_pb2
 from sawtooth_sdk.messaging.exceptions import ValidatorConnectionError
 
 from remme.shared.utils import message_to_dict
+from remme.settings import ZMQ_CONNECTION_TIMEOUT
 
 from .basic import BasicWebSocketHandler
 from .constants import Action, Entity, Status
@@ -255,12 +257,12 @@ class WsApplicationHandler(BasicWebSocketHandler):
             ).SerializeToString())
 
         try:
-            resp = future.result(10).content
+            resp = future.result(ZMQ_CONNECTION_TIMEOUT).content
         except ValidatorConnectionError as vce:
             LOGGER.error('ZMQ error: %s' % vce)
             raise Exception(
                 'Failed with ZMQ interaction: {0}'.format(vce))
-        except asyncio.TimeoutError:
+        except (asyncio.TimeoutError, FutureTimeoutError):
             LOGGER.error(f'Task with batch_id {batch_id} timeouted')
             raise Exception('Timeout')
 
