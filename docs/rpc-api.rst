@@ -24,6 +24,37 @@ All communications with rpc api are going through `/ POST` or `WS` connection.
 
 
 ======================
+JSON RPC error codes
+======================
+Base JSON RPC errors taken from spec https://www.jsonrpc.org/specification, but also has own custom codes.
+
++------------+----------------------------------+------------------------------------------------------+
+|    Code    | Possible Return message          | Description                                          |
++============+==================================+======================================================+
+|   -32700   |   Parse error                    |   Invalid JSON was received by the server. An error  |
+|            |                                  |   occurred on the server while parsing the JSON text |
++------------+----------------------------------+------------------------------------------------------+
+|   -32600   |   Invalid Request                |   The JSON sent is not a valid Request object        |
++------------+----------------------------------+------------------------------------------------------+
+|   -32601   |   Method not found               |   The method does not exist / is not available.      |
++------------+----------------------------------+------------------------------------------------------+
+|   -32602   |   Invalid params                 |   Invalid method parameter(s)                        |
++------------+----------------------------------+------------------------------------------------------+
+|   -32603   |   Internal error                 |   Internal JSON-RPC error                            |
++------------+----------------------------------+------------------------------------------------------+
+|   -32001   |   Resource not found             |   Some resource by identifier not found on chain     |
++------------+----------------------------------+------------------------------------------------------+
+|   -32002   |   Validator is not ready yet     |   Validator is not prepared for handling of requests |
++------------+----------------------------------+------------------------------------------------------+
+|   -32003   |   Invalid or missing header      |   Wrong header for validator request                 |
++------------+----------------------------------+------------------------------------------------------+
+|   -32004   |   Invalid or missing resource id |   Wrong id for some resource                         |
++------------+----------------------------------+------------------------------------------------------+
+|   -32005   |   Invalid limit count            |   Wrong limit count for resource                     |
++------------+----------------------------------+------------------------------------------------------+
+
+
+======================
 JSON RPC API Reference
 ======================
 
