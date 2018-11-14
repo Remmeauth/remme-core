@@ -1,7 +1,9 @@
 import logging
+import asyncio
 from contextlib import suppress
 
 from google.protobuf.message import DecodeError
+from sawtooth_sdk.messaging.future import FutureTimeoutError
 from sawtooth_sdk.messaging.exceptions import ValidatorConnectionError
 
 from sawtooth_sdk.protobuf.client_list_control_pb2 import ClientPagingControls
@@ -37,6 +39,7 @@ from sawtooth_sdk.protobuf.client_block_pb2 import (
 )
 from sawtooth_sdk.protobuf.validator_pb2 import Message
 
+from remme.settings import ZMQ_CONNECTION_TIMEOUT
 from remme.shared.utils import (
     get_paging_controls,
     get_head_id,
@@ -71,13 +74,18 @@ class Router:
         resp = resp_proto()
 
         try:
-            resp.ParseFromString(future.result().content)
+            resp.ParseFromString(future.result(ZMQ_CONNECTION_TIMEOUT).content)
         except (DecodeError, AttributeError):
             raise ClientException(
                 'Failed to parse "content" string from validator')
         except ValidatorConnectionError as vce:
             raise ClientException(
                 'Failed with ZMQ interaction: {0}'.format(vce))
+        except (asyncio.TimeoutError, FutureTimeoutError):
+            raise ClientException('Validator connection timeout')
+        except Exception as e:
+            LOGGER.exception(e)
+            raise ClientException('Unexpected validator error')
 
         data = message_to_dict(resp)
 
