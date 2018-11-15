@@ -33,7 +33,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Transaction processor.')
     parser.add_argument('-v', '--verbosity', type=int, default=2)
     args = parser.parse_args()
-    setup_logging('tp', args.verbosity)
+    setup_logging('remme-tp', args.verbosity)
 
     processor = TransactionProcessor(url=f'tcp://{ config["validator_ip"] }:{ config["validator_port"] }')
 

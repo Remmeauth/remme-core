@@ -53,4 +53,3 @@ if __name__ == '__main__':
         batch_file = open(OUTPUT_BATCH, 'wb')
         batch_file.write(batch_list.SerializeToString())
         batch_file.close()
-
