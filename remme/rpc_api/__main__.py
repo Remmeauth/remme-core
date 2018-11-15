@@ -26,7 +26,6 @@ from zmq.asyncio import ZMQEventLoop
 from remme.shared.logging_setup import setup_logging
 
 from remme.shared.stream import Stream
-from remme.settings import ZMQ_URL
 from remme.ws import WsApplicationHandler, WsEventSocketHandler
 from remme.settings.default import load_toml_with_defaults
 
@@ -40,6 +39,10 @@ if __name__ == '__main__':
     cfg_rpc = load_toml_with_defaults(
         '/config/remme-rpc-api.toml'
     )['remme']['rpc_api']
+
+    cfg_ws = load_toml_with_defaults(
+        '/config/remme-client-config.toml'
+    )['remme']['client']
 
     setup_logging('rpc-api')
     parser = argparse.ArgumentParser()
@@ -72,7 +75,7 @@ if __name__ == '__main__':
     cors.add(app.router.add_route('POST', '/', rpc))
 
     # Remme ws
-    stream = Stream(ZMQ_URL)
+    stream = Stream(f'tcp://{ cfg_ws["validator_ip"] }:{ cfg_ws["validator_port"] }')
     ws_handler = WsApplicationHandler(stream, loop=loop)
     cors.add(app.router.add_route('GET', '/ws', ws_handler.subscriptions))
     ws_event_handler = WsEventSocketHandler(stream, loop=loop)

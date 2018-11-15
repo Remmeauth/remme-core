@@ -28,8 +28,12 @@ def setup_logging(name, verbosity=2):
         log_config = get_log_config(filename='/etc/sawtooth/log_config.yaml')
 
     if log_config is not None:
-        LOGGER.info(f'Found and loaded logging configuration: {log_config}')
-        log_configuration(log_config=log_config)
+        try:
+            log_configuration(log_config=log_config)
+            LOGGER.info(f'Found and loaded logging configuration: {log_config}')
+        except Exception as e:
+            LOGGER.exception(e)
+            LOGGER.info(f'Config has an error, skipping...')
 
     init_console_logging(verbose_level=verbosity)
 
