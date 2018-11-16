@@ -6,7 +6,7 @@ format = "[%(asctime)s.%(msecs)03d [%(threadName)s] %(module)s %(levelname)s] %(
 datefmt = "%H:%M:%S"
 
 [handlers.file]
-level = "INFO"
+level = "DEBUG"
 formatter = "standard"
 class = "logging.handlers.RotatingFileHandler"
 filename = "/var/log/remme/validator-rest-api.log"
@@ -14,5 +14,5 @@ maxBytes = 50000000
 backupCount = 20
 
 [root]
-level = "INFO"
+level = "DEBUG"
 handlers = ["file"]
