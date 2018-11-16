@@ -66,7 +66,7 @@ class PubKeyHandler(BasicHandler):
         LOGGER.info('Pub key address {}'.format(address))
 
         account_address = AccountHandler().make_address_from_data(signer_pubkey)
-        LOGGER.info('Account address {}'.format(address))
+        LOGGER.info('Account address {}'.format(account_address))
         data, account = get_multiple_data(context, [(address, PubKeyStorage), (account_address, Account)])
         if data:
             raise InvalidTransaction('This pub key is already registered.')

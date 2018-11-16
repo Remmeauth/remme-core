@@ -58,6 +58,7 @@ def get_event_attributes(updated_state, header_signature):
                     "header_signature": header_signature}
     return [(key, str(value)) for key, value in content_dict.items()]
 
+
 def get_data(context, pb_class, address):
     raw_data = context.get_state([address])
     LOGGER.debug(f'Raw data: {raw_data}')
