@@ -44,7 +44,7 @@ if __name__ == '__main__':
         '/config/remme-client-config.toml'
     )['remme']['client']
 
-    setup_logging('rpc-api')
+    setup_logging('remme-rpc-api')
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--port', type=int, default=cfg_rpc["port"])
