@@ -22,21 +22,25 @@ from aiohttp_json_rpc import (
 
 from remme.clients.pub_key import PubKeyClient
 from remme.shared.exceptions import KeyNotFound
+from remme.settings import PRIV_KEY_FILE, SETTINGS_STORAGE_PUB_KEY
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 
 __all__ = (
-    'get_node_public_key',
+    'get_node_config',
     'get_public_key_info',
 )
 
 logger = logging.getLogger(__name__)
 
 
-async def get_node_public_key(request):
+async def get_node_config(request):
     client = PubKeyClient()
-    return client.get_public_key()
+    return {
+        'node_public_key': client.get_public_key(),
+        'storage_public_key': client.get_setting_value(SETTINGS_STORAGE_PUB_KEY),
+    }
 
 
 async def get_public_key_info(request):

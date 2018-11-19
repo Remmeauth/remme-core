@@ -22,12 +22,13 @@ from sawtooth_sdk.protobuf.transaction_pb2 import (
 )
 from sawtooth_signing import CryptoFactory, ParseError, create_context
 from sawtooth_signing.secp256k1 import Secp256k1PrivateKey
+from sawtooth_sdk.protobuf.setting_pb2 import Setting
 
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.shared.utils import (
     hash512,
 )
-
+from remme.settings.helper import _make_settings_key
 from remme.shared.stream import Stream
 from remme.settings import PRIV_KEY_FILE
 from remme.settings.default import load_toml_with_defaults
@@ -104,6 +105,12 @@ class BasicClient(Router):
 
     def is_address(self, address):
         return self._family_handler.is_address(address)
+
+    def get_setting_value(self, key):
+        setting = Setting()
+        value = self.get_value(_make_settings_key(key))
+        setting.ParseFromString(value)
+        return setting.entries[0].value
 
     def get_value(self, address):
         result = self.fetch_state(address)
