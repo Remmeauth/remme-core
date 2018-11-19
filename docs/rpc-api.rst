@@ -70,7 +70,7 @@ JSON RPC API Reference
 
 * the id of the batch the transaction was included into
 
-| **get_node_public_key**
+| **get_node_config**
 
 | Submit a transaction to the node
 
@@ -80,7 +80,8 @@ JSON RPC API Reference
 
 *Returns*
 
-* the public key of a node
+* node_public_key - the public key of a node
+* storage_public_key - the public key for storage of tokens
 
 | **get_batch_status**
 
