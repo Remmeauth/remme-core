@@ -62,10 +62,10 @@ if [ $BG_MODE -eq 1 ]; then
     ADDITIONAL_ARGS="$ADDITIONAL_ARGS -d"
 fi
 
-COMMAND="docker-compose $COMPOSE_FILES --project-name remme"
+COMMAND="docker-compose --project-name remme"
 
 if [ "$OPERATION" == "u" ]; then
-    $COMMAND up $ADDITIONAL_ARGS
+    $COMMAND up $COMPOSE_FILES $ADDITIONAL_ARGS
 else
-    $COMMAND down
+    $COMMAND -f $COMPOSE_DIR/base.yml -f $COMPOSE_DIR/genesis.yml down
 fi

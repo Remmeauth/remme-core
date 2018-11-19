@@ -40,7 +40,7 @@ adheres to [Semantic Versioning](https://semver.org).
   - Scripts that are responsible for starting up the software in Docker containers are now in
     `scripts/node`.
   - `build/ci` contains scripts related to continuous integration and delivery.
-  - You can see the documentation on those scripts in [BUILD.md].
+  - You can see the documentation on those scripts in [BUILD.md](BUILD.md).
 - Move to Poetry configuration system for Python projects. This brings much more consistent
   configuration and tooling for the Python part of the project.
 - Upgrade Sawtooth framework to nightly branch. Will move to stable when the required branch
