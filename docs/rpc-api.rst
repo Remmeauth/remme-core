@@ -157,7 +157,7 @@ JSON RPC API Reference
 
 *Parameters*
 
-* public_key - the public key of a user
+* public_key_address - the address of a key on REMchain
 
 *Returns*
 
@@ -169,7 +169,7 @@ JSON RPC API Reference
 
 *Parameters*
 
-* public_key - the public key of a user
+* public_key_address - the address of a key on REMchain
 
 *Returns*
 
@@ -180,10 +180,6 @@ JSON RPC API Reference
 | Show info of some public key
 
 *Parameters*
-
-* public_key - the PEM-encoded public key
-
-   or
 
 * public_key_address - the address of a key on REMchain
 

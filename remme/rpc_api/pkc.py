@@ -16,7 +16,6 @@ import time
 import logging
 
 from aiohttp_json_rpc import (
-    RpcGenericServerDefinedError,
     RpcInvalidParamsError,
 )
 
@@ -45,29 +44,10 @@ async def get_node_config(request):
 
 async def get_public_key_info(request):
     request.params = request.params or {}
-    if 'public_key' in request.params:
-        try:
-            public_key = request.params['public_key']
-            serialization.load_pem_public_key(public_key.encode('utf-8'),
-                                              default_backend())
-            public_key_address = PubKeyClient() \
-                .make_address_from_data(public_key)
-            logger.debug(f'fetch public_key_address {public_key_address}')
-        except KeyError:
-            raise RpcInvalidParamsError(message='Missed public_key')
-        except ValueError:
-            raise RpcGenericServerDefinedError(
-                error_code=-32050,
-                message='Unable to load pub_key entity'
-            )
-    elif 'public_key_address' in request.params:
-        try:
-            public_key_address = request.params['public_key_address']
-        except KeyError:
-            raise RpcInvalidParamsError(message='Missed public_key_address')
-    else:
-        raise RpcInvalidParamsError(
-            message='Missed public_key or public_key_address')
+    try:
+        public_key_address = request.params['public_key_address']
+    except KeyError:
+        raise RpcInvalidParamsError(message='Missed public_key_address')
 
     client = PubKeyClient()
     try:

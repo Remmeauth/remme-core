@@ -128,9 +128,10 @@ class RpcApiTestCase(AioHTTPTestCase, HelperTestCase):
     @unittest_run_loop
     @test
     async def test_get_token_balance(self, root_mock, fetch_state_mock):
+        address = AccountClient().make_address_from_data('03823c7a9e285246985089824f3aaa51fb8675d08d84b151833ca5febce37ad61a')
         resp = await self.create_rpc_request(
             'get_balance',
-            {'public_key': '03823c7a9e285246985089824f3aaa51fb8675d08d84b151833ca5febce37ad61a'}
+            {'public_key_address': address}
         )
         self.assertEqual(resp.status, 200)
         data = await resp.json()
