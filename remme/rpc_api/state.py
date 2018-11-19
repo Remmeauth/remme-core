@@ -24,7 +24,7 @@ async def list_state(request):
     head = request.params.get('head')
     reverse = request.params.get('reverse')
 
-    return client.list_state(address, start, limit, head, reverse)
+    return await client.list_state(address, start, limit, head, reverse)
 
 
 async def fetch_state(request):
@@ -36,6 +36,6 @@ async def fetch_state(request):
 
     client = BasicClient()
     try:
-        return client.fetch_state(address, head)
+        return await client.fetch_state(address, head)
     except KeyNotFound:
         raise KeyNotFound(f'Block with id "{id}" not found')

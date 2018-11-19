@@ -243,8 +243,8 @@ class PubKeyClient(BasicClient):
     def sign_text(self, data):
         return self._signer.sign(data.encode('utf-8'))
 
-    def get_status(self, address):
-        data = self.get_value(address)
+    async def get_status(self, address):
+        data = await self.get_value(address)
         storage = PubKeyStorage()
         storage.ParseFromString(data)
         return storage

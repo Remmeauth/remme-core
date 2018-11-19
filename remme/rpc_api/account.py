@@ -21,7 +21,7 @@ async def get_balance(request):
         address = request.params['public_key_address']
     except KeyError:
         raise RpcInvalidParamsError(message='Missed public_key_address')
-    return client.get_balance(address)
+    return await client.get_balance(address)
 
 
 async def get_public_keys_list(request):
@@ -30,4 +30,4 @@ async def get_public_keys_list(request):
         address = request.params['public_key_address']
     except KeyError:
         raise RpcInvalidParamsError(message='Missed public_key_address')
-    return client.get_pub_keys(address)
+    return await client.get_pub_keys(address)

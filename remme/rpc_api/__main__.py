@@ -22,11 +22,9 @@ import logging
 from aiohttp import web
 import aiohttp_cors
 
-from zmq.asyncio import ZMQEventLoop
 from remme.shared.logging_setup import setup_logging
 
-from remme.shared.stream import Stream
-from remme.ws import WsApplicationHandler, WsEventSocketHandler
+from remme.ws import EventWebSocketHandler
 from remme.settings.default import load_toml_with_defaults
 
 from .base import JsonRpc
@@ -51,8 +49,7 @@ if __name__ == '__main__':
     parser.add_argument('--bind', default=cfg_rpc["bind"])
     arguments = parser.parse_args()
 
-    loop = ZMQEventLoop()
-    asyncio.set_event_loop(loop)
+    loop = asyncio.get_event_loop()
 
     app = web.Application(loop=loop)
     cors_config = cfg_rpc["cors"]
@@ -75,12 +72,12 @@ if __name__ == '__main__':
     cors.add(app.router.add_route('POST', '/', rpc))
 
     # Remme ws
-    stream = Stream(f'tcp://{ cfg_ws["validator_ip"] }:{ cfg_ws["validator_port"] }')
-    ws_handler = WsApplicationHandler(stream, loop=loop)
-    cors.add(app.router.add_route('GET', '/ws', ws_handler.subscriptions))
-    ws_event_handler = WsEventSocketHandler(stream, loop=loop)
-    # FIXME: Merge with one ws in future
-    cors.add(app.router.add_route('GET', '/ws/events', ws_event_handler.subscriptions))
+    zmq_url = f'tcp://{ cfg_ws["validator_ip"] }:{ cfg_ws["validator_port"] }'
+    ws_handler = EventWebSocketHandler(zmq_url=zmq_url, loop=loop)
+    rpc.add_methods(('', ws_handler.subscribe))
+    rpc.add_methods(('', ws_handler.unsubscribe))
+
+    cors.add(app.router.add_route('GET', '/events', ws_handler))
 
     logger.info('All server parts loaded')
 

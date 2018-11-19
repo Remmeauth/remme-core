@@ -27,7 +27,7 @@ async def get_atomic_swap_info(request):
         raise RpcInvalidParamsError(message='Missed swap_id')
 
     try:
-        swap_info = client.swap_get(swap_id)
+        swap_info = await client.swap_get(swap_id)
     except KeyNotFound as e:
         raise KeyNotFound(f'Atomic swap with id "{swap_id}" not found')
     LOGGER.info(f'Get swap info {swap_info}')
@@ -41,6 +41,6 @@ async def get_atomic_swap_info(request):
 async def get_atomic_swap_public_key(request):
     client = AtomicSwapClient()
     try:
-        return client.get_pub_key_encryption()
+        return await client.get_pub_key_encryption()
     except KeyNotFound:
         raise KeyNotFound('Public key for atomic swap not set')

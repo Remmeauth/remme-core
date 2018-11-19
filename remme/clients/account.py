@@ -56,21 +56,21 @@ class AccountClient(BasicClient):
 
         return self._send_transaction(AccountMethod.TRANSFER, transfer, addresses_input, addresses_output)
 
-    def get_account(self, address):
+    async def get_account(self, address):
         account = Account()
-        account.ParseFromString(self.get_value(address))
+        account.ParseFromString(await self.get_value(address))
         return account
 
-    def get_pub_keys(self, address):
+    async def get_pub_keys(self, address):
         try:
-            account = self.get_account(address)
+            account = await self.get_account(address)
             return list(account.pub_keys)
         except KeyNotFound:
             return []
 
-    def get_balance(self, address):
+    async def get_balance(self, address):
         try:
-            account = self.get_account(address)
+            account = await self.get_account(address)
             return account.balance
         except KeyNotFound:
             return 0

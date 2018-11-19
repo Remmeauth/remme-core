@@ -1,3 +1,18 @@
+# Copyright 2018 REMME
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ------------------------------------------------------------------------
+
 import logging
 import asyncio
 from contextlib import suppress
@@ -64,17 +79,20 @@ LOGGER = logging.getLogger(__name__)
 
 class Router:
 
-    def _handle_response(self, msg_type, resp_proto, req):
-        self._stream.wait_for_ready()
+    def __init__(self, stream):
+        self._stream = stream
 
-        future = self._stream.send(
-            message_type=msg_type,
-            content=req.SerializeToString())
-
-        resp = resp_proto()
+    async def _handle_response(self, msg_type, resp_proto, req):
+        if not self._stream.has_transport:
+            await self._stream.open()
 
         try:
-            resp.ParseFromString(future.result(ZMQ_CONNECTION_TIMEOUT).content)
+            msg = await self._stream.send(
+                message_type=msg_type,
+                message_content=req.SerializeToString(),
+                timeout=ZMQ_CONNECTION_TIMEOUT)
+            resp = resp_proto()
+            resp.ParseFromString(msg.content)
         except (DecodeError, AttributeError):
             raise ClientException(
                 'Failed to parse "content" string from validator')
@@ -135,16 +153,16 @@ class Router:
                 'paging': paging
             })
 
-    def _head_to_root(self, block_id):
+    async def _head_to_root(self, block_id):
         if block_id:
-            resp = self._handle_response(
+            resp = await self._handle_response(
                 Message.CLIENT_BLOCK_GET_BY_ID_REQUEST,
                 ClientBlockGetResponse,
                 ClientBlockGetByIdRequest(block_id=block_id)
             )
             block = expand_block(resp['block'])
         else:
-            resp = self._handle_response(
+            resp = await self._handle_response(
                 Message.CLIENT_BLOCK_LIST_REQUEST,
                 ClientBlockListResponse,
                 ClientBlockListRequest(
@@ -157,12 +175,12 @@ class Router:
             block['header']['state_root_hash'],
         )
 
-    def list_state(self, address, start=None, limit=None, head=None,
-                   reverse=None):
+    async def list_state(self, address, start=None, limit=None, head=None,
+                         reverse=None):
         paging_controls = get_paging_controls(start, limit)
-        head, root = self._head_to_root(head)
+        head, root = await self._head_to_root(head)
 
-        response = self._handle_response(
+        response = await self._handle_response(
             Message.CLIENT_STATE_LIST_REQUEST,
             ClientStateListResponse,
             ClientStateListRequest(
@@ -179,10 +197,10 @@ class Router:
             head=head
         )
 
-    def fetch_state(self, address, head=None):
-        head, root = self._head_to_root(head)
+    async def fetch_state(self, address, head=None):
+        head, root = await self._head_to_root(head)
 
-        response = self._handle_response(
+        response = await self._handle_response(
             Message.CLIENT_STATE_GET_REQUEST,
             ClientStateGetResponse,
             ClientStateGetRequest(
@@ -194,12 +212,12 @@ class Router:
             metadata=self._get_metadata(response, head=head)
         )
 
-    def list_blocks(self, block_ids=None, start=None, limit=None, head=None,
-                    reverse=None):
+    async def list_blocks(self, block_ids=None, start=None, limit=None,
+                          head=None, reverse=None):
         paging_controls = get_paging_controls(start, limit)
         id_query = ','.join(block_ids) if block_ids else None
 
-        response = self._handle_response(
+        response = await self._handle_response(
             Message.CLIENT_BLOCK_LIST_REQUEST,
             ClientBlockListResponse,
             ClientBlockListRequest(
@@ -215,10 +233,10 @@ class Router:
             data=[expand_block(b) for b in response['blocks']]
         )
 
-    def fetch_block(self, block_id):
+    async def fetch_block(self, block_id):
         validate_id(block_id)
 
-        response = self._handle_response(
+        response = await self._handle_response(
             Message.CLIENT_BLOCK_GET_BY_ID_REQUEST,
             ClientBlockGetResponse,
             ClientBlockGetByIdRequest(
@@ -230,12 +248,12 @@ class Router:
             metadata=self._get_metadata(response)
         )
 
-    def list_batches(self, batch_ids=None, start=None, limit=None, head=None,
-                     reverse=None):
+    async def list_batches(self, batch_ids=None, start=None, limit=None,
+                           head=None, reverse=None):
         paging_controls = get_paging_controls(start, limit)
         id_query = ','.join(batch_ids) if batch_ids else None
 
-        response = self._handle_response(
+        response = await self._handle_response(
             Message.CLIENT_BATCH_LIST_REQUEST,
             ClientBatchListResponse,
             ClientBatchListRequest(
@@ -251,10 +269,10 @@ class Router:
             data=[expand_batch(b) for b in response['batches']]
         )
 
-    def fetch_batch(self, batch_id):
+    async def fetch_batch(self, batch_id):
         validate_id(batch_id)
 
-        response = self._handle_response(
+        response = await self._handle_response(
             Message.CLIENT_BATCH_GET_REQUEST,
             ClientBatchGetResponse,
             ClientBatchGetRequest(
@@ -266,12 +284,12 @@ class Router:
             metadata=self._get_metadata(response)
         )
 
-    def list_transactions(self, transaction_ids=None, start=None, limit=None,
-                          head=None, reverse=None):
+    async def list_transactions(self, transaction_ids=None, start=None,
+                                limit=None, head=None, reverse=None):
         paging_controls = get_paging_controls(start, limit)
         id_query = ','.join(transaction_ids) if transaction_ids else None
 
-        response = self._handle_response(
+        response = await self._handle_response(
             Message.CLIENT_TRANSACTION_LIST_REQUEST,
             ClientTransactionListResponse,
             ClientTransactionListRequest(
@@ -289,10 +307,10 @@ class Router:
             data=data
         )
 
-    def fetch_transaction(self, transaction_id):
+    async def fetch_transaction(self, transaction_id):
         validate_id(transaction_id)
 
-        response = self._handle_response(
+        response = await self._handle_response(
             Message.CLIENT_TRANSACTION_GET_REQUEST,
             ClientTransactionGetResponse,
             ClientTransactionGetRequest(
@@ -304,9 +322,9 @@ class Router:
             metadata=self._get_metadata(response)
         )
 
-    def list_receipts(self, transaction_ids):
+    async def list_receipts(self, transaction_ids):
         id_query = ','.join(transaction_ids) if transaction_ids else None
-        response = self._handle_response(
+        response = await self._handle_response(
             Message.CLIENT_RECEIPT_GET_REQUEST,
             ClientReceiptGetResponse,
             ClientReceiptGetRequest(
@@ -319,8 +337,8 @@ class Router:
             metadata=self._get_metadata(response)
         )
 
-    def fetch_peers(self):
-        response = self._handle_response(
+    async def fetch_peers(self):
+        response = await self._handle_response(
             Message.CLIENT_PEERS_GET_REQUEST,
             ClientPeersGetResponse,
             ClientPeersGetRequest()
@@ -330,8 +348,8 @@ class Router:
             metadata=self._get_metadata(response)
         )
 
-    # def fetch_status(self):
-    #     response = self._handle_response(
+    # async def fetch_status(self):
+    #     response = await self._handle_response(
     #         Message.CLIENT_STATUS_GET_REQUEST,
     #         ClientStatusGetResponse,
     #         ClientStatusGetRequest()
@@ -344,8 +362,8 @@ class Router:
     #         metadata=self._get_metadata(response)
     #     )
 
-    def submit_batches(self, batches):
-        self._handle_response(
+    async def submit_batches(self, batches):
+        await self._handle_response(
             Message.CLIENT_BATCH_SUBMIT_REQUEST,
             ClientBatchSubmitResponse,
             ClientBatchSubmitRequest(batches=batches)
@@ -356,9 +374,9 @@ class Router:
             data=id_string
         )
 
-    def list_statuses(self, batch_ids):
+    async def list_statuses(self, batch_ids):
         id_query = ','.join(batch_ids) if batch_ids else None
-        response = self._handle_response(
+        response = await self._handle_response(
             Message.CLIENT_BATCH_STATUS_REQUEST,
             ClientBatchStatusResponse,
             ClientBatchStatusRequest(

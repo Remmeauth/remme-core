@@ -56,7 +56,7 @@ async def send_tokens(request):
     except KeyError:
         raise RpcInvalidParamsError(message='Missed public_key_to')
     client = AccountClient()
-    signer_account = client.get_account(client.get_signer_address())
+    signer_account = await client.get_account(client.get_signer_address())
     if not amount:
         raise RpcGenericServerDefinedError(
             error_code=-32050,
@@ -68,7 +68,7 @@ async def send_tokens(request):
             message='Not enough transferable balance of sender'
         )
     address_to = client.make_address_from_data(public_key_to)
-    result = client.transfer(address_to, amount)
+    result = await client.transfer(address_to, amount)
     return result['data']
 
 
@@ -116,7 +116,7 @@ async def send_raw_transaction(request):
         )
 
     client = PubKeyClient()
-    response = client.send_raw_transaction(tr_pb)
+    response = await client.send_raw_transaction(tr_pb)
     return response['data']
 
 
@@ -127,7 +127,7 @@ async def list_receipts(request):
     except KeyError:
         raise RpcInvalidParamsError(message='Missed ids')
     try:
-        return client.list_receipts(ids)
+        return await client.list_receipts(ids)
     except KeyNotFound:
         raise KeyNotFound(f'Transactions with ids "{ids}" not found')
 
@@ -140,7 +140,7 @@ async def list_batches(request):
     head = request.params.get('head')
     reverse = request.params.get('reverse')
 
-    return client.list_batches(ids, start, limit, head, reverse)
+    return await client.list_batches(ids, start, limit, head, reverse)
 
 
 async def fetch_batch(request):
@@ -151,7 +151,7 @@ async def fetch_batch(request):
 
     client = AccountClient()
     try:
-        return client.fetch_batch(id)
+        return await client.fetch_batch(id)
     except KeyNotFound:
         raise KeyNotFound(f'Batch with id "{id}" not found')
 
@@ -164,7 +164,7 @@ async def get_batch_status(request):
 
     client = AccountClient()
 
-    return client.get_batch_status(id)
+    return await client.get_batch_status(id)
 
 
 async def list_transactions(request):
@@ -175,7 +175,7 @@ async def list_transactions(request):
     head = request.params.get('head')
     reverse = request.params.get('reverse')
 
-    return client.list_transactions(ids, start, limit, head, reverse)
+    return await client.list_transactions(ids, start, limit, head, reverse)
 
 
 async def fetch_transaction(request):
@@ -186,6 +186,6 @@ async def fetch_transaction(request):
 
     client = AccountClient()
     try:
-        return client.fetch_transaction(id)
+        return await client.fetch_transaction(id)
     except KeyNotFound:
         raise KeyNotFound(f'Transaction with id "{id}" not found')

@@ -12,12 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------
-import ujson
+
+from enum import Enum, IntEnum, unique
 
 
-def serialize(payload):
-    return ujson.dumps(payload)
+EMIT_EVENT = "emit_event"
 
 
-def deserialize(payload):
-    return ujson.loads(payload)
+@unique
+class Events(Enum):
+
+    SWAP_INIT = 'atomic-swap/init'
+    SWAP_CLOSE = 'atomic-swap/close'
+    SWAP_APPROVE = 'atomic-swap/approve'
+    SWAP_EXPIRE = 'atomic-swap/expire'
+    SWAP_SET_SECRET_LOCK = 'atomic-swap/set-secret-lock'
+
+    ACCOUNT_TRANSFER = 'account/transfer'
+
+    SAWTOOTH_BLOCK_COMMIT = 'sawtooth/block-commit'
+
+    REMME_BATCH_DELTA = 'remme/batch-delta'

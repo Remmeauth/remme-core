@@ -1,2 +1,1 @@
-from .ws import WsApplicationHandler  # noqa
-from .events import WsEventSocketHandler  # noqa
+from .base import EventWebSocketHandler  # noqa

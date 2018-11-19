@@ -14,13 +14,13 @@ logger = logging.getLogger(__name__)
 
 async def get_node_info(request):
     client = PubKeyClient()
-    data = client.fetch_peers()
+    data = await client.fetch_peers()
     return {'is_synced': True, 'peer_count': len(data['data'])}
 
 
 async def fetch_peers(request):
     client = PubKeyClient()
-    return client.fetch_peers()
+    return await client.fetch_peers()
 
 
 # async def fetch_status(request):

@@ -38,8 +38,7 @@ from remme.clients.block_info import BlockInfoClient, CONFIG_ADDRESS
 from remme.tp.account import AccountHandler, get_account_by_address
 from remme.protos.block_info_pb2 import BlockInfo, BlockInfoConfig
 
-from remme.ws.basic import EMIT_EVENT
-from remme.ws.constants import Events
+from remme.shared.constants import Events, EMIT_EVENT
 
 
 LOGGER = logging.getLogger(__name__)

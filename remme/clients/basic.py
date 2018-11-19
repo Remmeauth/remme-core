@@ -29,10 +29,10 @@ from remme.shared.utils import (
     hash512,
 )
 from remme.settings.helper import _make_settings_key
-from remme.shared.stream import Stream
+from remme.shared.messaging import Connection
 from remme.settings import PRIV_KEY_FILE
 from remme.settings.default import load_toml_with_defaults
-from remme.clients.router import Router
+from remme.shared.router import Router
 from remme.shared.exceptions import (
     ClientException,
 )
@@ -41,14 +41,15 @@ from remme.shared.exceptions import (
 LOGGER = logging.getLogger(__name__)
 
 
-class BasicClient(Router):
+class BasicClient:
 
     def __init__(self, family_handler=None, keyfile=None):
         config = load_toml_with_defaults('/config/remme-client-config.toml')['remme']['client']
 
         self.url = config['validator_rest_api_url']
         self._family_handler = family_handler() if callable(family_handler) else None
-        self._stream = Stream(f'tcp://{ config["validator_ip"] }:{ config["validator_port"] }')
+        self._stream = Connection(f'tcp://{ config["validator_ip"] }:{ config["validator_port"] }')
+        self._router = Router(self._stream)
 
         if keyfile is None:
             keyfile = PRIV_KEY_FILE
@@ -58,6 +59,12 @@ class BasicClient(Router):
         except ClientException as e:
             LOGGER.warning('Could not set up signer from file, detailed: %s', e)
             self._signer = self.generate_signer(keyfile)
+
+    def __getattr__(self, name):
+        rfunc = getattr(self._router, name, None)
+        if rfunc:
+            return rfunc
+        raise TypeError(f"'{self.__class__.__name__}' object has no attribute '{attr}'")
 
     @staticmethod
     def get_signer_priv_key_from_file(keyfile):
@@ -106,18 +113,18 @@ class BasicClient(Router):
     def is_address(self, address):
         return self._family_handler.is_address(address)
 
-    def get_setting_value(self, key):
+    async def get_setting_value(self, key):
         setting = Setting()
-        value = self.get_value(_make_settings_key(key))
+        value = await self.get_value(_make_settings_key(key))
         setting.ParseFromString(value)
         return setting.entries[0].value
 
-    def get_value(self, address):
-        result = self.fetch_state(address)
+    async def get_value(self, address):
+        result = await self.fetch_state(address)
         return base64.b64decode(result['data'])
 
-    def get_batch_status(self, batch_id):
-        result = self.list_statuses([batch_id])
+    async def get_batch_status(self, batch_id):
+        result = await self.list_statuses([batch_id])
         return result['data'][0]['status']
 
     def get_signer(self):
@@ -201,10 +208,10 @@ class BasicClient(Router):
 
         return self.submit_batches(batch_list.batches)
 
-    def send_raw_transaction(self, transaction_pb):
+    async def send_raw_transaction(self, transaction_pb):
         batch_list = self._sign_batch_list(self._signer, [transaction_pb])
 
-        return self.submit_batches(batch_list.batches)
+        return await self.submit_batches(batch_list.batches)
 
     def _sign_batch_list(self, signer, transactions):
         transaction_signatures = [t.header_signature for t in transactions]

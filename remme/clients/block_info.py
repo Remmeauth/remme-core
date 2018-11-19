@@ -13,19 +13,19 @@ BLOCK_INFO_NAMESPACE = NAMESPACE + '00'
 
 class BlockInfoClient(BasicClient):
 
-    def get_block_info(self, block_num):
+    async def get_block_info(self, block_num):
         bi = BlockInfo()
         bi_addr = self.create_block_address(block_num)
-        bi_state = self.get_value(bi_addr)
+        bi_state = await self.get_value(bi_addr)
         bi.ParseFromString(bi_state)
         return bi
 
-    def get_blocks_info(self, start, limit):
+    async def get_blocks_info(self, start, limit):
         blocks = []
         if not (start and limit):
             block_config = None
             try:
-                block_config = self.get_block_info_config()
+                block_config = await self.get_block_info_config()
             except Exception:
                 return blocks
 
@@ -40,7 +40,7 @@ class BlockInfoClient(BasicClient):
 
         for i in range(start - limit, start):
             try:
-                bi = self.get_block_info(i)
+                bi = await self.get_block_info(i)
             except KeyNotFound:
                 continue
             else:
@@ -48,9 +48,9 @@ class BlockInfoClient(BasicClient):
 
         return list(reversed(blocks))
 
-    def get_block_info_config(self):
+    async def get_block_info_config(self):
         bic = BlockInfoConfig()
-        bic.ParseFromString(self.get_value(CONFIG_ADDRESS))
+        bic.ParseFromString(await self.get_value(CONFIG_ADDRESS))
         return bic
 
     @staticmethod
