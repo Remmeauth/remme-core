@@ -9,7 +9,6 @@ import asyncio
 from remme.protos.atomic_swap_pb2 import AtomicSwapInfo
 
 from remme.clients.block_info import BlockInfoClient
-from remme.settings import ZMQ_URL
 from sawtooth_sdk.protobuf.client_event_pb2 import ClientEventsSubscribeRequest, ClientEventsSubscribeResponse, ClientEventsUnsubscribeRequest
 from sawtooth_sdk.protobuf.validator_pb2 import Message
 from sawtooth_sdk.protobuf.events_pb2 import EventList, EventSubscription
@@ -65,7 +64,7 @@ class WsEventSocketHandler(BasicWebSocketHandler):
 
         ctx = zmq.Context()
         self._socket = ctx.socket(zmq.DEALER)
-        self._socket.connect(ZMQ_URL)
+        self._socket.connect(stream._url)
         LOGGER.debug(f"Connected to ZMQ")
 
         self._events_updator_task = weakref.ref(
@@ -87,7 +86,7 @@ class WsEventSocketHandler(BasicWebSocketHandler):
                 self.last_block_num = BlockInfoClient().get_block_info_config().latest_block + 1
             except KeyNotFound:
                 self.last_block_num = 0
-            except ValidatorNotReadyException:
+            except (ValidatorNotReadyException, ClientException):
                 await asyncio.sleep(5, loop=self._loop)
                 continue
             break

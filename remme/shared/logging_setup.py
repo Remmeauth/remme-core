@@ -14,6 +14,7 @@
 # ------------------------------------------------------------------------
 
 import logging
+from pkg_resources import resource_filename
 from sawtooth_sdk.processor.log import init_console_logging
 from sawtooth_sdk.processor.log import log_configuration
 from sawtooth_sdk.processor.config import get_log_config
@@ -28,8 +29,17 @@ def setup_logging(name, verbosity=2):
         log_config = get_log_config(filename='/etc/sawtooth/log_config.yaml')
 
     if log_config is not None:
-        LOGGER.info(f'Found and loaded logging configuration: {log_config}')
-        log_configuration(log_config=log_config)
+        try:
+            log_configuration(log_config=log_config)
+            LOGGER.info(f'Found and loaded logging configuration: {log_config}')
+        except Exception as e:
+            default_log_config_filename = resource_filename('remme.settings',
+                                                            'default_log_config.toml')
+            log_config = get_log_config(filename=default_log_config_filename)
+            log_config['handlers']['file']['filename'] = f'/var/log/remme/{name}.log'
+            log_configuration(log_config=log_config)
+            LOGGER.error(f'Logging configuration has an error. Using the default config. Details:'
+                         f'{str(e)}')
 
     init_console_logging(verbose_level=verbosity)
 
