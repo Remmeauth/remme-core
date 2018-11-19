@@ -32,7 +32,7 @@ from remme.clients.pub_key import PubKeyClient
 
 __all__ = (
     'send_raw_transaction',
-    'send_tokens',
+    # 'send_tokens',
     'get_batch_status',
 
     'list_receipts',
