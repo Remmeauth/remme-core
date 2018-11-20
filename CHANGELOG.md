@@ -4,12 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) and this project
 adheres to [Semantic Versioning](https://semver.org).
 
-## WIP [0.6.0-alpha] - 2018-11-xx
+## Unreleased
 ### Added
-- JSON RPC. This was introduced as replacement of REST API which is more consistent in terms of data
-  format and is transport-agnostic (can be used with HTTP, WebSockets or anything else, for example
-  Unix sockets). Documentation is available [here](https://docs.remme.io/remme-core/docs/rpc-api.html).
-- WIP Support for a wider range of cryptographic primitives in `pub_key` transaction family.
+- **WIP** Support for a wider range of cryptographic primitives in `pub_key` transaction family.
   - Previously this transaction family supported only RSA, now the list of supported algorithms was
     extended with ECDSA and Ed25519.
   - Format for submitting public keys is standardized following the X.509 specification.
@@ -18,6 +15,18 @@ adheres to [Semantic Versioning](https://semver.org).
     follow X.509 but Ed25519 is different. The corresponding IETF RFCs are provided in the
     documentaion.
   - To identify the format of the signature a separate field in transactions is used.
+
+### Changed
+- **WIP** New WebSockets architecture that resolves major design flaws of the previous one and is much
+  more efficient. Unlike the previous implementation this one is entirely based on Sawtooth events.
+  On top of architecture changes this implementation introduces new communication format based on
+  JSON RPC 2.0
+
+## [0.6.0-alpha] - 2018-11-20
+### Added
+- JSON RPC. This was introduced as replacement of REST API which is more consistent in terms of data
+  format and is transport-agnostic (can be used with HTTP, WebSockets or anything else, for example
+  Unix sockets). Documentation is available [here](https://docs.remme.io/remme-core/docs/rpc-api.html).
 - The possibility to withdraw tokens from `0x0` address for a designated list of its owners.
   This address is used in atomic swap implementation and will be used in basic economical model
   implementation.
@@ -53,10 +62,6 @@ adheres to [Semantic Versioning](https://semver.org).
   - The system currently use `devmode` consensus.
 - Docker setup now uses only two custom containers: one contains installation of Sawtooth and
   another contains REMME installation.
-- WIP New WebSockets architecture that resolves major design flaws of the previous one and is much
-  more efficient. Unlike the previous implementation this one is entirely based on Sawtooth events.
-  On top of architecture changes this implementation introduces new communication format based on
-  JSON RPC 2.0
 - Removed `web3` from dependencies. The atomic swap component implements Ethereum-compatible hashing
   function now.
 
