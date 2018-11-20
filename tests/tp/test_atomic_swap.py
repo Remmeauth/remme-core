@@ -110,13 +110,6 @@ class AtomicSwapTestCase(HelperTestCase):
         TOTAL_TRANSFERED = context.AMOUNT + context.COMMISSION
         self.expect_get({self.account_address1: AccountClient.get_account_model(TOTAL_TRANSFERED)})
 
-        self.expect_get({
-            _make_settings_key(SETTINGS_KEY_GENESIS_OWNERS):
-                get_setting_from_key_value(
-                    SETTINGS_KEY_GENESIS_OWNERS,
-                    self.account_signer1.get_public_key().as_hex())
-        })
-
         updated_state = self.transfer(self.account_address1, TOTAL_TRANSFERED, ZERO_ADDRESS, 0, TOTAL_TRANSFERED)
 
         context.swap_info.state = AtomicSwapInfo.OPENED
@@ -199,12 +192,6 @@ class AtomicSwapTestCase(HelperTestCase):
         signature = context.client.swap_close(get_swap_close_payload(**close_data), context.swap_info.receiver_address)
 
         self.expect_get({context.swap_address: context.swap_info})
-        self.expect_get({
-            _make_settings_key(SETTINGS_KEY_GENESIS_OWNERS):
-                get_setting_from_key_value(
-                    SETTINGS_KEY_GENESIS_OWNERS,
-                    self.account_signer1.get_public_key().as_hex())
-        })
         updated_state = self.transfer(ZERO_ADDRESS, context.AMOUNT, self.account_address2, 0, context.AMOUNT)
 
         swap_info = context.swap_info
@@ -351,13 +338,6 @@ class AtomicSwapTestCase(HelperTestCase):
         self.expect_get({context.swap_address: context.swap_info})
 
         self.expect_latest_block(context.swap_info.created_at + 48 * 3600)
-
-        self.expect_get({
-            _make_settings_key(SETTINGS_KEY_GENESIS_OWNERS):
-                get_setting_from_key_value(
-                    SETTINGS_KEY_GENESIS_OWNERS,
-                    self.account_signer1.get_public_key().as_hex())
-        })
         updated_state = self.transfer(ZERO_ADDRESS, context.swap_info.amount, self.account_address1, 0, context.swap_info.amount)
 
         context.swap_info.state = AtomicSwapInfo.EXPIRED
@@ -385,13 +365,6 @@ class AtomicSwapTestCase(HelperTestCase):
         self.expect_get({context.swap_address: context.swap_info})
 
         self.expect_latest_block(context.swap_info.created_at + 48 * 3600)
-
-        self.expect_get({
-            _make_settings_key(SETTINGS_KEY_GENESIS_OWNERS):
-                get_setting_from_key_value(
-                    SETTINGS_KEY_GENESIS_OWNERS,
-                    self.account_signer1.get_public_key().as_hex())
-        })
         updated_state = self.transfer(ZERO_ADDRESS, context.swap_info.amount, self.account_address1, 0,
                                       context.swap_info.amount)
 
