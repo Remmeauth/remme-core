@@ -20,8 +20,12 @@ from remme.protos.account_pb2 import (
     Account, GenesisStatus, AccountMethod, GenesisPayload,
     TransferPayload
 )
-from remme.settings import GENESIS_ADDRESS, ZERO_ADDRESS
-from remme.tp.basic import *
+from remme.settings.helper import _get_setting_value
+from remme.settings import GENESIS_ADDRESS, ZERO_ADDRESS, SETTINGS_KEY_GENESIS_OWNERS
+from remme.tp.basic import PB_CLASS, PROCESSOR, BasicHandler, get_data, get_multiple_data
+from remme.ws.basic import EMIT_EVENT
+from remme.ws.constants import Events
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -41,15 +45,22 @@ class AccountHandler(BasicHandler):
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
 
+    @classmethod
+    def create_transfer(cls, context, address_from, address_to, amount):
+        transfer_payload = TransferPayload(address_to=address_to, value=amount)
+        return cls() \
+            ._transfer_from_address(context, address_from, transfer_payload)
+
     def get_state_processor(self):
         return {
             AccountMethod.TRANSFER: {
-                'pb_class': TransferPayload,
-                'processor': self._transfer
+                PB_CLASS: TransferPayload,
+                PROCESSOR: self._transfer,
+                EMIT_EVENT: Events.ACCOUNT_TRANSFER.value
             },
             AccountMethod.GENESIS: {
-                'pb_class': GenesisPayload,
-                'processor': self._genesis
+                PB_CLASS: GenesisPayload,
+                PROCESSOR: self._genesis
             }
         }
 
@@ -76,7 +87,29 @@ class AccountHandler(BasicHandler):
         if address == ZERO_ADDRESS:
             raise InvalidTransaction("Public transfers are not allowed from ZERO_ADDRESS"
                                      " (which is used for internal transactions")
+
+        if not transfer_payload.address_to.startswith(self._prefix) \
+                and transfer_payload.address_to not in [ZERO_ADDRESS]:
+            raise InvalidTransaction("Receiver address has to be of "
+                                     "an account type")
         return self._transfer_from_address(context, address, transfer_payload)
+
+    def _check_signer_address(self, context, signer_address):
+        genesis_members_str = _get_setting_value(context,
+                                                 SETTINGS_KEY_GENESIS_OWNERS)
+        if not genesis_members_str:
+            raise InvalidTransaction('REMchain is not configured '
+                                     'to process genesis transfers.')
+
+        genesis_members_list = list(map(lambda el: self.make_address_from_data(el),
+                                        genesis_members_str.split(',')))
+
+        LOGGER.debug(f'GENESIS MEMBERS ADDRESSES: {genesis_members_list}')
+
+        if signer_address not in genesis_members_list:
+            raise InvalidTransaction(
+                f'Signer address "{signer_address}" '
+                'not in genesis members list')
 
     def _transfer_from_address(self, context, address, transfer_payload):
         signer_key = address
@@ -91,14 +124,10 @@ class AccountHandler(BasicHandler):
         if signer_key == transfer_payload.address_to:
             raise InvalidTransaction("Account cannot send tokens to itself.")
 
-        signer_account, receiver_account = get_multiple_data(context, [(signer_key, Account), (transfer_payload.address_to, Account)])
-
-        # TODO transfer from genesis address using SETTINGS_KEY_GENESIS_OWNERS list of allowed addresses(0x0)
-        # genesis_members_str = _get_setting_value(context, SETTINGS_KEY_GENESIS_OWNERS)
-        # if not genesis_members_str:
-        #     raise InvalidTransaction('REMchain is not configured to process genesis transfers.')
-        #
-        # genesis_members_list = genesis_members_str.split()
+        signer_account, receiver_account = get_multiple_data(context, [
+            (signer_key, Account),
+            (transfer_payload.address_to, Account)
+        ])
 
         if not receiver_account:
             receiver_account = Account()
@@ -106,15 +135,15 @@ class AccountHandler(BasicHandler):
             signer_account = Account()
 
         if signer_account.balance < transfer_payload.value:
-            raise InvalidTransaction("Not enough transferable balance. Sender's current balance: {}"
-                                     .format(signer_account.balance))
+            raise InvalidTransaction(
+                "Not enough transferable balance. Sender's current balance: "
+                f"{signer_account.balance}")
 
         receiver_account.balance += transfer_payload.value
         signer_account.balance -= transfer_payload.value
 
-        LOGGER.info('Transferred {} tokens from {} to {}'.format(transfer_payload.value,
-                                                                 signer_key,
-                                                                 transfer_payload.address_to))
+        LOGGER.info(f'Transferred {transfer_payload.value} tokens from '
+                    f'{signer_key} to {transfer_payload.address_to}')
 
         return {
             signer_key: signer_account,

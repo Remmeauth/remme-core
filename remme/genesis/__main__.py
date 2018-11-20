@@ -13,10 +13,14 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
+# pylint: disable=invalid-name
+
 import argparse
 from remme.protos.account_pb2 import AccountMethod
+from remme.protos.transaction_pb2 import TransactionPayload
+
 from remme.clients.account import AccountClient
-from remme.tp.account import AccountHandler, TransactionPayload
+from remme.tp.account import AccountHandler
 from remme.settings import GENESIS_ADDRESS
 from remme.settings.default import load_toml_with_defaults
 
@@ -49,4 +53,3 @@ if __name__ == '__main__':
         batch_file = open(OUTPUT_BATCH, 'wb')
         batch_file.write(batch_list.SerializeToString())
         batch_file.close()
-

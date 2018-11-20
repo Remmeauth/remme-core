@@ -19,14 +19,17 @@ import datetime
 from remme.clients.atomic_swap import AtomicSwapClient, get_swap_init_payload, get_swap_close_payload, \
     get_swap_approve_payload, get_swap_expire_payload, get_swap_set_secret_lock_payload
 from remme.tp.atomic_swap import AtomicSwapHandler
-from remme.protos.atomic_swap_pb2 import AtomicSwapInfo
-from remme.settings import SETTINGS_SWAP_COMMISSION
+from remme.protos.atomic_swap_pb2 import AtomicSwapInfo, AtomicSwapMethod
+from remme.settings import SETTINGS_SWAP_COMMISSION, SETTINGS_KEY_GENESIS_OWNERS
 from remme.settings.helper import _make_settings_key, get_setting_from_key_value
-from remme.shared.logging import test
+from remme.shared.logging_setup import test
 from remme.shared.utils import generate_random_key, hash256, web3_hash
 from tests.test_helper import HelperTestCase
 from remme.clients.account import AccountClient
 from remme.tp.account import ZERO_ADDRESS
+from remme.clients.block_info import CONFIG_ADDRESS, BLOCK_INFO_NAMESPACE, \
+    BlockInfoClient
+from remme.protos.block_info_pb2 import BlockInfo, BlockInfoConfig
 
 LOGGER = logging.getLogger(__name__)
 
@@ -64,6 +67,19 @@ class AtomicSwapTestCase(HelperTestCase):
         context.swap_info = swap_info
         return context
 
+    def expect_latest_block(self, timestamp):
+        bc = BlockInfoConfig(latest_block=1, oldest_block=1,
+                             target_count=1, sync_tolerance=100)
+
+        self.expect_get({CONFIG_ADDRESS: bc})
+
+        block_info = BlockInfo(block_num=1, previous_block_id='some hash',
+                               signer_public_key='some pub key',
+                               header_signature='some sig',
+                               timestamp=timestamp)
+        self.expect_get({
+            BlockInfoClient.create_block_address(bc.latest_block): block_info})
+
     # TEST: INIT
     @test
     def test_swap_init_success(self):
@@ -80,22 +96,24 @@ class AtomicSwapTestCase(HelperTestCase):
             "created_at": context.created_at,
         }
 
-        context.client.swap_init(get_swap_init_payload(**init_data))
+        signature = context.client.swap_init(get_swap_init_payload(**init_data))
 
         self.expect_get({context.swap_address: None})
+
+        self.expect_latest_block(init_data['created_at'] + 20)
 
         self.expect_get({
             _make_settings_key(SETTINGS_SWAP_COMMISSION):
                 get_setting_from_key_value(SETTINGS_SWAP_COMMISSION, context.COMMISSION)
         })
 
-        TOTAL_TRANSFERED = context.AMOUNT+context.COMMISSION
+        TOTAL_TRANSFERED = context.AMOUNT + context.COMMISSION
         self.expect_get({self.account_address1: AccountClient.get_account_model(TOTAL_TRANSFERED)})
 
         updated_state = self.transfer(self.account_address1, TOTAL_TRANSFERED, ZERO_ADDRESS, 0, TOTAL_TRANSFERED)
 
         context.swap_info.state = AtomicSwapInfo.OPENED
-        self.expect_set({
+        self.expect_set(signature, AtomicSwapMethod.INIT, {
             **{context.swap_address: context.swap_info},
             **updated_state
         })
@@ -171,16 +189,17 @@ class AtomicSwapTestCase(HelperTestCase):
             "secret_key": context.secret_key
         }
 
-        context.client.swap_close(get_swap_close_payload(**close_data), context.swap_info.receiver_address)
+        signature = context.client.swap_close(get_swap_close_payload(**close_data), context.swap_info.receiver_address)
 
         self.expect_get({context.swap_address: context.swap_info})
         updated_state = self.transfer(ZERO_ADDRESS, context.AMOUNT, self.account_address2, 0, context.AMOUNT)
 
         swap_info = context.swap_info
 
+        swap_info.secret_key = context.secret_key
         context.swap_info.state = AtomicSwapInfo.CLOSED
 
-        self.expect_set({
+        self.expect_set(signature, AtomicSwapMethod.CLOSE, {
             **{context.swap_address: swap_info},
             **updated_state
         })
@@ -241,7 +260,7 @@ class AtomicSwapTestCase(HelperTestCase):
             "swap_id": context.swap_id,
         }
 
-        context.client.swap_approve(get_swap_approve_payload(**approve_data))
+        signature = context.client.swap_approve(get_swap_approve_payload(**approve_data))
 
         context.swap_info.is_initiator = True
         context.swap_info.state = AtomicSwapInfo.SECRET_LOCK_PROVIDED
@@ -250,7 +269,7 @@ class AtomicSwapTestCase(HelperTestCase):
 
         context.swap_info.state = AtomicSwapInfo.APPROVED
 
-        self.expect_set({context.swap_address: context.swap_info})
+        self.expect_set(signature, AtomicSwapMethod.APPROVE, {context.swap_address: context.swap_info})
 
         self.expect_ok()
 
@@ -299,11 +318,11 @@ class AtomicSwapTestCase(HelperTestCase):
         self.expect_get({context.swap_address: context.swap_info})
 
         self.expect_invalid_transaction()
-    #
-    # # END TEST
-    #
-    # # TEST: EXPIRE
-    #
+
+    # END TEST
+
+    # TEST: EXPIRE
+
     @test
     def test_swap_expire_success_initiator(self):
         context = self.get_context()
@@ -311,18 +330,19 @@ class AtomicSwapTestCase(HelperTestCase):
             "swap_id": context.swap_id,
         }
 
-        context.client.swap_expire(get_swap_expire_payload(**expire_data))
+        signature = context.client.swap_expire(get_swap_expire_payload(**expire_data))
 
         context.swap_info.created_at = int((datetime.datetime.utcnow() - datetime.timedelta(days=1, minutes=1)).timestamp())
         context.swap_info.is_initiator = True
 
         self.expect_get({context.swap_address: context.swap_info})
 
+        self.expect_latest_block(context.swap_info.created_at + 48 * 3600)
         updated_state = self.transfer(ZERO_ADDRESS, context.swap_info.amount, self.account_address1, 0, context.swap_info.amount)
 
         context.swap_info.state = AtomicSwapInfo.EXPIRED
 
-        self.expect_set({
+        self.expect_set(signature, AtomicSwapMethod.EXPIRE, {
             **{context.swap_address: context.swap_info},
             **updated_state
         })
@@ -336,7 +356,7 @@ class AtomicSwapTestCase(HelperTestCase):
             "swap_id": context.swap_id,
         }
 
-        context.client.swap_expire(get_swap_expire_payload(**expire_data))
+        signature = context.client.swap_expire(get_swap_expire_payload(**expire_data))
 
         context.swap_info.created_at = int(
             (datetime.datetime.utcnow() - datetime.timedelta(days=2, minutes=1)).timestamp())
@@ -344,12 +364,13 @@ class AtomicSwapTestCase(HelperTestCase):
 
         self.expect_get({context.swap_address: context.swap_info})
 
+        self.expect_latest_block(context.swap_info.created_at + 48 * 3600)
         updated_state = self.transfer(ZERO_ADDRESS, context.swap_info.amount, self.account_address1, 0,
                                       context.swap_info.amount)
 
         context.swap_info.state = AtomicSwapInfo.EXPIRED
 
-        self.expect_set({
+        self.expect_set(signature, AtomicSwapMethod.EXPIRE, {
             **{context.swap_address: context.swap_info},
             **updated_state
         })
@@ -368,6 +389,8 @@ class AtomicSwapTestCase(HelperTestCase):
 
         self.expect_get({context.swap_address: context.swap_info})
 
+        self.expect_latest_block(context.swap_info.created_at)
+
         self.expect_invalid_transaction()
 
     @test
@@ -384,6 +407,8 @@ class AtomicSwapTestCase(HelperTestCase):
         context.swap_info.is_initiator = False
 
         self.expect_get({context.swap_address: context.swap_info})
+
+        self.expect_latest_block(context.swap_info.created_at)
 
         self.expect_invalid_transaction()
 
@@ -402,6 +427,8 @@ class AtomicSwapTestCase(HelperTestCase):
 
         self.expect_get({context.swap_address: context.swap_info})
 
+        self.expect_latest_block(context.swap_info.created_at)
+
         self.expect_invalid_transaction()
 
     # END TEST
@@ -416,7 +443,7 @@ class AtomicSwapTestCase(HelperTestCase):
             "secret_lock": context.secret_lock,
         }
 
-        context.client.swap_set_secret_lock(get_swap_set_secret_lock_payload(**set_secert_lock_data))
+        signature = context.client.swap_set_secret_lock(get_swap_set_secret_lock_payload(**set_secert_lock_data))
 
         context.swap_info.secret_lock = ""
 
@@ -425,7 +452,7 @@ class AtomicSwapTestCase(HelperTestCase):
         context.swap_info.secret_lock = context.secret_lock
         context.swap_info.state = AtomicSwapInfo.SECRET_LOCK_PROVIDED
 
-        self.expect_set({context.swap_address: context.swap_info})
+        self.expect_set(signature, AtomicSwapMethod.SET_SECRET_LOCK, {context.swap_address: context.swap_info})
 
         self.expect_ok()
 

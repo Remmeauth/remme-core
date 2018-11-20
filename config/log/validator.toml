@@ -1,0 +1,18 @@
+version = 1
+disable_existing_loggers = false
+
+[formatters.standard]
+format = "[%(asctime)s.%(msecs)03d [%(threadName)s] %(module)s %(levelname)s] %(message)s"
+datefmt = "%H:%M:%S"
+
+[handlers.file]
+level = "DEBUG"
+formatter = "standard"
+class = "logging.handlers.RotatingFileHandler"
+filename = "/var/log/remme/validator.log"
+maxBytes = 50000000
+backupCount = 20
+
+[root]
+level = "DEBUG"
+handlers = ["file"]

@@ -12,13 +12,6 @@ Welcome to REMME's documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Use cases:
-
-   use-case-web-auth
-
-
-.. toctree::
-   :maxdepth: 2
    :caption: Protocol:
 
    sawtooth-overview
@@ -27,7 +20,6 @@ Welcome to REMME's documentation!
    remme-client
    remme-ws
    remme-ws-events
-   generated/modules
 
 .. toctree::
    :maxdepth: 2
@@ -41,7 +33,7 @@ Welcome to REMME's documentation!
    :maxdepth: 2
    :caption: SDK:
 
-   rest-api
+   rpc-api
 
 
 

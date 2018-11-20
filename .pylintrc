@@ -1,0 +1,11 @@
+# import-error and no-name-in-module disabled due to being too verbose about
+# generated *pb2.py
+
+[MESSAGES CONTROL]
+disable=missing-docstring,import-error,no-name-in-module,
+        logging-fstring-interpolation,logging-format-interpolation
+good-names=e,fd
+
+[TYPECHECK]
+ignored-classes=AttrDict,Message,Setting,BatchList,ClientEventsSubscribeResponse,
+                EventList,Transaction,TransactionHeader

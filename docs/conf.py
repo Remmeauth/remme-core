@@ -15,8 +15,10 @@
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
+
+# pylint: disable=invalid-name
+
 import sys
-from recommonmark.parser import CommonMarkParser
 
 PYTHON_MODULE_LOCATION = "/../.."
 sys.path.insert(0, PYTHON_MODULE_LOCATION)
@@ -60,9 +62,6 @@ templates_path = ['_templates']
 # You can specify multiple suffix as a list of string:
 #
 # source_suffix = ['.rst', '.md']
-source_parsers = {
-    '.md': CommonMarkParser,
-}
 
 source_suffix = ['.rst', '.md']
 
@@ -101,7 +100,7 @@ html_theme = 'sphinx_rtd_theme'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+# html_static_path = ['_static']
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.

@@ -15,14 +15,12 @@
 
 import logging
 import hashlib
-import base64
 from functools import lru_cache
 
 
 from sawtooth_sdk.processor.handler import TransactionHandler
 from sawtooth_sdk.messaging.future import FutureTimeoutError
-from sawtooth_sdk.processor.exceptions import InvalidTransaction
-from sawtooth_sdk.processor.exceptions import InternalError
+from sawtooth_sdk.processor.exceptions import InternalError, InvalidTransaction
 
 from sawtooth_sdk.protobuf.setting_pb2 import Setting
 

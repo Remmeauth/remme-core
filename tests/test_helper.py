@@ -28,9 +28,10 @@ from remme.protos.transaction_pb2 import TransactionPayload
 from remme.shared.utils import AttrDict
 from remme.clients.basic import BasicClient
 from remme.clients.account import AccountClient
-from remme.tp.account import AccountHandler
+from remme.tp.account import AccountHandler, EMIT_EVENT
 
 from remme.tp.__main__ import TP_HANDLERS
+from remme.tp.basic import get_event_attributes
 
 LOGGER = logging.getLogger(__name__)
 
@@ -43,14 +44,14 @@ class RemmeMockValidator(MockValidator):
 
 class HelperTestCase(TestCase):
     @classmethod
-    def setUpClass(cls, handler, client_class=None):
+    def setUpClass(cls, handler=None, client_class=None):
         url = os.getenv('TEST_BIND', 'tcp://127.0.0.1:4004')
 
         cls.validator = RemmeMockValidator()
 
         cls.validator.listen(url)
 
-        for item in TP_HANDLERS:
+        for _ in range(len(TP_HANDLERS)):
             if not cls.validator.register_processor():
                 raise Exception('Failed to register processor')
 
@@ -60,7 +61,7 @@ class HelperTestCase(TestCase):
                                       return_value=cls.validator)
         cls._zmq_patcher_obj = cls._zmq_patcher.start()
 
-        cls.handler = handler()
+        cls.handler = handler() if callable(handler) else None
         cls.client_class = client_class
 
         cls._pk_patcher = mock.patch('remme.clients.basic.BasicClient.get_signer_priv_key_from_file',
@@ -73,7 +74,8 @@ class HelperTestCase(TestCase):
         cls.account_signer2 = cls.get_new_signer()
         cls.account_address2 = AccountHandler().make_address_from_data(cls.account_signer2.get_public_key().as_hex())
 
-        cls._factory = cls.handler.get_message_factory(cls.account_signer1)
+        if cls.handler:
+            cls._factory = cls.handler.get_message_factory(cls.account_signer1)
 
     @classmethod
     def tearDownClass(cls):
@@ -82,30 +84,55 @@ class HelperTestCase(TestCase):
         cls._zmq_patcher.stop()
         cls._pk_patcher.stop()
 
-    @classmethod
-    def get_new_signer(cls):
+    def setUp(self):
+        # patch send_transaction
+        self._st_patcher = mock.patch('remme.clients.basic.BasicClient._send_transaction',
+                                      side_effect=self.send_transaction)
+        self._st_patcher_obj = self._st_patcher.start()
+        self.addCleanup(self._st_patcher.stop)
+
+    @staticmethod
+    def get_new_signer():
         context = create_context('secp256k1')
         return CryptoFactory(context).new_signer(
             context.new_random_private_key())
 
     def get_context(self):
         context = AttrDict()
-        context.client = self.client_class(test_helper=self)
+        context.client = self.client_class()
         context.client.set_signer(self.account_signer1)
 
         return context
 
-    def send_transaction(self, method, pb_data, address_access_list, account_signer=None):
+    def send_transaction(self, method, pb_data, addresses_input, addresses_output=None, account_signer=None):
         factory = self._factory
         if account_signer is not None:
             factory = self.handler.get_message_factory(account_signer)
-        LOGGER.info('send_transaction')
+
+        if addresses_output is None:
+            addresses_output = addresses_input
+
         payload_pb = TransactionPayload()
         payload_pb.method = method
         payload_pb.data = pb_data.SerializeToString()
+
+        tp_process_request = factory.create_tp_process_request(
+            payload_pb.SerializeToString(), addresses_input,
+            addresses_output, [])
         self.validator.send(
-            factory.create_tp_process_request(payload_pb.SerializeToString(), address_access_list, address_access_list, [])
+            tp_process_request
         )
+
+        return tp_process_request.signature
+
+    def expect_event(self, signature, event_type, updated_state):
+        received = self.validator.expect(
+            self._factory.create_add_event_request(event_type, get_event_attributes(updated_state, signature)))
+        LOGGER.info('expect_event')
+
+        self.validator.respond(
+            self._factory.create_add_event_response(),
+            received)
 
     def expect_get(self, key_value):
         LOGGER.info('expect_get: {}'.format(key_value))
@@ -125,7 +152,7 @@ class HelperTestCase(TestCase):
         self.validator.respond(
             self._factory.create_get_response(resp_dict), received)
 
-    def expect_set(self, key_value):
+    def expect_set(self, signature, method, key_value):
         received = self.validator.expect(
             self._factory.create_set_request({key: value_pb.SerializeToString()
                                               if value_pb is not None else None
@@ -134,6 +161,11 @@ class HelperTestCase(TestCase):
         print('sending set response...')
         self.validator.respond(
             self._factory.create_set_response(key_value), received)
+
+        processor = self.handler.get_state_processor()[method]
+        event_type = processor.get(EMIT_EVENT, None)
+        if event_type:
+            self.expect_event(signature, event_type, key_value)
 
     def _expect_tp_response(self, response):
         self.validator.expect(

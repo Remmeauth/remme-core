@@ -1,0 +1,101 @@
+# Copyright 2018 REMME
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ------------------------------------------------------------------------
+
+version: '3.4'
+
+services:
+  validator:
+    container_name: remme_validator
+    image: remme/sawtooth:latest
+    volumes:
+      - validator_keys:/etc/sawtooth/keys
+      - chain_data:/var/lib/sawtooth/
+      - ../../config/remme-genesis-config.toml:/config/remme-genesis-config.toml
+      - ../../config/sawtooth-validator-config.toml:/etc/sawtooth/validator.toml
+      - ../../config/seeds-list.txt:/config/seeds-list.txt
+      - ../../config/log/validator.toml:/etc/sawtooth/log_config.toml
+      - logs:/var/log/remme
+    network_mode: bridge
+    ports:
+      - '0.0.0.0:${REMME_VALIDATOR_PORT:-8800}:8800'
+      - '0.0.0.0:${REMME_REST_API_PORT:-8080}:8080'
+    env_file:
+      - ../../config/network-config.env
+    environment:
+      - REMME_START_MODE=run
+    entrypoint: sh /scripts/validator.sh
+
+  consensus-devmode:
+    container_name: remme_consensus_devmode
+    image: remme/sawtooth:latest
+    network_mode: "service:validator"
+    entrypoint: devmode-rust -vv --connect tcp://127.0.0.1:5005
+
+  validator-rest-api:
+    container_name: remme_validator_rest_api
+    image: remme/sawtooth:latest
+    network_mode: "service:validator"
+    volumes:
+      - ../../config/log/validator-rest-api.toml:/etc/sawtooth/rest_api_log_config.toml
+      - logs:/var/log/remme
+    command: sawtooth-rest-api -v --connect tcp://127.0.0.1:4004 --bind 127.0.0.1:8008
+
+  block-info-tp:
+    container_name: remme_block_info_tp
+    image: remme/sawtooth:latest
+    network_mode: "service:validator"
+    volumes:
+      - ../../config/log/block-info-tp.toml:/etc/sawtooth/block_info_log_config.toml
+      - logs:/var/log/remme
+    command: block-info-tp -vv -C tcp://127.0.0.1:4004
+
+  settings-tp:
+    container_name: remme_settings_tp
+    image: remme/sawtooth:latest
+    network_mode: "service:validator"
+    entrypoint: settings-tp -vv -C tcp://127.0.0.1:4004
+    volumes:
+      - ../../config/log/settings-tp.toml:/etc/sawtooth/settings_log_config.toml
+      - logs:/var/log/remme
+
+  remme-tp:
+    container_name: remme_tp
+    image: remme/remme-core:latest
+    network_mode: "service:validator"
+    volumes:
+      - ../../config/remme-client-config.toml:/config/remme-client-config.toml
+      - ../../config/log/remme-tp.toml:/etc/sawtooth/log_config.toml
+      - logs:/var/log/remme
+    entrypoint: python3 -m remme.tp
+
+  remme-rpc-api:
+    container_name: remme_rpc_api
+    image: remme/remme-core:latest
+    network_mode: "service:validator"
+    environment:
+      - REMME_CONTAINER_EXPORTS_FOLDER=./default_export
+    volumes:
+      - validator_keys:/etc/sawtooth/keys
+      - ${REMME_CONTAINER_EXPORTS_FOLDER:-./default_export}:/root/usr/share
+      - ../../config/remme-client-config.toml:/config/remme-client-config.toml
+      - ../../config/remme-rpc-api.toml:/config/remme-rpc-api.toml
+      - ../../config/log/remme-rpc-api.toml:/etc/sawtooth/log_config.toml
+      - logs:/var/log/remme/
+    entrypoint: python3 -m remme.rpc_api
+
+volumes:
+  validator_keys:
+  chain_data:
+  logs:
