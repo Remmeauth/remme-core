@@ -65,7 +65,7 @@ fi
 COMMAND="docker-compose --project-name remme"
 
 if [ "$OPERATION" == "u" ]; then
-    $COMMAND up $COMPOSE_FILES $ADDITIONAL_ARGS
+    $COMMAND $COMPOSE_FILES up $ADDITIONAL_ARGS
 else
     $COMMAND -f $COMPOSE_DIR/base.yml -f $COMPOSE_DIR/genesis.yml down
 fi
