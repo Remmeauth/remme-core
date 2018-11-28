@@ -75,10 +75,13 @@ services:
     image: remme/remme-core:latest
     network_mode: "service:validator"
     volumes:
+      - ../../:/project/remme/
       - ../../config/remme-client-config.toml:/config/remme-client-config.toml
       - ../../config/log/remme-tp.toml:/etc/sawtooth/log_config.toml
       - logs:/var/log/remme
     entrypoint: python3 -m remme.tp
+    depends_on:
+      - remme-rpc-api
 
   remme-rpc-api:
     container_name: remme_rpc_api
@@ -87,13 +90,14 @@ services:
     environment:
       - REMME_CONTAINER_EXPORTS_FOLDER=./default_export
     volumes:
+      - ../../:/project/remme/
       - validator_keys:/etc/sawtooth/keys
       - ${REMME_CONTAINER_EXPORTS_FOLDER:-./default_export}:/root/usr/share
       - ../../config/remme-client-config.toml:/config/remme-client-config.toml
       - ../../config/remme-rpc-api.toml:/config/remme-rpc-api.toml
       - ../../config/log/remme-rpc-api.toml:/etc/sawtooth/log_config.toml
       - logs:/var/log/remme/
-    entrypoint: python3 -m remme.rpc_api
+    command: ./build/dev-start-remme-rpc-api.sh
 
 volumes:
   validator_keys:
