@@ -35,7 +35,7 @@ def test_get_state():
 
 def test_get_state_not_input_address():
     """
-    Case: get state from stub context by addresses list with address not presented in inputs.
+    Case: get state from stub context by addresses list with address isn't presented in inputs.
     Expect: AuthorizationError is raised.
     """
     initial_state = {
@@ -51,7 +51,7 @@ def test_get_state_not_input_address():
     with pytest.raises(AuthorizationException) as error:
         stub_context.get_state(addresses=requested_addresses)
 
-    assert AuthorizationException.message.format(addresses=requested_addresses) == error.value.message
+    assert 'Tried to get unauthorized address: {}'.format(requested_addresses) == str(error.value)
 
 
 def test_get_state_address_data_none():
