@@ -1,5 +1,5 @@
 """
-Provide tests for stub context implementation.
+Provide tests for stub context getting state implementation.
 """
 import pytest
 
@@ -38,15 +38,9 @@ def test_get_state_not_input_address():
     Case: get state from stub context by addresses list with address isn't presented in inputs.
     Expect: AuthorizationError is raised.
     """
-    initial_state = {
-        '1120...0001': '100',
-        '1120...0002': '200',
-        '1120...0003': '300',
-    }
-
     requested_addresses = ['1120...0001', '1120...0003', '1120...0005']
 
-    stub_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state=initial_state)
+    stub_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={})
 
     with pytest.raises(AuthorizationException) as error:
         stub_context.get_state(addresses=requested_addresses)
