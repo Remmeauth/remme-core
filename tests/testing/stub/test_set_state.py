@@ -13,7 +13,7 @@ OUTPUTS = ['1120...0003', '1120...0004', '1120...0005', '1120...0006']
 
 def test_set_state():
     """
-    Case: set state to stub context by list of addresses-data as tuple.
+    Case: set state to the stub context by list of addresses-data as tuple.
     Expect: list of addresses that were set.
     """
     expected_result = ['1120...0006']
@@ -28,13 +28,13 @@ def test_set_state():
 
     stub_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={})
 
-    assert expected_state == stub_context.state
     assert expected_result == stub_context.set_state(entries=requested_entries)
+    assert expected_state == stub_context.state
 
 
 def test_set_state_not_output_address():
     """
-    Case: set state to stub context by list of addresses-data as tuple with address isn't presented in outputs.
+    Case: set state to the stub context by list of addresses-data as tuple with address isn't presented in outputs.
     Expect: AuthorizationError is raised.
     """
     requested_addresses = ['1120...0007']
