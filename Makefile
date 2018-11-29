@@ -74,8 +74,8 @@ run_logio_bg:
 stop_logio:
 	$(RUN_SCRIPT) -l -d
 
-test:
-	$(BUILD_DIR)/test.sh
+run_tests:
+	$(BUILD_DIR)/run-tests.sh
 
 release:
 	$(BUILD_DIR)/release.sh

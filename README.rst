@@ -64,6 +64,36 @@ Prerequesites for building the documentation are ``sphinx`` and
 ``sphinx_rtd_theme``. You can build the documentation with ``make docs``
 command.
 
+Development
+-----------
+
+How to run tests
+~~~~~~~~~~~~~~~~
+
+To tun all tests related to the project, please follow the `Make` command:
+
+.. code-block:: bash
+
+   $ make run_tests
+
+What happens under the hood and possible detailed processes are described below:
+
+.. code-block:: bash
+
+   $ docker exec -it remme_rpc_api bash -c "pytest -vv tests"
+   $ docker exec -it remme_rpc_api bash -c "pytest -vv tests/testing/stub/test_events.py"
+   $ docker exec -it remme_rpc_api bash -c "pytest -vv tests/testing/stub/test_events.py::test_add_event"
+
+   $ docker exec -it remme_rpc_api bash
+   bash-4.4# pytest tests
+
+Technology stack
+----------------
+
+Project's technology stack is described below, including references to their documentation:
+
+1. 	`pytest <https://docs.pytest.org/en/latest/>`_ as unit and integration testing framework.
+
 License
 -------
 

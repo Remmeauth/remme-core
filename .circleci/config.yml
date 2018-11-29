@@ -21,8 +21,11 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Build and run project
+          command: make build && make run
+      - run:
           name: Run tests
-          command: make test
+          command: make run_tests
   deploy:
     machine:
       docker_layer_caching: true
