@@ -1,7 +1,7 @@
 """
 Provide tests for stub context events implementation.
 """
-from remme.testing.stub import (
+from testing.mocks.stub import (
     StubContext,
     StubContextEvent,
 )

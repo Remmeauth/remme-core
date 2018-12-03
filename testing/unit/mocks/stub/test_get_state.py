@@ -5,7 +5,7 @@ import pytest
 
 from sawtooth_sdk.processor.exceptions import AuthorizationException
 
-from remme.testing.stub import (
+from testing.mocks.stub import (
     StubContext,
     StubContextTpStateEntry,
 )
