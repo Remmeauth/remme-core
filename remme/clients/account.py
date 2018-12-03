@@ -58,7 +58,8 @@ class AccountClient(BasicClient):
 
     async def get_account(self, address):
         account = Account()
-        account.ParseFromString(await self.get_value(address))
+        raw_account = await self.get_value(address)
+        account.ParseFromString(raw_account)
         return account
 
     async def get_pub_keys(self, address):

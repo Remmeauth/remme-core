@@ -50,7 +50,8 @@ class BlockInfoClient(BasicClient):
 
     async def get_block_info_config(self):
         bic = BlockInfoConfig()
-        bic.ParseFromString(await self.get_value(CONFIG_ADDRESS))
+        raw_bic = await self.get_value(CONFIG_ADDRESS)
+        bic.ParseFromString(raw_bic)
         return bic
 
     @staticmethod

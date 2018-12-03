@@ -13,7 +13,7 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-from enum import Enum, IntEnum, unique
+from enum import Enum, unique
 
 
 EMIT_EVENT = "emit_event"
@@ -31,5 +31,3 @@ class Events(Enum):
     ACCOUNT_TRANSFER = 'account/transfer'
 
     SAWTOOTH_BLOCK_COMMIT = 'sawtooth/block-commit'
-
-    REMME_BATCH_DELTA = 'remme/batch-delta'

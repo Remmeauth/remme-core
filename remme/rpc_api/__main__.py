@@ -23,11 +23,9 @@ from aiohttp import web
 import aiohttp_cors
 
 from remme.shared.logging_setup import setup_logging
-
-from remme.ws import EventWebSocketHandler
 from remme.settings.default import load_toml_with_defaults
 
-from .base import JsonRpc
+from ._base import JsonRpc
 
 
 logger = logging.getLogger(__name__)
@@ -66,18 +64,11 @@ if __name__ == '__main__':
             expose_headers=cors_config["expose_headers"]
         ) for ao in cors_config["allow_origin"]
     })
-    rpc = JsonRpc(loop=loop, max_workers=1)
+    zmq_url = f'tcp://{ cfg_ws["validator_ip"] }:{ cfg_ws["validator_port"] }'
+    rpc = JsonRpc(zmq_url=zmq_url, loop=loop, max_workers=1)
     rpc.load_from_modules(cfg_rpc['available_modules'])
     cors.add(app.router.add_route('GET', '/', rpc))
     cors.add(app.router.add_route('POST', '/', rpc))
-
-    # Remme ws
-    zmq_url = f'tcp://{ cfg_ws["validator_ip"] }:{ cfg_ws["validator_port"] }'
-    ws_handler = EventWebSocketHandler(zmq_url=zmq_url, loop=loop)
-    rpc.add_methods(('', ws_handler.subscribe))
-    rpc.add_methods(('', ws_handler.unsubscribe))
-
-    cors.add(app.router.add_route('GET', '/events', ws_handler))
 
     logger.info('All server parts loaded')
 

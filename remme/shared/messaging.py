@@ -1,3 +1,18 @@
+# Copyright 2018 REMME
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ------------------------------------------------------------------------
+
 import uuid
 import asyncio
 import logging
@@ -222,6 +237,7 @@ class _MessageRouter:
 class Connection:
     """A connection, over which validator Message objects may be sent.
     """
+    _instance = None
 
     def __init__(self, url, *, loop=None):
         self._url = url
@@ -233,6 +249,12 @@ class Connection:
         self._sender = _Sender(self._socket, self._msg_router)
 
         self._recv_task = None
+
+    @classmethod
+    def get_single_connection(cls, url, *, loop=None):
+        if cls._instance is None:
+            cls._instance = cls(url, loop=loop)
+        return cls._instance
 
     @property
     def has_transport(self):
@@ -265,6 +287,9 @@ class Connection:
         """Returns a future for an incoming message.
         """
         return await self._msg_router.incoming()
+
+    async def route_msg(self, msg):
+        return await self._msg_router.route_msg(msg)
 
     def receive_nowait(self):
         return self._msg_router.incoming_nowait()

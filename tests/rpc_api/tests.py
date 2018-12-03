@@ -18,7 +18,7 @@ from remme.protos.account_pb2 import AccountMethod, TransferPayload, Account
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.clients.account import AccountClient
 from remme.clients.pub_key import PubKeyClient
-from remme.rpc_api.base import JsonRpc
+from remme.rpc_api._base import JsonRpc
 from remme.rpc_api.account import get_balance
 from remme.rpc_api.pkc import get_node_config
 from remme.rpc_api.transaction import send_raw_transaction, get_batch_status
@@ -73,7 +73,7 @@ class RpcApiTestCase(AioHTTPTestCase, HelperTestCase):
 
     async def get_application(self):
         app = web.Application()
-        rpc = JsonRpc(loop=self.loop, max_workers=1)
+        rpc = JsonRpc(zmq_url=None, loop=self.loop, max_workers=1)
         rpc.add_methods(
             ('', get_node_config),
             ('', send_raw_transaction),

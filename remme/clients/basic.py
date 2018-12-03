@@ -48,7 +48,7 @@ class BasicClient:
 
         self.url = config['validator_rest_api_url']
         self._family_handler = family_handler() if callable(family_handler) else None
-        self._stream = Connection(f'tcp://{ config["validator_ip"] }:{ config["validator_port"] }')
+        self._stream = Connection.get_single_connection(f'tcp://{ config["validator_ip"] }:{ config["validator_port"] }')
         self._router = Router(self._stream)
 
         if keyfile is None:

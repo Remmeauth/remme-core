@@ -12,12 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------
-import ujson
 
+from ._event import subscribe, unsubscribe
 
-def serialize(payload):
-    return ujson.dumps(payload)
-
-
-def deserialize(payload):
-    return ujson.loads(payload)
+__all__ = (
+    'subscribe',
+    'unsubscribe',
+)
