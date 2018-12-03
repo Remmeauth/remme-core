@@ -5,7 +5,10 @@ import pytest
 
 from sawtooth_sdk.processor.exceptions import AuthorizationException
 
-from remme.testing.stub import StubContext
+from remme.testing.stub import (
+    StubContext,
+    StubContextTpStateEntry,
+)
 
 INPUTS = ['1120...0001', '1120...0002', '1120...0003', '1120...0004']
 OUTPUTS = ['1120...0003', '1120...0004', '1120...0005', '1120...0006']
@@ -14,7 +17,8 @@ OUTPUTS = ['1120...0003', '1120...0004', '1120...0005', '1120...0006']
 def test_get_state():
     """
     Case: get state from stub context by addresses list.
-    Expect: list of addresses, that match requested addresses, with its data as key-value tuple.
+    Expect: list of StubContextTpStateEntry objects with addresses, that match requested addresses,
+            with its data as key-value tuple.
     """
     initial_state = {
         '1120...0001': '100',
@@ -25,13 +29,16 @@ def test_get_state():
     requested_addresses = ['1120...0001', '1120...0003']
 
     expected_state = [
-        ('1120...0001', '100'),
-        ('1120...0003', '300'),
+        StubContextTpStateEntry(address='1120...0001', data='100'),
+        StubContextTpStateEntry(address='1120...0003', data='300'),
     ]
 
     stub_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state=initial_state)
-    assert expected_state == stub_context.get_state(addresses=requested_addresses)
+    stub_context_state = stub_context.get_state(addresses=requested_addresses)
 
+    for index in range(len(expected_state)):
+        assert expected_state[index].address == stub_context_state[index].address
+        assert expected_state[index].data == stub_context_state[index].data
 
 def test_get_state_not_input_address():
     """
@@ -45,19 +52,20 @@ def test_get_state_not_input_address():
     with pytest.raises(AuthorizationException) as error:
         stub_context.get_state(addresses=requested_addresses)
 
-    assert 'Tried to get unauthorized address: {}'.format(requested_addresses) == str(error.value)
+    assert f'Tried to get unauthorized address: {requested_addresses}' == str(error.value)
 
 
 def test_get_state_address_data_none():
     """
     Case: get state from stub context by addresses list where some address data is None.
-    Expect: list of addresses, excluding one where data is None, with its data as key-value tuple.
+    Expect: list of StubContextTpStateEntry objects with addresses, excluding one where data is None,
+            with its data as key-value tuple.
     """
     requested_addresses = ['1120...0001', '1120...0003', '1120...0004']
 
     expected_state = [
-        ('1120...0001', '100'),
-        ('1120...0003', '300'),
+        StubContextTpStateEntry(address='1120...0001', data='100'),
+        StubContextTpStateEntry(address='1120...0003', data='300'),
     ]
 
     initial_state = {
@@ -68,4 +76,8 @@ def test_get_state_address_data_none():
     }
 
     stub_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state=initial_state)
-    assert expected_state == stub_context.get_state(addresses=requested_addresses)
+    stub_context_state = stub_context.get_state(addresses=requested_addresses)
+
+    for index in range(len(expected_state)):
+        assert expected_state[index].address == stub_context_state[index].address
+        assert expected_state[index].data == stub_context_state[index].data

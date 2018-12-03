@@ -22,9 +22,9 @@ def test_set_state():
         '1120...0006': '1200',
     }
 
-    requested_entries = [
-        ('1120...0006', '1200'),
-    ]
+    requested_entries = {
+        '1120...0006': '1200',
+    }
 
     stub_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={})
 
@@ -39,13 +39,13 @@ def test_set_state_not_output_address():
     """
     requested_addresses = ['1120...0007']
 
-    requested_entries = [
-        ('1120...0007', '700'),
-    ]
+    requested_entries = {
+        '1120...0007': '700',
+    }
 
     stub_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={})
 
     with pytest.raises(AuthorizationException) as error:
         stub_context.set_state(entries=requested_entries)
 
-    assert 'Tried to set unauthorized address: {}'.format(requested_addresses) == str(error.value)
+    assert f'Tried to set unauthorized address: {requested_addresses}' == str(error.value)
