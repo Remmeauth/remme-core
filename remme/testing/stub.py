@@ -32,6 +32,28 @@ class StubContextEvent:
         self._data = data
 
 
+class StubContextTpStateEntry:
+    """
+    Stub context transaction processing state entry.
+
+    References:
+        - https://github.com/hyperledger/sawtooth-core/
+        blob/10a04a56ae29b5e4b38127399dc01552db500c0a/protos/state_context.proto#L24
+    """
+
+    def __init__(self, address, data):
+        self._address = address
+        self._data = data
+
+    @property
+    def address(self):
+        return self._address
+
+    @property
+    def data(self):
+        return self._data
+
+
 class StubContext:
     """
     Stub context, the transaction context sandbox.
@@ -72,18 +94,18 @@ class StubContext:
         Raises:
             AuthorizationError: if request address isn't presented in inputs.
 
-        Returns list of addresses with its data as key-value tuple.
+        Returns list of StubContextTpStateEntry objects contain addresses with its data as key-value tuple.
         """
         for address in addresses:
             if address not in self.inputs:
-                raise AuthorizationException('Tried to get unauthorized address: {}'.format(addresses))
+                raise AuthorizationException(f'Tried to get unauthorized address: {addresses}')
 
         response = []
 
         for address in addresses:
             if address in self._state and self._state.get(address) is not None:
                 response.append(
-                    (address, self._state.get(address)),
+                    StubContextTpStateEntry(address=address, data=self._state.get(address)),
                 )
 
         return response
@@ -93,7 +115,7 @@ class StubContext:
         Set a list of addresses with its data as key-value tuple to state.
 
         Arguments:
-            entries (list of (str, str) tuples or None): list of addresses-data as tuple.
+            entries (dict): address-data as key-value.
 
         Raises:
             AuthorizationError: if some of entries address isn't presented in outputs.
@@ -102,11 +124,10 @@ class StubContext:
         """
         response = []
 
-        for address, data in entries:
+        for address, data in entries.items():
 
             if address not in self.outputs:
-                entries_addresses = [entry[0] for entry in entries]
-                raise AuthorizationException('Tried to set unauthorized address: {}'.format(entries_addresses))
+                raise AuthorizationException(f'Tried to set unauthorized address: {list(entries.keys())}')
 
             self._state.update({
                 address: data,
