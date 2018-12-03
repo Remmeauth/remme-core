@@ -5,7 +5,7 @@ import pytest
 
 from sawtooth_sdk.processor.exceptions import AuthorizationException
 
-from remme.testing.stub import StubContext
+from testing.mocks.stub import StubContext
 
 INPUTS = ['1120...0001', '1120...0002', '1120...0003', '1120...0004']
 OUTPUTS = ['1120...0003', '1120...0004', '1120...0005', '1120...0006']
