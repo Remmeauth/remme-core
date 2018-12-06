@@ -139,8 +139,7 @@ class BasicHandler(metaclass=Singleton):
             processor = state_processor[transaction_payload.method][PROCESSOR]
             updated_state = processor(context, transaction.header.signer_public_key, data_pb)
         except KeyError:
-            raise InvalidTransaction('Unknown value {} for the pub_key operation type.'.
-                                     format(int(transaction_payload.method)))
+            raise InvalidTransaction(f'Unknown value {transaction_payload.method} for the pub_key operation type.')
         except ParseError:
             raise InvalidTransaction('Cannot decode transaction payload')
 

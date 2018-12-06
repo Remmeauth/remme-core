@@ -82,11 +82,11 @@ class StubContext:
 
     def get_state(self, addresses):
         """
-        Get a list of addresses with its data as key-value tuple from state.
+        Get a list of state entries.
 
-        Return list of addresses:
-            - if address match requested addresses;
-            - excluding address when its data is None.
+        Return list of entries:
+            - if entry address match requested addresses;
+            - excluding entry when its data is None.
 
         Arguments:
             addresses (list): list of address to get state by.
@@ -94,7 +94,7 @@ class StubContext:
         Raises:
             AuthorizationError: if request address isn't presented in inputs.
 
-        Returns list of StubContextTpStateEntry objects contain addresses with its data as key-value tuple.
+        Returns list of StubContextTpStateEntry objects contain addresses with its data.
         """
         for address in addresses:
             if address not in self.inputs:

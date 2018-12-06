@@ -111,21 +111,19 @@ class AccountHandler(BasicHandler):
                 f'Signer address "{signer_address}" '
                 'not in genesis members list')
 
-    def _transfer_from_address(self, context, address, transfer_payload):
-        signer_key = address
-
+    def _transfer_from_address(self, context, address_from, transfer_payload):
         if not transfer_payload.value:
-            raise InvalidTransaction("Could not transfer with zero amount")
+            raise InvalidTransaction('Could not transfer with zero amount.')
 
         if not transfer_payload.address_to.startswith(self._prefix) \
                 and transfer_payload.address_to not in [ZERO_ADDRESS]:
-            raise InvalidTransaction("Receiver address has to be of an account type")
+            raise InvalidTransaction('Receiver address has to be of an account type.')
 
-        if signer_key == transfer_payload.address_to:
-            raise InvalidTransaction("Account cannot send tokens to itself.")
+        if address_from == transfer_payload.address_to:
+            raise InvalidTransaction('Account cannot send tokens to itself.')
 
         signer_account, receiver_account = get_multiple_data(context, [
-            (signer_key, Account),
+            (address_from, Account),
             (transfer_payload.address_to, Account)
         ])
 
@@ -136,16 +134,17 @@ class AccountHandler(BasicHandler):
 
         if signer_account.balance < transfer_payload.value:
             raise InvalidTransaction(
-                "Not enough transferable balance. Sender's current balance: "
-                f"{signer_account.balance}")
+                f'Not enough transferable balance. Sender\'s current balance: {signer_account.balance}.',
+            )
 
         receiver_account.balance += transfer_payload.value
         signer_account.balance -= transfer_payload.value
 
-        LOGGER.info(f'Transferred {transfer_payload.value} tokens from '
-                    f'{signer_key} to {transfer_payload.address_to}')
+        LOGGER.info(
+            f'Transferred {transfer_payload.value} tokens from {address_from} to {transfer_payload.address_to}.',
+        )
 
         return {
-            signer_key: signer_account,
+            address_from: signer_account,
             transfer_payload.address_to: receiver_account
         }

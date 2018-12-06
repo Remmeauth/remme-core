@@ -10,6 +10,7 @@ RUN poetry config settings.virtualenvs.create false && \
     poetry install
 COPY ./remme ./remme
 COPY ./protos ./protos
+COPY ./testing ./testing
 RUN protoc -I=./protos --python_out=./remme/protos ./protos/*.proto
 COPY ./tests ./tests
 COPY ./scripts/node /project/scripts

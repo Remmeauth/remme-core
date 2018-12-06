@@ -1,28 +1,25 @@
-import pytest
-
-
 import time
 
 from sawtooth_sdk.protobuf.transaction_pb2 import (
-    Transaction, TransactionHeader
+    Transaction,
+    TransactionHeader,
 )
-from remme.tp.account import AccountHandler
-from testing.mocks.stub import StubContext
-
 from sawtooth_sdk.protobuf.processor_pb2 import TpProcessRequest
-
-from remme.protos.account_pb2 import Account
-
-from remme.protos.account_pb2 import AccountMethod, TransferPayload
-from remme.protos.transaction_pb2 import TransactionPayload
-
-from remme.shared.utils import hash512
-
-from sawtooth_signing import create_context, CryptoFactory
+from sawtooth_signing import (
+    CryptoFactory,
+    create_context,
+)
 from sawtooth_signing.secp256k1 import Secp256k1PrivateKey
 
+from remme.protos.account_pb2 import (
+    AccountMethod,
+    TransferPayload,
+)
+from remme.protos.transaction_pb2 import TransactionPayload
+from remme.shared.utils import hash512
 
-def create_transaction_request(sender_params, address_to, amount, handler_params):
+
+def create_transaction_request(sender_params, address_to, amount, handler_params, transaction_params):
     """
     Create transaction request.
 
@@ -63,7 +60,7 @@ def create_transaction_request(sender_params, address_to, amount, handler_params
     transfer_payload.value = amount
 
     transaction_payload = TransactionPayload()
-    transaction_payload.method = AccountMethod.TRANSFER
+    transaction_payload.method = transaction_params.get('method')
     transaction_payload.data = transfer_payload.SerializeToString()
 
     serialized_transaction_payload = transaction_payload.SerializeToString()
