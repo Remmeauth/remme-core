@@ -41,9 +41,6 @@ run_genesis:
 run_genesis_bg:
 	$(RUN_SCRIPT) -g -u -b
 
-stop_genesis:
-	$(RUN_SCRIPT) -g -d
-
 run:
 	$(RUN_SCRIPT) -u
 
@@ -60,7 +57,7 @@ restart_bg:
 	make stop && make build_dev && make run_genesis_bg
 
 stop:
-	$(RUN_SCRIPT) -d
+	$(RUN_SCRIPT) -g -d
 
 docs:
 	$(BUILD_DIR)/build-docs.sh
