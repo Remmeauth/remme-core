@@ -26,6 +26,9 @@ build:
 build_dev:
 	$(BUILD_DIR)/build.sh
 
+build_protobuf:
+	$(BUILD_DIR)/build-protobuf.sh
+
 clean:
 	$(BUILD_DIR)/clean.sh
 
