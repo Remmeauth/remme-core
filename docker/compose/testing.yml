@@ -23,4 +23,4 @@ services:
     image: remme/remme-core:latest
     volumes:
       - ./../../:/project/remme
-    entrypoint: pytest testing
+    entrypoint: sh -c "make build_protobuf && pytest testing"

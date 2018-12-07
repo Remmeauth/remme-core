@@ -26,7 +26,7 @@ services:
     volumes:
       - ../config/remme-client-config.toml:/config/remme-client-config.toml
       - ./../:/project/remme
-    entrypoint: python3 -m unittest discover ./tests
+    entrypoint: sh -c "make build_protobuf && python3 -m unittest discover ./tests"
 
   remme-tp:
     container_name: remme_tests_tp
@@ -35,4 +35,4 @@ services:
     volumes:
       - ../config/remme-client-config.toml:/config/remme-client-config.toml
       - ./../:/project/remme
-    entrypoint: python3 -m remme.tp
+    entrypoint: sh -c "make build_protobuf && python3 -m remme.tp"
