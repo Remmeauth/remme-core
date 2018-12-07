@@ -56,6 +56,10 @@ if [ $RUN_LOGIO -eq 1 ]; then
     COMPOSE_FILES="-f $COMPOSE_DIR/logio.yml"
 fi
 
+if [ $DEV -eq 1 ]; then
+    COMPOSE_FILES="$COMPOSE_FILES -f $COMPOSE_DIR/development.yml"
+fi
+
 ADDITIONAL_ARGS=""
 if [ $BG_MODE -eq 1 ]; then
     COMPOSE_FILES="$COMPOSE_FILES -f $COMPOSE_DIR/bg.yml"
