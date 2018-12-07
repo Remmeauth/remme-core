@@ -29,3 +29,5 @@ pysha3 = "1.0.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "4.0.1"
+pytest-mock = "1.10.0"
+

@@ -67,31 +67,34 @@ class AccountHandler(BasicHandler):
     def _genesis(self, context, pub_key, genesis_payload):
         signer_key = self.make_address_from_data(pub_key)
         genesis_status = get_data(context, GenesisStatus, GENESIS_ADDRESS)
+
         if not genesis_status:
             genesis_status = GenesisStatus()
+            genesis_status.status = True
+
         elif genesis_status.status:
             raise InvalidTransaction('Genesis is already initialized.')
-        genesis_status.status = True
+
         account = Account()
         account.balance = genesis_payload.total_supply
-        LOGGER.info('Generated genesis transaction. Issued {} tokens to address {}'
-                    .format(genesis_payload.total_supply, signer_key))
+
+        LOGGER.info(
+            f'Genesis transaction is generated. Issued {genesis_payload.total_supply} tokens to address {signer_key}',
+        )
+
         return {
             signer_key: account,
             GENESIS_ADDRESS: genesis_status
         }
 
-    def _transfer(self, context, pub_key, transfer_payload):
-        address = self.make_address_from_data(pub_key)
-        LOGGER.info('pub_key: {} address: {}'.format(pub_key, address))
-        if address == ZERO_ADDRESS:
-            raise InvalidTransaction("Public transfers are not allowed from ZERO_ADDRESS"
-                                     " (which is used for internal transactions")
+    def _transfer(self, context, public_key, transfer_payload):
+        address = self.make_address_from_data(public_key)
 
-        if not transfer_payload.address_to.startswith(self._prefix) \
-                and transfer_payload.address_to not in [ZERO_ADDRESS]:
-            raise InvalidTransaction("Receiver address has to be of "
-                                     "an account type")
+        if address == ZERO_ADDRESS:
+            raise InvalidTransaction(
+                'Public transfers are not allowed from zero address which is used only for internal transactions.',
+            )
+
         return self._transfer_from_address(context, address, transfer_payload)
 
     def _check_signer_address(self, context, signer_address):
@@ -146,5 +149,5 @@ class AccountHandler(BasicHandler):
 
         return {
             address_from: signer_account,
-            transfer_payload.address_to: receiver_account
+            transfer_payload.address_to: receiver_account,
         }

@@ -1,19 +1,30 @@
 """
-Provide tests for account handler apply method implementation.
+Provide tests for account handler apply (genesis) method implementation.
 """
+import time
+
 import pytest
 
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
+from sawtooth_sdk.protobuf.processor_pb2 import TpProcessRequest
+from sawtooth_sdk.protobuf.transaction_pb2 import (
+    Transaction,
+    TransactionHeader,
+)
 
-from remme.tp.account import AccountHandler
 from remme.protos.account_pb2 import (
     Account,
     AccountMethod,
     TransferPayload,
 )
-
-from testing.conftest import create_transaction_request
+from remme.protos.transaction_pb2 import TransactionPayload
+from remme.settings import ZERO_ADDRESS
+from remme.shared.utils import hash512
+from remme.tp.account import AccountHandler
+from testing.conftest import create_signer
 from testing.mocks.stub import StubContext
+
+RANDOM_NODE_PUBLIC_KEY = '039d6881f0a71d05659e1f40b443684b93c7b7c504ea23ea8949ef5216a2236940'
 
 ADDRESS_NOT_ACCOUNT_TYPE = '000000' + 'cfe1b3dc02df0003ac396037f85b98cf9f99b0beae000dc5e9e8b6dab4'
 
@@ -25,21 +36,12 @@ ACCOUNT_TO_BALANCE = 1000
 ACCOUNT_ADDRESS_FROM = '112007d71fa7e120c60fb392a64fd69de891a60c667d9ea9e5d9d9d617263be6c20202'
 ACCOUNT_ADDRESS_TO = '1120071db7c02f5731d06df194dc95465e9b277c19e905ce642664a9a0d504a3909e31'
 
-INPUTS = [
+ACCOUNT_FROM_PRIVATE_KEY = '1cb15ecfe1b3dc02df0003ac396037f85b98cf9f99b0beae000dc5e9e8b6dab4'
+
+INPUTS = OUTPUTS = [
     ACCOUNT_ADDRESS_FROM,
     ACCOUNT_ADDRESS_TO,
 ]
-
-OUTPUTS = [
-    ACCOUNT_ADDRESS_FROM,
-    ACCOUNT_ADDRESS_TO,
-]
-
-SENDER_PARAMETERS = {
-    'address': ACCOUNT_ADDRESS_FROM,
-    'private_key': '1cb15ecfe1b3dc02df0003ac396037f85b98cf9f99b0beae000dc5e9e8b6dab4',
-    'public_key': '039d6881f0a71d05659e1f40b443684b93c7b7c504ea23ea8949ef5216a2236940',
-}
 
 TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS = {
     'family_name': AccountHandler().family_name,
@@ -73,9 +75,9 @@ def create_context(account_from_balance, account_to_balance):
     return StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state=initial_state)
 
 
-def test_transaction_request_account_handler():
+def test_account_handler_apply():
     """
-    Case: send transaction request to the account handler.
+    Case: send transaction request, to send tokens to address, to the account handler.
     Expect: addresses data, stored in state, are changed according to transfer amount.
     """
     expected_account_from_balance = ACCOUNT_FROM_BALANCE - TOKENS_AMOUNT_TO_SEND
@@ -94,16 +96,34 @@ def test_transaction_request_account_handler():
         ACCOUNT_ADDRESS_TO: expected_serialized_account_to_balance,
     }
 
-    transaction_params = {
-        'method': AccountMethod.TRANSFER,
-    }
+    transfer_payload = TransferPayload()
+    transfer_payload.address_to = ACCOUNT_ADDRESS_TO
+    transfer_payload.value = TOKENS_AMOUNT_TO_SEND
 
-    transaction_request = create_transaction_request(
-        sender_params=SENDER_PARAMETERS,
-        address_to=ACCOUNT_ADDRESS_TO,
-        amount=TOKENS_AMOUNT_TO_SEND,
-        handler_params=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS,
-        transaction_params=transaction_params,
+    transaction_payload = TransactionPayload()
+    transaction_payload.method = AccountMethod.TRANSFER
+    transaction_payload.data = transfer_payload.SerializeToString()
+
+    serialized_transaction_payload = transaction_payload.SerializeToString()
+
+    transaction_header = TransactionHeader(
+        signer_public_key=RANDOM_NODE_PUBLIC_KEY,
+        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
+        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
+        inputs=INPUTS,
+        outputs=OUTPUTS,
+        dependencies=[],
+        payload_sha512=hash512(data=serialized_transaction_payload),
+        batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
+        nonce=time.time().hex().encode(),
+    )
+
+    serialized_header = transaction_header.SerializeToString()
+
+    transaction_request = TpProcessRequest(
+        header=transaction_header,
+        payload=serialized_transaction_payload,
+        signature=create_signer(private_key=ACCOUNT_FROM_PRIVATE_KEY).sign(serialized_header),
     )
 
     mock_context = create_context(account_from_balance=ACCOUNT_FROM_BALANCE, account_to_balance=ACCOUNT_TO_BALANCE)
@@ -116,31 +136,48 @@ def test_transaction_request_account_handler():
     assert expected_state == state_as_dict
 
 
-def test_account_handler_not_available_transfer_method():
+def test_account_handler_apply_invalid_transfer_method():
     """
-    Case: send transaction request to the account handler with not available transfer method value.
-    Expect:
+    Case: send transaction request, to send tokens to address, to account handler with invalid transfer method value.
+    Expect: invalid transaction error is raised with invalid account method value error message.
     """
     account_method_impossible_value = 5347
 
-    transaction_params = {
-        'method': account_method_impossible_value,
-    }
+    transfer_payload = TransferPayload()
+    transfer_payload.address_to = ACCOUNT_ADDRESS_TO
+    transfer_payload.value = TOKENS_AMOUNT_TO_SEND
 
-    transaction_request = create_transaction_request(
-        sender_params=SENDER_PARAMETERS,
-        address_to=ACCOUNT_ADDRESS_TO,
-        amount=TOKENS_AMOUNT_TO_SEND,
-        handler_params=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS,
-        transaction_params=transaction_params,
+    transaction_payload = TransactionPayload()
+    transaction_payload.method = account_method_impossible_value
+    transaction_payload.data = transfer_payload.SerializeToString()
+
+    serialized_transaction_payload = transaction_payload.SerializeToString()
+
+    transaction_header = TransactionHeader(
+        signer_public_key=RANDOM_NODE_PUBLIC_KEY,
+        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
+        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
+        inputs=INPUTS,
+        outputs=OUTPUTS,
+        dependencies=[],
+        payload_sha512=hash512(data=serialized_transaction_payload),
+        batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
+        nonce=time.time().hex().encode(),
     )
 
+    serialized_header = transaction_header.SerializeToString()
+
+    transaction_request = TpProcessRequest(
+        header=transaction_header,
+        payload=serialized_transaction_payload,
+        signature=create_signer(private_key=ACCOUNT_FROM_PRIVATE_KEY).sign(serialized_header),
+    )
     mock_context = create_context(account_from_balance=ACCOUNT_FROM_BALANCE, account_to_balance=ACCOUNT_TO_BALANCE)
 
     with pytest.raises(InvalidTransaction) as error:
         AccountHandler().apply(transaction=transaction_request, context=mock_context)
 
-    assert f'Unknown value {account_method_impossible_value} for the pub_key operation type.' == str(error.value)
+    assert f'Invalid account method value ({account_method_impossible_value}) has been set.' == str(error.value)
 
 
 def test_account_transfer_from_address():
@@ -158,7 +195,7 @@ def test_account_transfer_from_address():
     mock_context = create_context(account_from_balance=ACCOUNT_FROM_BALANCE, account_to_balance=ACCOUNT_TO_BALANCE)
 
     result = AccountHandler()._transfer_from_address(
-        context=mock_context, address=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
+        context=mock_context, address_from=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
     )
 
     assert result.get(ACCOUNT_ADDRESS_FROM).balance == expected_account_from_balance
@@ -178,7 +215,7 @@ def test_account_transfer_from_address_zero_amount():
 
     with pytest.raises(InvalidTransaction) as error:
         AccountHandler()._transfer_from_address(
-            context=mock_context, address=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
+            context=mock_context, address_from=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
         )
 
     assert f'Could not transfer with zero amount.' == str(error.value)
@@ -197,7 +234,7 @@ def test_account_transfer_from_address_to_address_not_account_type():
 
     with pytest.raises(InvalidTransaction) as error:
         AccountHandler()._transfer_from_address(
-            context=mock_context, address=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
+            context=mock_context, address_from=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
         )
 
     assert f'Receiver address has to be of an account type.' == str(error.value)
@@ -206,7 +243,7 @@ def test_account_transfer_from_address_to_address_not_account_type():
 def test_account_transfer_from_address_send_to_itself():
     """
     Case: transfer tokens from address to the same address.
-    Expect: invalid transaction error is raised account cannot send tokens to itself error message.
+    Expect: invalid transaction error is raised with account cannot send tokens to itself error message.
     """
     mock_context = create_context(account_from_balance=ACCOUNT_FROM_BALANCE, account_to_balance=ACCOUNT_TO_BALANCE)
 
@@ -216,7 +253,7 @@ def test_account_transfer_from_address_send_to_itself():
 
     with pytest.raises(InvalidTransaction) as error:
         AccountHandler()._transfer_from_address(
-            context=mock_context, address=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
+            context=mock_context, address_from=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
         )
 
     assert f'Account cannot send tokens to itself.' == str(error.value)
@@ -235,7 +272,22 @@ def test_account_transfer_from_address_without_tokens():
 
     with pytest.raises(InvalidTransaction) as error:
         AccountHandler()._transfer_from_address(
-            context=mock_context, address=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
+            context=mock_context, address_from=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
         )
 
     assert f'Not enough transferable balance. Sender\'s current balance: 0.' == str(error.value)
+
+
+def test_account_transfer_from_zero_address(mocker):
+    """
+    Case: transfer tokens from zero address.
+    Expect: invalid transaction error is raised with public transfers are not allowed from zero address error message.
+    """
+    mock_make_address_from_data = mocker.patch('remme.tp.basic.BasicHandler.make_address_from_data')
+    mock_make_address_from_data.return_value = ZERO_ADDRESS
+
+    with pytest.raises(InvalidTransaction) as error:
+        AccountHandler()._transfer(context=None, public_key=RANDOM_NODE_PUBLIC_KEY, transfer_payload=None)
+
+    assert 'Public transfers are not allowed from zero address which is used only for internal transactions.' == \
+           str(error.value)
