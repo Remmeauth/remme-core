@@ -91,3 +91,6 @@ lint:
 
 lint_html:
 	pylint --output-format=json `find . -name "*.py"` | pylint-json2html -o report.html
+
+enter_testing_console:
+	docker run -v `realpath .`:/project/remme -it remme/remme-core:latest /bin/bash
