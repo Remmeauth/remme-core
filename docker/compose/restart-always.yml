@@ -17,30 +17,22 @@ version: '3.4'
 
 services:
   validator:
-    logging:
-      driver: none
+    restart: always
 
   consensus-devmode:
-    logging:
-      driver: none
+    restart: always
 
   validator-rest-api:
     restart: always
-    logging:
-      driver: none
 
   block-info-tp:
-    logging:
-      driver: none
+    restart: always
 
   settings-tp:
-    logging:
-      driver: none
+    restart: always
 
   remme-tp:
-    logging:
-      driver: none
+    restart: always
 
   remme-rpc-api:
-    logging:
-      driver: none
+    restart: always
