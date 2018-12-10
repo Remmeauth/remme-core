@@ -48,7 +48,7 @@ LOGGER = logging.getLogger(__name__)
 
 class JsonRpc(JsonRpc):
 
-    def __init__(self, zmq_url, websocket_state_logger, *args, **kwargs):
+    def __init__(self, zmq_url, websocket_state_logger=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._zmq_url = zmq_url
         self._accepting = True
