@@ -62,7 +62,7 @@ if [ $BG_MODE -eq 1 ]; then
     ADDITIONAL_ARGS="$ADDITIONAL_ARGS -d"
 fi
 
-if [ $RESTART_ALWAYS -eq 1 ]; then
+if [ ${RESTART_ALWAYS:-0} -eq 1 ]; then
     COMPOSE_FILES="$COMPOSE_FILES -f $COMPOSE_DIR/restart-always.yml"
 fi
 
