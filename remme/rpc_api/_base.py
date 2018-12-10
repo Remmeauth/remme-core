@@ -48,16 +48,17 @@ LOGGER = logging.getLogger(__name__)
 
 class JsonRpc(JsonRpc):
 
-    def __init__(self, zmq_url, *args, **kwargs):
+    def __init__(self, zmq_url, websocket_state_logger, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._zmq_url = zmq_url
         self._accepting = True
         self._evthashes = {}
         self._subsevt = {}
 
-        self._print_storage_state_task = weakref.ref(
-            asyncio.ensure_future(self._print_storage_state(), loop=self.loop))
-        self._print_storage_state_running = True
+        if websocket_state_logger:
+            self._print_storage_state_task = weakref.ref(
+                asyncio.ensure_future(self._print_storage_state(), loop=self.loop))
+            self._print_storage_state_running = True
 
     async def __call__(self, request):
         # prepare request

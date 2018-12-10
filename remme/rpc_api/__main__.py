@@ -65,7 +65,7 @@ if __name__ == '__main__':
         ) for ao in cors_config["allow_origin"]
     })
     zmq_url = f'tcp://{ cfg_ws["validator_ip"] }:{ cfg_ws["validator_port"] }'
-    rpc = JsonRpc(zmq_url=zmq_url, loop=loop, max_workers=1)
+    rpc = JsonRpc(zmq_url=zmq_url, websocket_state_logger=cfg_rpc['websocket_state_logger'], loop=loop, max_workers=1)
     rpc.load_from_modules(cfg_rpc['available_modules'])
     cors.add(app.router.add_route('GET', '/', rpc))
     cors.add(app.router.add_route('POST', '/', rpc))
