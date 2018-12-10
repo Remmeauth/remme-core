@@ -180,6 +180,40 @@ def test_account_handler_apply_invalid_transfer_method():
     assert f'Invalid account method value ({account_method_impossible_value}) has been set.' == str(error.value)
 
 
+def test_account_handler_apply_decode_error():
+    """
+    Case: send transaction request, to send tokens to address, to account handler with invalid transaction payload.
+    Expect: invalid transaction error is raised cannot decode transaction payload error message.
+    """
+    serialized_not_valid_transaction_payload = b'F1120071db7c02f5731d06df194dc95465e9b27'
+
+    transaction_header = TransactionHeader(
+        signer_public_key=RANDOM_NODE_PUBLIC_KEY,
+        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
+        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
+        inputs=INPUTS,
+        outputs=OUTPUTS,
+        dependencies=[],
+        payload_sha512=hash512(data=serialized_not_valid_transaction_payload),
+        batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
+        nonce=time.time().hex().encode(),
+    )
+
+    serialized_header = transaction_header.SerializeToString()
+
+    transaction_request = TpProcessRequest(
+        header=transaction_header,
+        payload=serialized_not_valid_transaction_payload,
+        signature=create_signer(private_key=ACCOUNT_FROM_PRIVATE_KEY).sign(serialized_header),
+    )
+    mock_context = create_context(account_from_balance=ACCOUNT_FROM_BALANCE, account_to_balance=ACCOUNT_TO_BALANCE)
+
+    with pytest.raises(InvalidTransaction) as error:
+        AccountHandler().apply(transaction=transaction_request, context=mock_context)
+
+    assert 'Cannot decode transaction payload.' == str(error.value)
+
+
 def test_account_transfer_from_address():
     """
     Case: transfer tokens from address to address.
@@ -265,6 +299,30 @@ def test_account_transfer_from_address_without_tokens():
     Expect: invalid transaction error is raised with not enough transferable balance error message.
     """
     mock_context = create_context(account_from_balance=0, account_to_balance=ACCOUNT_TO_BALANCE)
+
+    transfer_payload = TransferPayload()
+    transfer_payload.address_to = ACCOUNT_ADDRESS_TO
+    transfer_payload.value = TOKENS_AMOUNT_TO_SEND
+
+    with pytest.raises(InvalidTransaction) as error:
+        AccountHandler()._transfer_from_address(
+            context=mock_context, address_from=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
+        )
+
+    assert 'Not enough transferable balance. Sender\'s current balance: 0.' == str(error.value)
+
+
+def test_account_transfer_from_address_without_previous_usage():
+    """
+    Case: transfer tokens from address to address when them have never been used before.
+    Expect: invalid transaction error is raised with not enough transferable balance error message.
+    """
+    initial_state = {
+        ACCOUNT_ADDRESS_FROM: None,
+        ACCOUNT_ADDRESS_TO: None,
+    }
+
+    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state=initial_state)
 
     transfer_payload = TransferPayload()
     transfer_payload.address_to = ACCOUNT_ADDRESS_TO

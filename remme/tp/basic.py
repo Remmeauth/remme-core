@@ -15,6 +15,7 @@
 import logging
 import json
 
+from google.protobuf.message import DecodeError
 from google.protobuf.text_format import ParseError
 from sawtooth_processor_test.message_factory import MessageFactory
 from sawtooth_sdk.processor.exceptions import InternalError, InvalidTransaction
@@ -75,6 +76,29 @@ def get_data(context, pb_class, address):
         return None
 
 
+def get_protobuf_from_state(context, protobuf_class, address):
+    """
+    Get address data as protobuf object from state.
+    """
+    state_entries = context.get_state([address])
+
+    LOGGER.debug(f'The following state entries were gained: {state_entries}.')
+
+    if not state_entries:
+        return None
+
+    try:
+        protobuf = protobuf_class()
+        protobuf.ParseFromString(state_entries[0].data)
+        return protobuf
+
+    except IndexError:
+        return None
+
+    except ParseError:
+        return None
+
+
 def get_multiple_data(context, data):
     raw_data = context.get_state([el[0] for el in data])
     raw_data = {entry.address: entry.data for entry in raw_data}
@@ -129,31 +153,51 @@ class BasicHandler(metaclass=Singleton):
         return is_address(address) and address.startswith(self._prefix)
 
     def apply(self, transaction, context):
-        transaction_payload = TransactionPayload()
-        transaction_payload.ParseFromString(transaction.payload)
+        """
+        Accept transaction request that passed from validator.
+
+        Validator accept not transaction request, but transaction, that have a bit another structure.
+        The flow is: transaction -> RPC -> validator -> (transaction request) handler's apply method.
+
+        Arguments:
+            transaction (sawtooth_sdk.protobuf.processor_pb2.TpProcessRequest): transaction request.
+            context (sawtooth_sdk.processor.context.Context): context to store and retrieve address data.
+
+        References:
+            - https://sawtooth.hyperledger.org/docs/core/releases/1.0/sdks/python_sdk/processor.html?
+                highlight=apply#processor.handler.TransactionHandler.apply
+            - https://sawtooth.hyperledger.org/docs/core/releases/1.0/_autogen/sdk_TP_tutorial_python.html?
+                highlight=apply#transaction-processor-tutorial-python
+            - https://sawtooth.hyperledger.org/docs/core/releases/1.0.1/architecture/transactions_and_batches.html
+            - https://github.com/hyperledger/sawtooth-core/blob/10a04a56ae29b5e4b38127399dc01552db500c0a/
+                protos/processor.proto#L81
+            - https://github.com/hyperledger/sawtooth-core/blob/master/sdk/python/sawtooth_sdk/processor/context.py
+        """
+        try:
+            transaction_payload = TransactionPayload()
+            transaction_payload.ParseFromString(transaction.payload)
+
+        except DecodeError:
+            raise InvalidTransaction('Cannot decode transaction payload.')
 
         state_processor = self.get_state_processor()
+
         try:
             data_pb = state_processor[transaction_payload.method][PB_CLASS]()
             data_pb.ParseFromString(transaction_payload.data)
             processor = state_processor[transaction_payload.method][PROCESSOR]
             updated_state = processor(context, transaction.header.signer_public_key, data_pb)
+
         except KeyError:
             raise InvalidTransaction(f'Invalid account method value ({transaction_payload.method}) has been set.')
-        except ParseError:
-            raise InvalidTransaction('Cannot decode transaction payload')
 
-        addresses = context.set_state({k: v.SerializeToString() for k, v in updated_state.items()})
-
-        if len(addresses) < len(updated_state):
-            raise InternalError('Failed to update all of states. Updated: {}. '
-                                'Full list of states to update: {}.'
-                                .format(addresses, updated_state.keys()))
+        context.set_state({k: v.SerializeToString() for k, v in updated_state.items()})
 
         event_name = state_processor[transaction_payload.method].get(EMIT_EVENT, None)
+
         if event_name:
-            add_event(context, event_name,
-                      get_event_attributes(updated_state, transaction.signature))
+            event_attributes = get_event_attributes(updated_state, transaction.signature)
+            add_event(context, event_name, event_attributes)
 
     def make_address(self, appendix):
         address = self._prefix + appendix

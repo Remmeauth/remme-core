@@ -22,7 +22,7 @@ from remme.protos.account_pb2 import (
 )
 from remme.settings.helper import _get_setting_value
 from remme.settings import GENESIS_ADDRESS, ZERO_ADDRESS, SETTINGS_KEY_GENESIS_OWNERS
-from remme.tp.basic import PB_CLASS, PROCESSOR, BasicHandler, get_data, get_multiple_data
+from remme.tp.basic import PB_CLASS, PROCESSOR, BasicHandler, get_data, get_protobuf_from_state
 from remme.ws.basic import EMIT_EVENT
 from remme.ws.constants import Events
 
@@ -88,6 +88,15 @@ class AccountHandler(BasicHandler):
         }
 
     def _transfer(self, context, public_key, transfer_payload):
+        """
+        Make public transfer.
+
+        Public transfer means additional check if address to send tokens from isn't zero address.
+        Zero address is used only for internal transactions.
+
+        References:
+            - https://github.com/Remmeauth/remme-core/blob/dev/remme/genesis/__main__.py
+        """
         address = self.make_address_from_data(public_key)
 
         if address == ZERO_ADDRESS:
@@ -125,15 +134,19 @@ class AccountHandler(BasicHandler):
         if address_from == transfer_payload.address_to:
             raise InvalidTransaction('Account cannot send tokens to itself.')
 
-        signer_account, receiver_account = get_multiple_data(context, [
-            (address_from, Account),
-            (transfer_payload.address_to, Account)
-        ])
+        signer_account = get_protobuf_from_state(
+            context=context, protobuf_class=Account, address=address_from,
+        )
 
-        if not receiver_account:
-            receiver_account = Account()
-        if not signer_account:
+        receiver_account = get_protobuf_from_state(
+            context=context, protobuf_class=Account, address=transfer_payload.address_to,
+        )
+
+        if signer_account is None:
             signer_account = Account()
+
+        if receiver_account is None:
+            receiver_account = Account()
 
         if signer_account.balance < transfer_payload.value:
             raise InvalidTransaction(
