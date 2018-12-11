@@ -27,7 +27,7 @@ build_dev:
 	$(BUILD_DIR)/build.sh
 
 build_protobuf:
-	$(BUILD_DIR)/build-protobuf.sh
+	protoc -I=./protos --python_out=./remme/protos ./protos/*.proto
 
 clean:
 	$(BUILD_DIR)/clean.sh
@@ -60,10 +60,10 @@ stop:
 	$(RUN_SCRIPT) -g -d
 
 docs:
-	$(BUILD_DIR)/build-docs.sh
+	sphinx-build -b html ./docs ./docs/html
 
 run_docs:
-	$(BUILD_DIR)/docs-server.sh
+	sphinx-autobuild -H 0.0.0.0 -p 8000 ./docs ./docs/html
 
 run_logio:
 	$(RUN_SCRIPT) -l -u
