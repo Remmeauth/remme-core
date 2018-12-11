@@ -31,3 +31,4 @@ class Events(Enum):
     ACCOUNT_TRANSFER = 'account/transfer'
 
     SAWTOOTH_BLOCK_COMMIT = 'sawtooth/block-commit'
+    REMME_BATCH_DELTA = 'remme/batch-status'

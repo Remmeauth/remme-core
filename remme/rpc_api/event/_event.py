@@ -106,11 +106,12 @@ async def subscribe(request):
         if ws not in request.rpc._evthashes:
             request.rpc._evthashes[ws] = set()
 
-        if not len(subsevt.keys()):
-            LOGGER.debug('Create first cosumer task')
-            request.rpc.loop.create_task(_consumer(request))
-        else:
-            LOGGER.debug('Consumer task already run')
+        LOGGER.debug(f'Create cosumer task for {ws}')
+        request.rpc.loop.create_task(_consumer(request))
+
+        if event_type == 'batch':
+            LOGGER.debug(f'Create producer task for {ws}')
+            request.rpc.loop.create_task(_producer(request))
 
         subsevt[event_type] = {
             'msg_id': msg_id,
@@ -141,6 +142,19 @@ async def unsubscribe(request):
                 message='Subscription not found')
 
     return 'UNSUBSCRIBED'
+
+
+async def _producer(request):
+    ws = request.ws
+    stream = ws.stream
+
+    while not ws.closed:
+        LOGGER.debug('Producer: Start producing a new messages...')
+        for evt_name, data in request.rpc._subsevt.get(ws, {}).items():
+            evt_tr = EVENT_HANDLERS[evt_name]
+            await evt_tr.produce_custom_msg(stream, data['validated_data'])
+        LOGGER.debug('Producer: Waiting...')
+        await asyncio.sleep(1)
 
 
 async def _consumer(request):
@@ -210,8 +224,7 @@ async def _process_msg(request, msg):
             LOGGER.debug(f'Loaded validated data: {validated_data}')
             msg_id = subsevt[evt_name]['msg_id']
 
-            response = evt_tr.prepare_response(stream, updated_state,
-                                               validated_data)
+            response = evt_tr.prepare_response(updated_state, validated_data)
             if asyncio.iscoroutine(response):
                 response = await response
 
