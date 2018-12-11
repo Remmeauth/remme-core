@@ -183,7 +183,6 @@ async def _process_msg(request, msg):
     evt_resp.ParseFromString(msg.content)
 
     ws = request.ws
-    stream = ws.stream
     subsevt = request.rpc._subsevt.get(ws, {})
 
     for proto_data in evt_resp.events:

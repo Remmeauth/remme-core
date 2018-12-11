@@ -181,10 +181,18 @@ class BatchEventHandler(BaseEventHandler):
             LOGGER.warning(f'Error during fetch: {e}')
             return
 
-        status = result['data'][0]['status']
+        data = result['data'][0]
+        resp = {
+            'id': batch_id,
+            'status': data['status'],
+        }
+        try:
+            error = data['invalid_transactions'][0]['message']
+            resp['error'] = error
+        except (KeyError, IndexError):
+            pass
 
-        evt_resp = _create_event_payload(Events.REMME_BATCH_DELTA.value,
-                                         {'id': batch_id, 'status': status})
+        evt_resp = _create_event_payload(Events.REMME_BATCH_DELTA.value, resp)
         correlation_id = uuid.uuid4().hex
         msg = Message(
             correlation_id=correlation_id,
