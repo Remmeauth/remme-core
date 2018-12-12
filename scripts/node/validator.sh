@@ -35,6 +35,8 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
     fi
 
     echo "Writing REMME settings..."
+    echo "Writing out validator public key: "
+    cat /etc/sawtooth/keys/validator.pub
     sawset proposal create \
         -k /etc/sawtooth/keys/validator.priv \
         "remme.settings.pub_key_encryption=$(cat /etc/sawtooth/keys/validator.pub)" \

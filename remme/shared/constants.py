@@ -12,31 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------
-import logging
 
-from remme.clients.pub_key import PubKeyClient
-
-
-__all__ = (
-    'get_node_info',
-    'fetch_peers',
-    # 'fetch_status',
-)
-
-logger = logging.getLogger(__name__)
+from enum import Enum, unique
 
 
-async def get_node_info(request):
-    client = PubKeyClient()
-    data = await client.fetch_peers()
-    return {'is_synced': True, 'peer_count': len(data['data'])}
+EMIT_EVENT = "emit_event"
 
 
-async def fetch_peers(request):
-    client = PubKeyClient()
-    return await client.fetch_peers()
+@unique
+class Events(Enum):
 
+    SWAP_INIT = 'atomic-swap/init'
+    SWAP_CLOSE = 'atomic-swap/close'
+    SWAP_APPROVE = 'atomic-swap/approve'
+    SWAP_EXPIRE = 'atomic-swap/expire'
+    SWAP_SET_SECRET_LOCK = 'atomic-swap/set-secret-lock'
 
-# async def fetch_status(request):
-#     client = PubKeyClient()
-#     return client.fetch_status()
+    ACCOUNT_TRANSFER = 'account/transfer'
+
+    SAWTOOTH_BLOCK_COMMIT = 'sawtooth/block-commit'
+    REMME_BATCH_DELTA = 'remme/batch-status'

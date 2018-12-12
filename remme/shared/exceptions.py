@@ -19,10 +19,14 @@ class RemmeRpcError(RpcError):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.message = args[0] or self.MESSAGE
+        try:
+            self.message = args[0] or self.MESSAGE
+        except IndexError:
+            pass
 
 
 class ClientException(RemmeRpcError):
+    MESSAGE = 'Unhandled exception'
     ERROR_CODE = -32000
 
 
