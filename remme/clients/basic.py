@@ -30,7 +30,7 @@ from remme.shared.utils import (
 )
 from remme.settings.helper import _make_settings_key
 from remme.shared.messaging import Connection
-from remme.settings import PRIV_KEY_FILE
+from remme.settings import PRIV_KEY_FILE, PUB_KEY_FILE
 from remme.settings.default import load_toml_with_defaults
 from remme.shared.router import Router
 from remme.shared.exceptions import (
@@ -43,7 +43,7 @@ LOGGER = logging.getLogger(__name__)
 
 class BasicClient:
 
-    def __init__(self, family_handler=None, keyfile=None):
+    def __init__(self, family_handler=None):
         config = load_toml_with_defaults('/config/remme-client-config.toml')['remme']['client']
 
         self.url = config['validator_rest_api_url']
@@ -51,14 +51,11 @@ class BasicClient:
         self._stream = Connection.get_single_connection(f'tcp://{ config["validator_ip"] }:{ config["validator_port"] }')
         self._router = Router(self._stream)
 
-        if keyfile is None:
-            keyfile = PRIV_KEY_FILE
-
         try:
-            self._signer = self.get_signer_priv_key_from_file(keyfile)
+            self._signer = self.get_signer_priv_key_from_file(PRIV_KEY_FILE)
         except ClientException as e:
             LOGGER.warning('Could not set up signer from file, detailed: %s', e)
-            self._signer = self.generate_signer(keyfile)
+            self._signer = self.generate_signer(PRIV_KEY_FILE, PUB_KEY_FILE)
 
     def __getattr__(self, name):
         rfunc = getattr(self._router, name, None)
@@ -93,15 +90,21 @@ class BasicClient:
             fd.write(private_key)
 
     @staticmethod
-    def generate_signer(keyfile=None):
+    def generate_signer(keyfile=None, pubkey_file=None):
         context = create_context('secp256k1')
         private_key = context.new_random_private_key()
+        signer = None
         if keyfile:
             try:
                 with open(keyfile, 'w') as fd:
                     fd.write(private_key.as_hex())
+                with open(pubkey_file, 'w') as fd:
+                    signer = CryptoFactory(context).new_signer(private_key)
+                    fd.write(signer.get_public_key().as_hex())
             except OSError as err:
                 raise ClientException(f'Failed to write private key: {err}')
+        if not signer:
+            signer = CryptoFactory(context).new_signer(private_key)
         return CryptoFactory(context).new_signer(private_key)
 
     def make_address(self, suffix):
