@@ -22,7 +22,7 @@ from remme.protos.account_pb2 import (
 )
 from remme.settings.helper import _get_setting_value
 from remme.settings import GENESIS_ADDRESS, ZERO_ADDRESS, SETTINGS_KEY_GENESIS_OWNERS
-from remme.tp.basic import PB_CLASS, PROCESSOR, BasicHandler, get_data, get_protobuf_from_state
+from remme.tp.basic import PB_CLASS, PROCESSOR, BasicHandler, get_data, get_multiple_data
 from remme.ws.basic import EMIT_EVENT
 from remme.ws.constants import Events
 
@@ -134,13 +134,10 @@ class AccountHandler(BasicHandler):
         if address_from == transfer_payload.address_to:
             raise InvalidTransaction('Account cannot send tokens to itself.')
 
-        signer_account = get_protobuf_from_state(
-            context=context, protobuf_class=Account, address=address_from,
-        )
-
-        receiver_account = get_protobuf_from_state(
-            context=context, protobuf_class=Account, address=transfer_payload.address_to,
-        )
+        signer_account, receiver_account = get_multiple_data(context, [
+            (address_from, Account),
+            (transfer_payload.address_to, Account),
+        ])
 
         if signer_account is None:
             signer_account = Account()
