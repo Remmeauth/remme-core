@@ -38,7 +38,7 @@ async def get_node_config(request):
     client = PubKeyClient()
     return {
         'node_public_key': client.get_public_key(),
-        'storage_public_key': client.get_setting_value(SETTINGS_STORAGE_PUB_KEY),
+        'storage_public_key': await client.get_setting_value(SETTINGS_STORAGE_PUB_KEY),
     }
 
 
@@ -51,7 +51,7 @@ async def get_public_key_info(request):
 
     client = PubKeyClient()
     try:
-        pub_key_data = client.get_status(public_key_address)
+        pub_key_data = await client.get_status(public_key_address)
         now = time.time()
         valid_from = pub_key_data.payload.valid_from
         valid_to = pub_key_data.payload.valid_to

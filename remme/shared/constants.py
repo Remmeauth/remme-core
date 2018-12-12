@@ -13,34 +13,22 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-version: '3.4'
+from enum import Enum, unique
 
-services:
-  validator:
-    logging:
-      driver: none
 
-  consensus-devmode:
-    logging:
-      driver: none
+EMIT_EVENT = "emit_event"
 
-  validator-rest-api:
-    restart: always
-    logging:
-      driver: none
 
-  block-info-tp:
-    logging:
-      driver: none
+@unique
+class Events(Enum):
 
-  settings-tp:
-    logging:
-      driver: none
+    SWAP_INIT = 'atomic-swap/init'
+    SWAP_CLOSE = 'atomic-swap/close'
+    SWAP_APPROVE = 'atomic-swap/approve'
+    SWAP_EXPIRE = 'atomic-swap/expire'
+    SWAP_SET_SECRET_LOCK = 'atomic-swap/set-secret-lock'
 
-  remme-tp:
-    logging:
-      driver: none
+    ACCOUNT_TRANSFER = 'account/transfer'
 
-  remme-rpc-api:
-    logging:
-      driver: none
+    SAWTOOTH_BLOCK_COMMIT = 'sawtooth/block-commit'
+    REMME_BATCH_DELTA = 'remme/batch-status'

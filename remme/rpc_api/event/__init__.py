@@ -13,34 +13,9 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
-version: '3.4'
+from ._event import subscribe, unsubscribe
 
-services:
-  validator:
-    logging:
-      driver: none
-
-  consensus-devmode:
-    logging:
-      driver: none
-
-  validator-rest-api:
-    restart: always
-    logging:
-      driver: none
-
-  block-info-tp:
-    logging:
-      driver: none
-
-  settings-tp:
-    logging:
-      driver: none
-
-  remme-tp:
-    logging:
-      driver: none
-
-  remme-rpc-api:
-    logging:
-      driver: none
+__all__ = (
+    'subscribe',
+    'unsubscribe',
+)

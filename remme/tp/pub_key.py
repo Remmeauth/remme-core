@@ -71,8 +71,12 @@ class PubKeyHandler(BasicHandler):
         if data:
             raise InvalidTransaction('This pub key is already registered.')
 
-        cert_signer_pubkey = load_pem_public_key(transaction_payload.public_key.encode('utf-8'),
-                                                 backend=default_backend())
+        try:
+            cert_signer_pubkey = load_pem_public_key(transaction_payload.public_key.encode('utf-8'),
+                                                     backend=default_backend())
+        except ValueError:
+            raise InvalidTransaction('Cannot deserialize the provided public key: check if it is in PEM format')
+
         try:
             ehs_bytes = binascii.unhexlify(transaction_payload.entity_hash_signature)
             eh_bytes = binascii.unhexlify(transaction_payload.entity_hash)

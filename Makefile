@@ -26,6 +26,9 @@ build:
 build_dev:
 	$(BUILD_DIR)/build.sh
 
+build_protobuf:
+	protoc -I=./protos --python_out=./remme/protos ./protos/*.proto
+
 clean:
 	$(BUILD_DIR)/clean.sh
 
@@ -37,9 +40,6 @@ run_genesis:
 
 run_genesis_bg:
 	$(RUN_SCRIPT) -g -u -b
-
-stop_genesis:
-	$(RUN_SCRIPT) -g -d
 
 run:
 	$(RUN_SCRIPT) -u
@@ -57,13 +57,13 @@ restart_bg:
 	make stop && make build_dev && make run_genesis_bg
 
 stop:
-	$(RUN_SCRIPT) -d
+	$(RUN_SCRIPT) -g -d
 
 docs:
-	$(BUILD_DIR)/build-docs.sh
+	sphinx-build -b html ./docs ./docs/html
 
 run_docs:
-	$(BUILD_DIR)/docs-server.sh
+	sphinx-autobuild -H 0.0.0.0 -p 8000 ./docs ./docs/html
 
 run_logio:
 	$(RUN_SCRIPT) -l -u
@@ -88,3 +88,6 @@ lint:
 
 lint_html:
 	pylint --output-format=json `find . -name "*.py"` | pylint-json2html -o report.html
+
+enter_testing_console:
+	docker run -v `realpath .`:/project/remme -it remme/remme-core:latest /bin/bash

@@ -142,12 +142,16 @@ class AtomicSwapClient(BasicClient):
         return self._send_transaction(AtomicSwapMethod.CLOSE, swap_close_payload,
                                       addresses_input, addresses_output)
 
-    def swap_get(self, swap_id):
+    async def swap_get(self, swap_id):
         atomic_swap_info = AtomicSwapInfo()
-        atomic_swap_info.ParseFromString(self.get_value(self.make_address_from_data(swap_id)))
+        swap_address = self.make_address_from_data(swap_id)
+        raw_swap = await self.get_value(swap_address)
+        atomic_swap_info.ParseFromString(raw_swap)
         return atomic_swap_info
 
-    def get_pub_key_encryption(self):
+    async def get_pub_key_encryption(self):
         setting = Setting()
-        setting.ParseFromString(self.get_value(_make_settings_key(SETTINGS_PUB_KEY_ENCRYPTION)))
+        pub_key_enc = _make_settings_key(SETTINGS_PUB_KEY_ENCRYPTION)
+        raw_pub_key = await self.get_value(pub_key_enc)
+        setting.ParseFromString(raw_pub_key)
         return setting.entries[0].value

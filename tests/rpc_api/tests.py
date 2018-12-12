@@ -1,8 +1,8 @@
 import time
 import base64
 import logging
-from unittest import mock
 
+from asynctest import mock
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 from aiohttp import web
 from aiohttp_json_rpc.protocol import (
@@ -18,7 +18,7 @@ from remme.protos.account_pb2 import AccountMethod, TransferPayload, Account
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.clients.account import AccountClient
 from remme.clients.pub_key import PubKeyClient
-from remme.rpc_api.base import JsonRpc
+from remme.rpc_api._base import JsonRpc
 from remme.rpc_api.account import get_balance
 from remme.rpc_api.pkc import get_node_config
 from remme.rpc_api.transaction import send_raw_transaction, get_batch_status
@@ -73,7 +73,7 @@ class RpcApiTestCase(AioHTTPTestCase, HelperTestCase):
 
     async def get_application(self):
         app = web.Application()
-        rpc = JsonRpc(loop=self.loop, max_workers=1)
+        rpc = JsonRpc(zmq_url=None, loop=self.loop, max_workers=1)
         rpc.add_methods(
             ('', get_node_config),
             ('', send_raw_transaction),
@@ -93,9 +93,9 @@ class RpcApiTestCase(AioHTTPTestCase, HelperTestCase):
             headers={'Content-Type': 'application/json'}
         )
 
-    @mock.patch('remme.clients.basic.BasicClient.fetch_state',
+    @mock.patch('remme.shared.router.Router.fetch_state',
                 return_value={'data': base64.b64encode(Setting(entries=[Setting.Entry(key=_make_settings_key(SETTINGS_STORAGE_PUB_KEY), value='03823c7a9e285246985089824f3aaa51fb8675d08d84b151833ca5febce37ad61e')]).SerializeToString())})
-    @mock.patch('remme.clients.basic.BasicClient._head_to_root',
+    @mock.patch('remme.shared.router.Router._head_to_root',
                 return_value=(None, 'some_root'))
     @unittest_run_loop
     @test
@@ -107,7 +107,7 @@ class RpcApiTestCase(AioHTTPTestCase, HelperTestCase):
         pub_key = PubKeyClient().get_public_key()
         self.assertEqual(data['result']['node_public_key'], pub_key)
 
-    @mock.patch('remme.clients.basic.BasicClient.submit_batches',
+    @mock.patch('remme.shared.router.Router.submit_batches',
                 return_value={'data': 'c6bcb01255c1870a5d42fe2dde5e91fb0c5992ec0b49932cdab901539bf977f75bb7699c053cea16668ba732a7d597dd0c2b80f157f1a2514932078bb761de4b'})
     @unittest_run_loop
     @test
@@ -121,9 +121,9 @@ class RpcApiTestCase(AioHTTPTestCase, HelperTestCase):
         data = await resp.json()
         self.assertEqual(data['result'], 'c6bcb01255c1870a5d42fe2dde5e91fb0c5992ec0b49932cdab901539bf977f75bb7699c053cea16668ba732a7d597dd0c2b80f157f1a2514932078bb761de4b')
 
-    @mock.patch('remme.clients.basic.BasicClient.fetch_state',
+    @mock.patch('remme.shared.router.Router.fetch_state',
                 return_value={'data': base64.b64encode(Account(balance=100).SerializeToString())})
-    @mock.patch('remme.clients.basic.BasicClient._head_to_root',
+    @mock.patch('remme.shared.router.Router._head_to_root',
                 return_value=(None, 'some_root'))
     @unittest_run_loop
     @test
@@ -137,7 +137,7 @@ class RpcApiTestCase(AioHTTPTestCase, HelperTestCase):
         data = await resp.json()
         self.assertEqual(data['result'], 100)
 
-    @mock.patch('remme.clients.basic.BasicClient.list_statuses',
+    @mock.patch('remme.shared.router.Router.list_statuses',
                 return_value={'data': [{'status': 'COMMITTED'}]})
     @unittest_run_loop
     @test

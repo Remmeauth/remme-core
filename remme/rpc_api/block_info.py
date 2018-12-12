@@ -1,3 +1,17 @@
+# Copyright 2018 REMME
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ------------------------------------------------------------------------
 import logging
 
 from aiohttp_json_rpc import (
@@ -21,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 async def get_block_number(request):
     try:
-        block_config = BlockInfoClient().get_block_info_config()
+        block_config = await BlockInfoClient().get_block_info_config()
         return block_config.latest_block + 1
     except KeyNotFound as e:
         return 0
@@ -32,7 +46,7 @@ async def get_blocks(request):
     limit = request.params.get('limit', 0)
 
     try:
-        return BlockInfoClient().get_blocks_info(start, limit)
+        return await BlockInfoClient().get_blocks_info(start, limit)
     except KeyNotFound:
         raise KeyNotFound('Blocks not found')
 
@@ -45,7 +59,7 @@ async def list_blocks(request):
     head = request.params.get('head')
     reverse = request.params.get('reverse')
 
-    return client.list_blocks(ids, start, limit, head, reverse)
+    return await client.list_blocks(ids, start, limit, head, reverse)
 
 
 async def fetch_block(request):
@@ -56,6 +70,6 @@ async def fetch_block(request):
 
     client = BlockInfoClient()
     try:
-        return client.fetch_block(id)
+        return await client.fetch_block(id)
     except KeyNotFound:
         raise KeyNotFound(f'Block with id "{id}" not found')

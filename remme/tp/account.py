@@ -23,8 +23,7 @@ from remme.protos.account_pb2 import (
 from remme.settings.helper import _get_setting_value
 from remme.settings import GENESIS_ADDRESS, ZERO_ADDRESS, SETTINGS_KEY_GENESIS_OWNERS
 from remme.tp.basic import PB_CLASS, PROCESSOR, BasicHandler, get_data, get_multiple_data
-from remme.ws.basic import EMIT_EVENT
-from remme.ws.constants import Events
+from remme.shared.constants import Events, EMIT_EVENT
 
 
 LOGGER = logging.getLogger(__name__)

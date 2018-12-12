@@ -56,10 +56,18 @@ if [ $RUN_LOGIO -eq 1 ]; then
     COMPOSE_FILES="-f $COMPOSE_DIR/logio.yml"
 fi
 
+if [ $DEV -eq 1 ]; then
+    COMPOSE_FILES="$COMPOSE_FILES -f $COMPOSE_DIR/development.yml"
+fi
+
 ADDITIONAL_ARGS=""
 if [ $BG_MODE -eq 1 ]; then
     COMPOSE_FILES="$COMPOSE_FILES -f $COMPOSE_DIR/bg.yml"
     ADDITIONAL_ARGS="$ADDITIONAL_ARGS -d"
+fi
+
+if [ ${RESTART_ALWAYS:-0} -eq 1 ]; then
+    COMPOSE_FILES="$COMPOSE_FILES -f $COMPOSE_DIR/restart-always.yml"
 fi
 
 COMMAND="docker-compose $COMPOSE_FILES --project-name remme"

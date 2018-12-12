@@ -38,7 +38,7 @@ LOGGER = logging.getLogger(__name__)
 
 class RemmeMockValidator(MockValidator):
 
-    def wait_for_ready(self):
+    async def open(self):
         pass
 
 
@@ -57,7 +57,7 @@ class HelperTestCase(TestCase):
 
         cls.factory = None
 
-        cls._zmq_patcher = mock.patch('remme.clients.basic.Stream',
+        cls._zmq_patcher = mock.patch('remme.shared.messaging.Connection',
                                       return_value=cls.validator)
         cls._zmq_patcher_obj = cls._zmq_patcher.start()
 
