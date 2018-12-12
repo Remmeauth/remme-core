@@ -193,7 +193,7 @@ class AtomicSwapHandler(BasicHandler):
 
         transfer_payload = AccountClient \
             .get_transfer_payload(ZERO_ADDRESS, total_amount)
-        # AccountHandler()._check_signer_address(context, swap_info.sender_address)
+        AccountHandler()._check_signer_address(context, swap_info.sender_address)
         token_updated_state = AccountHandler() \
             ._transfer_from_address(context, swap_info.sender_address,
                                     transfer_payload)
@@ -259,7 +259,7 @@ class AtomicSwapHandler(BasicHandler):
 
         transfer_payload = AccountClient \
             .get_transfer_payload(swap_info.sender_address, swap_info.amount)
-        # AccountHandler()._check_signer_address(context, swap_info.sender_address)
+        AccountHandler()._check_signer_address(context, swap_info.sender_address)
         token_updated_state = AccountHandler() \
             ._transfer_from_address(context, ZERO_ADDRESS, transfer_payload)
 
@@ -306,7 +306,7 @@ class AtomicSwapHandler(BasicHandler):
 
         transfer_payload = AccountClient \
             .get_transfer_payload(swap_info.receiver_address, swap_info.amount)
-        # AccountHandler()._check_signer_address(context, swap_info.sender_address)
+        AccountHandler()._check_signer_address(context, swap_info.sender_address)
         token_updated_state = AccountHandler() \
             ._transfer_from_address(context, ZERO_ADDRESS, transfer_payload)
         swap_info.secret_key = swap_close_payload.secret_key
