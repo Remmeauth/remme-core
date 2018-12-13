@@ -51,12 +51,15 @@ COMPOSE_DIR=./docker/compose
 COMPOSE_FILES="-f $COMPOSE_DIR/base.yml"
 if [ $GENESIS_MODE -eq 1 ]; then
     COMPOSE_FILES="$COMPOSE_FILES -f $COMPOSE_DIR/genesis.yml"
+    if [ ${DEV:-0} -eq 1 ]; then
+        COMPOSE_FILES="$COMPOSE_FILES -f $COMPOSE_DIR/development-genesis.yml"
+    fi
 fi
 if [ $RUN_LOGIO -eq 1 ]; then
     COMPOSE_FILES="-f $COMPOSE_DIR/logio.yml"
 fi
 
-if [ $DEV -eq 1 ]; then
+if [ ${DEV:-0} -eq 1 ]; then
     COMPOSE_FILES="$COMPOSE_FILES -f $COMPOSE_DIR/development.yml"
 fi
 
