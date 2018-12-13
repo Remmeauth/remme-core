@@ -28,5 +28,7 @@ pysha3 = "1.0.2"
 aiozmq = "0.7.1"
 
 [tool.poetry.dev-dependencies]
-pytest = "4.0.1"
 asynctest = "0.12.2"
+pytest = "4.0.1"
+pytest-cov = "2.6.0"
+pytest-mock = "1.10.0"
