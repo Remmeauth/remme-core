@@ -14,4 +14,3 @@ def create_signer(private_key):
     """
     private_key = Secp256k1PrivateKey.from_hex(private_key)
     return CryptoFactory(create_context('secp256k1')).new_signer(private_key)
-
