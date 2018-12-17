@@ -27,6 +27,8 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
         echo "Devmode consensus is set to use. Writing consensus specific settings..."
         sawset proposal create \
             -k /etc/sawtooth/keys/validator.priv \
+            sawtooth.consensus.algorithm.name=Devmode \
+            sawtooth.consensus.algorithm.version=0.1 \
             sawtooth.consensus.min_wait_time=5 \
             sawtooth.consensus.max_wait_time=30 \
             -o devmode.batch

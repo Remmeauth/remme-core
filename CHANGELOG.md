@@ -6,7 +6,8 @@ and this project adheres to
 
 ## Unreleased
 ### Changed
-- Autotorestart Docker containers when running in background.
+- Autorestart Docker containers when running in background.
+- Moved to stable Sawtooth 1.1
 
 ## [0.5.2-alpha] - 2018-09-27
 ### Fixed
