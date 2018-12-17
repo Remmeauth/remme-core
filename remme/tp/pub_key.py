@@ -215,16 +215,22 @@ class PubKeyHandler(BasicHandler):
 
         return state
 
-    def _revoke_pub_key(self, context, signer_pubkey, transaction_payload):
-        data = get_data(context, PubKeyStorage, transaction_payload.address)
-        if data is None:
-            raise InvalidTransaction('No such pub key.')
-        if signer_pubkey != data.owner:
-            raise InvalidTransaction('Only owner can revoke the pub key.')
-        if data.revoked:
-            raise InvalidTransaction('The pub key is already revoked.')
-        data.revoked = True
+    @staticmethod
+    def _revoke_pub_key(context, signer_pubkey, revoke_pub_key_payload):
+        public_key_information = get_data(context, PubKeyStorage, revoke_pub_key_payload.address)
 
-        LOGGER.info('Revoked the pub key on address {}'.format(transaction_payload.address))
+        if public_key_information is None:
+            raise InvalidTransaction('No certificate public key is presented in chain.')
 
-        return {transaction_payload.address: data}
+        if signer_pubkey != public_key_information.owner:
+            raise InvalidTransaction('Only owner can revoke the public key.')
+
+        if public_key_information.revoked:
+            raise InvalidTransaction('The public key is already revoked.')
+
+        public_key_information.revoked = True
+        LOGGER.info('Revoked the pub key on address {}'.format(revoke_pub_key_payload.address))
+
+        return {
+            revoke_pub_key_payload.address: public_key_information,
+        }

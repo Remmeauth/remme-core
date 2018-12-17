@@ -185,7 +185,7 @@ def test_public_key_handler_store():
 
 def test_public_key_handler_store_decode_error():
     """
-    Case: send transaction request, to store RSA public key, with invalid transaction payload.
+    Case: send transaction request, to store certificate public key, with invalid transaction payload.
     Expect: invalid transaction error is raised with cannot decode transaction payload error message.
     """
     serialized_not_valid_transaction_payload = b'F1120071db7c02f5731d06df194dc95465e9b27'
