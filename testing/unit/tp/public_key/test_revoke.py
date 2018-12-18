@@ -25,7 +25,7 @@ from remme.protos.pub_key_pb2 import (
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.shared.utils import hash512
 from remme.tp.pub_key import (
-    CERTIFICATE_PUBLIC_KEY_MAXIMUM_VALIDITY,
+    PUB_KEY_MAX_VALIDITY,
     PubKeyHandler,
 )
 from testing.conftest import create_signer
@@ -60,7 +60,7 @@ ENTITY_HASH_SIGNATURE = generate_signature(ENTITY_HASH, CERTIFICATE_PRIVATE_KEY)
 RANDOM_NODE_PUBLIC_KEY = '039d6881f0a71d05659e1f40b443684b93c7b7c504ea23ea8949ef5216a2236940'
 
 CURRENT_TIMESTAMP = datetime.datetime.now().timestamp()
-CURRENT_TIMESTAMP_PLUS_YEAR = CURRENT_TIMESTAMP + CERTIFICATE_PUBLIC_KEY_MAXIMUM_VALIDITY.total_seconds()
+CURRENT_TIMESTAMP_PLUS_YEAR = CURRENT_TIMESTAMP + PUB_KEY_MAX_VALIDITY.total_seconds()
 
 RSA_PUBLIC_KEY_TO_STORE_TYPE_VALUE = PERSONAL_PUBLIC_KEY_TYPE_VALUE = 0
 
@@ -197,7 +197,7 @@ def test_public_key_handler_revoke_non_existent_public_key():
     with pytest.raises(InvalidTransaction) as error:
         PubKeyHandler().apply(transaction=transaction_request, context=mock_context)
 
-    assert 'No certificate public key is presented in chain.' == str(error.value)
+    assert 'No public key is presented in chain.' == str(error.value)
 
 
 def test_public_key_handler_revoke_not_owner_public_key():

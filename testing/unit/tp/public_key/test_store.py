@@ -26,10 +26,10 @@ from remme.protos.pub_key_pb2 import (
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.shared.utils import hash512
 from remme.settings.helper import _make_settings_key
-from remme.settings import SETTINGS_KEY_TO_GET_STORAGE_PUBLIC_KEY_BY
+from remme.settings import SETTINGS_STORAGE_PUB_KEY
 from remme.tp.pub_key import (
-    CERTIFICATE_PUBLIC_KEY_MAXIMUM_VALIDITY,
-    CERTIFICATE_PUBLIC_KEY_STORE_PRICE,
+    PUB_KEY_MAX_VALIDITY,
+    PUB_KEY_STORE_PRICE,
     PubKeyHandler,
 )
 from testing.conftest import create_signer
@@ -72,7 +72,7 @@ RANDOM_ALREADY_STORED_SENDER_PUBLIC_KEY = 'a23be17ca9c3bd150627ac6469f11ccf25c0c
 RANDOM_NODE_PUBLIC_KEY = '039d6881f0a71d05659e1f40b443684b93c7b7c504ea23ea8949ef5216a2236940'
 
 CURRENT_TIMESTAMP = datetime.datetime.now().timestamp()
-CURRENT_TIMESTAMP_PLUS_YEAR = CURRENT_TIMESTAMP + CERTIFICATE_PUBLIC_KEY_MAXIMUM_VALIDITY.total_seconds()
+CURRENT_TIMESTAMP_PLUS_YEAR = CURRENT_TIMESTAMP + PUB_KEY_MAX_VALIDITY.total_seconds()
 EXCEEDED_PUBLIC_KEY_VALIDITY_TIMESTAMP = CURRENT_TIMESTAMP_PLUS_YEAR + 1
 
 RSA_PUBLIC_KEY_TO_STORE_TYPE_VALUE = PERSONAL_PUBLIC_KEY_TYPE_VALUE = 0
@@ -141,7 +141,7 @@ def test_public_key_handler_store():
     serialized_storage_account = storage_account.SerializeToString()
 
     storage_setting = Setting()
-    storage_setting.entries.add(key=SETTINGS_KEY_TO_GET_STORAGE_PUBLIC_KEY_BY, value=STORAGE_PUBLIC_KEY)
+    storage_setting.entries.add(key=SETTINGS_STORAGE_PUB_KEY, value=STORAGE_PUBLIC_KEY)
     serialized_storage_setting = storage_setting.SerializeToString()
 
     mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
@@ -157,13 +157,13 @@ def test_public_key_handler_store():
     expected_serialized_public_key_storage = expected_public_key_storage.SerializeToString()
 
     expected_sender_account = Account()
-    expected_sender_account.balance = SENDER_INITIAL_BALANCE - CERTIFICATE_PUBLIC_KEY_STORE_PRICE
+    expected_sender_account.balance = SENDER_INITIAL_BALANCE - PUB_KEY_STORE_PRICE
     expected_sender_account.pub_keys.append(RANDOM_ALREADY_STORED_SENDER_PUBLIC_KEY)
     expected_sender_account.pub_keys.append(ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY)
     expected_serialized_sender_account = expected_sender_account.SerializeToString()
 
     expected_storage_account = Account()
-    expected_storage_account.balance = 0 + CERTIFICATE_PUBLIC_KEY_STORE_PRICE
+    expected_storage_account.balance = 0 + PUB_KEY_STORE_PRICE
     expected_serialized_storage_account = expected_storage_account.SerializeToString()
 
     expected_state = {
@@ -591,7 +591,7 @@ def test_public_key_handler_store_economy_is_not_enabled():
     serialized_storage_account = storage_account.SerializeToString()
 
     storage_setting = Setting()
-    storage_setting.entries.add(key=SETTINGS_KEY_TO_GET_STORAGE_PUBLIC_KEY_BY, value=STORAGE_PUBLIC_KEY)
+    storage_setting.entries.add(key=SETTINGS_STORAGE_PUB_KEY, value=STORAGE_PUBLIC_KEY)
     serialized_storage_setting = storage_setting.SerializeToString()
 
     is_economy_enabled_setting = Setting()
@@ -746,7 +746,7 @@ def test_public_key_handler_store_sender_is_node():
     serialized_storage_account = storage_account.SerializeToString()
 
     storage_setting = Setting()
-    storage_setting.entries.add(key=SETTINGS_KEY_TO_GET_STORAGE_PUBLIC_KEY_BY, value=SENDER_PUBLIC_KEY)
+    storage_setting.entries.add(key=SETTINGS_STORAGE_PUB_KEY, value=SENDER_PUBLIC_KEY)
     serialized_storage_setting = storage_setting.SerializeToString()
 
     is_economy_enabled_setting = Setting()
