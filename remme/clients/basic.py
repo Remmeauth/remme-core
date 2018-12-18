@@ -61,7 +61,7 @@ class BasicClient:
         rfunc = getattr(self._router, name, None)
         if rfunc:
             return rfunc
-        raise TypeError(f"'{self.__class__.__name__}' object has no attribute '{attr}'")
+        raise TypeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
 
     @staticmethod
     def get_signer_priv_key_from_file(keyfile):

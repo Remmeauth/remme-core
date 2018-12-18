@@ -16,9 +16,11 @@ import logging
 
 from aiohttp_json_rpc import (
     RpcInvalidParamsError,
+    RpcGenericServerDefinedError,
 )
 
 from remme.clients.account import AccountClient
+from remme.tp.basic import is_address
 
 __all__ = (
     'get_balance',
@@ -35,6 +37,11 @@ async def get_balance(request):
         address = request.params['public_key_address']
     except KeyError:
         raise RpcInvalidParamsError(message='Missed public_key_address')
+
+    if not is_address(address):
+        raise RpcGenericServerDefinedError(
+            error_code=-32050,
+            message='Given public key address is not a valid')
     return await client.get_balance(address)
 
 
@@ -44,4 +51,9 @@ async def get_public_keys_list(request):
         address = request.params['public_key_address']
     except KeyError:
         raise RpcInvalidParamsError(message='Missed public_key_address')
+
+    if not is_address(address):
+        raise RpcGenericServerDefinedError(
+            error_code=-32050,
+            message='Given public key address is not a valid')
     return await client.get_pub_keys(address)

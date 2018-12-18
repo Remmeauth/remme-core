@@ -47,14 +47,14 @@ run:
 run_bg:
 	$(RUN_SCRIPT) -u -b
 
-restart_no_genesis:
-	make stop && make build_dev && make run
+start_no_genesis:
+	make stop && make build_dev && DEV=1 make run
 
-restart:
-	make stop && make build_dev && make run_genesis
+start:
+	make stop && make build_dev && DEV=1 make run_genesis
 
-restart_bg:
-	make stop && make build_dev && make run_genesis_bg
+startd:
+	make stop && make build_dev && DEV=1 make run_genesis_bg
 
 stop:
 	$(RUN_SCRIPT) -g -d
