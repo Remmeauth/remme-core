@@ -44,12 +44,6 @@ class AccountHandler(BasicHandler):
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
 
-    @classmethod
-    def create_transfer(cls, context, address_from, address_to, amount):
-        transfer_payload = TransferPayload(address_to=address_to, value=amount)
-        return cls() \
-            ._transfer_from_address(context, address_from, transfer_payload)
-
     def get_state_processor(self):
         return {
             AccountMethod.TRANSFER: {

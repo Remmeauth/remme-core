@@ -28,10 +28,15 @@ from remme.settings import SETTINGS_STORAGE_PUB_KEY
 from remme.tp.basic import BasicHandler, get_data, get_multiple_data, PB_CLASS, PROCESSOR
 from remme.tp.account import AccountHandler
 
-from remme.protos.account_pb2 import Account
+from remme.protos.account_pb2 import (
+    Account,
+    TransferPayload,
+)
 from remme.protos.pub_key_pb2 import (
     PubKeyStorage,
-    NewPubKeyPayload, RevokePubKeyPayload, PubKeyMethod
+    NewPubKeyPayload,
+    RevokePubKeyPayload,
+    PubKeyMethod,
 )
 from remme.settings.helper import _get_setting_value
 
@@ -43,6 +48,8 @@ FAMILY_VERSIONS = ['0.1']
 PUB_KEY_ORGANIZATION = 'REMME'
 PUB_KEY_MAX_VALIDITY = timedelta(365)
 PUB_KEY_STORE_PRICE = 10
+
+ECONOMY_IS_ENABLED_VALUE = 'true'
 
 
 class PubKeyHandler(BasicHandler):
@@ -61,95 +68,164 @@ class PubKeyHandler(BasicHandler):
             }
         }
 
-    def _store_pub_key(self, context, signer_pubkey, transaction_payload):
-        address = self.make_address_from_data(transaction_payload.public_key)
-        LOGGER.info('Pub key address {}'.format(address))
-
-        account_address = AccountHandler().make_address_from_data(signer_pubkey)
-        LOGGER.info('Account address {}'.format(account_address))
-        data, account = get_multiple_data(context, [(address, PubKeyStorage), (account_address, Account)])
-        if data:
-            raise InvalidTransaction('This pub key is already registered.')
-
-        try:
-            cert_signer_pubkey = load_pem_public_key(transaction_payload.public_key.encode('utf-8'),
-                                                     backend=default_backend())
-        except ValueError:
-            raise InvalidTransaction('Cannot deserialize the provided public key: check if it is in PEM format')
-
-        try:
-            ehs_bytes = binascii.unhexlify(transaction_payload.entity_hash_signature)
-            eh_bytes = binascii.unhexlify(transaction_payload.entity_hash)
-        except binascii.Error:
-            LOGGER.debug(f'entity_hash_signature {transaction_payload.entity_hash_signature}')
-            LOGGER.debug(f'entity_hash {transaction_payload.entity_hash}')
-            raise InvalidTransaction('Entity hash or signature not a hex format')
-
+    @staticmethod
+    def _is_signature_valid(public_key, ehs_bytes, eh_bytes):
         # FIXME: For support PKCS1v15 and PSS
-        LOGGER.warn('HAZARD: Detecting padding for verification')
+        LOGGER.warning('HAZARD: Detecting padding for verification')
         sigerr = 0
         pkcs = padding.PKCS1v15()
         pss = padding.PSS(mgf=padding.MGF1(hashes.SHA512()), salt_length=padding.PSS.MAX_LENGTH)
         for _padding in (pkcs, pss):
             try:
-                cert_signer_pubkey.verify(ehs_bytes, eh_bytes, _padding, hashes.SHA512())
-                LOGGER.warn('HAZARD: Padding found: %s', _padding.name)
+                public_key.verify(ehs_bytes, eh_bytes, _padding, hashes.SHA512())
+                LOGGER.warning('HAZARD: Padding found: %s', _padding.name)
             except InvalidSignature:
                 sigerr += 1
 
         if sigerr == 2:
-            raise InvalidTransaction('Invalid signature')
+            return False
 
-        valid_from = datetime.fromtimestamp(transaction_payload.valid_from)
-        valid_to = datetime.fromtimestamp(transaction_payload.valid_to)
+        return True
+
+    @staticmethod
+    def _is_public_key_validity_exceeded(valid_from, valid_to):
+        """
+        Check if public key validity exceeds the maximum value.
+
+        Public key validity maximum value in one year (365 days).
+        """
+        valid_from = datetime.fromtimestamp(valid_from)
+        valid_to = datetime.fromtimestamp(valid_to)
 
         if valid_to - valid_from > PUB_KEY_MAX_VALIDITY:
+            return False
+
+        return True
+
+    @staticmethod
+    def _charge_tokens_for_storing(context, address_from, address_to):
+        """
+        Send fixed tokens value from address that want to store public key to node's storage address.
+        """
+        transfer_payload = TransferPayload()
+        transfer_payload.address_to = address_to
+        transfer_payload.value = PUB_KEY_STORE_PRICE
+
+        transfer_state = AccountHandler()._transfer_from_address(
+            context=context, address_from=address_from, transfer_payload=transfer_payload,
+        )
+
+        return transfer_state
+
+    def _store_pub_key(self, context, signer_public_key, new_public_key_payload):
+        """
+        Store public key to the blockchain.
+
+        Flow on client:
+        1. Create private and public key (for instance, RSA).
+        2. Create random data and sign it with private key to allows node verify signature,
+            so ensure the address sent transaction is a real owner of public key.
+        3. Send public key, signature, and other information to the node.
+
+        Node does checks: if public key already exists in the blockchain, try to deserialize public key,
+        try to verify signature, if validity exceeds.
+
+        If transaction successfully passed checks, node charges fixed tokens price for storing
+        public keys (if node economy is enabled) and link public key to the account (address).
+
+        References:
+            - https://docs.remme.io/remme-core/docs/family-pub-key.html
+            - https://github.com/Remmeauth/remme-client-python/blob/develop/remme/remme_public_key_storage.py
+        """
+        public_key_to_store_address = self.make_address_from_data(new_public_key_payload.public_key)
+        sender_account_address = AccountHandler().make_address_from_data(signer_public_key)
+
+        public_key_information, account = get_multiple_data(context, [
+            (public_key_to_store_address, PubKeyStorage),
+            (sender_account_address, Account),
+        ])
+
+        if public_key_information:
+            raise InvalidTransaction('This public key is already registered.')
+
+        try:
+            public_key = load_pem_public_key(
+                new_public_key_payload.public_key.encode('utf-8'), backend=default_backend(),
+            )
+
+        except ValueError:
+            raise InvalidTransaction('Cannot deserialize the provided public key. Check if it is in PEM format.')
+
+        try:
+            ehs_bytes = binascii.unhexlify(new_public_key_payload.entity_hash_signature)
+            eh_bytes = binascii.unhexlify(new_public_key_payload.entity_hash)
+        except binascii.Error:
+            raise InvalidTransaction('Entity hash or/and signature is not a hex format.')
+
+        if not self._is_signature_valid(public_key=public_key, ehs_bytes=ehs_bytes, eh_bytes=eh_bytes):
+            raise InvalidTransaction('Invalid signature.')
+
+        public_key_valid_from, public_key_valid_to = \
+            new_public_key_payload.valid_from, new_public_key_payload.valid_to
+
+        if not self._is_public_key_validity_exceeded(valid_from=public_key_valid_from, valid_to=public_key_valid_to):
             raise InvalidTransaction('The public key validity exceeds the maximum value.')
 
-        data = PubKeyStorage()
-        data.owner = signer_pubkey
-        data.payload.CopyFrom(transaction_payload)
-        data.revoked = False
+        public_key_to_store = PubKeyStorage()
+        public_key_to_store.owner = signer_public_key
+        public_key_to_store.payload.CopyFrom(new_public_key_payload)
+        public_key_to_store.revoked = False
 
         if not account:
             account = Account()
 
-        state = {account_address: account, address: data}
-        is_economy_enabled = _get_setting_value(context,
-                                                'remme.economy_enabled',
-                                                'true').lower()
-        if is_economy_enabled == 'true':
-            storage_pub_key = _get_setting_value(context,
-                                                 SETTINGS_STORAGE_PUB_KEY)
-            if not storage_pub_key:
-                raise InvalidTransaction('The storage public key not set.')
+        state = {
+            sender_account_address: account,
+            public_key_to_store_address: public_key_to_store,
+        }
 
-            storage_address = AccountHandler() \
-                .make_address_from_data(storage_pub_key)
+        is_economy_enabled = _get_setting_value(context, 'remme.economy_enabled', 'true').lower()
+        if is_economy_enabled == ECONOMY_IS_ENABLED_VALUE:
 
-            if storage_address != account_address:
-                transfer_state = AccountHandler() \
-                    .create_transfer(context, account_address, storage_address,
-                                     PUB_KEY_STORE_PRICE)
+            storage_public_key = _get_setting_value(context, SETTINGS_STORAGE_PUB_KEY)
+
+            if not storage_public_key:
+                raise InvalidTransaction('The node\'s storage public key hasn\'t been set, get node config to ensure.')
+
+            storage_address = AccountHandler().make_address_from_data(storage_public_key)
+
+            if storage_address != sender_account_address:
+
+                transfer_state = self._charge_tokens_for_storing(
+                    context=context, address_from=sender_account_address, address_to=storage_address,
+                )
+
+                # If sender account allows, make payment and push account protobuf to state
+                # to be updated with related public key below.
                 state.update(transfer_state)
-                # update account from transfer state
-                account = transfer_state[account_address]
+                account = transfer_state.get(sender_account_address)
 
-        if address not in account.pub_keys:
-            account.pub_keys.append(address)
+        if public_key_to_store_address not in account.pub_keys:
+            account.pub_keys.append(public_key_to_store_address)
 
         return state
 
-    def _revoke_pub_key(self, context, signer_pubkey, transaction_payload):
-        data = get_data(context, PubKeyStorage, transaction_payload.address)
-        if data is None:
-            raise InvalidTransaction('No such pub key.')
-        if signer_pubkey != data.owner:
-            raise InvalidTransaction('Only owner can revoke the pub key.')
-        if data.revoked:
-            raise InvalidTransaction('The pub key is already revoked.')
-        data.revoked = True
+    @staticmethod
+    def _revoke_pub_key(context, signer_pubkey, revoke_pub_key_payload):
+        public_key_information = get_data(context, PubKeyStorage, revoke_pub_key_payload.address)
 
-        LOGGER.info('Revoked the pub key on address {}'.format(transaction_payload.address))
+        if public_key_information is None:
+            raise InvalidTransaction('No public key is presented in chain.')
 
-        return {transaction_payload.address: data}
+        if signer_pubkey != public_key_information.owner:
+            raise InvalidTransaction('Only owner can revoke the public key.')
+
+        if public_key_information.revoked:
+            raise InvalidTransaction('The public key is already revoked.')
+
+        public_key_information.revoked = True
+        LOGGER.info('Revoked the pub key on address {}'.format(revoke_pub_key_payload.address))
+
+        return {
+            revoke_pub_key_payload.address: public_key_information,
+        }

@@ -62,7 +62,8 @@ def get_event_attributes(updated_state, header_signature):
 
 def get_data(context, pb_class, address):
     raw_data = context.get_state([address])
-    LOGGER.debug(f'Raw data: {raw_data}')
+    LOGGER.debug(f'The context data {raw_data} have been fetched by address {address}.')
+
     if raw_data:
         try:
             data = pb_class()
@@ -73,29 +74,6 @@ def get_data(context, pb_class, address):
         except ParseError:
             raise InternalError('Failed to deserialize data')
     else:
-        return None
-
-
-def get_protobuf_from_state(context, protobuf_class, address):
-    """
-    Get address data as protobuf object from state.
-    """
-    state_entries = context.get_state([address])
-
-    LOGGER.debug(f'The following state entries were gained: {state_entries}.')
-
-    if not state_entries:
-        return None
-
-    try:
-        protobuf = protobuf_class()
-        protobuf.ParseFromString(state_entries[0].data)
-        return protobuf
-
-    except IndexError:
-        return None
-
-    except ParseError:
         return None
 
 
