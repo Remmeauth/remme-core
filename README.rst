@@ -1,10 +1,75 @@
 REMME Core
 ==========
 
-|CircleCI| |Docker Stars|
+|CircleCI| |Docker Stars| |Gitter|
 
-How to run a node
------------------
+REMME is a blockchain-based protocol used for issuing and management of X.509
+client certificates to resolve issues related to cybersecurity, IoT
+connectivity, data integrity, digital copyright protection, transparency etc. 
+
+REMME Core is built on Hyperledger Sawtooth platform, allowing to be flexible in
+language choice during the development process. REMME Core supports JS, .NET,
+that’s why you to easily embed REMME Core in your project. 
+
+🔖 Documentation
+---------------
+
+🔖 `Architecture overview <https://youtu.be/fw3591g0hiQ>`_
+
+🔖 `Docs & tutorials <https://docs.remme.io/>`_
+
+🔖 `REMME use case for IoT
+<https://blog.aira.life/blockchain-as-refinery-for-industrial-iot-data-873b320a6ff0>`_
+
+🔖 `Blog <https://medium.com/remme>`_ & `talks <https://gitter.im/REMME-Tech>`_
+
+How to build on REMME Core
+--------------------------
+
+1. REMChain is one of the components of our solution and a basic layer of our
+   distributed Public Key Infrastructure — PKI(d) protocol. In a nutshell, it’s
+   a multi-purpose blockchain that acts as a distributed storage for a
+   certificate’s hash, state (valid or revoked), public key and expiration date.
+2. Based on your needs, define what kind of information (e.g. multi-signature)
+   REMME digital certificate will contain.
+3. Choose how to integrate REMME:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Library
+     - Repository
+     - Version
+   * - REMME JS SDK
+     - `remme-client-js <https://github.com/Remmeauth/remme-client-js>`_
+     - 0.5.2
+   * - REMME .NET SDK
+     - `remme-client-dotnet <https://github.com/Remmeauth/remme-client-dotnet>`_
+     - 0.3.3
+
+4. Use REMME Testnet to check your ideas.
+5. Discuss your integration concept in `REMME tech community
+   <https://gitter.im/REMME-Tech>`_ or call for help if you need it.
+
+API endpoints for public testnet
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We are striving to simplify interaction with the REMchain by providing a common
+RPC and WebSocket architecture and formatting. There are several endpoints
+provided for managing the node and reading its state.
+
+In order to start interacting with RPC API with an interface, you may need to
+start the node locally and access the generated `RPC-API documentation
+<https://docs.remme.io/remme-core/docs/rpc-api.html>`_.
+
+- https://node-genesis-testnet.remme.io
+- https://node-1-testnet.remme.io
+- https://node-2-testnet.remme.io
+- https://node-3-testnet.remme.io
+- https://node-4-testnet.remme.io
+
+Getting started with your own node
+----------------------------------
 
 The node was tested on Linux and macOS. Running on Windows may require
 significant modification of startup scripts.
@@ -12,12 +77,17 @@ significant modification of startup scripts.
 Currently it is not possible to connect your own node to the test network. All
 nodes you will run will work on your own network.
 
-You will need Docker and Docker Compose installed on your machine.
+Prerequisites
+~~~~~~~~~~~~~
+
+- `Docker Compose <https://docs.docker.com/compose/install/>`_ (17.09.0+)
+- Docker (compatible with your Docker Compose)
 
 For an end-user
 ~~~~~~~~~~~~~~~
 
-#. Download the latest release from `Releases`_ section
+#. Download the latest release from
+   `Releases <https://github.com/Remmeauth/remme-core/releases>`_ section
    (``<version_number>-release.zip``). Unpack it.
 #. Start node: Open a terminal inside the unpacked folder and run
    ``./run.sh``.
@@ -69,9 +139,9 @@ License
 REMME software and documentation are licensed under `Apache License Version 2.0
 <LICENCE>`_.
 
-.. _Releases: https://github.com/Remmeauth/remme-core/releases
-
 .. |CircleCI| image:: https://img.shields.io/circleci/project/github/Remmeauth/remme-core.svg
    :target: https://circleci.com/gh/Remmeauth/remme-core
 .. |Docker Stars| image:: https://img.shields.io/docker/stars/remme/remme-core.svg
    :target: https://hub.docker.com/r/remme/remme-core/
+.. |Gitter| image:: https://badges.gitter.im/owner/repo.png
+   :target: https://gitter.im/REMME-Tech
