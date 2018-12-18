@@ -4,7 +4,6 @@ GENESIS_MODE=0
 OPERATION_SPECIFIED=0
 OPERATION=u
 BG_MODE=0
-RUN_LOGIO=0
 
 source ./config/network-config.env
 
@@ -36,9 +35,6 @@ while getopts ":gudbl" opt; do
         b)
             BG_MODE=1
             ;;
-        l)
-            RUN_LOGIO=1
-            ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
             exit
@@ -54,9 +50,6 @@ if [ $GENESIS_MODE -eq 1 ]; then
     if [ ${DEV:-0} -eq 1 ]; then
         COMPOSE_FILES="$COMPOSE_FILES -f $COMPOSE_DIR/development-genesis.yml"
     fi
-fi
-if [ $RUN_LOGIO -eq 1 ]; then
-    COMPOSE_FILES="-f $COMPOSE_DIR/logio.yml"
 fi
 
 if [ ${DEV:-0} -eq 1 ]; then
