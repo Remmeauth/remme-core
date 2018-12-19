@@ -38,7 +38,6 @@ Flags available for ``run.sh`` are:
   - ``-b`` to run a node in background
   - ``-u`` to start a node (default flag)
   - ``-d`` to stop a node
-  - ``-l`` to perform all of the above operations on log.io
 
 For developers & contributors
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
