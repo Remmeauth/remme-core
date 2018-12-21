@@ -99,22 +99,31 @@ class AccountHandler(BasicHandler):
 
         return self._transfer_from_address(context, address, transfer_payload)
 
+    def _get_genesis_member_addresses(self, genesis_members_public_keys):
+        """
+        Get a sequence of the addresses based on the sequence of public keys.
+        """
+        genesis_member_addresses = []
+
+        for public_key in genesis_members_public_keys:
+            address = self.make_address_from_data(public_key)
+            genesis_member_addresses.append(address)
+
+        return genesis_member_addresses
+
     def _check_signer_address(self, context, signer_address):
-        genesis_members_str = _get_setting_value(context,
-                                                 SETTINGS_KEY_GENESIS_OWNERS)
-        if not genesis_members_str:
-            raise InvalidTransaction('REMchain is not configured '
-                                     'to process genesis transfers.')
+        genesis_members_public_keys_as_string = _get_setting_value(context, SETTINGS_KEY_GENESIS_OWNERS)
 
-        genesis_members_list = list(map(lambda el: self.make_address_from_data(el),
-                                        genesis_members_str.split(',')))
+        if not genesis_members_public_keys_as_string:
+            raise InvalidTransaction('REMchain is not configured to process genesis transfers.')
 
-        LOGGER.debug(f'GENESIS MEMBERS ADDRESSES: {genesis_members_list}')
+        genesis_members_public_key_as_list = genesis_members_public_keys_as_string.split(',')
+        genesis_member_addresses = self._get_genesis_member_addresses(genesis_members_public_key_as_list)
 
-        if signer_address not in genesis_members_list:
-            raise InvalidTransaction(
-                f'Signer address "{signer_address}" '
-                'not in genesis members list')
+        LOGGER.debug(f'Genesis members addresses have been fetched: {genesis_member_addresses}')
+
+        if signer_address not in genesis_member_addresses:
+            raise InvalidTransaction(f'Signer address {signer_address} not in genesis members list.')
 
     def _transfer_from_address(self, context, address_from, transfer_payload):
         if not transfer_payload.value:
