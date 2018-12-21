@@ -17,6 +17,7 @@ import datetime
 import logging
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
+from remme.protos.account_pb2 import Account
 from remme.protos.atomic_swap_pb2 import (
     AtomicSwapMethod, AtomicSwapInitPayload, AtomicSwapInfo,
     AtomicSwapApprovePayload, AtomicSwapExpirePayload,
@@ -110,31 +111,29 @@ class AtomicSwapHandler(BasicHandler):
     def get_datetime_from_timestamp(timestamp):
         return datetime.datetime.fromtimestamp(timestamp)
 
-    def _get_latest_block_info(self, context):
+    @staticmethod
+    def _get_latest_block_info(context):
+        block_info_config = get_data(context, BlockInfoConfig, CONFIG_ADDRESS)
 
-        bc = get_data(context, BlockInfoConfig, CONFIG_ADDRESS)
+        if not block_info_config:
+            raise InvalidTransaction('Block config not found.')
 
-        if not bc:
-            raise InvalidTransaction('Block config not found')
+        LOGGER.info(f'Current latest block number: {block_info_config.latest_block + 1}')
 
-        LOGGER.info(f'Current latest block number: {bc.latest_block + 1}')
+        block_info = get_data(context, BlockInfo, BlockInfoClient.create_block_address(block_info_config.latest_block))
 
-        block = get_data(context, BlockInfo, BlockInfoClient.create_block_address(bc.latest_block))
+        if not block_info:
+            raise InvalidTransaction(f'Block {block_info_config.latest_block + 1} not found.')
 
-        if not block:
-            raise InvalidTransaction(f'Block "{bc.latest_block + 1} not found')
+        LOGGER.info(f'Block with number successfully loaded: {block_info.block_num + 1}')
 
-        LOGGER.info(f'Block with number successfully loaded: {block.block_num + 1}')
-
-        return block
+        return block_info
 
     def _swap_init(self, context, signer_pubkey, swap_init_payload):
         """
         if SecretLockOptionalBob is provided, Bob uses _swap_init to respond to requested swap
         Otherwise, Alice uses _swap_init to request a swap and thus, Bob can't receive funds until Alice "approves".
         """
-        LOGGER.info('0. Check if swap ID already exists')
-
         address_swap_info_is_stored_by = self.make_address_from_data(swap_init_payload.swap_id)
         swap_information = get_data(context, AtomicSwapInfo, address_swap_info_is_stored_by)
 
@@ -159,29 +158,19 @@ class AtomicSwapHandler(BasicHandler):
         if not AccountHandler().is_handler_address(swap_info.receiver_address):
             raise InvalidTransaction('Receiver address is not of a blockchain token type.')
 
-        # LOGGER.info("2. Check weather the sender is Alice")
-        # 2. Check whether the sender is Alice:
-        # swap_info.is_initiator = not swap_init_payload.secret_lock_by_solicitor
-        # END
-
-        # 3. Transfer funds to zero address.
-        LOGGER.info("3. Transfer funds to zero address")
-
         commission = int(_get_setting_value(context, SETTINGS_SWAP_COMMISSION))
         if commission < 0:
             raise InvalidTransaction('Wrong commission address.')
 
-        LOGGER.info(f"4. Get sender's account {swap_info.sender_address}")
+        swap_total_amount = swap_info.amount + commission
 
-        account = get_account_by_address(context, swap_info.sender_address)
-        total_amount = swap_info.amount + commission
-
-        if account.balance < total_amount:
+        account = get_data(context, Account, swap_info.sender_address)
+        if account.balance < swap_total_amount:
             raise InvalidTransaction(
-                f'Not enough balance to perform the transaction in the amount (with a commission) {total_amount}.'
+                f'Not enough balance to perform the transaction in the amount (with a commission) {swap_total_amount}.'
             )
 
-        transfer_payload = AccountClient.get_transfer_payload(ZERO_ADDRESS, total_amount)
+        transfer_payload = AccountClient.get_transfer_payload(ZERO_ADDRESS, swap_total_amount)
 
         AccountHandler()._check_signer_address(context, swap_info.sender_address)
 
