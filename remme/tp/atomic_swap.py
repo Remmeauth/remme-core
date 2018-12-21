@@ -57,8 +57,16 @@ NON_INTIATOR_TIME_LOCK = 48
 INITIATOR_TIME_DELTA_LOCK = datetime.timedelta(hours=INTIATOR_TIME_LOCK)
 NON_INITIATOR_TIME_DELTA_LOCK = datetime.timedelta(hours=NON_INTIATOR_TIME_LOCK)
 
+NOT_PERMITTED_TO_CHANGE_SWAP_STATUSES = (AtomicSwapInfo.CLOSED, AtomicSwapInfo.EXPIRED)
+
 
 class AtomicSwapHandler(BasicHandler):
+    """
+    Atomic swap implementation.
+
+    References:
+        - https://github.com/decred/atomicswap
+    """
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
 
@@ -95,12 +103,12 @@ class AtomicSwapHandler(BasicHandler):
         swap_info = get_data(context, AtomicSwapInfo, self.make_address_from_data(swap_id))
 
         if to_raise_exception and not swap_info:
-            raise InvalidTransaction(f'Atomic swap was not initiated for {swap_id} swap id!')
+            raise InvalidTransaction(f'Atomic swap was not initiated for identifier {swap_id}!')
 
-        if swap_info and swap_info.state in [
-            AtomicSwapInfo.CLOSED, AtomicSwapInfo.EXPIRED
-        ]:
-            raise InvalidTransaction(f'No operations can be done upon the swap: {swap_id} as it is already closed.')
+        if swap_info and swap_info.state in NOT_PERMITTED_TO_CHANGE_SWAP_STATUSES:
+            raise InvalidTransaction(
+                f'No operations can be done upon the swap: {swap_id} as it is already closed or expired.',
+            )
 
         return swap_info
 
@@ -143,28 +151,28 @@ class AtomicSwapHandler(BasicHandler):
         block_info = self._get_latest_block_info(context)
         block_time = block_info.timestamp
 
-        swap_info = AtomicSwapInfo()
-        swap_info.swap_id = swap_init_payload.swap_id
-        swap_info.state = AtomicSwapInfo.OPENED
-        swap_info.amount = swap_init_payload.amount
-        swap_info.created_at = block_time
-        swap_info.secret_lock = swap_init_payload.secret_lock_by_solicitor
-        swap_info.email_address_encrypted_optional = swap_init_payload.email_address_encrypted_by_initiator
-        swap_info.sender_address = AccountHandler().make_address_from_data(signer_pubkey)
-        swap_info.sender_address_non_local = swap_init_payload.sender_address_non_local
-        swap_info.receiver_address = swap_init_payload.receiver_address
-        swap_info.is_initiator = not swap_init_payload.secret_lock_by_solicitor
+        swap_information = AtomicSwapInfo()
+        swap_information.swap_id = swap_init_payload.swap_id
+        swap_information.state = AtomicSwapInfo.OPENED
+        swap_information.amount = swap_init_payload.amount
+        swap_information.created_at = block_time
+        swap_information.secret_lock = swap_init_payload.secret_lock_by_solicitor
+        swap_information.email_address_encrypted_optional = swap_init_payload.email_address_encrypted_by_initiator
+        swap_information.sender_address = AccountHandler().make_address_from_data(signer_pubkey)
+        swap_information.sender_address_non_local = swap_init_payload.sender_address_non_local
+        swap_information.receiver_address = swap_init_payload.receiver_address
+        swap_information.is_initiator = not swap_init_payload.secret_lock_by_solicitor
 
-        if not AccountHandler().is_handler_address(swap_info.receiver_address):
+        if not AccountHandler().is_handler_address(swap_information.receiver_address):
             raise InvalidTransaction('Receiver address is not of a blockchain token type.')
 
         commission = int(_get_setting_value(context, SETTINGS_SWAP_COMMISSION))
         if commission < 0:
             raise InvalidTransaction('Wrong commission address.')
 
-        swap_total_amount = swap_info.amount + commission
+        swap_total_amount = swap_information.amount + commission
 
-        account = get_data(context, Account, swap_info.sender_address)
+        account = get_data(context, Account, swap_information.sender_address)
         if account.balance < swap_total_amount:
             raise InvalidTransaction(
                 f'Not enough balance to perform the transaction in the amount (with a commission) {swap_total_amount}.'
@@ -172,37 +180,72 @@ class AtomicSwapHandler(BasicHandler):
 
         transfer_payload = AccountClient.get_transfer_payload(ZERO_ADDRESS, swap_total_amount)
 
-        AccountHandler()._check_signer_address(context, swap_info.sender_address)
+        AccountHandler()._check_signer_address(context, swap_information.sender_address)
 
-        transfer_state = AccountHandler()._transfer_from_address(context, swap_info.sender_address, transfer_payload)
+        transfer_state = AccountHandler()._transfer_from_address(
+            context, swap_information.sender_address, transfer_payload,
+        )
 
         return {
-            address_swap_info_is_stored_by: swap_info,
+            address_swap_info_is_stored_by: swap_information,
             **transfer_state,
+        }
+
+    def _swap_set_lock(self, context, signer_pubkey, swap_set_lock_payload):
+        """
+        Set secret lock.
+
+        Bob sets secret lock if Alice is initiator for REMchain => ETH transaction.
+        Bob deposits escrow funds to zero address.
+        Only works for Bob, Alice is the only one to approve
+        """
+        swap_identifier = swap_set_lock_payload.swap_id
+
+        address_swap_info_is_stored_by = self.make_address_from_data(swap_identifier)
+        swap_information = get_data(context, AtomicSwapInfo, address_swap_info_is_stored_by)
+
+        if not swap_information:
+            raise InvalidTransaction(f'Atomic swap was not initiated for identifier {swap_identifier}!')
+
+        if swap_information.state in NOT_PERMITTED_TO_CHANGE_SWAP_STATUSES:
+            raise InvalidTransaction(
+                f'No operations can be done upon the swap: {swap_identifier} as it is already closed or expired.',
+            )
+
+        if swap_information.secret_lock:
+            raise InvalidTransaction(f'Secret lock is already added for {swap_information.swap_id}.')
+
+        swap_information.secret_lock = swap_set_lock_payload.secret_lock
+        swap_information.state = AtomicSwapInfo.SECRET_LOCK_PROVIDED
+
+        return {
+            address_swap_info_is_stored_by: swap_information
         }
 
     def _swap_approve(self, context, signer_pubkey, swap_approve_payload):
         """
-
         Only called by Alice to approve REMchain => other transaction for Bob to close it.
-
         """
-        LOGGER.info('swap id: {}'.format(swap_approve_payload.swap_id))
+        LOGGER.info(f'Approving swap identifier {swap_approve_payload.swap_id}.')
+
         swap_info = self.get_swap_info_from_swap_id(context, swap_approve_payload.swap_id)
 
-        if not swap_info.is_initiator or \
-           swap_info.sender_address != AccountHandler() \
-           .make_address_from_data(signer_pubkey):
-            raise InvalidTransaction('Only transaction initiator (Alice) '
-                                     'may approve the swap, '
-                                     'once Bob provided a secret lock.')
+        signer_address = AccountHandler().make_address_from_data(signer_pubkey)
+
+        # if not swap_info.is_initiator or swap_info.sender_address != signer_address:
+        if swap_info.sender_address != signer_address:
+            raise InvalidTransaction(
+                'Only transaction initiator (Alice) may approve the swap, once Bob provided a secret lock.',
+            )
+
+        # if alice is initialor
+        # set secret lock
+        # if not False -> raise
         if not swap_info.secret_lock:
-            raise InvalidTransaction('Secret Lock is needed for Bob '
-                                     'to provide a secret key.')
+            raise InvalidTransaction('Secret lock is needed for Bob to provide a secret key.')
 
         if swap_info.state != AtomicSwapInfo.SECRET_LOCK_PROVIDED:
-            raise InvalidTransaction(f'Swap id {swap_info.swap_id} '
-                                     'is already closed.')
+            raise InvalidTransaction(f'Swap identifier {swap_info.swap_id} is already closed.')
 
         swap_info.state = AtomicSwapInfo.APPROVED
 
@@ -245,53 +288,50 @@ class AtomicSwapHandler(BasicHandler):
 
         return {**self.get_state_update(swap_info), **token_updated_state}
 
-    def _swap_set_lock(self, context, signer_pubkey, swap_set_lock_payload):
-        """
-        Bob sets secret lock if Alice is initiator for REMchain => ETH transaction.
-        Bob deposits escrow funds to zero address.
-        Only works for Bob, Alice is the only one to approve
-
-        """
-        swap_info = self.get_swap_info_from_swap_id(context, swap_set_lock_payload.swap_id)
-
-        if swap_info.secret_lock:
-            raise InvalidTransaction(f'Secret lock is already added '
-                                     f'for {swap_info.swap_id}.')
-
-        swap_info.secret_lock = swap_set_lock_payload.secret_lock
-        swap_info.state = AtomicSwapInfo.SECRET_LOCK_PROVIDED
-
-        return self.get_state_update(swap_info)
-
     def _swap_close(self, context, signer_pubkey, swap_close_payload):
         """
-        Bob or Alice closes the swap by providing the secret key which matches secret lock.
-        Requires "is_approved = True"
-        Requires hash of secret key to match secret lock
+        Close atomic swap.
 
+        Any party (Bob or Alice) can close atomic swap by providing secret key. If hash from secret key matches
+        secret lock, secret key is valid. Closing atomic swap means participant (not initiator)
+        get REMchain tokens instead ERC20 tokens.
+
+        Closing requires atomic swap to be approved.
         """
-        swap_info = self.get_swap_info_from_swap_id(context, swap_close_payload.swap_id)
+        swap_identifier = swap_close_payload.swap_id
 
-        if not swap_info.secret_lock:
-            raise InvalidTransaction('Secret lock is required to close '
-                                     'the swap!')
+        address_swap_info_is_stored_by = self.make_address_from_data(swap_identifier)
+        swap_information = get_data(context, AtomicSwapInfo, address_swap_info_is_stored_by)
 
-        if web3_hash(swap_close_payload.secret_key) != swap_info.secret_lock:
-            raise InvalidTransaction('Secret key doesn\'t match specified '
-                                     'secret lock!')
+        if not swap_information:
+            raise InvalidTransaction(f'Atomic swap was not initiated for identifier {swap_identifier}!')
 
-        if swap_info.is_initiator and swap_info.state != AtomicSwapInfo.APPROVED:
-            raise InvalidTransaction('Transaction cannot be closed '
-                                     'before it\'s approved.')
+        if swap_information.state in NOT_PERMITTED_TO_CHANGE_SWAP_STATUSES:
+            raise InvalidTransaction(
+                f'No operations can be done upon the swap: {swap_identifier} as it is already closed or expired.',
+            )
 
-        transfer_payload = AccountClient.get_transfer_payload(swap_info.receiver_address, swap_info.amount)
+        if not swap_information.secret_lock:
+            raise InvalidTransaction('Secret lock is required to close the swap.')
 
-        AccountHandler()._check_signer_address(context, swap_info.sender_address)
+        if web3_hash(swap_close_payload.secret_key) != swap_information.secret_lock:
+            raise InvalidTransaction('Secret key doesn\'t match specified secret lock.')
 
-        token_updated_state = AccountHandler()._transfer_from_address(context, ZERO_ADDRESS, transfer_payload)
+        if swap_information.is_initiator and swap_information.state != AtomicSwapInfo.APPROVED:
+            raise InvalidTransaction('Transaction cannot be closed before it\'s approved.')
 
-        swap_info.secret_key = swap_close_payload.secret_key
+        transfer_payload = AccountClient.get_transfer_payload(
+            swap_information.receiver_address, swap_information.amount,
+        )
 
-        swap_info.state = AtomicSwapInfo.CLOSED
+        AccountHandler()._check_signer_address(context, swap_information.sender_address)
 
-        return {**self.get_state_update(swap_info), **token_updated_state}
+        transfer_state = AccountHandler()._transfer_from_address(context, ZERO_ADDRESS, transfer_payload)
+
+        swap_information.secret_key = swap_close_payload.secret_key
+        swap_information.state = AtomicSwapInfo.CLOSED
+
+        return {
+            address_swap_info_is_stored_by: swap_information,
+            **transfer_state,
+        }
