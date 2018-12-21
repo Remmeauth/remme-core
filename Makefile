@@ -64,8 +64,8 @@ docs:
 run_docs:
 	sphinx-autobuild -H 0.0.0.0 -p 8000 ./docs ./docs/html
 
-test:
-	$(BUILD_DIR)/test.sh
+test: build_dev
+	docker-compose -f ./docker/compose/testing.yml up --abort-on-container-exit
 
 release:
 	$(BUILD_DIR)/release.sh
