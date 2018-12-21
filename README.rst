@@ -12,7 +12,7 @@ language choice during the development process. REMME Core supports JS, .NET,
 that’s why you to easily embed REMME Core in your project. 
 
 🔖 Documentation
----------------
+----------------
 
 🔖 `Architecture overview <https://youtu.be/fw3591g0hiQ>`_
 
@@ -42,10 +42,10 @@ How to build on REMME Core
      - Version
    * - REMME JS SDK
      - `remme-client-js <https://github.com/Remmeauth/remme-client-js>`_
-     - 0.5.2
+     - |npm|
    * - REMME .NET SDK
      - `remme-client-dotnet <https://github.com/Remmeauth/remme-client-dotnet>`_
-     - 0.3.3
+     - |nuget|
 
 4. Use REMME Testnet to check your ideas.
 5. Discuss your integration concept in `REMME tech community
@@ -145,3 +145,7 @@ REMME software and documentation are licensed under `Apache License Version 2.0
    :target: https://hub.docker.com/r/remme/remme-core/
 .. |Gitter| image:: https://badges.gitter.im/owner/repo.png
    :target: https://gitter.im/REMME-Tech
+.. |npm| image:: https://img.shields.io/npm/v/remme.svg
+   :target: https://www.npmjs.com/package/remme
+.. |nuget| image:: https://img.shields.io/nuget/v/REMME.Auth.Client.svg
+   :target: https://www.nuget.org/packages/REMME.Auth.Client/
