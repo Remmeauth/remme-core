@@ -1,0 +1,7 @@
+[run]
+branch = true
+
+[report]
+include = remme/tp/*.py
+omit = **/__main__.py
+show_missing = true

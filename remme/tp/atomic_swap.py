@@ -141,35 +141,27 @@ class AtomicSwapHandler(BasicHandler):
         if swap_information:
             raise InvalidTransaction('Atomic swap ID has already been taken, please use a different one.')
 
+        block_info = self._get_latest_block_info(context)
+        block_time = block_info.timestamp
+
         swap_info = AtomicSwapInfo()
         swap_info.swap_id = swap_init_payload.swap_id
         swap_info.state = AtomicSwapInfo.OPENED
         swap_info.amount = swap_init_payload.amount
-        swap_info.created_at = swap_init_payload.created_at
+        swap_info.created_at = block_time
+        swap_info.secret_lock = swap_init_payload.secret_lock_by_solicitor
         swap_info.email_address_encrypted_optional = swap_init_payload.email_address_encrypted_by_initiator
         swap_info.sender_address = AccountHandler().make_address_from_data(signer_pubkey)
         swap_info.sender_address_non_local = swap_init_payload.sender_address_non_local
         swap_info.receiver_address = swap_init_payload.receiver_address
+        swap_info.is_initiator = not swap_init_payload.secret_lock_by_solicitor
 
         if not AccountHandler().is_handler_address(swap_info.receiver_address):
             raise InvalidTransaction('Receiver address is not of a blockchain token type.')
 
-        LOGGER.info("1. Ensure transaction initiated within an hour")
-        # 1. Ensure transaction initiated within an hour
-        swap_info.secret_lock = swap_init_payload.secret_lock_by_solicitor
-        created_at = self.get_datetime_from_timestamp(swap_info.created_at)
-
-        block = self._get_latest_block_info(context)
-        block_time = self.get_datetime_from_timestamp(block.timestamp)
-
-        # if not (block_time - datetime.timedelta(hours=1) < created_at <= block_time):
-        #     raise InvalidTransaction('Transaction is created a long time ago '
-        #                              'or timestamp is assigned set.')
-        # END
-
-        LOGGER.info("2. Check weather the sender is Alice")
-        # 2. Check weather the sender is Alice:
-        swap_info.is_initiator = not swap_init_payload.secret_lock_by_solicitor
+        # LOGGER.info("2. Check weather the sender is Alice")
+        # 2. Check whether the sender is Alice:
+        # swap_info.is_initiator = not swap_init_payload.secret_lock_by_solicitor
         # END
 
         # 3. Transfer funds to zero address.

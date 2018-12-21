@@ -161,7 +161,7 @@ def test_atomic_swap_init():
     swap_info.swap_id = SWAP_ID
     swap_info.state = AtomicSwapInfo.OPENED
     swap_info.amount = TOKENS_AMOUNT_TO_SWAP
-    swap_info.created_at = CURRENT_TIMESTAMP
+    swap_info.created_at = AtomicSwapHandler()._get_latest_block_info(mock_context).timestamp
     swap_info.email_address_encrypted_optional = ALICE_EMAIL_ADDRESS_ENCRYPTED_BY_INITIATOR
     swap_info.sender_address = BOT_ADDRESS
     swap_info.sender_address_non_local = BOT_ETHEREUM_ADDRESS
@@ -268,6 +268,8 @@ def test_atomic_swap_init_swap_receiver_address_invalid_type():
 
     inputs = outputs = [
         ADDRESS_TO_STORE_SWAP_INFO_BY,
+        BLOCK_INFO_CONFIG_ADDRESS,
+        NEXT_BLOCK_INFO_CONFIG_ADDRESS,
     ]
 
     atomic_swap_init_payload = AtomicSwapInitPayload(
@@ -306,7 +308,10 @@ def test_atomic_swap_init_swap_receiver_address_invalid_type():
         signature=create_signer(private_key=BOT_PRIVATE_KEY).sign(serialized_header),
     )
 
-    mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={})
+    mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={
+        BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_BLOCK_INFO_CONFIG,
+        NEXT_BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_NEXT_BLOCK_INFO_CONFIG,
+    })
 
     with pytest.raises(InvalidTransaction) as error:
         AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
