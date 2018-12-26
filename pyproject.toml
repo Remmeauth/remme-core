@@ -23,7 +23,7 @@ aiohttp = "3.4.4"
 aiohttp-jinja2 = "1.1.0"
 aiohttp-cors = "0.7.0"
 aiohttp-json-rpc = "0.11.2"
-toml = "0.9.4"
+toml = "0.10.0"
 pysha3 = "1.0.2"
 # TODO: Migrate to https://github.com/pyca/cryptography/pull/4114 when will be available
 ed25519 = "1.4.0"
