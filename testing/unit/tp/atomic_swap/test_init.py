@@ -70,15 +70,15 @@ RANDOM_PUBLIC_KEY = '8c87d914a6cfeaf027413760ad359b5a56bfe0eda504d879b21872c7dc5
 CURRENT_TIMESTAMP = int(datetime.datetime.now().timestamp())
 
 BLOCK_INFO_CONFIG_ADDRESS = CONFIG_ADDRESS
-NEXT_BLOCK_INFO_CONFIG_ADDRESS = BlockInfoClient.create_block_address(1000)
+BLOCK_INFO_ADDRESS = BlockInfoClient.create_block_address(1000)
 
 block_info_config = BlockInfoConfig()
 block_info_config.latest_block = 1000
 SERIALIZED_BLOCK_INFO_CONFIG = block_info_config.SerializeToString()
 
-next_block_info_config = BlockInfoConfig()
-next_block_info_config.latest_block = 1001
-SERIALIZED_NEXT_BLOCK_INFO_CONFIG = next_block_info_config.SerializeToString()
+block_info = BlockInfo()
+block_info.timestamp = CURRENT_TIMESTAMP
+SERIALIZED_BLOCK_INFO = block_info.SerializeToString()
 
 
 def test_atomic_swap_init():
@@ -89,7 +89,7 @@ def test_atomic_swap_init():
     inputs = outputs = [
         ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY,
         BLOCK_INFO_CONFIG_ADDRESS,
-        NEXT_BLOCK_INFO_CONFIG_ADDRESS,
+        BLOCK_INFO_ADDRESS,
         BOT_ADDRESS,
         ZERO_ADDRESS,
         ADDRESS_TO_STORE_SWAP_INFO_BY,
@@ -150,7 +150,7 @@ def test_atomic_swap_init():
 
     mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={
         BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_BLOCK_INFO_CONFIG,
-        NEXT_BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_NEXT_BLOCK_INFO_CONFIG,
+        BLOCK_INFO_ADDRESS: SERIALIZED_BLOCK_INFO,
         BOT_ADDRESS: serialized_bot_account,
         ZERO_ADDRESS: serialized_zero_account,
         ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY: serialized_swap_commission_setting,
@@ -267,7 +267,7 @@ def test_atomic_swap_init_swap_no_block_config_info():
     inputs = outputs = [
         ADDRESS_TO_STORE_SWAP_INFO_BY,
         BLOCK_INFO_CONFIG_ADDRESS,
-        NEXT_BLOCK_INFO_CONFIG_ADDRESS,
+        BLOCK_INFO_ADDRESS,
     ]
 
     atomic_swap_init_payload = AtomicSwapInitPayload(
@@ -322,7 +322,7 @@ def test_atomic_swap_init_swap_no_block_info():
     inputs = outputs = [
         ADDRESS_TO_STORE_SWAP_INFO_BY,
         BLOCK_INFO_CONFIG_ADDRESS,
-        NEXT_BLOCK_INFO_CONFIG_ADDRESS,
+        BLOCK_INFO_ADDRESS,
     ]
 
     atomic_swap_init_payload = AtomicSwapInitPayload(
@@ -368,7 +368,7 @@ def test_atomic_swap_init_swap_no_block_info():
     with pytest.raises(InvalidTransaction) as error:
         AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
 
-    assert f'Block {next_block_info_config.latest_block} not found.' == str(error.value)
+    assert f'Block {block_info_config.latest_block + 1} not found.' == str(error.value)
 
 
 def test_atomic_swap_init_swap_receiver_address_invalid_type():
@@ -381,7 +381,7 @@ def test_atomic_swap_init_swap_receiver_address_invalid_type():
     inputs = outputs = [
         ADDRESS_TO_STORE_SWAP_INFO_BY,
         BLOCK_INFO_CONFIG_ADDRESS,
-        NEXT_BLOCK_INFO_CONFIG_ADDRESS,
+        BLOCK_INFO_ADDRESS,
     ]
 
     atomic_swap_init_payload = AtomicSwapInitPayload(
@@ -422,7 +422,7 @@ def test_atomic_swap_init_swap_receiver_address_invalid_type():
 
     mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={
         BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_BLOCK_INFO_CONFIG,
-        NEXT_BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_NEXT_BLOCK_INFO_CONFIG,
+        BLOCK_INFO_ADDRESS: SERIALIZED_BLOCK_INFO,
     })
 
     with pytest.raises(InvalidTransaction) as error:
@@ -439,7 +439,7 @@ def test_atomic_swap_init_swap_wrong_commission_address():
     inputs = outputs = [
         ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY,
         BLOCK_INFO_CONFIG_ADDRESS,
-        NEXT_BLOCK_INFO_CONFIG_ADDRESS,
+        BLOCK_INFO_ADDRESS,
         BOT_ADDRESS,
         ADDRESS_TO_STORE_SWAP_INFO_BY,
     ]
@@ -486,7 +486,7 @@ def test_atomic_swap_init_swap_wrong_commission_address():
 
     mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={
         BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_BLOCK_INFO_CONFIG,
-        NEXT_BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_NEXT_BLOCK_INFO_CONFIG,
+        BLOCK_INFO_ADDRESS: SERIALIZED_BLOCK_INFO,
         ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY: serialized_swap_commission_setting,
     })
 
@@ -504,7 +504,7 @@ def test_atomic_swap_init_swap_not_enough_balance():
     inputs = outputs = [
         ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY,
         BLOCK_INFO_CONFIG_ADDRESS,
-        NEXT_BLOCK_INFO_CONFIG_ADDRESS,
+        BLOCK_INFO_ADDRESS,
         BOT_ADDRESS,
         ADDRESS_TO_STORE_SWAP_INFO_BY,
     ]
@@ -555,7 +555,7 @@ def test_atomic_swap_init_swap_not_enough_balance():
 
     mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={
         BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_BLOCK_INFO_CONFIG,
-        NEXT_BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_NEXT_BLOCK_INFO_CONFIG,
+        BLOCK_INFO_ADDRESS: SERIALIZED_BLOCK_INFO,
         BOT_ADDRESS: serialized_bot_account_balance,
         ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY: serialized_swap_commission_setting,
     })
@@ -577,7 +577,7 @@ def test_atomic_swap_init_remchain_is_not_configured():
     inputs = outputs = [
         ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY,
         BLOCK_INFO_CONFIG_ADDRESS,
-        NEXT_BLOCK_INFO_CONFIG_ADDRESS,
+        BLOCK_INFO_ADDRESS,
         BOT_ADDRESS,
         ZERO_ADDRESS,
         ADDRESS_TO_STORE_SWAP_INFO_BY,
@@ -638,7 +638,7 @@ def test_atomic_swap_init_remchain_is_not_configured():
 
     mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={
         BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_BLOCK_INFO_CONFIG,
-        NEXT_BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_NEXT_BLOCK_INFO_CONFIG,
+        BLOCK_INFO_ADDRESS: SERIALIZED_BLOCK_INFO,
         BOT_ADDRESS: serialized_bot_account,
         ZERO_ADDRESS: serialized_zero_account,
         ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY: serialized_swap_commission_setting,
@@ -659,7 +659,7 @@ def test_atomic_swap_init_bot_address_is_not_in_genesis_member_list():
     inputs = outputs = [
         ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY,
         BLOCK_INFO_CONFIG_ADDRESS,
-        NEXT_BLOCK_INFO_CONFIG_ADDRESS,
+        BLOCK_INFO_ADDRESS,
         BOT_ADDRESS,
         ZERO_ADDRESS,
         ADDRESS_TO_STORE_SWAP_INFO_BY,
@@ -720,7 +720,7 @@ def test_atomic_swap_init_bot_address_is_not_in_genesis_member_list():
 
     mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={
         BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_BLOCK_INFO_CONFIG,
-        NEXT_BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_NEXT_BLOCK_INFO_CONFIG,
+        BLOCK_INFO_ADDRESS: SERIALIZED_BLOCK_INFO,
         BOT_ADDRESS: serialized_bot_account,
         ZERO_ADDRESS: serialized_zero_account,
         ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY: serialized_swap_commission_setting,
