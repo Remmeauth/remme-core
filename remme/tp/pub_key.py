@@ -14,24 +14,29 @@
 # ------------------------------------------------------------------------
 
 import logging
-import binascii
+import hashlib
+import abc
+
+import ed25519
+import secp256k1
+from secp256k1 import lib
+
 from datetime import datetime, timedelta
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.exceptions import InvalidSignature
-from cryptography.hazmat.primitives.serialization import load_pem_public_key
+from cryptography.hazmat.primitives.serialization import load_der_public_key
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
 from remme.settings import SETTINGS_STORAGE_PUB_KEY
-from remme.tp.basic import BasicHandler, get_data, get_multiple_data, PB_CLASS, PROCESSOR
+from remme.tp.basic import (
+    BasicHandler, get_data, get_multiple_data, PB_CLASS, PROCESSOR
+)
 from remme.tp.account import AccountHandler
 
-from remme.protos.account_pb2 import (
-    Account,
-    TransferPayload,
-)
+from remme.protos.account_pb2 import Account, TransferPayload
 from remme.protos.pub_key_pb2 import (
     PubKeyStorage,
     NewPubKeyPayload,
@@ -52,6 +57,129 @@ PUB_KEY_STORE_PRICE = 10
 ECONOMY_IS_ENABLED_VALUE = 'true'
 
 
+def detect_processor_cls(config):
+    if isinstance(config, NewPubKeyPayload.RSAConfiguration):
+        return RSAProcessor
+    elif isinstance(config, NewPubKeyPayload.ECDSAConfiguration):
+        return ECDSAProcessor
+    elif isinstance(config, NewPubKeyPayload.Ed25519Configuration):
+        return Ed25519Processor
+    raise NotImplementedError
+
+
+class BasePubKeyProcessor(metaclass=abc.ABCMeta):
+
+    def __init__(self, entity_hash, entity_hash_signature,
+                 valid_from, valid_to, hashing_algorithm, config):
+        self._entity_hash = entity_hash
+        self._entity_hash_signature = entity_hash_signature
+        self._valid_from = valid_from
+        self._valid_to = valid_to
+        self._hashing_algorithm = hashing_algorithm
+        self._config = config
+
+    @abc.abstractmethod
+    def get_hashing_algorithm(self):
+        """Return libriary special algoritm in according to protobuf
+        """
+
+    def get_public_key(self):
+        """Get public key from given signature or points
+        """
+        return self._config.key
+
+    @abc.abstractmethod
+    def verify(self):
+        """Verify if signature was successfull
+        """
+
+
+class RSAProcessor(BasePubKeyProcessor):
+
+    def verify(self):
+        try:
+            verifier = load_der_public_key(self.get_public_key(),
+                                           default_backend())
+        except ValueError as e:
+            raise InvalidTransaction(
+                'Cannot deserialize the provided public key. '
+                'Check if it is in DER format.')
+
+        try:
+            verifier.verify(self._entity_hash_signature, self._entity_hash,
+                            self.get_padding(), self.get_hashing_algorithm()())
+            return True
+        except InvalidSignature:
+            return False
+
+    def get_hashing_algorithm(self):
+        alg_name = NewPubKeyPayload.HashingAlgorithm \
+            .Name(self._hashing_algorithm)
+        return getattr(hashes, alg_name)
+
+    def get_padding(self):
+        Padding = NewPubKeyPayload.RSAConfiguration.Padding
+        if self._config.padding == Padding.Value('PSS'):
+            return padding.PSS(mgf=padding.MGF1(self.get_hashing_algorithm()()),
+                               salt_length=padding.PSS.MAX_LENGTH)
+        elif self._config.padding == Padding.Value('PKCS1v15'):
+            return padding.PKCS1v15()
+        else:
+            raise NotImplementedError('Unsupported RSA padding')
+
+
+class ECDSAProcessor(BasePubKeyProcessor):
+
+    def verify(self):
+        try:
+            pub_key = secp256k1.PublicKey()
+            pub_key.deserialize(self.get_public_key())
+
+            assert pub_key.public_key, "No public key defined"
+
+            if pub_key.flags & lib.SECP256K1_CONTEXT_VERIFY != \
+               lib.SECP256K1_CONTEXT_VERIFY:
+                raise Exception("instance not configured for sig verification")
+
+            msg_digest = self.get_hashing_algorithm()(
+                self._entity_hash).digest()
+            raw_sig = pub_key.ecdsa_deserialize_compact(
+                self._entity_hash_signature)
+
+            verified = lib.secp256k1_ecdsa_verify(
+                pub_key.ctx, raw_sig, msg_digest, pub_key.public_key)
+        except Exception as e:
+            LOGGER.exception(e)
+            return False
+        else:
+            return bool(verified)
+
+    def get_hashing_algorithm(self):
+        alg_name = NewPubKeyPayload.HashingAlgorithm \
+            .Name(self._hashing_algorithm).lower()
+        return getattr(hashlib, alg_name)
+
+    def get_curve_type(self):
+        raise NotImplementedError
+
+
+class Ed25519Processor(BasePubKeyProcessor):
+
+    def verify(self):
+        verifier = ed25519.VerifyingKey(self.get_public_key())
+        msg_digest = self.get_hashing_algorithm()(self._entity_hash).digest()
+        try:
+            verifier.verify(self._entity_hash_signature, msg_digest)
+            return True
+        except ed25519.BadSignatureError:
+            return False
+
+    def get_hashing_algorithm(self):
+        alg_name = NewPubKeyPayload.HashingAlgorithm \
+            .Name(self._hashing_algorithm).lower()
+        return getattr(hashlib, alg_name)
+
+
 class PubKeyHandler(BasicHandler):
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
@@ -69,29 +197,9 @@ class PubKeyHandler(BasicHandler):
         }
 
     @staticmethod
-    def _is_signature_valid(public_key, ehs_bytes, eh_bytes):
-        # FIXME: For support PKCS1v15 and PSS
-        LOGGER.warning('HAZARD: Detecting padding for verification')
-        sigerr = 0
-        pkcs = padding.PKCS1v15()
-        pss = padding.PSS(mgf=padding.MGF1(hashes.SHA512()), salt_length=padding.PSS.MAX_LENGTH)
-        for _padding in (pkcs, pss):
-            try:
-                public_key.verify(ehs_bytes, eh_bytes, _padding, hashes.SHA512())
-                LOGGER.warning('HAZARD: Padding found: %s', _padding.name)
-            except InvalidSignature:
-                sigerr += 1
-
-        if sigerr == 2:
-            return False
-
-        return True
-
-    @staticmethod
     def _is_public_key_validity_exceeded(valid_from, valid_to):
         """
         Check if public key validity exceeds the maximum value.
-
         Public key validity maximum value in one year (365 days).
         """
         valid_from = datetime.fromtimestamp(valid_from)
@@ -117,93 +225,97 @@ class PubKeyHandler(BasicHandler):
 
         return transfer_state
 
-    def _store_pub_key(self, context, signer_public_key, new_public_key_payload):
+    def _store_pub_key(self, context, signer_pubkey, transaction_payload):
         """
         Store public key to the blockchain.
-
         Flow on client:
         1. Create private and public key (for instance, RSA).
         2. Create random data and sign it with private key to allows node verify signature,
             so ensure the address sent transaction is a real owner of public key.
         3. Send public key, signature, and other information to the node.
-
         Node does checks: if public key already exists in the blockchain, try to deserialize public key,
         try to verify signature, if validity exceeds.
-
         If transaction successfully passed checks, node charges fixed tokens price for storing
         public keys (if node economy is enabled) and link public key to the account (address).
-
         References:
             - https://docs.remme.io/remme-core/docs/family-pub-key.html
             - https://github.com/Remmeauth/remme-client-python/blob/develop/remme/remme_public_key_storage.py
         """
-        public_key_to_store_address = self.make_address_from_data(new_public_key_payload.public_key)
-        sender_account_address = AccountHandler().make_address_from_data(signer_public_key)
+        conf_name = transaction_payload.WhichOneof('configuration')
+        if not conf_name:
+            raise InvalidTransaction('Configuration for public key not set')
 
-        public_key_information, account = get_multiple_data(context, [
+        conf_payload = getattr(transaction_payload, conf_name)
+
+        processor_cls = detect_processor_cls(conf_payload)
+        processor = processor_cls(transaction_payload.entity_hash,
+                                  transaction_payload.entity_hash_signature,
+                                  transaction_payload.valid_from,
+                                  transaction_payload.valid_to,
+                                  transaction_payload.hashing_algorithm,
+                                  conf_payload)
+
+        public_key = processor.get_public_key()
+
+        public_key_to_store_address = self.make_address_from_data(public_key)
+        LOGGER.info('Public key address {}'.format(public_key_to_store_address))
+
+        sender_account_address = AccountHandler() \
+            .make_address_from_data(signer_pubkey)
+        LOGGER.info('Account address {}'.format(sender_account_address))
+        data, account = get_multiple_data(context, [
             (public_key_to_store_address, PubKeyStorage),
             (sender_account_address, Account),
         ])
-
-        if public_key_information:
+        if data:
             raise InvalidTransaction('This public key is already registered.')
 
-        try:
-            public_key = load_pem_public_key(
-                new_public_key_payload.public_key.encode('utf-8'), backend=default_backend(),
-            )
+        sig_is_valid = processor.verify()
+        if sig_is_valid is False:
+            raise InvalidTransaction('Invalid signature')
 
-        except ValueError:
-            raise InvalidTransaction('Cannot deserialize the provided public key. Check if it is in PEM format.')
+        if not self._is_public_key_validity_exceeded(
+            valid_from=transaction_payload.valid_from,
+            valid_to=transaction_payload.valid_to
+        ):
+            raise InvalidTransaction('The public key validity exceeds '
+                                     'the maximum value.')
 
-        try:
-            ehs_bytes = binascii.unhexlify(new_public_key_payload.entity_hash_signature)
-            eh_bytes = binascii.unhexlify(new_public_key_payload.entity_hash)
-        except binascii.Error:
-            raise InvalidTransaction('Entity hash or/and signature is not a hex format.')
-
-        if not self._is_signature_valid(public_key=public_key, ehs_bytes=ehs_bytes, eh_bytes=eh_bytes):
-            raise InvalidTransaction('Invalid signature.')
-
-        public_key_valid_from, public_key_valid_to = \
-            new_public_key_payload.valid_from, new_public_key_payload.valid_to
-
-        if not self._is_public_key_validity_exceeded(valid_from=public_key_valid_from, valid_to=public_key_valid_to):
-            raise InvalidTransaction('The public key validity exceeds the maximum value.')
-
-        public_key_to_store = PubKeyStorage()
-        public_key_to_store.owner = signer_public_key
-        public_key_to_store.payload.CopyFrom(new_public_key_payload)
-        public_key_to_store.revoked = False
+        data = PubKeyStorage()
+        data.owner = signer_pubkey
+        data.payload.CopyFrom(transaction_payload)
+        data.is_revoked = False
 
         if not account:
             account = Account()
 
         state = {
             sender_account_address: account,
-            public_key_to_store_address: public_key_to_store,
+            public_key_to_store_address: data
         }
 
-        is_economy_enabled = _get_setting_value(context, 'remme.economy_enabled', 'true').lower()
-        if is_economy_enabled == ECONOMY_IS_ENABLED_VALUE:
+        is_economy_enabled = _get_setting_value(context,
+                                                'remme.economy_enabled',
+                                                'true').lower()
+        if is_economy_enabled == 'true':
+            storage_pub_key = _get_setting_value(context,
+                                                 SETTINGS_STORAGE_PUB_KEY)
+            if not storage_pub_key:
+                raise InvalidTransaction(
+                    'The node\'s storage public key hasn\'t been set, '
+                    'get node config to ensure.')
 
-            storage_public_key = _get_setting_value(context, SETTINGS_STORAGE_PUB_KEY)
-
-            if not storage_public_key:
-                raise InvalidTransaction('The node\'s storage public key hasn\'t been set, get node config to ensure.')
-
-            storage_address = AccountHandler().make_address_from_data(storage_public_key)
+            storage_address = AccountHandler() \
+                .make_address_from_data(storage_pub_key)
 
             if storage_address != sender_account_address:
-
                 transfer_state = self._charge_tokens_for_storing(
-                    context=context, address_from=sender_account_address, address_to=storage_address,
+                    context=context, address_from=sender_account_address,
+                    address_to=storage_address,
                 )
-
-                # If sender account allows, make payment and push account protobuf to state
-                # to be updated with related public key below.
                 state.update(transfer_state)
-                account = transfer_state.get(sender_account_address)
+                # update account from transfer state
+                account = transfer_state[sender_account_address]
 
         if public_key_to_store_address not in account.pub_keys:
             account.pub_keys.append(public_key_to_store_address)
@@ -220,10 +332,10 @@ class PubKeyHandler(BasicHandler):
         if signer_pubkey != public_key_information.owner:
             raise InvalidTransaction('Only owner can revoke the public key.')
 
-        if public_key_information.revoked:
+        if public_key_information.is_revoked:
             raise InvalidTransaction('The public key is already revoked.')
 
-        public_key_information.revoked = True
+        public_key_information.is_revoked = True
         LOGGER.info('Revoked the pub key on address {}'.format(revoke_pub_key_payload.address))
 
         return {
