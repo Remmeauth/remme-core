@@ -17,6 +17,7 @@ import datetime
 import logging
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
+from remme.protos.account_pb2 import Account
 from remme.protos.atomic_swap_pb2 import (
     AtomicSwapMethod, AtomicSwapInitPayload, AtomicSwapInfo,
     AtomicSwapApprovePayload, AtomicSwapExpirePayload,
@@ -56,8 +57,16 @@ NON_INTIATOR_TIME_LOCK = 48
 INITIATOR_TIME_DELTA_LOCK = datetime.timedelta(hours=INTIATOR_TIME_LOCK)
 NON_INITIATOR_TIME_DELTA_LOCK = datetime.timedelta(hours=NON_INTIATOR_TIME_LOCK)
 
+NOT_PERMITTED_TO_CHANGE_SWAP_STATUSES = (AtomicSwapInfo.CLOSED, AtomicSwapInfo.EXPIRED)
+
 
 class AtomicSwapHandler(BasicHandler):
+    """
+    Atomic swap implementation.
+
+    References:
+        - https://github.com/decred/atomicswap
+    """
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
 
@@ -90,222 +99,244 @@ class AtomicSwapHandler(BasicHandler):
             },
         }
 
-    def get_swap_info_from_swap_id(self, context, swap_id, to_raise_exception=True):
-        swap_info = get_data(context, AtomicSwapInfo,
-                             self.make_address_from_data(swap_id))
-        if to_raise_exception and not swap_info:
-            raise InvalidTransaction(f'Atomic swap was not initiated '
-                                     f'for {swap_id} swap id!')
-
-        if swap_info and swap_info.state in [
-            AtomicSwapInfo.CLOSED, AtomicSwapInfo.EXPIRED
-        ]:
-            raise InvalidTransaction('No operations can be done upon '
-                                     f'the swap: {swap_id} '
-                                     ' as it is already closed.')
-        return swap_info
-
-    def get_state_update(self, swap_info):
-        return {self.make_address_from_data(swap_info.swap_id): swap_info}
-
     @staticmethod
     def get_datetime_from_timestamp(timestamp):
         return datetime.datetime.fromtimestamp(timestamp)
 
-    def _get_latest_block_info(self, context):
-        bc = get_data(context, BlockInfoConfig, CONFIG_ADDRESS)
-        if not bc:
-            raise InvalidTransaction('Block config not found')
+    @staticmethod
+    def _get_latest_block_info(context):
+        block_info_config = get_data(context, BlockInfoConfig, CONFIG_ADDRESS)
 
-        LOGGER.info(f'Current latest block number: {bc.latest_block + 1}')
+        if not block_info_config:
+            raise InvalidTransaction('Block config not found.')
 
-        block = get_data(context, BlockInfo,
-                         BlockInfoClient.create_block_address(bc.latest_block))
-        if not block:
-            raise InvalidTransaction(f'Block "{bc.latest_block + 1}" '
-                                     f'not found')
+        LOGGER.info(f'Current latest block number: {block_info_config.latest_block + 1}')
 
-        LOGGER.info(f'Block with number successfully loaded: '
-                    f'{block.block_num + 1}')
+        block_info = get_data(context, BlockInfo, BlockInfoClient.create_block_address(block_info_config.latest_block))
 
-        return block
+        if not block_info:
+            raise InvalidTransaction(f'Block {block_info_config.latest_block + 1} not found.')
+
+        LOGGER.info(f'Block with number successfully loaded: {block_info.block_num + 1}')
+
+        return block_info
 
     def _swap_init(self, context, signer_pubkey, swap_init_payload):
         """
         if SecretLockOptionalBob is provided, Bob uses _swap_init to respond to requested swap
         Otherwise, Alice uses _swap_init to request a swap and thus, Bob can't receive funds until Alice "approves".
         """
-        LOGGER.info("0. Check if swap ID already exists")
-        # 0. Check if swap ID already exists
-        if self.get_swap_info_from_swap_id(context, swap_init_payload.swap_id,
-                                           to_raise_exception=False):
-            raise InvalidTransaction('Atomic swap ID has already been taken, '
-                                     'please use a different one!')
-        # END
+        address_swap_info_is_stored_by = self.make_address_from_data(swap_init_payload.swap_id)
+        swap_information = get_data(context, AtomicSwapInfo, address_swap_info_is_stored_by)
+
+        if swap_information:
+            raise InvalidTransaction('Atomic swap ID has already been taken, please use a different one.')
 
         block_info = self._get_latest_block_info(context)
         block_time = block_info.timestamp
 
-        swap_info = AtomicSwapInfo()
-        swap_info.swap_id = swap_init_payload.swap_id
-        swap_info.state = AtomicSwapInfo.OPENED
-        swap_info.amount = swap_init_payload.amount
-        swap_info.created_at = block_time
-        swap_info.email_address_encrypted_optional = \
-            swap_init_payload.email_address_encrypted_by_initiator
-        swap_info.sender_address = AccountHandler() \
-            .make_address_from_data(signer_pubkey)
-        swap_info.sender_address_non_local = \
-            swap_init_payload.sender_address_non_local
-        swap_info.receiver_address = swap_init_payload.receiver_address
+        swap_information = AtomicSwapInfo()
+        swap_information.swap_id = swap_init_payload.swap_id
+        swap_information.state = AtomicSwapInfo.OPENED
+        swap_information.amount = swap_init_payload.amount
+        swap_information.created_at = block_time
+        swap_information.secret_lock = swap_init_payload.secret_lock_by_solicitor
+        swap_information.email_address_encrypted_optional = swap_init_payload.email_address_encrypted_by_initiator
+        swap_information.sender_address = AccountHandler().make_address_from_data(signer_pubkey)
+        swap_information.sender_address_non_local = swap_init_payload.sender_address_non_local
+        swap_information.receiver_address = swap_init_payload.receiver_address
+        swap_information.is_initiator = not swap_init_payload.secret_lock_by_solicitor
 
-        if not AccountHandler().is_handler_address(swap_info.receiver_address):
-            raise InvalidTransaction('Receiver address is not of a Token type.')
+        if not AccountHandler().is_handler_address(swap_information.receiver_address):
+            raise InvalidTransaction('Receiver address is not of a blockchain token type.')
 
-        LOGGER.info("1. Ensure transaction initiated within an hour")
-        # 1. Ensure transaction initiated within an hour
-        swap_info.secret_lock = swap_init_payload.secret_lock_by_solicitor
-        # END
-
-        LOGGER.info("2. Check weather the sender is Alice")
-        # 2. Check whether the sender is Alice:
-        swap_info.is_initiator = not swap_init_payload.secret_lock_by_solicitor
-        # END
-
-        # 3. Transfer funds to zero address.
-        LOGGER.info("3. Transfer funds to zero address")
         commission = int(_get_setting_value(context, SETTINGS_SWAP_COMMISSION))
         if commission < 0:
             raise InvalidTransaction('Wrong commission address.')
-        LOGGER.info(f"4. Get sender's account {swap_info.sender_address}")
-        account = get_account_by_address(context, swap_info.sender_address)
-        total_amount = swap_info.amount + commission
-        if account.balance < total_amount:
-            raise InvalidTransaction(f'Not enough balance to perform '
-                                     f'the transaction in '
-                                     f'the amount (with a commission) '
-                                     f'{total_amount}.')
 
-        transfer_payload = AccountClient \
-            .get_transfer_payload(ZERO_ADDRESS, total_amount)
-        AccountHandler()._check_signer_address(context, swap_info.sender_address)
-        token_updated_state = AccountHandler() \
-            ._transfer_from_address(context, swap_info.sender_address,
-                                    transfer_payload)
-        LOGGER.info("Save state")
+        swap_total_amount = swap_information.amount + commission
 
-        return {**self.get_state_update(swap_info), **token_updated_state}
+        account = get_data(context, Account, swap_information.sender_address)
+        if account.balance < swap_total_amount:
+            raise InvalidTransaction(
+                f'Not enough balance to perform the transaction in the amount (with a commission) {swap_total_amount}.'
+            )
 
-    def _swap_approve(self, context, signer_pubkey, swap_approve_payload):
-        """
+        transfer_payload = AccountClient.get_transfer_payload(ZERO_ADDRESS, swap_total_amount)
 
-        Only called by Alice to approve REMchain => other transaction for Bob to close it.
+        AccountHandler()._check_signer_address(context, swap_information.sender_address)
 
-        """
-        LOGGER.info('swap id: {}'.format(swap_approve_payload.swap_id))
-        swap_info = self.get_swap_info_from_swap_id(context, swap_approve_payload.swap_id)
+        transfer_state = AccountHandler()._transfer_from_address(
+            context, swap_information.sender_address, transfer_payload,
+        )
 
-        if not swap_info.is_initiator or \
-           swap_info.sender_address != AccountHandler() \
-           .make_address_from_data(signer_pubkey):
-            raise InvalidTransaction('Only transaction initiator (Alice) '
-                                     'may approve the swap, '
-                                     'once Bob provided a secret lock.')
-        if not swap_info.secret_lock:
-            raise InvalidTransaction('Secret Lock is needed for Bob '
-                                     'to provide a secret key.')
-
-        if swap_info.state != AtomicSwapInfo.SECRET_LOCK_PROVIDED:
-            raise InvalidTransaction(f'Swap id {swap_info.swap_id} '
-                                     'is already closed.')
-
-        swap_info.state = AtomicSwapInfo.APPROVED
-
-        return self.get_state_update(swap_info)
-
-    def _swap_expire(self, context, signer_pubkey, swap_expire_payload):
-        """
-        Transaction initiator (Alice) decides to withdraw deposit in 24 hours, or Bob in 48 hours
-
-        """
-
-        swap_info = self.get_swap_info_from_swap_id(context, swap_expire_payload.swap_id)
-
-        if AccountHandler() \
-           .make_address_from_data(signer_pubkey) != swap_info.sender_address:
-            raise InvalidTransaction('Signer is not the one who opened '
-                                     'the swap.')
-
-        block = self._get_latest_block_info(context)
-        block_time = self.get_datetime_from_timestamp(block.timestamp)
-
-        created_at = self.get_datetime_from_timestamp(swap_info.created_at)
-        time_delta = INITIATOR_TIME_DELTA_LOCK \
-            if swap_info.is_initiator else NON_INITIATOR_TIME_DELTA_LOCK
-        if (created_at + time_delta) > block_time:
-            intiator_name = "initiator" \
-                if swap_info.is_initiator else "non initiator"
-            raise InvalidTransaction(f'Swap {intiator_name} needs to wait '
-                                     f'{INTIATOR_TIME_LOCK} hours since '
-                                     f'timestamp: {swap_info.created_at} '
-                                     f'to withdraw.')
-
-        swap_info.state = AtomicSwapInfo.EXPIRED
-
-        transfer_payload = AccountClient \
-            .get_transfer_payload(swap_info.sender_address, swap_info.amount)
-        AccountHandler()._check_signer_address(context, swap_info.sender_address)
-        token_updated_state = AccountHandler() \
-            ._transfer_from_address(context, ZERO_ADDRESS, transfer_payload)
-
-        return {**self.get_state_update(swap_info), **token_updated_state}
+        return {
+            address_swap_info_is_stored_by: swap_information,
+            **transfer_state,
+        }
 
     def _swap_set_lock(self, context, signer_pubkey, swap_set_lock_payload):
         """
+        Set secret lock.
+
         Bob sets secret lock if Alice is initiator for REMchain => ETH transaction.
         Bob deposits escrow funds to zero address.
         Only works for Bob, Alice is the only one to approve
-
         """
-        swap_info = self.get_swap_info_from_swap_id(context, swap_set_lock_payload.swap_id)
+        swap_identifier = swap_set_lock_payload.swap_id
 
-        if swap_info.secret_lock:
-            raise InvalidTransaction(f'Secret lock is already added '
-                                     f'for {swap_info.swap_id}.')
+        address_swap_info_is_stored_by = self.make_address_from_data(swap_identifier)
+        swap_information = get_data(context, AtomicSwapInfo, address_swap_info_is_stored_by)
 
-        swap_info.secret_lock = swap_set_lock_payload.secret_lock
-        swap_info.state = AtomicSwapInfo.SECRET_LOCK_PROVIDED
+        if not swap_information:
+            raise InvalidTransaction(f'Atomic swap was not initiated for identifier {swap_identifier}!')
 
-        return self.get_state_update(swap_info)
+        if swap_information.state in NOT_PERMITTED_TO_CHANGE_SWAP_STATUSES:
+            raise InvalidTransaction(
+                f'No operations can be done upon the swap: {swap_identifier} as it is already closed or expired.',
+            )
+
+        if swap_information.secret_lock:
+            raise InvalidTransaction(f'Secret lock is already added for {swap_information.swap_id}.')
+
+        swap_information.secret_lock = swap_set_lock_payload.secret_lock
+        swap_information.state = AtomicSwapInfo.SECRET_LOCK_PROVIDED
+
+        return {
+            address_swap_info_is_stored_by: swap_information,
+        }
+
+    def _swap_approve(self, context, signer_pubkey, swap_approve_payload):
+        """
+        Only called by Alice to approve REMchain => other transaction for Bob to close it.
+        """
+        LOGGER.info(f'Approving atomic swap with identifier {swap_approve_payload.swap_id}.')
+
+        signer_address = AccountHandler().make_address_from_data(signer_pubkey)
+        swap_identifier = swap_approve_payload.swap_id
+
+        address_swap_info_is_stored_by = self.make_address_from_data(swap_identifier)
+        swap_information = get_data(context, AtomicSwapInfo, address_swap_info_is_stored_by)
+
+        if not swap_information:
+            raise InvalidTransaction(f'Atomic swap was not initiated for identifier {swap_identifier}!')
+
+        if swap_information.state in NOT_PERMITTED_TO_CHANGE_SWAP_STATUSES:
+            raise InvalidTransaction(
+                f'No operations can be done upon the swap: {swap_identifier} as it is already closed or expired.',
+            )
+
+        if not swap_information.is_initiator or swap_information.sender_address != signer_address:
+            raise InvalidTransaction(
+                'Only transaction initiator (Alice) may approve the swap, once Bob provided a secret lock.',
+            )
+
+        if not swap_information.secret_lock:
+            raise InvalidTransaction('Secret lock is needed for Bob to provide a secret key.')
+
+        if swap_information.state != AtomicSwapInfo.SECRET_LOCK_PROVIDED:
+            raise InvalidTransaction(f'Swap identifier {swap_information.swap_id} is already closed.')
+
+        swap_information.state = AtomicSwapInfo.APPROVED
+
+        return {
+            address_swap_info_is_stored_by: swap_information,
+        }
+
+    def _swap_expire(self, context, signer_pubkey, swap_expire_payload):
+        """
+        Transaction initiator (Alice) decides to withdraw deposit in 24 hours, or Bob in 48 hours.
+        """
+        swap_identifier = swap_expire_payload.swap_id
+
+        address_swap_info_is_stored_by = self.make_address_from_data(swap_identifier)
+        swap_information = get_data(context, AtomicSwapInfo, address_swap_info_is_stored_by)
+
+        if not swap_information:
+            raise InvalidTransaction(f'Atomic swap was not initiated for identifier {swap_identifier}!')
+
+        if swap_information.state in NOT_PERMITTED_TO_CHANGE_SWAP_STATUSES:
+            raise InvalidTransaction(
+                f'No operations can be done upon the swap: {swap_identifier} as it is already closed or expired.',
+            )
+
+        signer_address = AccountHandler().make_address_from_data(signer_pubkey)
+
+        if signer_address != swap_information.sender_address:
+            raise InvalidTransaction('Signer is not the one who opened the swap.')
+
+        block = self._get_latest_block_info(context)
+        block_time = self.get_datetime_from_timestamp(block.timestamp)
+        created_at = self.get_datetime_from_timestamp(swap_information.created_at)
+
+        time_delta = INITIATOR_TIME_DELTA_LOCK if swap_information.is_initiator else NON_INITIATOR_TIME_DELTA_LOCK
+
+        if (created_at + time_delta) > block_time:
+            initiator_name = 'initiator' if swap_information.is_initiator else 'non initiator'
+            initiator_time_lock = INTIATOR_TIME_LOCK if swap_information.is_initiator else NON_INTIATOR_TIME_LOCK
+
+            raise InvalidTransaction(
+                f'Swap {initiator_name} needs to wait {initiator_time_lock} hours since '
+                f'timestamp {swap_information.created_at} to withdraw.'
+            )
+
+        swap_information.state = AtomicSwapInfo.EXPIRED
+
+        transfer_payload = AccountClient.get_transfer_payload(swap_information.sender_address, swap_information.amount)
+
+        AccountHandler()._check_signer_address(context, swap_information.sender_address)
+
+        transfer_state = AccountHandler()._transfer_from_address(context, ZERO_ADDRESS, transfer_payload)
+
+        return {
+            address_swap_info_is_stored_by: swap_information,
+            **transfer_state,
+        }
 
     def _swap_close(self, context, signer_pubkey, swap_close_payload):
         """
-        Bob or Alice closes the swap by providing the secret key which matches secret lock.
-        Requires "is_approved = True"
-        Requires hash of secret key to match secret lock
+        Close atomic swap.
 
+        Any party (Bob or Alice) can close atomic swap by providing secret key. If hash from secret key matches
+        secret lock, secret key is valid. Closing atomic swap means participant (not initiator)
+        get REMchain tokens instead ERC20 tokens.
+
+        Closing requires atomic swap to be approved.
         """
-        swap_info = self.get_swap_info_from_swap_id(context, swap_close_payload.swap_id)
+        swap_identifier = swap_close_payload.swap_id
 
-        if not swap_info.secret_lock:
-            raise InvalidTransaction('Secret lock is required to close '
-                                     'the swap!')
+        address_swap_info_is_stored_by = self.make_address_from_data(swap_identifier)
+        swap_information = get_data(context, AtomicSwapInfo, address_swap_info_is_stored_by)
 
-        if web3_hash(swap_close_payload.secret_key) != swap_info.secret_lock:
-            raise InvalidTransaction('Secret key doesn\'t match specified '
-                                     'secret lock!')
+        if not swap_information:
+            raise InvalidTransaction(f'Atomic swap was not initiated for identifier {swap_identifier}!')
 
-        if swap_info.is_initiator and swap_info.state != AtomicSwapInfo.APPROVED:
-            raise InvalidTransaction('Transaction cannot be closed '
-                                     'before it\'s approved.')
+        if swap_information.state in NOT_PERMITTED_TO_CHANGE_SWAP_STATUSES:
+            raise InvalidTransaction(
+                f'No operations can be done upon the swap: {swap_identifier} as it is already closed or expired.',
+            )
 
-        transfer_payload = AccountClient \
-            .get_transfer_payload(swap_info.receiver_address, swap_info.amount)
-        AccountHandler()._check_signer_address(context, swap_info.sender_address)
-        token_updated_state = AccountHandler() \
-            ._transfer_from_address(context, ZERO_ADDRESS, transfer_payload)
-        swap_info.secret_key = swap_close_payload.secret_key
+        if not swap_information.secret_lock:
+            raise InvalidTransaction('Secret lock is required to close the swap.')
 
-        swap_info.state = AtomicSwapInfo.CLOSED
+        if web3_hash(swap_close_payload.secret_key) != swap_information.secret_lock:
+            raise InvalidTransaction('Secret key doesn\'t match specified secret lock.')
 
-        return {**self.get_state_update(swap_info), **token_updated_state}
+        if swap_information.is_initiator and swap_information.state != AtomicSwapInfo.APPROVED:
+            raise InvalidTransaction('Transaction cannot be closed before it\'s approved.')
+
+        transfer_payload = AccountClient.get_transfer_payload(
+            swap_information.receiver_address, swap_information.amount,
+        )
+
+        AccountHandler()._check_signer_address(context, swap_information.sender_address)
+
+        transfer_state = AccountHandler()._transfer_from_address(context, ZERO_ADDRESS, transfer_payload)
+
+        swap_information.secret_key = swap_close_payload.secret_key
+        swap_information.state = AtomicSwapInfo.CLOSED
+
+        return {
+            address_swap_info_is_stored_by: swap_information,
+            **transfer_state,
+        }
