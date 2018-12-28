@@ -89,7 +89,7 @@ INPUTS = OUTPUTS = [
 def test_expire_atomic_swap():
     """
     Case: to expire atomic swap.
-    Expect: transfer (without commission back) atomic swap amount from zero address to the bot address back.
+    Expect: increase bot address balance by swap amount. Leave commission on zero address.
     """
     inputs = outputs = [
         BLOCK_INFO_CONFIG_ADDRESS,
@@ -134,10 +134,6 @@ def test_expire_atomic_swap():
     bot_account.balance = 4700
     serialized_bot_account = bot_account.SerializeToString()
 
-    zero_account = Account()
-    zero_account.balance = 300
-    serialized_zero_account = zero_account.SerializeToString()
-
     genesis_members_setting = Setting()
     genesis_members_setting.entries.add(key=SETTINGS_KEY_GENESIS_OWNERS, value=f'{BOT_PUBLIC_KEY},')
     serialized_genesis_members_setting = genesis_members_setting.SerializeToString()
@@ -156,7 +152,6 @@ def test_expire_atomic_swap():
         BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_BLOCK_INFO_CONFIG,
         BLOCK_INFO_ADDRESS: SERIALIZED_BLOCK_INFO,
         BOT_ADDRESS: serialized_bot_account,
-        ZERO_ADDRESS: serialized_zero_account,
         ADDRESS_TO_STORE_SWAP_INFO_BY: serialized_existing_swap_info,
         ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY: serialized_genesis_members_setting,
     })
@@ -164,10 +159,6 @@ def test_expire_atomic_swap():
     expected_bot_account = Account()
     expected_bot_account.balance = 4700 + TOKENS_AMOUNT_TO_SWAP
     serialized_expected_bot_account = expected_bot_account.SerializeToString()
-
-    expected_zero_account = Account()
-    expected_zero_account.balance = 300 - TOKENS_AMOUNT_TO_SWAP
-    serialized_expected_zero_account = expected_zero_account.SerializeToString()
 
     expected_swap_info = AtomicSwapInfo()
     expected_swap_info.swap_id = SWAP_ID
@@ -181,7 +172,6 @@ def test_expire_atomic_swap():
 
     expected_state = {
         BOT_ADDRESS: serialized_expected_bot_account,
-        ZERO_ADDRESS: serialized_expected_zero_account,
         ADDRESS_TO_STORE_SWAP_INFO_BY: serialized_expected_swap_info,
     }
 
