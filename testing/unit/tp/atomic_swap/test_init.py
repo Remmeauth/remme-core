@@ -84,7 +84,7 @@ SERIALIZED_BLOCK_INFO = block_info.SerializeToString()
 def test_atomic_swap_init():
     """
     Case: initialize swap of bot's Remme node tokens to Alice's ERC20 Remme tokens.
-    Expect: bot send amount of swap plus commission to the zero account address.
+    Expect: bot sends commission to the zero account address, swap amount is decreased from bot account.
     """
     inputs = outputs = [
         ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY,
@@ -174,7 +174,7 @@ def test_atomic_swap_init():
     serialized_expected_bot_account = expected_bot_account.SerializeToString()
 
     expected_zero_account = Account()
-    expected_zero_account.balance = TOKENS_AMOUNT_TO_SWAP + SWAP_COMMISSION_AMOUNT
+    expected_zero_account.balance = SWAP_COMMISSION_AMOUNT
     serialized_expected_zero_account = expected_zero_account.SerializeToString()
 
     expected_state = {

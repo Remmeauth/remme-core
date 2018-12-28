@@ -70,7 +70,7 @@ INPUTS = OUTPUTS = [
 def test_close_atomic_swap():
     """
     Case: close atomic swap.
-    Expect: bot send amount of swap to the Alice account address.
+    Expect: increase Alice account address by swap amount.
     """
     inputs = outputs = [
         ADDRESS_TO_STORE_SWAP_INFO_BY,
@@ -110,10 +110,6 @@ def test_close_atomic_swap():
         signature=create_signer(private_key=BOT_PRIVATE_KEY).sign(serialized_header),
     )
 
-    zero_account = Account()
-    zero_account.balance = TOKENS_AMOUNT_TO_SWAP + SWAP_COMMISSION_AMOUNT
-    serialized_zero_account = zero_account.SerializeToString()
-
     alice_account = Account()
     alice_account.balance = 0
     serialized_alice_account = alice_account.SerializeToString()
@@ -135,13 +131,8 @@ def test_close_atomic_swap():
     mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={
         ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY: serialized_genesis_members_setting,
         ADDRESS_TO_STORE_SWAP_INFO_BY: serialized_existing_swap_info_to_lock,
-        ZERO_ADDRESS: serialized_zero_account,
         ALICE_ADDRESS: serialized_alice_account,
     })
-
-    expected_zero_account = Account()
-    expected_zero_account.balance = SWAP_COMMISSION_AMOUNT
-    serialized_expected_zero_account = expected_zero_account.SerializeToString()
 
     expected_alice_account = Account()
     expected_alice_account.balance = TOKENS_AMOUNT_TO_SWAP
@@ -160,7 +151,6 @@ def test_close_atomic_swap():
 
     expected_state = {
         ADDRESS_TO_STORE_SWAP_INFO_BY: serialized_expected_closed_swap_info,
-        ZERO_ADDRESS: serialized_expected_zero_account,
         ALICE_ADDRESS: serialized_expected_alice_account,
     }
 
