@@ -30,7 +30,7 @@ from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.serialization import load_der_public_key
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
-from remme.settings import SETTINGS_STORAGE_PUB_KEY
+from remme.settings import ZERO_ADDRESS
 from remme.tp.basic import (
     BasicHandler, get_data, get_multiple_data, PB_CLASS, PROCESSOR
 )
@@ -298,23 +298,15 @@ class PubKeyHandler(BasicHandler):
                                                 'remme.economy_enabled',
                                                 'true').lower()
         if is_economy_enabled == 'true':
-            storage_pub_key = _get_setting_value(context,
-                                                 SETTINGS_STORAGE_PUB_KEY)
-            if not storage_pub_key:
-                raise InvalidTransaction(
-                    'The node\'s storage public key hasn\'t been set, '
-                    'get node config to ensure.')
 
-            storage_address = AccountHandler() \
-                .make_address_from_data(storage_pub_key)
+            if ZERO_ADDRESS != sender_account_address:
 
-            if storage_address != sender_account_address:
                 transfer_state = self._charge_tokens_for_storing(
                     context=context, address_from=sender_account_address,
-                    address_to=storage_address,
+                    address_to=ZERO_ADDRESS,
                 )
+
                 state.update(transfer_state)
-                # update account from transfer state
                 account = transfer_state[sender_account_address]
 
         if public_key_to_store_address not in account.pub_keys:
