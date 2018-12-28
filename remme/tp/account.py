@@ -21,7 +21,7 @@ from remme.protos.account_pb2 import (
     TransferPayload
 )
 from remme.settings.helper import _get_setting_value
-from remme.settings import GENESIS_ADDRESS, ZERO_ADDRESS, SETTINGS_KEY_GENESIS_OWNERS
+from remme.settings import GENESIS_ADDRESS, ZERO_ADDRESS, SETTINGS_KEY_ZERO_ADDRESS_OWNERS
 from remme.tp.basic import PB_CLASS, PROCESSOR, BasicHandler, get_data, get_multiple_data
 from remme.shared.constants import Events, EMIT_EVENT
 
@@ -112,7 +112,7 @@ class AccountHandler(BasicHandler):
         return genesis_member_addresses
 
     def _check_signer_address(self, context, signer_address):
-        genesis_members_public_keys_as_string = _get_setting_value(context, SETTINGS_KEY_GENESIS_OWNERS)
+        genesis_members_public_keys_as_string = _get_setting_value(context, SETTINGS_KEY_ZERO_ADDRESS_OWNERS)
 
         if not genesis_members_public_keys_as_string:
             raise InvalidTransaction('REMchain is not configured to process genesis transfers.')

@@ -18,7 +18,7 @@ from remme.clients.basic import BasicClient
 from remme.tp.account import AccountHandler
 from remme.shared.exceptions import KeyNotFound
 from remme.settings.helper import _make_settings_key
-from remme.settings import SETTINGS_KEY_GENESIS_OWNERS
+from remme.settings import SETTINGS_KEY_ZERO_ADDRESS_OWNERS
 
 from remme.protos.account_pb2 import Account
 
