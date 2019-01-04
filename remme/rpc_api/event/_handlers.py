@@ -171,7 +171,9 @@ class BatchEventHandler(BaseEventHandler):
             raise RpcInvalidParamsError(message='Missed id', msg_id=msg_id)
 
         if len(batch_id) != 128:
-            raise RpcInvalidParamsError(message=f'Batch identifier {batch_id} is invalid.', msg_id=msg_id)
+            raise RpcInvalidParamsError(
+                message=f'Batch identifier {batch_id} hasn\'t passed length validation.', msg_id=msg_id,
+            )
 
         if not re.match(r'[0-9a-f]+', batch_id):
             raise RpcInvalidParamsError(message='Batch identifier hasn\'t passed regexp matching.', msg_id=msg_id)
@@ -247,11 +249,20 @@ class TransferEventHandler(BaseEventHandler):
     def validate(self, msg_id, params):
         try:
             address = params['address']
+
         except KeyError:
             raise RpcInvalidParamsError(message='Missed address', msg_id=msg_id)
 
+        if len(address) != 70:
+            raise RpcInvalidParamsError(
+                message=f'Transfer address {address} hasn\'t passed length validation.', msg_id=msg_id,
+            )
+
+        if not re.match(r'[0-9a-f]+', address):
+            raise RpcInvalidParamsError(message='Transfer address hasn\'t passed regexp matching.', msg_id=msg_id)
+
         return {
-            'address': address
+            'address': address,
         }
 
 

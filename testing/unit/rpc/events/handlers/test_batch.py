@@ -14,7 +14,7 @@ VALID_BATCH_ID_LENGTH = len(VALID_BATCH_ID)
 batch_event_handler = BatchEventHandler()
 
 
-def test_validate():
+def test_validate_batch_identifier():
     """
     Case: validate valid batch identifier.
     Expect: identifier as dictionary with appropriate key is returned.
@@ -30,9 +30,9 @@ def test_validate():
     assert expected_result == result
 
 
-def test_validate_no_id():
+def test_validate_batch_identifier_no_identifier():
     """
-    Case: validate valid batch identifier without passed identifier key to validation.
+    Case: validate not specified batch identifier.
     Expect: RPC invalid params error is raised with invalid params error message.
     """
     with pytest.raises(RpcInvalidParamsError) as error:
@@ -44,12 +44,12 @@ def test_validate_no_id():
 @pytest.mark.parametrize(
     'invalid_batch_id',
     [
-        pytest.param('a' * (VALID_BATCH_ID_LENGTH - 1), id='not batch identifier length'),
+        pytest.param('a' * (VALID_BATCH_ID_LENGTH - 1), id='batch identifier invalid length'),
         pytest.param('InvalidBatchIdentifier', id='text instead batch identifier'),
         pytest.param('su' * (VALID_BATCH_ID_LENGTH // 2), id='not passed batch identifier regexp'),
     ],
 )
-def test_validate_invalid_id(invalid_batch_id):
+def test_validate_batch_invalid_identifier(invalid_batch_id):
     """
     Case: validate invalid batch identifier.
     Expect: RPC invalid params error is raised with invalid params error message.
