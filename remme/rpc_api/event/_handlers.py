@@ -288,13 +288,24 @@ class AtomicSwapEventHandler(BaseEventHandler):
             pass
 
     def validate(self, msg_id, params):
+
         from_block = params.get('from_block')
+        swap_id = params.get('id')
+
         if from_block and not isinstance(from_block, str):
-            raise ClientException(message='Invalid "from_block" type',
-                                  msg_id=id)
+            raise ClientException(message='Invalid "from_block" type', msg_id=id)
+
+        if swap_id and len(swap_id) != 64:
+            raise RpcInvalidParamsError(
+                message=f'Atomic swap identifier {swap_id} hasn\'t passed length validation.', msg_id=msg_id,
+            )
+
+        if swap_id and not re.match(r'[0-9a-f]+', swap_id):
+            raise RpcInvalidParamsError(message='Atomic swap identifier hasn\'t passed regexp matching.', msg_id=msg_id)
+
         return {
             'from_block': from_block,
-            'id': params.get('id')
+            'id': swap_id,
         }
 
 

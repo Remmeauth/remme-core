@@ -1,5 +1,5 @@
 """
-Provide tests for batch event handler validation implementation.
+Provide tests for batch event handler implementation.
 """
 import pytest
 from aiohttp_json_rpc.exceptions import RpcInvalidParamsError
@@ -38,7 +38,6 @@ def test_validate_no_id():
     with pytest.raises(RpcInvalidParamsError) as error:
         batch_event_handler.validate(msg_id=None, params={})
 
-    # assert 'Missed id' == str(error.value)
     assert 'Invalid params' == str(error.value)
 
 
@@ -46,7 +45,7 @@ def test_validate_no_id():
     'invalid_batch_id',
     [
         pytest.param('a' * (VALID_BATCH_ID_LENGTH - 1), id='not batch identifier length'),
-        pytest.param('InvalidBatchIdentifier', id='text instead identifier'),
+        pytest.param('InvalidBatchIdentifier', id='text instead batch identifier'),
         pytest.param('su' * (VALID_BATCH_ID_LENGTH // 2), id='not passed batch identifier regexp'),
     ],
 )
@@ -60,5 +59,4 @@ def test_validate_invalid_id(invalid_batch_id):
             'id': invalid_batch_id,
         })
 
-    # assert 'Batch identifier hasn\'t passed regexp matching.' == str(error.value)
     assert 'Invalid params' == str(error.value)
