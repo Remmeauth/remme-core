@@ -157,6 +157,10 @@ class AtomicSwapHandler(BasicHandler):
         swap_total_amount = swap_information.amount + commission
 
         account = get_data(context, Account, swap_information.sender_address)
+
+        if account is None:
+            account = Account()
+
         if account.balance < swap_total_amount:
             raise InvalidTransaction(
                 f'Not enough balance to perform the transaction in the amount (with a commission) {swap_total_amount}.'
