@@ -171,12 +171,10 @@ class BatchEventHandler(BaseEventHandler):
             raise RpcInvalidParamsError(message='Missed id', msg_id=msg_id)
 
         if len(batch_id) != 128:
-            raise RpcInvalidParamsError(
-                message=f'Batch identifier {batch_id} hasn\'t passed length validation.', msg_id=msg_id,
-            )
+            raise RpcInvalidParamsError(message='Incorrect batch identifier.', msg_id=msg_id)
 
         if not re.match(r'[0-9a-f]+', batch_id):
-            raise RpcInvalidParamsError(message='Batch identifier hasn\'t passed regexp matching.', msg_id=msg_id)
+            raise RpcInvalidParamsError(message='Incorrect batch identifier.', msg_id=msg_id)
 
         return {
             'id': batch_id,
@@ -254,12 +252,10 @@ class TransferEventHandler(BaseEventHandler):
             raise RpcInvalidParamsError(message='Missed address', msg_id=msg_id)
 
         if len(address) != 70:
-            raise RpcInvalidParamsError(
-                message=f'Transfer address {address} hasn\'t passed length validation.', msg_id=msg_id,
-            )
+            raise RpcInvalidParamsError(message='Incorrect transfer address.', msg_id=msg_id)
 
         if not re.match(r'[0-9a-f]+', address):
-            raise RpcInvalidParamsError(message='Transfer address hasn\'t passed regexp matching.', msg_id=msg_id)
+            raise RpcInvalidParamsError(message='Incorrect transfer address.', msg_id=msg_id)
 
         return {
             'address': address,
@@ -307,12 +303,10 @@ class AtomicSwapEventHandler(BaseEventHandler):
             raise ClientException(message='Invalid "from_block" type', msg_id=id)
 
         if swap_id and len(swap_id) != 64:
-            raise RpcInvalidParamsError(
-                message=f'Atomic swap identifier {swap_id} hasn\'t passed length validation.', msg_id=msg_id,
-            )
+            raise RpcInvalidParamsError(message='Incorrect atomic swap identifier.', msg_id=msg_id)
 
         if swap_id and not re.match(r'[0-9a-f]+', swap_id):
-            raise RpcInvalidParamsError(message='Atomic swap identifier hasn\'t passed regexp matching.', msg_id=msg_id)
+            raise RpcInvalidParamsError(message='Incorrect atomic swap identifier.', msg_id=msg_id)
 
         return {
             'from_block': from_block,
