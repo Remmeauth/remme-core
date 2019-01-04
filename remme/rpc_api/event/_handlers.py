@@ -18,6 +18,7 @@ import logging
 import json
 import abc
 import hashlib
+import re
 
 from aiohttp_json_rpc.exceptions import RpcInvalidParamsError
 
@@ -164,12 +165,19 @@ class BatchEventHandler(BaseEventHandler):
 
     def validate(self, msg_id, params):
         try:
-            id = params['id']
+            batch_id = params['id']
+
         except KeyError:
             raise RpcInvalidParamsError(message='Missed id', msg_id=msg_id)
 
+        if len(batch_id) != 128:
+            raise RpcInvalidParamsError(message=f'Batch identifier {batch_id} is invalid.', msg_id=msg_id)
+
+        if not re.match(r'[0-9a-f]+', batch_id):
+            raise RpcInvalidParamsError(message='Batch identifier hasn\'t passed regexp matching.', msg_id=msg_id)
+
         return {
-            'id': id
+            'id': batch_id,
         }
 
     async def produce_custom_msg(self, stream, validated_data):
