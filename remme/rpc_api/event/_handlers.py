@@ -18,6 +18,7 @@ import logging
 import json
 import abc
 import hashlib
+import re
 
 from aiohttp_json_rpc.exceptions import RpcInvalidParamsError
 
@@ -28,9 +29,11 @@ from sawtooth_sdk.protobuf.validator_pb2 import Message
 from remme.shared.exceptions import ClientException
 from remme.shared.constants import Events
 
-
 LOGGER = logging.getLogger(__name__)
 
+BATCH_ID_REGEXP = BLOCK_ID_REGEXP = re.compile(r'[0-9a-f]{128}')
+ADDRESS_REGEXP = re.compile(r'[0-9a-f]{70}')
+SWAP_ID_REGEXP = re.compile(r'[0-9a-f]{64}')
 
 EVENT_HANDLERS = {}
 
@@ -164,12 +167,16 @@ class BatchEventHandler(BaseEventHandler):
 
     def validate(self, msg_id, params):
         try:
-            id = params['id']
+            batch_id = params['id']
+
         except KeyError:
             raise RpcInvalidParamsError(message='Missed id', msg_id=msg_id)
 
+        if not BATCH_ID_REGEXP.match(batch_id):
+            raise RpcInvalidParamsError(message='Incorrect batch identifier.', msg_id=msg_id)
+
         return {
-            'id': id
+            'id': batch_id,
         }
 
     async def produce_custom_msg(self, stream, validated_data):
@@ -239,11 +246,15 @@ class TransferEventHandler(BaseEventHandler):
     def validate(self, msg_id, params):
         try:
             address = params['address']
+
         except KeyError:
             raise RpcInvalidParamsError(message='Missed address', msg_id=msg_id)
 
+        if not ADDRESS_REGEXP.match(address):
+            raise RpcInvalidParamsError(message='Incorrect transfer address.', msg_id=msg_id)
+
         return {
-            'address': address
+            'address': address,
         }
 
 
@@ -280,13 +291,22 @@ class AtomicSwapEventHandler(BaseEventHandler):
             pass
 
     def validate(self, msg_id, params):
+
         from_block = params.get('from_block')
+        swap_id = params.get('id')
+
         if from_block and not isinstance(from_block, str):
-            raise ClientException(message='Invalid "from_block" type',
-                                  msg_id=id)
+            raise ClientException(message='Invalid "from_block" type', msg_id=swap_id)
+
+        if from_block and not BLOCK_ID_REGEXP.match(from_block):
+            raise RpcInvalidParamsError(message='Incorrect atomic swap from block identifier.', msg_id=msg_id)
+
+        if swap_id and not SWAP_ID_REGEXP.match(swap_id):
+            raise RpcInvalidParamsError(message='Incorrect atomic swap identifier.', msg_id=msg_id)
+
         return {
             'from_block': from_block,
-            'id': params.get('id')
+            'id': swap_id,
         }
 
 
