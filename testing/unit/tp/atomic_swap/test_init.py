@@ -29,7 +29,7 @@ from remme.protos.block_info_pb2 import BlockInfo, BlockInfoConfig
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.shared.utils import hash512
 from remme.settings import (
-    SETTINGS_KEY_GENESIS_OWNERS,
+    SETTINGS_KEY_ZERO_ADDRESS_OWNERS,
     SETTINGS_SWAP_COMMISSION,
     ZERO_ADDRESS,
 )
@@ -53,7 +53,7 @@ BOT_IT_IS_INITIATOR_MARK = ''
 SWAP_ID = '033102e41346242476b15a3a7966eb5249271025fc7fb0b37ed3fdb4bcce3884'
 
 ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY = _make_settings_key(SETTINGS_SWAP_COMMISSION)
-ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY = _make_settings_key(SETTINGS_KEY_GENESIS_OWNERS)
+ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY = _make_settings_key(SETTINGS_KEY_ZERO_ADDRESS_OWNERS)
 ADDRESS_TO_STORE_SWAP_INFO_BY = BasicHandler(
     name=AtomicSwapHandler().family_name, versions=AtomicSwapHandler()._family_versions[0]
 ).make_address_from_data(data=SWAP_ID)
@@ -145,7 +145,7 @@ def test_atomic_swap_init():
     serialized_swap_commission_setting = swap_commission_setting.SerializeToString()
 
     genesis_members_setting = Setting()
-    genesis_members_setting.entries.add(key=SETTINGS_KEY_GENESIS_OWNERS, value=f'{BOT_PUBLIC_KEY},')
+    genesis_members_setting.entries.add(key=SETTINGS_KEY_ZERO_ADDRESS_OWNERS, value=f'{BOT_PUBLIC_KEY},')
     serialized_genesis_members_setting = genesis_members_setting.SerializeToString()
 
     mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={

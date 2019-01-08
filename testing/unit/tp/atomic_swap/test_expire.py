@@ -34,7 +34,7 @@ from remme.tp.atomic_swap import AtomicSwapHandler
 from remme.tp.basic import BasicHandler
 
 from remme.settings import (
-    SETTINGS_KEY_GENESIS_OWNERS,
+    SETTINGS_KEY_ZERO_ADDRESS_OWNERS,
     ZERO_ADDRESS,
 )
 
@@ -53,7 +53,7 @@ SECRET_LOCK = web3_hash(SECRET_KEY)
 
 SWAP_ID = '033102e41346242476b15a3a7966eb5249271025fc7fb0b37ed3fdb4bcce3884'
 
-ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY = _make_settings_key(SETTINGS_KEY_GENESIS_OWNERS)
+ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY = _make_settings_key(SETTINGS_KEY_ZERO_ADDRESS_OWNERS)
 ADDRESS_TO_STORE_SWAP_INFO_BY = BasicHandler(
     name=AtomicSwapHandler().family_name, versions=AtomicSwapHandler()._family_versions[0]
 ).make_address_from_data(data=SWAP_ID)
@@ -135,7 +135,7 @@ def test_expire_atomic_swap():
     serialized_bot_account = bot_account.SerializeToString()
 
     genesis_members_setting = Setting()
-    genesis_members_setting.entries.add(key=SETTINGS_KEY_GENESIS_OWNERS, value=f'{BOT_PUBLIC_KEY},')
+    genesis_members_setting.entries.add(key=SETTINGS_KEY_ZERO_ADDRESS_OWNERS, value=f'{BOT_PUBLIC_KEY},')
     serialized_genesis_members_setting = genesis_members_setting.SerializeToString()
 
     existing_swap_info = AtomicSwapInfo()
