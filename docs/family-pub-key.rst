@@ -87,13 +87,10 @@ The inputs and outputs for Pub Key family transactions in respect to payload mus
     * Sender's account address
     * *public_key address*
     * Address of setting *remme.economy_enabled*
-    * Address of setting *remme.settings.storage_pub_key*
-    * Address formed from value of setting *remme.settings.storage_pub_key*
   * Outputs:
     
     * Sender's account address
     * *public_key address*
-    * Address formed from value of setting *remme.settings.storage_pub_key*
 * **RevokePubKeyPayload**: *public_key address*
 
 

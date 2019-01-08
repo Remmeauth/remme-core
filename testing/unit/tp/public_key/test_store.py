@@ -30,7 +30,6 @@ from .base import (
     SENDER_PRIVATE_KEY,
     SENDER_ADDRESS,
     SENDER_INITIAL_BALANCE,
-    STORAGE_PUBLIC_KEY,
     RANDOM_ALREADY_STORED_SENDER_PUBLIC_KEY,
     EXCEEDED_PUBLIC_KEY_VALIDITY_TIMESTAMP,
     IS_NODE_ECONOMY_ENABLED_ADDRESS,
@@ -44,7 +43,6 @@ from .base import (
 INPUTS = OUTPUTS = [
     ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY,
     SENDER_ADDRESS,
-    STORAGE_PUBLIC_KEY,
     ZERO_ADDRESS,
     IS_NODE_ECONOMY_ENABLED_ADDRESS,
 ]
@@ -128,7 +126,6 @@ def test_public_key_handler_ed25519_store():
     INPUTS = OUTPUTS = [
         ADDRESS_FROM_ED25519_PUBLIC_KEY,
         SENDER_ADDRESS,
-        STORAGE_PUBLIC_KEY,
         ZERO_ADDRESS,
         IS_NODE_ECONOMY_ENABLED_ADDRESS,
     ]
@@ -206,7 +203,6 @@ def test_public_key_handler_ecdsa_store():
     INPUTS = OUTPUTS = [
         ADDRESS_FROM_ECDSA_PUBLIC_KEY,
         SENDER_ADDRESS,
-        STORAGE_PUBLIC_KEY,
         ZERO_ADDRESS,
         IS_NODE_ECONOMY_ENABLED_ADDRESS,
     ]
@@ -385,7 +381,6 @@ def test_public_key_handler_store_not_der_public_key_format():
     inputs = outputs = [
         address_from_public_key_to_store,
         SENDER_ADDRESS,
-        STORAGE_PUBLIC_KEY,
         ZERO_ADDRESS,
         IS_NODE_ECONOMY_ENABLED_ADDRESS,
     ]
