@@ -21,11 +21,11 @@ import hashlib
 import re
 
 from aiohttp_json_rpc.exceptions import RpcInvalidParamsError
-
 from sawtooth_sdk.protobuf.client_event_pb2 import ClientEventsSubscribeRequest
 from sawtooth_sdk.protobuf.events_pb2 import EventSubscription, EventList, Event
 from sawtooth_sdk.protobuf.validator_pb2 import Message
 
+from remme.clients.block_info import BlockInfoClient
 from remme.shared.exceptions import ClientException
 from remme.shared.constants import Events
 
@@ -134,14 +134,29 @@ class BlockEventHandler(BaseEventHandler):
     def hash_keys(cls):
         return ('id',)
 
-    def prepare_response(self, state, validated_data):
-        return {'id': state}
+    async def prepare_response(self, state, validated_data):
+        """
+        Prepare response.
+
+        To fetch block by number, consider blocks liek elements in array. To get second, count from zero.
+        """
+        block_information_client = BlockInfoClient()
+        block_information = await block_information_client.get_block_info(block_num=int(state.get('block_num')) - 1)
+
+        block_identifier = state.get('block_id')
+
+        return {
+            'id': block_identifier,
+            'timestamp': block_information.timestamp
+        }
 
     def parse_evt(self, evt):
-        try:
-            return next(filter(lambda el: el['key'] == 'block_id', evt['attributes']))['value']
-        except StopIteration:
-            pass
+        parsed_attributes = {}
+
+        for attribute in evt['attributes']:
+            parsed_attributes[attribute.get('key')] = attribute.get('value')
+
+        return parsed_attributes
 
     def validate(self, msg_id, params):
         return {}
