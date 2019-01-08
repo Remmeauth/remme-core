@@ -150,11 +150,11 @@ class AtomicSwapHandler(BasicHandler):
         if not AccountHandler().is_handler_address(swap_information.receiver_address):
             raise InvalidTransaction('Receiver address is not of a blockchain token type.')
 
-        commission = int(_get_setting_value(context, SETTINGS_SWAP_COMMISSION))
-        if commission < 0:
+        commission_amount = int(_get_setting_value(context, SETTINGS_SWAP_COMMISSION))
+        if commission_amount < 0:
             raise InvalidTransaction('Wrong commission address.')
 
-        swap_total_amount = swap_information.amount + commission
+        swap_total_amount = swap_information.amount + commission_amount
 
         account = get_data(context, Account, swap_information.sender_address)
 
@@ -166,11 +166,14 @@ class AtomicSwapHandler(BasicHandler):
                 f'Not enough balance to perform the transaction in the amount (with a commission) {swap_total_amount}.'
             )
 
-        transfer_payload = AccountClient.get_transfer_payload(ZERO_ADDRESS, swap_total_amount)
+        transfer_payload = AccountClient.get_transfer_payload(ZERO_ADDRESS, commission_amount)
 
         transfer_state = AccountHandler()._transfer_from_address(
             context, swap_information.sender_address, transfer_payload,
         )
+
+        sender_account = transfer_state.get(swap_information.sender_address)
+        sender_account.balance -= swap_information.amount
 
         return {
             address_swap_info_is_stored_by: swap_information,
@@ -282,17 +285,16 @@ class AtomicSwapHandler(BasicHandler):
                 f'timestamp {swap_information.created_at} to withdraw.'
             )
 
-        swap_information.state = AtomicSwapInfo.EXPIRED
-
-        transfer_payload = AccountClient.get_transfer_payload(swap_information.sender_address, swap_information.amount)
-
         AccountHandler()._check_signer_address(context, swap_information.sender_address)
 
-        transfer_state = AccountHandler()._transfer_from_address(context, ZERO_ADDRESS, transfer_payload)
+        account = get_data(context, Account, swap_information.sender_address)
+        account.balance += swap_information.amount
+
+        swap_information.state = AtomicSwapInfo.EXPIRED
 
         return {
             address_swap_info_is_stored_by: swap_information,
-            **transfer_state,
+            swap_information.sender_address: account,
         }
 
     def _swap_close(self, context, signer_pubkey, swap_close_payload):
@@ -327,18 +329,15 @@ class AtomicSwapHandler(BasicHandler):
         if swap_information.is_initiator and swap_information.state != AtomicSwapInfo.APPROVED:
             raise InvalidTransaction('Transaction cannot be closed before it\'s approved.')
 
-        transfer_payload = AccountClient.get_transfer_payload(
-            swap_information.receiver_address, swap_information.amount,
-        )
-
         AccountHandler()._check_signer_address(context, swap_information.sender_address)
 
-        transfer_state = AccountHandler()._transfer_from_address(context, ZERO_ADDRESS, transfer_payload)
+        account = get_data(context, Account, swap_information.receiver_address)
+        account.balance += swap_information.amount
 
         swap_information.secret_key = swap_close_payload.secret_key
         swap_information.state = AtomicSwapInfo.CLOSED
 
         return {
             address_swap_info_is_stored_by: swap_information,
-            **transfer_state,
+            swap_information.receiver_address: account,
         }
