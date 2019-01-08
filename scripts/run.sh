@@ -11,6 +11,12 @@ export REMME_REST_API_PORT
 export REMME_VALIDATOR_PORT
 export REMME_VALIDATOR_IP
 
+eval_with_log() {
+    cmd=$1
+    echo -e "\033[90m$ $cmd\033[0m\n"
+    eval $cmd
+}
+
 function check_op {
     if [ $OPERATION_SPECIFIED -eq 1 ]; then
         echo "Cannot specify two operations at once! You have already specified -$OPERATION"
@@ -69,7 +75,7 @@ fi
 COMMAND="docker-compose $COMPOSE_FILES --project-name remme"
 
 if [ "$OPERATION" == "u" ]; then
-    $COMMAND up $ADDITIONAL_ARGS
+    eval_with_log "$COMMAND up $ADDITIONAL_ARGS"
 else
-    $COMMAND down
+    eval_with_log "$COMMAND down"
 fi

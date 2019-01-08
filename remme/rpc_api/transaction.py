@@ -174,8 +174,9 @@ async def list_transactions(request):
     limit = request.params.get('limit')
     head = request.params.get('head')
     reverse = request.params.get('reverse')
+    family_name = request.params.get('family_name')
 
-    return await client.list_transactions(ids, start, limit, head, reverse)
+    return await client.list_transactions(ids, start, limit, head, reverse, family_name)
 
 
 async def fetch_transaction(request):
