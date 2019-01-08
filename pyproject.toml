@@ -32,5 +32,5 @@ aiozmq = "0.7.1"
 [tool.poetry.dev-dependencies]
 asynctest = "0.12.2"
 pytest = "4.1.0"
-pytest-cov = "2.6.0"
+pytest-cov = "2.6.1"
 pytest-mock = "1.10.0"
