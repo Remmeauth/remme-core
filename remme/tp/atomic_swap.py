@@ -168,8 +168,6 @@ class AtomicSwapHandler(BasicHandler):
 
         transfer_payload = AccountClient.get_transfer_payload(ZERO_ADDRESS, swap_total_amount)
 
-        AccountHandler()._check_signer_address(context, swap_information.sender_address)
-
         transfer_state = AccountHandler()._transfer_from_address(
             context, swap_information.sender_address, transfer_payload,
         )

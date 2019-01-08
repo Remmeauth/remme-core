@@ -25,7 +25,6 @@ from testing.utils.client import (
     generate_ecdsa_keys,
 )
 
-
 NOT_SENDER_PUBLIC_KEY = '03ecc5cb4094eb05319be6c7a63ebf17133d4ffaea48cdcfd1d5fc79dac7db1337'
 
 SENDER_PRIVATE_KEY = '1cb15ecfe1b3dc02df0003ac396037f85b98cf9f99b0beae000dc5e9e8b6dab4'
@@ -42,18 +41,12 @@ ADDRESS_FROM_ED25519_PUBLIC_KEY = generate_address('pub_key', ED25519_PUBLIC_KEY
 ECDSA_PRIVATE_KEY, ECDSA_PUBLIC_KEY = generate_ecdsa_keys()
 ADDRESS_FROM_ECDSA_PUBLIC_KEY = generate_address('pub_key', ECDSA_PUBLIC_KEY)
 
-STORAGE_PUBLIC_KEY = generate_settings_address('remme.settings.storage_pub_key')
-STORAGE_ADDRESS = generate_address('account', STORAGE_PUBLIC_KEY)
-STORAGE_SETTING_ADDRESS = _make_settings_key('remme.settings.storage_pub_key')
-
 IS_NODE_ECONOMY_ENABLED_ADDRESS = generate_settings_address('remme.economy_enabled')
 
 RANDOM_ALREADY_STORED_SENDER_PUBLIC_KEY = 'a23be17ca9c3bd150627ac6469f11ccf25c0c96d8bb8ac333879d3ea06a90413cd4536'
 RANDOM_NODE_PUBLIC_KEY = '039d6881f0a71d05659e1f40b443684b93c7b7c504ea23ea8949ef5216a2236940'
 
 MESSAGE = generate_message('some-data-to-sign')
-
-RANDOM_NODE_PUBLIC_KEY = '039d6881f0a71d05659e1f40b443684b93c7b7c504ea23ea8949ef5216a2236940'
 
 CURRENT_TIMESTAMP = datetime.datetime.now().timestamp()
 CURRENT_TIMESTAMP_PLUS_YEAR = CURRENT_TIMESTAMP + PUB_KEY_MAX_VALIDITY.total_seconds()

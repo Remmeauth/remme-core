@@ -22,11 +22,6 @@ from aiohttp_json_rpc import (
 
 from remme.clients.pub_key import PubKeyClient
 from remme.shared.exceptions import KeyNotFound
-from remme.protos.pub_key_pb2 import NewPubKeyPayload
-from remme.settings import PRIV_KEY_FILE, SETTINGS_STORAGE_PUB_KEY
-
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.backends import default_backend
 
 __all__ = (
     'get_node_config',
@@ -40,7 +35,6 @@ async def get_node_config(request):
     client = PubKeyClient()
     return {
         'node_public_key': client.get_public_key(),
-        'storage_public_key': await client.get_setting_value(SETTINGS_STORAGE_PUB_KEY),
     }
 
 

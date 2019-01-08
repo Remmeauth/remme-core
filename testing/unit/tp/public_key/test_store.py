@@ -14,7 +14,7 @@ from remme.protos.pub_key_pb2 import (
     PubKeyMethod,
 )
 from remme.protos.transaction_pb2 import TransactionPayload
-from remme.settings import SETTINGS_STORAGE_PUB_KEY
+from remme.settings import ZERO_ADDRESS
 from remme.tp.pub_key import (
     PUB_KEY_STORE_PRICE,
     PubKeyHandler,
@@ -30,9 +30,6 @@ from .base import (
     SENDER_PRIVATE_KEY,
     SENDER_ADDRESS,
     SENDER_INITIAL_BALANCE,
-    STORAGE_PUBLIC_KEY,
-    STORAGE_ADDRESS,
-    STORAGE_SETTING_ADDRESS,
     RANDOM_ALREADY_STORED_SENDER_PUBLIC_KEY,
     EXCEEDED_PUBLIC_KEY_VALIDITY_TIMESTAMP,
     IS_NODE_ECONOMY_ENABLED_ADDRESS,
@@ -46,8 +43,7 @@ from .base import (
 INPUTS = OUTPUTS = [
     ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY,
     SENDER_ADDRESS,
-    STORAGE_PUBLIC_KEY,
-    STORAGE_ADDRESS,
+    ZERO_ADDRESS,
     IS_NODE_ECONOMY_ENABLED_ADDRESS,
 ]
 
@@ -80,18 +76,13 @@ def test_public_key_handler_rsa_store():
     sender_account.pub_keys.append(RANDOM_ALREADY_STORED_SENDER_PUBLIC_KEY)
     serialized_sender_account = sender_account.SerializeToString()
 
-    storage_account = Account()
-    storage_account.balance = 0
-    serialized_storage_account = storage_account.SerializeToString()
-
-    storage_setting = Setting()
-    storage_setting.entries.add(key=SETTINGS_STORAGE_PUB_KEY, value=STORAGE_PUBLIC_KEY)
-    serialized_storage_setting = storage_setting.SerializeToString()
+    zero_account = Account()
+    zero_account.balance = 0
+    serialized_zero_account = zero_account.SerializeToString()
 
     mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
         SENDER_ADDRESS: serialized_sender_account,
-        STORAGE_SETTING_ADDRESS: serialized_storage_setting,
-        STORAGE_ADDRESS: serialized_storage_account,
+        ZERO_ADDRESS: serialized_zero_account,
     })
 
     expected_public_key_storage = PubKeyStorage()
@@ -106,20 +97,20 @@ def test_public_key_handler_rsa_store():
     expected_sender_account.pub_keys.append(ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY)
     expected_serialized_sender_account = expected_sender_account.SerializeToString()
 
-    expected_storage_account = Account()
-    expected_storage_account.balance = 0 + PUB_KEY_STORE_PRICE
-    expected_serialized_storage_account = expected_storage_account.SerializeToString()
+    expected_zero_account = Account()
+    expected_zero_account.balance = 0 + PUB_KEY_STORE_PRICE
+    expected_serialized_zero_account = expected_zero_account.SerializeToString()
 
     expected_state = {
         SENDER_ADDRESS: expected_serialized_sender_account,
         ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY: expected_serialized_public_key_storage,
-        STORAGE_ADDRESS: expected_serialized_storage_account,
+        ZERO_ADDRESS: expected_serialized_zero_account,
     }
 
     PubKeyHandler().apply(transaction=transaction_request, context=mock_context)
 
     state_as_list = mock_context.get_state(addresses=[
-        SENDER_ADDRESS, ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY, STORAGE_ADDRESS,
+        SENDER_ADDRESS, ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY, ZERO_ADDRESS,
     ])
 
     state_as_dict = {entry.address: entry.data for entry in state_as_list}
@@ -135,8 +126,7 @@ def test_public_key_handler_ed25519_store():
     INPUTS = OUTPUTS = [
         ADDRESS_FROM_ED25519_PUBLIC_KEY,
         SENDER_ADDRESS,
-        STORAGE_PUBLIC_KEY,
-        STORAGE_ADDRESS,
+        ZERO_ADDRESS,
         IS_NODE_ECONOMY_ENABLED_ADDRESS,
     ]
 
@@ -163,18 +153,13 @@ def test_public_key_handler_ed25519_store():
     sender_account.pub_keys.append(RANDOM_ALREADY_STORED_SENDER_PUBLIC_KEY)
     serialized_sender_account = sender_account.SerializeToString()
 
-    storage_account = Account()
-    storage_account.balance = 0
-    serialized_storage_account = storage_account.SerializeToString()
-
-    storage_setting = Setting()
-    storage_setting.entries.add(key=SETTINGS_STORAGE_PUB_KEY, value=STORAGE_PUBLIC_KEY)
-    serialized_storage_setting = storage_setting.SerializeToString()
+    zero_account = Account()
+    zero_account.balance = 0
+    serialized_zero_account = zero_account.SerializeToString()
 
     mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
         SENDER_ADDRESS: serialized_sender_account,
-        STORAGE_SETTING_ADDRESS: serialized_storage_setting,
-        STORAGE_ADDRESS: serialized_storage_account,
+        ZERO_ADDRESS: serialized_zero_account,
     })
 
     expected_public_key_storage = PubKeyStorage()
@@ -189,20 +174,20 @@ def test_public_key_handler_ed25519_store():
     expected_sender_account.pub_keys.append(ADDRESS_FROM_ED25519_PUBLIC_KEY)
     expected_serialized_sender_account = expected_sender_account.SerializeToString()
 
-    expected_storage_account = Account()
-    expected_storage_account.balance = 0 + PUB_KEY_STORE_PRICE
-    expected_serialized_storage_account = expected_storage_account.SerializeToString()
+    expected_zero_account = Account()
+    expected_zero_account.balance = 0 + PUB_KEY_STORE_PRICE
+    expected_serialized_zero_account = expected_zero_account.SerializeToString()
 
     expected_state = {
         SENDER_ADDRESS: expected_serialized_sender_account,
         ADDRESS_FROM_ED25519_PUBLIC_KEY: expected_serialized_public_key_storage,
-        STORAGE_ADDRESS: expected_serialized_storage_account,
+        ZERO_ADDRESS: expected_serialized_zero_account,
     }
 
     PubKeyHandler().apply(transaction=transaction_request, context=mock_context)
 
     state_as_list = mock_context.get_state(addresses=[
-        SENDER_ADDRESS, ADDRESS_FROM_ED25519_PUBLIC_KEY, STORAGE_ADDRESS,
+        SENDER_ADDRESS, ADDRESS_FROM_ED25519_PUBLIC_KEY, ZERO_ADDRESS,
     ])
 
     state_as_dict = {entry.address: entry.data for entry in state_as_list}
@@ -218,8 +203,7 @@ def test_public_key_handler_ecdsa_store():
     INPUTS = OUTPUTS = [
         ADDRESS_FROM_ECDSA_PUBLIC_KEY,
         SENDER_ADDRESS,
-        STORAGE_PUBLIC_KEY,
-        STORAGE_ADDRESS,
+        ZERO_ADDRESS,
         IS_NODE_ECONOMY_ENABLED_ADDRESS,
     ]
 
@@ -246,18 +230,13 @@ def test_public_key_handler_ecdsa_store():
     sender_account.pub_keys.append(RANDOM_ALREADY_STORED_SENDER_PUBLIC_KEY)
     serialized_sender_account = sender_account.SerializeToString()
 
-    storage_account = Account()
-    storage_account.balance = 0
-    serialized_storage_account = storage_account.SerializeToString()
-
-    storage_setting = Setting()
-    storage_setting.entries.add(key=SETTINGS_STORAGE_PUB_KEY, value=STORAGE_PUBLIC_KEY)
-    serialized_storage_setting = storage_setting.SerializeToString()
+    zero_account = Account()
+    zero_account.balance = 0
+    serialized_zero_account = zero_account.SerializeToString()
 
     mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
         SENDER_ADDRESS: serialized_sender_account,
-        STORAGE_SETTING_ADDRESS: serialized_storage_setting,
-        STORAGE_ADDRESS: serialized_storage_account,
+        ZERO_ADDRESS: serialized_zero_account,
     })
 
     expected_public_key_storage = PubKeyStorage()
@@ -272,20 +251,20 @@ def test_public_key_handler_ecdsa_store():
     expected_sender_account.pub_keys.append(ADDRESS_FROM_ECDSA_PUBLIC_KEY)
     expected_serialized_sender_account = expected_sender_account.SerializeToString()
 
-    expected_storage_account = Account()
-    expected_storage_account.balance = 0 + PUB_KEY_STORE_PRICE
-    expected_serialized_storage_account = expected_storage_account.SerializeToString()
+    expected_zero_account = Account()
+    expected_zero_account.balance = 0 + PUB_KEY_STORE_PRICE
+    expected_serialized_zero_account = expected_zero_account.SerializeToString()
 
     expected_state = {
         SENDER_ADDRESS: expected_serialized_sender_account,
         ADDRESS_FROM_ECDSA_PUBLIC_KEY: expected_serialized_public_key_storage,
-        STORAGE_ADDRESS: expected_serialized_storage_account,
+        ZERO_ADDRESS: expected_serialized_zero_account,
     }
 
     PubKeyHandler().apply(transaction=transaction_request, context=mock_context)
 
     state_as_list = mock_context.get_state(addresses=[
-        SENDER_ADDRESS, ADDRESS_FROM_ECDSA_PUBLIC_KEY, STORAGE_ADDRESS,
+        SENDER_ADDRESS, ADDRESS_FROM_ECDSA_PUBLIC_KEY, ZERO_ADDRESS,
     ])
 
     state_as_dict = {entry.address: entry.data for entry in state_as_list}
@@ -402,8 +381,7 @@ def test_public_key_handler_store_not_der_public_key_format():
     inputs = outputs = [
         address_from_public_key_to_store,
         SENDER_ADDRESS,
-        STORAGE_PUBLIC_KEY,
-        STORAGE_ADDRESS,
+        ZERO_ADDRESS,
         IS_NODE_ECONOMY_ENABLED_ADDRESS,
     ]
 
@@ -528,12 +506,8 @@ def test_public_key_handler_store_economy_is_not_enabled():
     sender_account.pub_keys.append(RANDOM_ALREADY_STORED_SENDER_PUBLIC_KEY)
     serialized_sender_account = sender_account.SerializeToString()
 
-    storage_account = Account()
-    serialized_storage_account = storage_account.SerializeToString()
-
-    storage_setting = Setting()
-    storage_setting.entries.add(key=SETTINGS_STORAGE_PUB_KEY, value=STORAGE_PUBLIC_KEY)
-    serialized_storage_setting = storage_setting.SerializeToString()
+    zero_account = Account()
+    serialized_zero_account = zero_account.SerializeToString()
 
     is_economy_enabled_setting = Setting()
     is_economy_enabled_setting.entries.add(key='remme.economy_enabled', value='false')
@@ -541,9 +515,8 @@ def test_public_key_handler_store_economy_is_not_enabled():
 
     mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
         SENDER_ADDRESS: serialized_sender_account,
-        STORAGE_SETTING_ADDRESS: serialized_storage_setting,
         IS_NODE_ECONOMY_ENABLED_ADDRESS: serialized_is_economy_enabled_setting,
-        STORAGE_ADDRESS: serialized_storage_account,
+        ZERO_ADDRESS: serialized_zero_account,
     })
 
     expected_public_key_storage = PubKeyStorage()
@@ -557,67 +530,24 @@ def test_public_key_handler_store_economy_is_not_enabled():
     expected_sender_account.pub_keys.append(ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY)
     expected_serialized_sender_account = expected_sender_account.SerializeToString()
 
-    expected_storage_account = Account()
-    expected_serialized_storage_account = expected_storage_account.SerializeToString()
+    expected_zero_account = Account()
+    expected_serialized_zero_account = expected_zero_account.SerializeToString()
 
     expected_state = {
         SENDER_ADDRESS: expected_serialized_sender_account,
         ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY: expected_serialized_public_key_storage,
-        STORAGE_ADDRESS: expected_serialized_storage_account,
+        ZERO_ADDRESS: expected_serialized_zero_account,
     }
 
     PubKeyHandler().apply(transaction=transaction_request, context=mock_context)
 
     state_as_list = mock_context.get_state(addresses=[
-        SENDER_ADDRESS, ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY, STORAGE_ADDRESS,
+        SENDER_ADDRESS, ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY, ZERO_ADDRESS,
     ])
 
     state_as_dict = {entry.address: entry.data for entry in state_as_list}
 
     assert expected_state == state_as_dict
-
-
-def test_public_key_handler_store_storage_public_key_is_not_set():
-    """
-    Case: send transaction request, to store certificate public key, when storage public key isn't set.
-    Expect: public key information is stored to blockchain linked to owner address. Owner paid tokens for storing.
-    """
-    new_public_key_payload = generate_rsa_payload()
-
-    transaction_payload = TransactionPayload()
-    transaction_payload.method = PubKeyMethod.STORE
-    transaction_payload.data = new_public_key_payload.SerializeToString()
-
-    serialized_transaction_payload = transaction_payload.SerializeToString()
-
-    transaction_header = generate_header(serialized_transaction_payload, INPUTS, OUTPUTS)
-
-    serialized_header = transaction_header.SerializeToString()
-
-    transaction_request = TpProcessRequest(
-        header=transaction_header,
-        payload=serialized_transaction_payload,
-        signature=create_signer(private_key=SENDER_PRIVATE_KEY).sign(serialized_header),
-    )
-
-    sender_account = Account()
-    sender_account.balance = SENDER_INITIAL_BALANCE
-    sender_account.pub_keys.append(RANDOM_ALREADY_STORED_SENDER_PUBLIC_KEY)
-    serialized_sender_account = sender_account.SerializeToString()
-
-    storage_account = Account()
-    storage_account.balance = 0
-    serialized_storage_account = storage_account.SerializeToString()
-
-    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
-        SENDER_ADDRESS: serialized_sender_account,
-        STORAGE_ADDRESS: serialized_storage_account,
-    })
-
-    with pytest.raises(InvalidTransaction) as error:
-        PubKeyHandler().apply(transaction=transaction_request, context=mock_context)
-
-    assert 'The node\'s storage public key hasn\'t been set, get node config to ensure.' == str(error.value)
 
 
 def test_public_key_handler_store_sender_is_node():
@@ -647,12 +577,8 @@ def test_public_key_handler_store_sender_is_node():
     sender_account.pub_keys.append(RANDOM_ALREADY_STORED_SENDER_PUBLIC_KEY)
     serialized_sender_account = sender_account.SerializeToString()
 
-    storage_account = Account()
-    serialized_storage_account = storage_account.SerializeToString()
-
-    storage_setting = Setting()
-    storage_setting.entries.add(key=SETTINGS_STORAGE_PUB_KEY, value=SENDER_PUBLIC_KEY)
-    serialized_storage_setting = storage_setting.SerializeToString()
+    zero_account = Account()
+    serialized_zero_account = zero_account.SerializeToString()
 
     is_economy_enabled_setting = Setting()
     is_economy_enabled_setting.entries.add(key='remme.economy_enabled', value='false')
@@ -660,9 +586,8 @@ def test_public_key_handler_store_sender_is_node():
 
     mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
         SENDER_ADDRESS: serialized_sender_account,
-        STORAGE_SETTING_ADDRESS: serialized_storage_setting,
         IS_NODE_ECONOMY_ENABLED_ADDRESS: serialized_is_economy_enabled_setting,
-        STORAGE_ADDRESS: serialized_storage_account,
+        ZERO_ADDRESS: serialized_zero_account,
     })
 
     expected_public_key_storage = PubKeyStorage()
@@ -676,19 +601,19 @@ def test_public_key_handler_store_sender_is_node():
     expected_sender_account.pub_keys.append(ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY)
     expected_serialized_sender_account = expected_sender_account.SerializeToString()
 
-    expected_storage_account = Account()
-    expected_serialized_storage_account = expected_storage_account.SerializeToString()
+    expected_zero_account = Account()
+    expected_serialized_zero_account = expected_zero_account.SerializeToString()
 
     expected_state = {
         SENDER_ADDRESS: expected_serialized_sender_account,
         ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY: expected_serialized_public_key_storage,
-        STORAGE_ADDRESS: expected_serialized_storage_account,
+        ZERO_ADDRESS: expected_serialized_zero_account,
     }
 
     PubKeyHandler().apply(transaction=transaction_request, context=mock_context)
 
     state_as_list = mock_context.get_state(addresses=[
-        SENDER_ADDRESS, ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY, STORAGE_ADDRESS,
+        SENDER_ADDRESS, ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY, ZERO_ADDRESS,
     ])
 
     state_as_dict = {entry.address: entry.data for entry in state_as_list}

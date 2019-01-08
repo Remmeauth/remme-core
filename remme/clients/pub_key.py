@@ -25,10 +25,7 @@ from remme.protos.pub_key_pb2 import (
 )
 from remme.clients.basic import BasicClient
 from remme.tp.pub_key import PubKeyHandler
-from remme.tp.account import AccountHandler
 from remme.tp.pub_key import PUB_KEY_ORGANIZATION, PUB_KEY_MAX_VALIDITY
-from remme.settings.helper import _make_settings_key
-from remme.settings import SETTINGS_STORAGE_PUB_KEY
 from remme.shared.utils import hash512
 
 from cryptography.x509.oid import NameOID
