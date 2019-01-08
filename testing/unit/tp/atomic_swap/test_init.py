@@ -84,7 +84,7 @@ SERIALIZED_BLOCK_INFO = block_info.SerializeToString()
 def test_atomic_swap_init():
     """
     Case: initialize swap of bot's Remme node tokens to Alice's ERC20 Remme tokens.
-    Expect: bot send amount of swap plus commission to the zero account address.
+    Expect: bot sends commission to the zero account address, swap amount is decreased from bot account.
     """
     inputs = outputs = [
         ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY,
@@ -174,7 +174,7 @@ def test_atomic_swap_init():
     serialized_expected_bot_account = expected_bot_account.SerializeToString()
 
     expected_zero_account = Account()
-    expected_zero_account.balance = TOKENS_AMOUNT_TO_SWAP + SWAP_COMMISSION_AMOUNT
+    expected_zero_account.balance = SWAP_COMMISSION_AMOUNT
     serialized_expected_zero_account = expected_zero_account.SerializeToString()
 
     expected_state = {
@@ -496,6 +496,74 @@ def test_atomic_swap_init_swap_wrong_commission_address():
     assert 'Wrong commission address.' == str(error.value)
 
 
+def test_atomic_swap_init_swap_no_account_in_state():
+    """
+    Case: initialize swap of bot's Remme node tokens to Alice's ERC20 Remme tokens from non-existent bot address.
+    Expect: invalid transaction error is raised with not enough balance error message.
+    """
+    inputs = outputs = [
+        ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY,
+        BLOCK_INFO_CONFIG_ADDRESS,
+        BLOCK_INFO_ADDRESS,
+        BOT_ADDRESS,
+        ADDRESS_TO_STORE_SWAP_INFO_BY,
+    ]
+
+    atomic_swap_init_payload = AtomicSwapInitPayload(
+        receiver_address=ALICE_ADDRESS,
+        sender_address_non_local=BOT_ETHEREUM_ADDRESS,
+        amount=TOKENS_AMOUNT_TO_SWAP,
+        swap_id=SWAP_ID,
+        secret_lock_by_solicitor=BOT_IT_IS_INITIATOR_MARK,
+        email_address_encrypted_by_initiator=ALICE_EMAIL_ADDRESS_ENCRYPTED_BY_INITIATOR,
+        created_at=CURRENT_TIMESTAMP,
+    )
+
+    transaction_payload = TransactionPayload()
+    transaction_payload.method = AtomicSwapMethod.INIT
+    transaction_payload.data = atomic_swap_init_payload.SerializeToString()
+
+    serialized_transaction_payload = transaction_payload.SerializeToString()
+
+    transaction_header = TransactionHeader(
+        signer_public_key=BOT_PUBLIC_KEY,
+        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
+        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
+        inputs=inputs,
+        outputs=outputs,
+        dependencies=[],
+        payload_sha512=hash512(data=serialized_transaction_payload),
+        batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
+        nonce=time.time().hex().encode(),
+    )
+
+    serialized_header = transaction_header.SerializeToString()
+
+    transaction_request = TpProcessRequest(
+        header=transaction_header,
+        payload=serialized_transaction_payload,
+        signature=create_signer(private_key=BOT_PRIVATE_KEY).sign(serialized_header),
+    )
+
+    swap_commission_setting = Setting()
+    swap_commission_setting.entries.add(key=SETTINGS_SWAP_COMMISSION, value=str(SWAP_COMMISSION_AMOUNT))
+    serialized_swap_commission_setting = swap_commission_setting.SerializeToString()
+
+    mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={
+        BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_BLOCK_INFO_CONFIG,
+        BLOCK_INFO_ADDRESS: SERIALIZED_BLOCK_INFO,
+        ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY: serialized_swap_commission_setting,
+    })
+
+    with pytest.raises(InvalidTransaction) as error:
+        AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
+
+    total_amount = TOKENS_AMOUNT_TO_SWAP + SWAP_COMMISSION_AMOUNT
+
+    assert f'Not enough balance to perform the transaction in the amount (with a commission) {total_amount}.' \
+           == str(error.value)
+
+
 def test_atomic_swap_init_swap_not_enough_balance():
     """
     Case: initialize swap of bot's Remme node tokens to Alice's ERC20 Remme tokens with not enough bot address balance.
@@ -567,167 +635,3 @@ def test_atomic_swap_init_swap_not_enough_balance():
 
     assert f'Not enough balance to perform the transaction in the amount (with a commission) {total_amount}.' \
            == str(error.value)
-
-
-def test_atomic_swap_init_remchain_is_not_configured():
-    """
-    Case: initialize swap of bot's Remme node tokens to Alice's ERC20 Remme tokens when REMchain isn't configured.
-    Expect: invalid transaction error is raised with REMchain is not configured error message.
-    """
-    inputs = outputs = [
-        ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY,
-        BLOCK_INFO_CONFIG_ADDRESS,
-        BLOCK_INFO_ADDRESS,
-        BOT_ADDRESS,
-        ZERO_ADDRESS,
-        ADDRESS_TO_STORE_SWAP_INFO_BY,
-        ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY,
-    ]
-
-    atomic_swap_init_payload = AtomicSwapInitPayload(
-        receiver_address=ALICE_ADDRESS,
-        sender_address_non_local=BOT_ETHEREUM_ADDRESS,
-        amount=TOKENS_AMOUNT_TO_SWAP,
-        swap_id=SWAP_ID,
-        secret_lock_by_solicitor=BOT_IT_IS_INITIATOR_MARK,
-        email_address_encrypted_by_initiator=ALICE_EMAIL_ADDRESS_ENCRYPTED_BY_INITIATOR,
-        created_at=CURRENT_TIMESTAMP,
-    )
-
-    transaction_payload = TransactionPayload()
-    transaction_payload.method = AtomicSwapMethod.INIT
-    transaction_payload.data = atomic_swap_init_payload.SerializeToString()
-
-    serialized_transaction_payload = transaction_payload.SerializeToString()
-
-    transaction_header = TransactionHeader(
-        signer_public_key=BOT_PUBLIC_KEY,
-        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
-        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
-        inputs=inputs,
-        outputs=outputs,
-        dependencies=[],
-        payload_sha512=hash512(data=serialized_transaction_payload),
-        batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
-        nonce=time.time().hex().encode(),
-    )
-
-    serialized_header = transaction_header.SerializeToString()
-
-    transaction_request = TpProcessRequest(
-        header=transaction_header,
-        payload=serialized_transaction_payload,
-        signature=create_signer(private_key=BOT_PRIVATE_KEY).sign(serialized_header),
-    )
-
-    bot_account = Account()
-    bot_account.balance = 5000
-    serialized_bot_account = bot_account.SerializeToString()
-
-    zero_account = Account()
-    zero_account.balance = 0
-    serialized_zero_account = zero_account.SerializeToString()
-
-    swap_commission_setting = Setting()
-    swap_commission_setting.entries.add(key=SETTINGS_SWAP_COMMISSION, value=str(SWAP_COMMISSION_AMOUNT))
-    serialized_swap_commission_setting = swap_commission_setting.SerializeToString()
-
-    genesis_members_setting = Setting()
-    genesis_members_setting.entries.add(key=SETTINGS_KEY_ZERO_ADDRESS_OWNERS, value='')
-    serialized_genesis_members_setting = genesis_members_setting.SerializeToString()
-
-    mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={
-        BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_BLOCK_INFO_CONFIG,
-        BLOCK_INFO_ADDRESS: SERIALIZED_BLOCK_INFO,
-        BOT_ADDRESS: serialized_bot_account,
-        ZERO_ADDRESS: serialized_zero_account,
-        ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY: serialized_swap_commission_setting,
-        ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY: serialized_genesis_members_setting,
-    })
-
-    with pytest.raises(InvalidTransaction) as error:
-        AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
-
-    assert f'REMchain is not configured to process genesis transfers.' == str(error.value)
-
-
-def test_atomic_swap_init_bot_address_is_not_in_genesis_member_list():
-    """
-    Case: initialize swap of bot's Remme node tokens, from not in genesis members address, to Alice ERC20 Remme tokens.
-    Expect: invalid transaction error is raised with signer address not in genesis members list error message.
-    """
-    inputs = outputs = [
-        ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY,
-        BLOCK_INFO_CONFIG_ADDRESS,
-        BLOCK_INFO_ADDRESS,
-        BOT_ADDRESS,
-        ZERO_ADDRESS,
-        ADDRESS_TO_STORE_SWAP_INFO_BY,
-        ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY,
-    ]
-
-    atomic_swap_init_payload = AtomicSwapInitPayload(
-        receiver_address=ALICE_ADDRESS,
-        sender_address_non_local=BOT_ETHEREUM_ADDRESS,
-        amount=TOKENS_AMOUNT_TO_SWAP,
-        swap_id=SWAP_ID,
-        secret_lock_by_solicitor=BOT_IT_IS_INITIATOR_MARK,
-        email_address_encrypted_by_initiator=ALICE_EMAIL_ADDRESS_ENCRYPTED_BY_INITIATOR,
-        created_at=CURRENT_TIMESTAMP,
-    )
-
-    transaction_payload = TransactionPayload()
-    transaction_payload.method = AtomicSwapMethod.INIT
-    transaction_payload.data = atomic_swap_init_payload.SerializeToString()
-
-    serialized_transaction_payload = transaction_payload.SerializeToString()
-
-    transaction_header = TransactionHeader(
-        signer_public_key=BOT_PUBLIC_KEY,
-        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
-        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
-        inputs=inputs,
-        outputs=outputs,
-        dependencies=[],
-        payload_sha512=hash512(data=serialized_transaction_payload),
-        batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
-        nonce=time.time().hex().encode(),
-    )
-
-    serialized_header = transaction_header.SerializeToString()
-
-    transaction_request = TpProcessRequest(
-        header=transaction_header,
-        payload=serialized_transaction_payload,
-        signature=create_signer(private_key=BOT_PRIVATE_KEY).sign(serialized_header),
-    )
-
-    bot_account = Account()
-    bot_account.balance = 5000
-    serialized_bot_account = bot_account.SerializeToString()
-
-    zero_account = Account()
-    zero_account.balance = 0
-    serialized_zero_account = zero_account.SerializeToString()
-
-    swap_commission_setting = Setting()
-    swap_commission_setting.entries.add(key=SETTINGS_SWAP_COMMISSION, value=str(SWAP_COMMISSION_AMOUNT))
-    serialized_swap_commission_setting = swap_commission_setting.SerializeToString()
-
-    genesis_members_setting = Setting()
-    genesis_members_setting.entries.add(key=SETTINGS_KEY_ZERO_ADDRESS_OWNERS, value=f'{RANDOM_PUBLIC_KEY},')
-    serialized_genesis_members_setting = genesis_members_setting.SerializeToString()
-
-    mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={
-        BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_BLOCK_INFO_CONFIG,
-        BLOCK_INFO_ADDRESS: SERIALIZED_BLOCK_INFO,
-        BOT_ADDRESS: serialized_bot_account,
-        ZERO_ADDRESS: serialized_zero_account,
-        ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY: serialized_swap_commission_setting,
-        ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY: serialized_genesis_members_setting,
-    })
-
-    with pytest.raises(InvalidTransaction) as error:
-        AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
-
-    assert f'Signer address {BOT_ADDRESS} not in genesis members list.' == str(error.value)

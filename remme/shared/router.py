@@ -147,7 +147,7 @@ class Router:
             'next': paging_response.get('next'),
         }
         return cls._wrap_response(
-            data=data,
+            data=list(data),
             metadata={
                 'head': head,
                 'paging': paging
@@ -285,7 +285,8 @@ class Router:
         )
 
     async def list_transactions(self, transaction_ids=None, start=None,
-                                limit=None, head=None, reverse=None):
+                                limit=None, head=None, reverse=None,
+                                family_name=None):
         paging_controls = get_paging_controls(start, limit)
         id_query = ','.join(transaction_ids) if transaction_ids else None
 
@@ -299,7 +300,10 @@ class Router:
                 paging=make_paging_message(paging_controls)
             )
         )
-        data = [expand_transaction(t) for t in response['transactions']]
+        data = (expand_transaction(t) for t in response['transactions'])
+        if family_name is not None:
+            data = filter(lambda t: t['header']['family_name'] == family_name,
+                          data)
 
         return self._wrap_paginated_response(
             response=response,
