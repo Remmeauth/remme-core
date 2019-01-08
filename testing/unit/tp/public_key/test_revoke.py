@@ -15,6 +15,7 @@ from remme.tp.pub_key import PubKeyHandler
 
 from testing.conftest import create_signer
 from testing.mocks.stub import StubContext
+from testing.utils.client import proto_error_msg
 from .base import (
     ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY,
     SENDER_PUBLIC_KEY,
@@ -28,6 +29,40 @@ from .base import (
 INPUTS = OUTPUTS = [
     ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY,
 ]
+
+
+def test_public_key_handler_revoke_with_empty_proto():
+    """
+    Case: send transaction request to revoke another ownder certificate public key with empty proto
+    Expect: invalid transaction error
+    """
+    revoke_public_key_payload = RevokePubKeyPayload()
+
+    transaction_payload = TransactionPayload()
+    transaction_payload.method = PubKeyMethod.REVOKE
+    transaction_payload.data = revoke_public_key_payload.SerializeToString()
+
+    serialized_transaction_payload = transaction_payload.SerializeToString()
+
+    transaction_header = generate_header(serialized_transaction_payload, INPUTS, OUTPUTS)
+
+    serialized_header = transaction_header.SerializeToString()
+
+    transaction_request = TpProcessRequest(
+        header=transaction_header,
+        payload=serialized_transaction_payload,
+        signature=create_signer(private_key=SENDER_PRIVATE_KEY).sign(serialized_header),
+    )
+
+    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={})
+
+    with pytest.raises(InvalidTransaction) as error:
+        PubKeyHandler().apply(transaction=transaction_request, context=mock_context)
+
+    assert proto_error_msg(
+        RevokePubKeyPayload,
+        {'address': ['This field is required.']}
+    ) == str(error.value)
 
 
 def test_public_key_handler_revoke():

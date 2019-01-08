@@ -15,10 +15,12 @@ from sawtooth_sdk.protobuf.transaction_pb2 import (
 
 from testing.conftest import create_signer
 from testing.mocks.stub import StubContext
+from testing.utils.client import proto_error_msg
 from remme.protos.atomic_swap_pb2 import (
     AtomicSwapExpirePayload,
     AtomicSwapInfo,
     AtomicSwapMethod,
+    AtomicSwapClosePayload,
 )
 from remme.clients.block_info import (
     CONFIG_ADDRESS,
@@ -91,6 +93,52 @@ OUTPUTS = [
     ADDRESS_TO_STORE_SWAP_INFO_BY,
     BOT_ADDRESS,
 ]
+
+
+def test_expire_with_empty_proto():
+    """
+    Case: send empty proto for expire
+    Expect: invalid transaction error
+    """
+    atomic_swap_init_payload = AtomicSwapExpirePayload()
+
+    transaction_payload = TransactionPayload()
+    transaction_payload.method = AtomicSwapMethod.EXPIRE
+    transaction_payload.data = atomic_swap_init_payload.SerializeToString()
+
+    serialized_transaction_payload = transaction_payload.SerializeToString()
+
+    transaction_header = TransactionHeader(
+        signer_public_key=BOT_PUBLIC_KEY,
+        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
+        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
+        inputs=INPUTS,
+        outputs=OUTPUTS,
+        dependencies=[],
+        payload_sha512=hash512(data=serialized_transaction_payload),
+        batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
+        nonce=time.time().hex().encode(),
+    )
+
+    serialized_header = transaction_header.SerializeToString()
+
+    transaction_request = TpProcessRequest(
+        header=transaction_header,
+        payload=serialized_transaction_payload,
+        signature=create_signer(private_key=BOT_PRIVATE_KEY).sign(serialized_header),
+    )
+
+    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={})
+
+    with pytest.raises(InvalidTransaction) as error:
+        AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
+
+    assert proto_error_msg(
+        AtomicSwapExpirePayload,
+        {
+            'swap_id': ['This field is required.'],
+        }
+    ) == str(error.value)
 
 
 def test_expire_atomic_swap():
@@ -188,8 +236,9 @@ def test_expire_not_initialized_atomic_swap():
     Case: to expire not initialized atomic swap.
     Expect: invalid transaction error is raised with atomic swap was not initiated error message.
     """
-    atomic_swap_close_payload = AtomicSwapExpirePayload(
+    atomic_swap_close_payload = AtomicSwapClosePayload(
         swap_id=SWAP_ID,
+        secret_key=SECRET_KEY
     )
 
     transaction_payload = TransactionPayload()
@@ -231,8 +280,9 @@ def test_expire_already_closed_atomic_swap():
     Case: to expire already closed atomic swap.
     Expect: invalid transaction error is raised with already operation with closed or expired swap error message.
     """
-    atomic_swap_close_payload = AtomicSwapExpirePayload(
+    atomic_swap_close_payload = AtomicSwapClosePayload(
         swap_id=SWAP_ID,
+        secret_key=SECRET_KEY
     )
 
     transaction_payload = TransactionPayload()

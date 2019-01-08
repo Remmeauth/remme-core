@@ -15,6 +15,7 @@ from sawtooth_sdk.protobuf.transaction_pb2 import (
 
 from testing.conftest import create_signer
 from testing.mocks.stub import StubContext
+from testing.utils.client import proto_error_msg
 from remme.clients.block_info import (
     CONFIG_ADDRESS,
     BlockInfoClient,
@@ -94,6 +95,66 @@ OUTPUTS = [
     ZERO_ADDRESS,
     BOT_ADDRESS,
 ]
+
+
+def test_atomic_swap_init_with_empty_proto():
+    """
+    Case: send empty proto for init
+    Expect: invalid transaction error
+    """
+    inputs = outputs = [
+        ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY,
+        BLOCK_INFO_CONFIG_ADDRESS,
+        BLOCK_INFO_ADDRESS,
+        BOT_ADDRESS,
+        ZERO_ADDRESS,
+        ADDRESS_TO_STORE_SWAP_INFO_BY,
+        ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY,
+    ]
+
+    atomic_swap_init_payload = AtomicSwapInitPayload()
+
+    transaction_payload = TransactionPayload()
+    transaction_payload.method = AtomicSwapMethod.INIT
+    transaction_payload.data = atomic_swap_init_payload.SerializeToString()
+
+    serialized_transaction_payload = transaction_payload.SerializeToString()
+
+    transaction_header = TransactionHeader(
+        signer_public_key=BOT_PUBLIC_KEY,
+        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
+        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
+        inputs=inputs,
+        outputs=outputs,
+        dependencies=[],
+        payload_sha512=hash512(data=serialized_transaction_payload),
+        batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
+        nonce=time.time().hex().encode(),
+    )
+
+    serialized_header = transaction_header.SerializeToString()
+
+    transaction_request = TpProcessRequest(
+        header=transaction_header,
+        payload=serialized_transaction_payload,
+        signature=create_signer(private_key=BOT_PRIVATE_KEY).sign(serialized_header),
+    )
+
+    mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={})
+
+    with pytest.raises(InvalidTransaction) as error:
+        AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
+
+    assert proto_error_msg(
+        AtomicSwapInitPayload,
+        {
+            'receiver_address': ['This field is required.'],
+            'sender_address_non_local': ['This field is required.'],
+            'amount': ['This field is required.'],
+            'swap_id': ['This field is required.'],
+            'created_at': ['This field is required.'],
+        }
+    ) == str(error.value)
 
 
 def test_atomic_swap_init():
@@ -415,7 +476,10 @@ def test_atomic_swap_init_swap_receiver_address_invalid_type():
     with pytest.raises(InvalidTransaction) as error:
         AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
 
-    assert 'Receiver address is not of a blockchain token type.' == str(error.value)
+    assert proto_error_msg(
+        AtomicSwapInitPayload,
+        {'receiver_address': ['Address is not of a blockchain token type.']}
+    ) == str(error.value)
 
 
 def test_atomic_swap_init_swap_wrong_commission_address():

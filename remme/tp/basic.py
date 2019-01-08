@@ -30,6 +30,7 @@ LOGGER = logging.getLogger(__name__)
 EMIT_EVENT = 'emit_event'
 PB_CLASS = 'pb_class'
 PROCESSOR = 'processor'
+VALIDATOR = 'validator'
 
 
 def is_address(address):
@@ -164,10 +165,17 @@ class BasicHandler(metaclass=Singleton):
             data_pb = state_processor[transaction_payload.method][PB_CLASS]()
             data_pb.ParseFromString(transaction_payload.data)
             processor = state_processor[transaction_payload.method][PROCESSOR]
-            updated_state = processor(context, transaction.header.signer_public_key, data_pb)
-
+            validator_class = state_processor[transaction_payload.method][VALIDATOR]
         except KeyError:
             raise InvalidTransaction(f'Invalid account method value ({transaction_payload.method}) has been set.')
+
+        validator = validator_class.load_proto(data_pb)
+        if not validator.validate():
+            raise InvalidTransaction(f'Invalid protobuf data of '
+                                     f'"{validator._pb_class.__name__}", '
+                                     f'detailed: {validator.errors}')
+
+        updated_state = processor(context, transaction.header.signer_public_key, data_pb)
 
         context.set_state({k: v.SerializeToString() for k, v in updated_state.items()})
 

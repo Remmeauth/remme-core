@@ -24,6 +24,7 @@ from remme.shared.utils import hash512
 from remme.tp.account import AccountHandler
 from testing.conftest import create_signer
 from testing.mocks.stub import StubContext
+from testing.utils.client import proto_error_msg
 
 TOKENS_AMOUNT_TO_SUPPLY = 1_000_000
 
@@ -42,6 +43,50 @@ INPUTS = OUTPUTS = [
 
 NODE_PUBLIC_KEY = '039d6881f0a71d05659e1f40b443684b93c7b7c504ea23ea8949ef5216a2236940'
 NODE_PRIVATE_KEY = '1cb15ecfe1b3dc02df0003ac396037f85b98cf9f99b0beae000dc5e9e8b6dab4'
+
+
+def test_account_handler_genesis_apply_with_empty_proto():
+    """
+    Case: send transaction request of genesis with empty proto
+    Expect: invalid transaction error
+    """
+    genesis_payload = GenesisPayload()
+
+    transaction_payload = TransactionPayload()
+    transaction_payload.method = AccountMethod.GENESIS
+    transaction_payload.data = genesis_payload.SerializeToString()
+
+    serialized_transaction_payload = transaction_payload.SerializeToString()
+
+    transaction_header = TransactionHeader(
+        signer_public_key=NODE_PUBLIC_KEY,
+        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
+        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
+        inputs=INPUTS,
+        outputs=OUTPUTS,
+        dependencies=[],
+        payload_sha512=hash512(data=serialized_transaction_payload),
+        batcher_public_key=NODE_PUBLIC_KEY,
+        nonce=time.time().hex().encode(),
+    )
+
+    serialized_header = transaction_header.SerializeToString()
+
+    transaction_request = TpProcessRequest(
+        header=transaction_header,
+        payload=serialized_transaction_payload,
+        signature=create_signer(private_key=NODE_PRIVATE_KEY).sign(serialized_header),
+    )
+
+    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={})
+
+    with pytest.raises(InvalidTransaction) as error:
+        AccountHandler().apply(transaction=transaction_request, context=mock_context)
+
+    assert proto_error_msg(
+        GenesisPayload,
+        {'total_supply': ['This field is required.']}
+    ) == str(error.value)
 
 
 def test_account_handler_genesis_apply():

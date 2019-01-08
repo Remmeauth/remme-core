@@ -14,6 +14,7 @@ from sawtooth_sdk.protobuf.transaction_pb2 import (
 
 from testing.conftest import create_signer
 from testing.mocks.stub import StubContext
+from testing.utils.client import proto_error_msg
 from remme.protos.atomic_swap_pb2 import (
     AtomicSwapInfo,
     AtomicSwapClosePayload,
@@ -66,6 +67,53 @@ INPUTS = OUTPUTS = [
     ADDRESS_TO_STORE_SWAP_INFO_BY,
     ALICE_ADDRESS,
 ]
+
+
+def test_close_with_empty_proto():
+    """
+    Case: send empty proto for close
+    Expect: invalid transaction error
+    """
+    atomic_swap_init_payload = AtomicSwapClosePayload()
+
+    transaction_payload = TransactionPayload()
+    transaction_payload.method = AtomicSwapMethod.CLOSE
+    transaction_payload.data = atomic_swap_init_payload.SerializeToString()
+
+    serialized_transaction_payload = transaction_payload.SerializeToString()
+
+    transaction_header = TransactionHeader(
+        signer_public_key=BOT_PUBLIC_KEY,
+        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
+        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
+        inputs=INPUTS,
+        outputs=OUTPUTS,
+        dependencies=[],
+        payload_sha512=hash512(data=serialized_transaction_payload),
+        batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
+        nonce=time.time().hex().encode(),
+    )
+
+    serialized_header = transaction_header.SerializeToString()
+
+    transaction_request = TpProcessRequest(
+        header=transaction_header,
+        payload=serialized_transaction_payload,
+        signature=create_signer(private_key=BOT_PRIVATE_KEY).sign(serialized_header),
+    )
+
+    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={})
+
+    with pytest.raises(InvalidTransaction) as error:
+        AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
+
+    assert proto_error_msg(
+        AtomicSwapClosePayload,
+        {
+            'swap_id': ['This field is required.'],
+            'secret_key': ['This field is required.'],
+        }
+    ) == str(error.value)
 
 
 def test_close_atomic_swap():

@@ -32,7 +32,8 @@ from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
 from remme.settings import ZERO_ADDRESS
 from remme.tp.basic import (
-    BasicHandler, get_data, get_multiple_data, PB_CLASS, PROCESSOR
+    BasicHandler, get_data, get_multiple_data, PB_CLASS, PROCESSOR,
+    VALIDATOR,
 )
 from remme.tp.account import AccountHandler
 
@@ -44,6 +45,7 @@ from remme.protos.pub_key_pb2 import (
     PubKeyMethod,
 )
 from remme.settings.helper import _get_setting_value
+from remme.shared.forms import NewPublicKeyPayloadForm, RevokePubKeyPayloadForm
 
 LOGGER = logging.getLogger(__name__)
 
@@ -188,11 +190,13 @@ class PubKeyHandler(BasicHandler):
         return {
             PubKeyMethod.STORE: {
                 PB_CLASS: NewPubKeyPayload,
-                PROCESSOR: self._store_pub_key
+                PROCESSOR: self._store_pub_key,
+                VALIDATOR: NewPublicKeyPayloadForm,
             },
             PubKeyMethod.REVOKE: {
                 PB_CLASS: RevokePubKeyPayload,
-                PROCESSOR: self._revoke_pub_key
+                PROCESSOR: self._revoke_pub_key,
+                VALIDATOR: RevokePubKeyPayloadForm,
             }
         }
 

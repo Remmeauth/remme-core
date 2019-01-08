@@ -26,6 +26,10 @@ from cryptography.hazmat.primitives.asymmetric import (
 )
 
 
+def proto_error_msg(proto, errors):
+    return f"Invalid protobuf data of \"{proto.__name__}\", detailed: {errors}"
+
+
 def sha256_hexdigest(data):
     return hashlib.sha256(data.encode('utf-8') if isinstance(data, str) else data).hexdigest()
 

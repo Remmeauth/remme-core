@@ -28,6 +28,8 @@ pysha3 = "1.0.2"
 # TODO: Migrate to https://github.com/pyca/cryptography/pull/4114 when will be available
 ed25519 = "1.4.0"
 aiozmq = "0.7.1"
+WTForms = "2.2.1"
+Werkzeug = "0.14.1"
 
 [tool.poetry.dev-dependencies]
 asynctest = "0.12.2"
