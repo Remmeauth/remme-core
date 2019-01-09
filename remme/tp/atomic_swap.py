@@ -286,6 +286,8 @@ class AtomicSwapHandler(BasicHandler):
             )
 
         account = get_data(context, Account, swap_information.sender_address)
+        if account is None:
+            account = Account()
         account.balance += swap_information.amount
 
         swap_information.state = AtomicSwapInfo.EXPIRED
@@ -328,6 +330,8 @@ class AtomicSwapHandler(BasicHandler):
             raise InvalidTransaction('Transaction cannot be closed before it\'s approved.')
 
         account = get_data(context, Account, swap_information.receiver_address)
+        if account is None:
+            account = Account()
         account.balance += swap_information.amount
 
         swap_information.secret_key = swap_close_payload.secret_key
