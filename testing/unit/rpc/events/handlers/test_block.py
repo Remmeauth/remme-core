@@ -11,7 +11,6 @@ from testing.utils.async_ import return_async_value
 BLOCK_ID = '5cae0c8f4b67f7dc91d2b06a583d8d49ac126be221b9a34f661094cb4c12db94' \
            '011ecda7d0754f271bf48b63f9501da2a78a4bf67be8634f3ed9c43badafbc4b'
 
-
 block_event_handler = BlockEventHandler()
 
 

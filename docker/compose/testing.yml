@@ -15,7 +15,7 @@
 
 # TODO: bump version to 3.4 after we move to Jenkins
 
-version: '3.2'
+version: '3.4'
 
 services:
   tests:

@@ -29,7 +29,7 @@ from remme.protos.block_info_pb2 import BlockInfo, BlockInfoConfig
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.shared.utils import hash512
 from remme.settings import (
-    SETTINGS_KEY_GENESIS_OWNERS,
+    SETTINGS_KEY_ZERO_ADDRESS_OWNERS,
     SETTINGS_SWAP_COMMISSION,
     ZERO_ADDRESS,
 )
@@ -53,7 +53,7 @@ BOT_IT_IS_INITIATOR_MARK = ''
 SWAP_ID = '033102e41346242476b15a3a7966eb5249271025fc7fb0b37ed3fdb4bcce3884'
 
 ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY = _make_settings_key(SETTINGS_SWAP_COMMISSION)
-ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY = _make_settings_key(SETTINGS_KEY_GENESIS_OWNERS)
+ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY = _make_settings_key(SETTINGS_KEY_ZERO_ADDRESS_OWNERS)
 ADDRESS_TO_STORE_SWAP_INFO_BY = BasicHandler(
     name=AtomicSwapHandler().family_name, versions=AtomicSwapHandler()._family_versions[0]
 ).make_address_from_data(data=SWAP_ID)
@@ -80,21 +80,27 @@ block_info = BlockInfo()
 block_info.timestamp = CURRENT_TIMESTAMP
 SERIALIZED_BLOCK_INFO = block_info.SerializeToString()
 
+INPUTS = [
+    ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY,
+    BLOCK_INFO_CONFIG_ADDRESS,
+    BLOCK_INFO_ADDRESS,
+    BOT_ADDRESS,
+    ZERO_ADDRESS,
+    ADDRESS_TO_STORE_SWAP_INFO_BY,
+]
+
+OUTPUTS = [
+    ADDRESS_TO_STORE_SWAP_INFO_BY,
+    ZERO_ADDRESS,
+    BOT_ADDRESS,
+]
+
 
 def test_atomic_swap_init():
     """
     Case: initialize swap of bot's Remme node tokens to Alice's ERC20 Remme tokens.
     Expect: bot sends commission to the zero account address, swap amount is decreased from bot account.
     """
-    inputs = outputs = [
-        ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY,
-        BLOCK_INFO_CONFIG_ADDRESS,
-        BLOCK_INFO_ADDRESS,
-        BOT_ADDRESS,
-        ZERO_ADDRESS,
-        ADDRESS_TO_STORE_SWAP_INFO_BY,
-        ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY,
-    ]
 
     atomic_swap_init_payload = AtomicSwapInitPayload(
         receiver_address=ALICE_ADDRESS,
@@ -116,8 +122,8 @@ def test_atomic_swap_init():
         signer_public_key=BOT_PUBLIC_KEY,
         family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
         family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
-        inputs=inputs,
-        outputs=outputs,
+        inputs=INPUTS,
+        outputs=OUTPUTS,
         dependencies=[],
         payload_sha512=hash512(data=serialized_transaction_payload),
         batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
@@ -145,10 +151,10 @@ def test_atomic_swap_init():
     serialized_swap_commission_setting = swap_commission_setting.SerializeToString()
 
     genesis_members_setting = Setting()
-    genesis_members_setting.entries.add(key=SETTINGS_KEY_GENESIS_OWNERS, value=f'{BOT_PUBLIC_KEY},')
+    genesis_members_setting.entries.add(key=SETTINGS_KEY_ZERO_ADDRESS_OWNERS, value=f'{BOT_PUBLIC_KEY},')
     serialized_genesis_members_setting = genesis_members_setting.SerializeToString()
 
-    mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={
+    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
         BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_BLOCK_INFO_CONFIG,
         BLOCK_INFO_ADDRESS: SERIALIZED_BLOCK_INFO,
         BOT_ADDRESS: serialized_bot_account,
@@ -198,9 +204,6 @@ def test_atomic_swap_init_already_taken_id():
     Case: initialize swap of bot's Remme node tokens to Alice's ERC20 Remme tokens with already existing swap id.
     Expect: invalid transaction error is raised with atomic swap id has already been taken error message.
     """
-    inputs = outputs = [
-        ADDRESS_TO_STORE_SWAP_INFO_BY,
-    ]
 
     atomic_swap_init_payload = AtomicSwapInitPayload(
         receiver_address=ALICE_ADDRESS,
@@ -222,8 +225,8 @@ def test_atomic_swap_init_already_taken_id():
         signer_public_key=BOT_PUBLIC_KEY,
         family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
         family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
-        inputs=inputs,
-        outputs=outputs,
+        inputs=INPUTS,
+        outputs=OUTPUTS,
         dependencies=[],
         payload_sha512=hash512(data=serialized_transaction_payload),
         batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
@@ -249,7 +252,7 @@ def test_atomic_swap_init_already_taken_id():
     swap_info.receiver_address = ALICE_ADDRESS
     serialized_swap_info = swap_info.SerializeToString()
 
-    mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={
+    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
         ADDRESS_TO_STORE_SWAP_INFO_BY: serialized_swap_info,
     })
 
@@ -264,11 +267,6 @@ def test_atomic_swap_init_swap_no_block_config_info():
     Case: initialize swap of bot's Remme node tokens to Alice's ERC20 Remme tokens when no block config settings.
     Expect: invalid transaction error is raised with nlock config not found error message.
     """
-    inputs = outputs = [
-        ADDRESS_TO_STORE_SWAP_INFO_BY,
-        BLOCK_INFO_CONFIG_ADDRESS,
-        BLOCK_INFO_ADDRESS,
-    ]
 
     atomic_swap_init_payload = AtomicSwapInitPayload(
         receiver_address=ALICE_ADDRESS,
@@ -290,8 +288,8 @@ def test_atomic_swap_init_swap_no_block_config_info():
         signer_public_key=BOT_PUBLIC_KEY,
         family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
         family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
-        inputs=inputs,
-        outputs=outputs,
+        inputs=INPUTS,
+        outputs=OUTPUTS,
         dependencies=[],
         payload_sha512=hash512(data=serialized_transaction_payload),
         batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
@@ -306,7 +304,7 @@ def test_atomic_swap_init_swap_no_block_config_info():
         signature=create_signer(private_key=BOT_PRIVATE_KEY).sign(serialized_header),
     )
 
-    mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={})
+    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={})
 
     with pytest.raises(InvalidTransaction) as error:
         AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
@@ -319,11 +317,6 @@ def test_atomic_swap_init_swap_no_block_info():
     Case: initialize swap of bot's Remme node tokens to Alice's ERC20 Remme tokens when no needed block information.
     Expect: invalid transaction error is raised with nlock config not found error message.
     """
-    inputs = outputs = [
-        ADDRESS_TO_STORE_SWAP_INFO_BY,
-        BLOCK_INFO_CONFIG_ADDRESS,
-        BLOCK_INFO_ADDRESS,
-    ]
 
     atomic_swap_init_payload = AtomicSwapInitPayload(
         receiver_address=ALICE_ADDRESS,
@@ -345,8 +338,8 @@ def test_atomic_swap_init_swap_no_block_info():
         signer_public_key=BOT_PUBLIC_KEY,
         family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
         family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
-        inputs=inputs,
-        outputs=outputs,
+        inputs=INPUTS,
+        outputs=OUTPUTS,
         dependencies=[],
         payload_sha512=hash512(data=serialized_transaction_payload),
         batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
@@ -361,7 +354,7 @@ def test_atomic_swap_init_swap_no_block_info():
         signature=create_signer(private_key=BOT_PRIVATE_KEY).sign(serialized_header),
     )
 
-    mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={
+    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
         BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_BLOCK_INFO_CONFIG,
     })
 
@@ -377,12 +370,6 @@ def test_atomic_swap_init_swap_receiver_address_invalid_type():
     Expect: invalid transaction error is raised with atomic swap id has already been taken error message.
     """
     invalid_receiver_address = '112934y*(J#QJ3UH*PD(:9B&TYDB*I0b0a8edc4104ef28093ee30'
-
-    inputs = outputs = [
-        ADDRESS_TO_STORE_SWAP_INFO_BY,
-        BLOCK_INFO_CONFIG_ADDRESS,
-        BLOCK_INFO_ADDRESS,
-    ]
 
     atomic_swap_init_payload = AtomicSwapInitPayload(
         receiver_address=invalid_receiver_address,
@@ -404,8 +391,8 @@ def test_atomic_swap_init_swap_receiver_address_invalid_type():
         signer_public_key=BOT_PUBLIC_KEY,
         family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
         family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
-        inputs=inputs,
-        outputs=outputs,
+        inputs=INPUTS,
+        outputs=OUTPUTS,
         dependencies=[],
         payload_sha512=hash512(data=serialized_transaction_payload),
         batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
@@ -420,7 +407,7 @@ def test_atomic_swap_init_swap_receiver_address_invalid_type():
         signature=create_signer(private_key=BOT_PRIVATE_KEY).sign(serialized_header),
     )
 
-    mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={
+    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
         BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_BLOCK_INFO_CONFIG,
         BLOCK_INFO_ADDRESS: SERIALIZED_BLOCK_INFO,
     })
@@ -436,13 +423,6 @@ def test_atomic_swap_init_swap_wrong_commission_address():
     Case: initialize swap of bot's Remme node tokens to Alice's ERC20 Remme tokens with wrong commission settings.
     Expect: invalid transaction error is raised with wrong commission address error message.
     """
-    inputs = outputs = [
-        ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY,
-        BLOCK_INFO_CONFIG_ADDRESS,
-        BLOCK_INFO_ADDRESS,
-        BOT_ADDRESS,
-        ADDRESS_TO_STORE_SWAP_INFO_BY,
-    ]
 
     atomic_swap_init_payload = AtomicSwapInitPayload(
         receiver_address=ALICE_ADDRESS,
@@ -464,8 +444,8 @@ def test_atomic_swap_init_swap_wrong_commission_address():
         signer_public_key=BOT_PUBLIC_KEY,
         family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
         family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
-        inputs=inputs,
-        outputs=outputs,
+        inputs=INPUTS,
+        outputs=OUTPUTS,
         dependencies=[],
         payload_sha512=hash512(data=serialized_transaction_payload),
         batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
@@ -484,7 +464,7 @@ def test_atomic_swap_init_swap_wrong_commission_address():
     swap_commission_setting.entries.add(key=SETTINGS_SWAP_COMMISSION, value='-1')
     serialized_swap_commission_setting = swap_commission_setting.SerializeToString()
 
-    mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={
+    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
         BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_BLOCK_INFO_CONFIG,
         BLOCK_INFO_ADDRESS: SERIALIZED_BLOCK_INFO,
         ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY: serialized_swap_commission_setting,
@@ -501,14 +481,6 @@ def test_atomic_swap_init_swap_no_account_in_state():
     Case: initialize swap of bot's Remme node tokens to Alice's ERC20 Remme tokens from non-existent bot address.
     Expect: invalid transaction error is raised with not enough balance error message.
     """
-    inputs = outputs = [
-        ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY,
-        BLOCK_INFO_CONFIG_ADDRESS,
-        BLOCK_INFO_ADDRESS,
-        BOT_ADDRESS,
-        ADDRESS_TO_STORE_SWAP_INFO_BY,
-    ]
-
     atomic_swap_init_payload = AtomicSwapInitPayload(
         receiver_address=ALICE_ADDRESS,
         sender_address_non_local=BOT_ETHEREUM_ADDRESS,
@@ -529,8 +501,8 @@ def test_atomic_swap_init_swap_no_account_in_state():
         signer_public_key=BOT_PUBLIC_KEY,
         family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
         family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
-        inputs=inputs,
-        outputs=outputs,
+        inputs=INPUTS,
+        outputs=OUTPUTS,
         dependencies=[],
         payload_sha512=hash512(data=serialized_transaction_payload),
         batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
@@ -549,7 +521,7 @@ def test_atomic_swap_init_swap_no_account_in_state():
     swap_commission_setting.entries.add(key=SETTINGS_SWAP_COMMISSION, value=str(SWAP_COMMISSION_AMOUNT))
     serialized_swap_commission_setting = swap_commission_setting.SerializeToString()
 
-    mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={
+    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
         BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_BLOCK_INFO_CONFIG,
         BLOCK_INFO_ADDRESS: SERIALIZED_BLOCK_INFO,
         ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY: serialized_swap_commission_setting,
@@ -569,13 +541,6 @@ def test_atomic_swap_init_swap_not_enough_balance():
     Case: initialize swap of bot's Remme node tokens to Alice's ERC20 Remme tokens with not enough bot address balance.
     Expect: invalid transaction error is raised with not enough balance error message.
     """
-    inputs = outputs = [
-        ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY,
-        BLOCK_INFO_CONFIG_ADDRESS,
-        BLOCK_INFO_ADDRESS,
-        BOT_ADDRESS,
-        ADDRESS_TO_STORE_SWAP_INFO_BY,
-    ]
 
     atomic_swap_init_payload = AtomicSwapInitPayload(
         receiver_address=ALICE_ADDRESS,
@@ -597,8 +562,8 @@ def test_atomic_swap_init_swap_not_enough_balance():
         signer_public_key=BOT_PUBLIC_KEY,
         family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
         family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
-        inputs=inputs,
-        outputs=outputs,
+        inputs=INPUTS,
+        outputs=OUTPUTS,
         dependencies=[],
         payload_sha512=hash512(data=serialized_transaction_payload),
         batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
@@ -621,7 +586,7 @@ def test_atomic_swap_init_swap_not_enough_balance():
     swap_commission_setting.entries.add(key=SETTINGS_SWAP_COMMISSION, value=str(SWAP_COMMISSION_AMOUNT))
     serialized_swap_commission_setting = swap_commission_setting.SerializeToString()
 
-    mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={
+    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
         BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_BLOCK_INFO_CONFIG,
         BLOCK_INFO_ADDRESS: SERIALIZED_BLOCK_INFO,
         BOT_ADDRESS: serialized_bot_account_balance,

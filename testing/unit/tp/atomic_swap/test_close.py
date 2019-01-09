@@ -27,7 +27,7 @@ from remme.tp.atomic_swap import AtomicSwapHandler
 from remme.tp.basic import BasicHandler
 
 from remme.settings import (
-    SETTINGS_KEY_GENESIS_OWNERS,
+    SETTINGS_KEY_ZERO_ADDRESS_OWNERS,
     ZERO_ADDRESS,
 )
 
@@ -48,7 +48,7 @@ SECRET_LOCK = web3_hash(SECRET_KEY)
 
 SWAP_ID = '033102e41346242476b15a3a7966eb5249271025fc7fb0b37ed3fdb4bcce3884'
 
-ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY = _make_settings_key(SETTINGS_KEY_GENESIS_OWNERS)
+ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY = _make_settings_key(SETTINGS_KEY_ZERO_ADDRESS_OWNERS)
 ADDRESS_TO_STORE_SWAP_INFO_BY = BasicHandler(
     name=AtomicSwapHandler().family_name, versions=AtomicSwapHandler()._family_versions[0]
 ).make_address_from_data(data=SWAP_ID)
@@ -64,6 +64,7 @@ RANDOM_PUBLIC_KEY = '8c87d914a6cfeaf027413760ad359b5a56bfe0eda504d879b21872c7dc5
 
 INPUTS = OUTPUTS = [
     ADDRESS_TO_STORE_SWAP_INFO_BY,
+    ALICE_ADDRESS,
 ]
 
 
@@ -72,13 +73,6 @@ def test_close_atomic_swap():
     Case: close atomic swap.
     Expect: increase Alice account address by swap amount.
     """
-    inputs = outputs = [
-        ADDRESS_TO_STORE_SWAP_INFO_BY,
-        ZERO_ADDRESS,
-        ALICE_ADDRESS,
-        ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY,
-    ]
-
     atomic_swap_close_payload = AtomicSwapClosePayload(
         swap_id=SWAP_ID,
         secret_key=SECRET_KEY,
@@ -94,8 +88,8 @@ def test_close_atomic_swap():
         signer_public_key=BOT_PUBLIC_KEY,
         family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
         family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
-        inputs=inputs,
-        outputs=outputs,
+        inputs=INPUTS,
+        outputs=OUTPUTS,
         dependencies=[],
         payload_sha512=hash512(data=serialized_transaction_payload),
         batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
@@ -125,10 +119,10 @@ def test_close_atomic_swap():
     serialized_existing_swap_info_to_lock = existing_swap_info_to_close.SerializeToString()
 
     genesis_members_setting = Setting()
-    genesis_members_setting.entries.add(key=SETTINGS_KEY_GENESIS_OWNERS, value=f'{BOT_PUBLIC_KEY},')
+    genesis_members_setting.entries.add(key=SETTINGS_KEY_ZERO_ADDRESS_OWNERS, value=f'{BOT_PUBLIC_KEY},')
     serialized_genesis_members_setting = genesis_members_setting.SerializeToString()
 
-    mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={
+    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
         ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY: serialized_genesis_members_setting,
         ADDRESS_TO_STORE_SWAP_INFO_BY: serialized_existing_swap_info_to_lock,
         ALICE_ADDRESS: serialized_alice_account,
@@ -156,7 +150,7 @@ def test_close_atomic_swap():
 
     AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
 
-    state_as_list = mock_context.get_state(addresses=[ADDRESS_TO_STORE_SWAP_INFO_BY, ZERO_ADDRESS, ALICE_ADDRESS])
+    state_as_list = mock_context.get_state(addresses=[ADDRESS_TO_STORE_SWAP_INFO_BY, ALICE_ADDRESS])
     state_as_dict = {entry.address: entry.data for entry in state_as_list}
 
     assert expected_state == state_as_dict
@@ -411,159 +405,3 @@ def test_close_atomic_swap_before_approve():
         AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
 
     assert 'Transaction cannot be closed before it\'s approved.' == str(error.value)
-
-
-def test_close_atomic_swap_with_not_configured_remchain():
-    """
-    Case: close atomic swap with not configured REMchain.
-    Expect: invalid transaction error is raised with REMchain is not configured error message.
-    """
-    inputs = outputs = [
-        BOT_ADDRESS,
-        ZERO_ADDRESS,
-        ADDRESS_TO_STORE_SWAP_INFO_BY,
-        ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY,
-    ]
-
-    atomic_swap_close_payload = AtomicSwapClosePayload(
-        swap_id=SWAP_ID,
-        secret_key=SECRET_KEY,
-    )
-
-    transaction_payload = TransactionPayload()
-    transaction_payload.method = AtomicSwapMethod.CLOSE
-    transaction_payload.data = atomic_swap_close_payload.SerializeToString()
-
-    serialized_transaction_payload = transaction_payload.SerializeToString()
-
-    transaction_header = TransactionHeader(
-        signer_public_key=BOT_PUBLIC_KEY,
-        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
-        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
-        inputs=inputs,
-        outputs=outputs,
-        dependencies=[],
-        payload_sha512=hash512(data=serialized_transaction_payload),
-        batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
-        nonce=time.time().hex().encode(),
-    )
-
-    serialized_header = transaction_header.SerializeToString()
-
-    transaction_request = TpProcessRequest(
-        header=transaction_header,
-        payload=serialized_transaction_payload,
-        signature=create_signer(private_key=BOT_PRIVATE_KEY).sign(serialized_header),
-    )
-
-    bot_account = Account()
-    bot_account.balance = 5000
-    serialized_bot_account = bot_account.SerializeToString()
-
-    zero_account = Account()
-    zero_account.balance = 0
-    serialized_zero_account = zero_account.SerializeToString()
-
-    genesis_members_setting = Setting()
-    genesis_members_setting.entries.add(key=SETTINGS_KEY_GENESIS_OWNERS, value='')
-    serialized_genesis_members_setting = genesis_members_setting.SerializeToString()
-
-    existing_swap_info_to_close = AtomicSwapInfo()
-    existing_swap_info_to_close.swap_id = SWAP_ID
-    existing_swap_info_to_close.amount = 200
-    existing_swap_info_to_close.state = AtomicSwapInfo.APPROVED
-    existing_swap_info_to_close.secret_lock = SECRET_LOCK
-    existing_swap_info_to_close.is_initiator = True
-    existing_swap_info_to_close.sender_address = BOT_ADDRESS
-    existing_swap_info_to_close.receiver_address = ALICE_ADDRESS
-    serialized_existing_swap_info_to_close = existing_swap_info_to_close.SerializeToString()
-
-    mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={
-        BOT_ADDRESS: serialized_bot_account,
-        ZERO_ADDRESS: serialized_zero_account,
-        ADDRESS_TO_STORE_SWAP_INFO_BY: serialized_existing_swap_info_to_close,
-        ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY: serialized_genesis_members_setting,
-    })
-
-    with pytest.raises(InvalidTransaction) as error:
-        AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
-
-    assert f'REMchain is not configured to process genesis transfers.' == str(error.value)
-
-
-def test_close_atomic_swap_signer_address_is_not_in_genesis_member_list():
-    """
-    Case: close atomic swap when signer address isn't presented in genesis member list.
-    Expect: invalid transaction error is raised with signer address not in genesis members list error message.
-    """
-    inputs = outputs = [
-        BOT_ADDRESS,
-        ZERO_ADDRESS,
-        ADDRESS_TO_STORE_SWAP_INFO_BY,
-        ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY,
-    ]
-
-    atomic_swap_close_payload = AtomicSwapClosePayload(
-        swap_id=SWAP_ID,
-        secret_key=SECRET_KEY,
-    )
-
-    transaction_payload = TransactionPayload()
-    transaction_payload.method = AtomicSwapMethod.CLOSE
-    transaction_payload.data = atomic_swap_close_payload.SerializeToString()
-
-    serialized_transaction_payload = transaction_payload.SerializeToString()
-
-    transaction_header = TransactionHeader(
-        signer_public_key=BOT_PUBLIC_KEY,
-        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
-        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
-        inputs=inputs,
-        outputs=outputs,
-        dependencies=[],
-        payload_sha512=hash512(data=serialized_transaction_payload),
-        batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
-        nonce=time.time().hex().encode(),
-    )
-
-    serialized_header = transaction_header.SerializeToString()
-
-    transaction_request = TpProcessRequest(
-        header=transaction_header,
-        payload=serialized_transaction_payload,
-        signature=create_signer(private_key=BOT_PRIVATE_KEY).sign(serialized_header),
-    )
-
-    bot_account = Account()
-    bot_account.balance = 5000
-    serialized_bot_account = bot_account.SerializeToString()
-
-    zero_account = Account()
-    zero_account.balance = 0
-    serialized_zero_account = zero_account.SerializeToString()
-
-    genesis_members_setting = Setting()
-    genesis_members_setting.entries.add(key=SETTINGS_KEY_GENESIS_OWNERS, value=f'{RANDOM_PUBLIC_KEY},')
-    serialized_genesis_members_setting = genesis_members_setting.SerializeToString()
-
-    existing_swap_info_to_close = AtomicSwapInfo()
-    existing_swap_info_to_close.swap_id = SWAP_ID
-    existing_swap_info_to_close.amount = 200
-    existing_swap_info_to_close.state = AtomicSwapInfo.APPROVED
-    existing_swap_info_to_close.secret_lock = SECRET_LOCK
-    existing_swap_info_to_close.is_initiator = True
-    existing_swap_info_to_close.sender_address = BOT_ADDRESS
-    existing_swap_info_to_close.receiver_address = ALICE_ADDRESS
-    serialized_existing_swap_info_to_close = existing_swap_info_to_close.SerializeToString()
-
-    mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={
-        BOT_ADDRESS: serialized_bot_account,
-        ZERO_ADDRESS: serialized_zero_account,
-        ADDRESS_TO_STORE_SWAP_INFO_BY: serialized_existing_swap_info_to_close,
-        ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY: serialized_genesis_members_setting,
-    })
-
-    with pytest.raises(InvalidTransaction) as error:
-        AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
-
-    assert f'Signer address {BOT_ADDRESS} not in genesis members list.' == str(error.value)

@@ -34,7 +34,7 @@ from remme.tp.atomic_swap import AtomicSwapHandler
 from remme.tp.basic import BasicHandler
 
 from remme.settings import (
-    SETTINGS_KEY_GENESIS_OWNERS,
+    SETTINGS_KEY_ZERO_ADDRESS_OWNERS,
     ZERO_ADDRESS,
 )
 
@@ -53,7 +53,7 @@ SECRET_LOCK = web3_hash(SECRET_KEY)
 
 SWAP_ID = '033102e41346242476b15a3a7966eb5249271025fc7fb0b37ed3fdb4bcce3884'
 
-ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY = _make_settings_key(SETTINGS_KEY_GENESIS_OWNERS)
+ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY = _make_settings_key(SETTINGS_KEY_ZERO_ADDRESS_OWNERS)
 ADDRESS_TO_STORE_SWAP_INFO_BY = BasicHandler(
     name=AtomicSwapHandler().family_name, versions=AtomicSwapHandler()._family_versions[0]
 ).make_address_from_data(data=SWAP_ID)
@@ -81,8 +81,15 @@ block_info = BlockInfo()
 block_info.timestamp = CURRENT_TIMESTAMP
 SERIALIZED_BLOCK_INFO = block_info.SerializeToString()
 
-INPUTS = OUTPUTS = [
+INPUTS = [
+    BLOCK_INFO_CONFIG_ADDRESS,
+    BLOCK_INFO_ADDRESS,
+    BOT_ADDRESS,
     ADDRESS_TO_STORE_SWAP_INFO_BY,
+]
+OUTPUTS = [
+    ADDRESS_TO_STORE_SWAP_INFO_BY,
+    BOT_ADDRESS,
 ]
 
 
@@ -91,15 +98,6 @@ def test_expire_atomic_swap():
     Case: to expire atomic swap.
     Expect: increase bot address balance by swap amount. Leave commission on zero address.
     """
-    inputs = outputs = [
-        BLOCK_INFO_CONFIG_ADDRESS,
-        BLOCK_INFO_ADDRESS,
-        BOT_ADDRESS,
-        ZERO_ADDRESS,
-        ADDRESS_TO_STORE_SWAP_INFO_BY,
-        ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY,
-    ]
-
     atomic_swap_expire_payload = AtomicSwapExpirePayload(
         swap_id=SWAP_ID,
     )
@@ -114,8 +112,8 @@ def test_expire_atomic_swap():
         signer_public_key=BOT_PUBLIC_KEY,
         family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
         family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
-        inputs=inputs,
-        outputs=outputs,
+        inputs=INPUTS,
+        outputs=OUTPUTS,
         dependencies=[],
         payload_sha512=hash512(data=serialized_transaction_payload),
         batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
@@ -135,7 +133,7 @@ def test_expire_atomic_swap():
     serialized_bot_account = bot_account.SerializeToString()
 
     genesis_members_setting = Setting()
-    genesis_members_setting.entries.add(key=SETTINGS_KEY_GENESIS_OWNERS, value=f'{BOT_PUBLIC_KEY},')
+    genesis_members_setting.entries.add(key=SETTINGS_KEY_ZERO_ADDRESS_OWNERS, value=f'{BOT_PUBLIC_KEY},')
     serialized_genesis_members_setting = genesis_members_setting.SerializeToString()
 
     existing_swap_info = AtomicSwapInfo()
@@ -148,7 +146,7 @@ def test_expire_atomic_swap():
     existing_swap_info.is_initiator = True
     serialized_existing_swap_info = existing_swap_info.SerializeToString()
 
-    mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={
+    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
         BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_BLOCK_INFO_CONFIG,
         BLOCK_INFO_ADDRESS: SERIALIZED_BLOCK_INFO,
         BOT_ADDRESS: serialized_bot_account,
@@ -178,7 +176,7 @@ def test_expire_atomic_swap():
     AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
 
     state_as_list = mock_context.get_state(addresses=[
-        ADDRESS_TO_STORE_SWAP_INFO_BY, BOT_ADDRESS, ZERO_ADDRESS,
+        ADDRESS_TO_STORE_SWAP_INFO_BY, BOT_ADDRESS,
     ])
     state_as_dict = {entry.address: entry.data for entry in state_as_list}
 
@@ -283,13 +281,6 @@ def test_expire_atomic_swap_by_not_swap_owner():
     Case: to expire atomic swap by signer address isn't specified in atomic swap sender address.
     Expect: invalid transaction error is raised with signer is not the one who opened the swap. error message.
     """
-    inputs = outputs = [
-        BOT_ADDRESS,
-        ZERO_ADDRESS,
-        ADDRESS_TO_STORE_SWAP_INFO_BY,
-        ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY,
-    ]
-
     atomic_swap_close_payload = AtomicSwapExpirePayload(
         swap_id=SWAP_ID,
     )
@@ -304,8 +295,8 @@ def test_expire_atomic_swap_by_not_swap_owner():
         signer_public_key=BOT_PUBLIC_KEY,
         family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
         family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
-        inputs=inputs,
-        outputs=outputs,
+        inputs=INPUTS,
+        outputs=OUTPUTS,
         dependencies=[],
         payload_sha512=hash512(data=serialized_transaction_payload),
         batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
@@ -326,7 +317,7 @@ def test_expire_atomic_swap_by_not_swap_owner():
     existing_swap_info_to_expire.sender_address = RANDOM_ADDRESS
     serialized_existing_swap_info_to_expire = existing_swap_info_to_expire.SerializeToString()
 
-    mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={
+    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
         ADDRESS_TO_STORE_SWAP_INFO_BY: serialized_existing_swap_info_to_expire,
     })
 
@@ -341,15 +332,6 @@ def test_expire_atomic_swap_before_invalid_withdrawal_by_alice():
     Case: to expire atomic swap by alice if 24 hasn't been passed from atomic swap initialization timestamp.
     Expect: invalid transaction error is raised with signer is not the one who opened the swap. error message.
     """
-    inputs = outputs = [
-        BLOCK_INFO_CONFIG_ADDRESS,
-        BLOCK_INFO_ADDRESS,
-        BOT_ADDRESS,
-        ZERO_ADDRESS,
-        ADDRESS_TO_STORE_SWAP_INFO_BY,
-        ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY,
-    ]
-
     atomic_swap_close_payload = AtomicSwapExpirePayload(
         swap_id=SWAP_ID,
     )
@@ -364,8 +346,8 @@ def test_expire_atomic_swap_before_invalid_withdrawal_by_alice():
         signer_public_key=ALICE_PUBLIC_KEY,
         family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
         family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
-        inputs=inputs,
-        outputs=outputs,
+        inputs=INPUTS,
+        outputs=OUTPUTS,
         dependencies=[],
         payload_sha512=hash512(data=serialized_transaction_payload),
         batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
@@ -380,7 +362,7 @@ def test_expire_atomic_swap_before_invalid_withdrawal_by_alice():
         signature=create_signer(private_key=ALICE_PRIVATE_KEY).sign(serialized_header),
     )
 
-    mock_context_for_blocks = StubContext(inputs=inputs, outputs=outputs, initial_state={
+    mock_context_for_blocks = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
         BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_BLOCK_INFO_CONFIG,
         BLOCK_INFO_ADDRESS: SERIALIZED_BLOCK_INFO,
     })
@@ -395,7 +377,7 @@ def test_expire_atomic_swap_before_invalid_withdrawal_by_alice():
     existing_swap_info_to_expire.is_initiator = False
     serialized_existing_swap_info_to_expire = existing_swap_info_to_expire.SerializeToString()
 
-    mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={
+    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
         ADDRESS_TO_STORE_SWAP_INFO_BY: serialized_existing_swap_info_to_expire,
         BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_BLOCK_INFO_CONFIG,
         BLOCK_INFO_ADDRESS: SERIALIZED_BLOCK_INFO,
@@ -413,15 +395,6 @@ def test_expire_atomic_swap_before_invalid_withdrawal_by_bot():
     Case: to expire atomic swap by bot if 48 hasn't been passed from atomic swap initialization timestamp.
     Expect: invalid transaction error is raised with signer is not the one who opened the swap. error message.
     """
-    inputs = outputs = [
-        BLOCK_INFO_CONFIG_ADDRESS,
-        BLOCK_INFO_ADDRESS,
-        BOT_ADDRESS,
-        ZERO_ADDRESS,
-        ADDRESS_TO_STORE_SWAP_INFO_BY,
-        ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY,
-    ]
-
     atomic_swap_close_payload = AtomicSwapExpirePayload(
         swap_id=SWAP_ID,
     )
@@ -436,8 +409,8 @@ def test_expire_atomic_swap_before_invalid_withdrawal_by_bot():
         signer_public_key=BOT_PUBLIC_KEY,
         family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
         family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
-        inputs=inputs,
-        outputs=outputs,
+        inputs=INPUTS,
+        outputs=OUTPUTS,
         dependencies=[],
         payload_sha512=hash512(data=serialized_transaction_payload),
         batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
@@ -460,7 +433,7 @@ def test_expire_atomic_swap_before_invalid_withdrawal_by_bot():
     existing_swap_info_to_expire.is_initiator = True
     serialized_existing_swap_info_to_expire = existing_swap_info_to_expire.SerializeToString()
 
-    mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={
+    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
         ADDRESS_TO_STORE_SWAP_INFO_BY: serialized_existing_swap_info_to_expire,
         BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_BLOCK_INFO_CONFIG,
         BLOCK_INFO_ADDRESS: SERIALIZED_BLOCK_INFO,

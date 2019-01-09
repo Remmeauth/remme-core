@@ -285,9 +285,9 @@ class AtomicSwapHandler(BasicHandler):
                 f'timestamp {swap_information.created_at} to withdraw.'
             )
 
-        AccountHandler()._check_signer_address(context, swap_information.sender_address)
-
         account = get_data(context, Account, swap_information.sender_address)
+        if account is None:
+            account = Account()
         account.balance += swap_information.amount
 
         swap_information.state = AtomicSwapInfo.EXPIRED
@@ -329,9 +329,9 @@ class AtomicSwapHandler(BasicHandler):
         if swap_information.is_initiator and swap_information.state != AtomicSwapInfo.APPROVED:
             raise InvalidTransaction('Transaction cannot be closed before it\'s approved.')
 
-        AccountHandler()._check_signer_address(context, swap_information.sender_address)
-
         account = get_data(context, Account, swap_information.receiver_address)
+        if account is None:
+            account = Account()
         account.balance += swap_information.amount
 
         swap_information.secret_key = swap_close_payload.secret_key
