@@ -224,7 +224,7 @@ class TransferEventHandler(BaseEventHandler):
         sender, receiver = state[0], state[1]
         if any([
             sender['address'] == validated_data['address'],
-            receiver['address'] != validated_data['address']
+            receiver['address'] == validated_data['address']
         ]):
             return {
                 'from': {
