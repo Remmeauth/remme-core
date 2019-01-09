@@ -64,6 +64,7 @@ RANDOM_PUBLIC_KEY = '8c87d914a6cfeaf027413760ad359b5a56bfe0eda504d879b21872c7dc5
 
 INPUTS = OUTPUTS = [
     ADDRESS_TO_STORE_SWAP_INFO_BY,
+    ALICE_ADDRESS,
 ]
 
 
@@ -72,13 +73,6 @@ def test_close_atomic_swap():
     Case: close atomic swap.
     Expect: increase Alice account address by swap amount.
     """
-    inputs = outputs = [
-        ADDRESS_TO_STORE_SWAP_INFO_BY,
-        ZERO_ADDRESS,
-        ALICE_ADDRESS,
-        ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY,
-    ]
-
     atomic_swap_close_payload = AtomicSwapClosePayload(
         swap_id=SWAP_ID,
         secret_key=SECRET_KEY,
@@ -94,8 +88,8 @@ def test_close_atomic_swap():
         signer_public_key=BOT_PUBLIC_KEY,
         family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
         family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
-        inputs=inputs,
-        outputs=outputs,
+        inputs=INPUTS,
+        outputs=OUTPUTS,
         dependencies=[],
         payload_sha512=hash512(data=serialized_transaction_payload),
         batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
@@ -128,7 +122,7 @@ def test_close_atomic_swap():
     genesis_members_setting.entries.add(key=SETTINGS_KEY_ZERO_ADDRESS_OWNERS, value=f'{BOT_PUBLIC_KEY},')
     serialized_genesis_members_setting = genesis_members_setting.SerializeToString()
 
-    mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={
+    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
         ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY: serialized_genesis_members_setting,
         ADDRESS_TO_STORE_SWAP_INFO_BY: serialized_existing_swap_info_to_lock,
         ALICE_ADDRESS: serialized_alice_account,
@@ -156,7 +150,7 @@ def test_close_atomic_swap():
 
     AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
 
-    state_as_list = mock_context.get_state(addresses=[ADDRESS_TO_STORE_SWAP_INFO_BY, ZERO_ADDRESS, ALICE_ADDRESS])
+    state_as_list = mock_context.get_state(addresses=[ADDRESS_TO_STORE_SWAP_INFO_BY, ALICE_ADDRESS])
     state_as_dict = {entry.address: entry.data for entry in state_as_list}
 
     assert expected_state == state_as_dict
