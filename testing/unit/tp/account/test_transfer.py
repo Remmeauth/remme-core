@@ -334,18 +334,3 @@ def test_account_transfer_from_address_without_previous_usage():
         )
 
     assert f'Not enough transferable balance. Sender\'s current balance: 0.' == str(error.value)
-
-
-def test_account_transfer_from_zero_address(mocker):
-    """
-    Case: transfer tokens from zero address.
-    Expect: invalid transaction error is raised with public transfers are not allowed from zero address error message.
-    """
-    mock_make_address_from_data = mocker.patch('remme.tp.basic.BasicHandler.make_address_from_data')
-    mock_make_address_from_data.return_value = ZERO_ADDRESS
-
-    with pytest.raises(InvalidTransaction) as error:
-        AccountHandler()._transfer(context=None, public_key=RANDOM_NODE_PUBLIC_KEY, transfer_payload=None)
-
-    assert 'Public transfers are not allowed from zero address which is used only for internal transactions.' == \
-           str(error.value)

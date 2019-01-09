@@ -56,7 +56,7 @@ INPUTS = OUTPUTS = [
 ]
 
 
-def test_expire_atomic_swap():
+def test_approve_atomic_swap():
     """
     Case: approve atomic swap.
     Expect: atomic swap state is changed to approved.
