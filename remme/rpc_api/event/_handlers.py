@@ -141,7 +141,7 @@ class BlockEventHandler(BaseEventHandler):
         To fetch block by number, consider blocks like elements in array. To get second, count from zero.
         """
         block_information_client = BlockInfoClient()
-        block_information = await block_information_client.get_block_info(block_num=int(state.get('block_num')) - 1)
+        block_information = await block_information_client.get_block_info(block_num=int(state['block_num']) - 1)
 
         block_identifier = state.get('block_id')
 
@@ -153,9 +153,11 @@ class BlockEventHandler(BaseEventHandler):
     def parse_evt(self, evt):
         parsed_attributes = {}
 
-        for attribute in evt.get('attributes'):
-            if attribute.get('key') is not None:
-                parsed_attributes[attribute.get('key')] = attribute.get('value')
+        for attribute in evt['attributes']:
+            attribute_key = attribute.get('key')
+
+            if attribute_key is not None:
+                parsed_attributes[attribute_key] = attribute.get('value')
 
         return parsed_attributes
 
