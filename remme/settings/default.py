@@ -35,5 +35,5 @@ def load_toml_with_defaults(filename):
         value = _merge_deep(defaults, value)
         return value
     except IOError:
-        LOGGER.warn(f'Configuration file {filename} not found, reverting to defaults.')
+        LOGGER.warning(f'Configuration file {filename} not found, reverting to defaults.')
         return defaults
