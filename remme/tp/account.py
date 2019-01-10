@@ -22,7 +22,8 @@ from remme.protos.account_pb2 import (
 )
 from remme.settings.helper import _get_setting_value
 from remme.settings import GENESIS_ADDRESS, ZERO_ADDRESS, SETTINGS_KEY_ZERO_ADDRESS_OWNERS
-from remme.tp.basic import PB_CLASS, PROCESSOR, BasicHandler, get_data, get_multiple_data
+from remme.tp.basic import PB_CLASS, PROCESSOR, VALIDATOR, BasicHandler, get_data, get_multiple_data
+from remme.shared.forms import TransferPayloadForm, GenesisPayloadForm
 from remme.shared.constants import Events, EMIT_EVENT
 
 
@@ -49,11 +50,13 @@ class AccountHandler(BasicHandler):
             AccountMethod.TRANSFER: {
                 PB_CLASS: TransferPayload,
                 PROCESSOR: self._transfer,
-                EMIT_EVENT: Events.ACCOUNT_TRANSFER.value
+                EMIT_EVENT: Events.ACCOUNT_TRANSFER.value,
+                VALIDATOR: TransferPayloadForm,
             },
             AccountMethod.GENESIS: {
                 PB_CLASS: GenesisPayload,
-                PROCESSOR: self._genesis
+                PROCESSOR: self._genesis,
+                VALIDATOR: GenesisPayloadForm,
             }
         }
 

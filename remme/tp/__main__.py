@@ -26,7 +26,10 @@ from remme.shared.logging_setup import setup_logging
 from remme.settings.default import load_toml_with_defaults
 
 
-TP_HANDLERS = [AccountHandler(), PubKeyHandler(), AtomicSwapHandler()]
+TP_HANDLERS = {
+    handler._family_name: handler
+    for handler in (AccountHandler(), PubKeyHandler(), AtomicSwapHandler())
+}
 
 if __name__ == '__main__':
     config = load_toml_with_defaults('/config/remme-client-config.toml')['remme']['client']
@@ -37,7 +40,7 @@ if __name__ == '__main__':
 
     processor = TransactionProcessor(url=f'tcp://{ config["validator_ip"] }:{ config["validator_port"] }')
 
-    for handler in TP_HANDLERS:
+    for handler in TP_HANDLERS.values():
         processor.add_handler(handler)
     try:
         processor.start()

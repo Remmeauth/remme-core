@@ -31,15 +31,23 @@ from remme.tp.basic import (
     get_data,
     PROCESSOR,
     PB_CLASS,
+    VALIDATOR,
 )
 from remme.shared.utils import web3_hash
 
 from remme.clients.account import AccountClient
 from remme.clients.block_info import BlockInfoClient, CONFIG_ADDRESS
-from remme.tp.account import AccountHandler, get_account_by_address
+from remme.tp.account import AccountHandler
 from remme.protos.block_info_pb2 import BlockInfo, BlockInfoConfig
 
 from remme.shared.constants import Events, EMIT_EVENT
+from remme.shared.forms import (
+    AtomicSwapInitPayloadForm,
+    AtomicSwapApprovePayloadForm,
+    AtomicSwapExpirePayloadForm,
+    AtomicSwapSetSecretLockPayloadForm,
+    AtomicSwapClosePayloadForm,
+)
 
 
 LOGGER = logging.getLogger(__name__)
@@ -67,6 +75,7 @@ class AtomicSwapHandler(BasicHandler):
     References:
         - https://github.com/decred/atomicswap
     """
+
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
 
@@ -75,27 +84,32 @@ class AtomicSwapHandler(BasicHandler):
             AtomicSwapMethod.INIT: {
                 PB_CLASS: AtomicSwapInitPayload,
                 PROCESSOR: self._swap_init,
-                EMIT_EVENT: Events.SWAP_INIT.value
+                EMIT_EVENT: Events.SWAP_INIT.value,
+                VALIDATOR: AtomicSwapInitPayloadForm,
             },
             AtomicSwapMethod.APPROVE: {
                 PB_CLASS: AtomicSwapApprovePayload,
                 PROCESSOR: self._swap_approve,
-                EMIT_EVENT: Events.SWAP_APPROVE.value
+                EMIT_EVENT: Events.SWAP_APPROVE.value,
+                VALIDATOR: AtomicSwapApprovePayloadForm,
             },
             AtomicSwapMethod.EXPIRE: {
                 PB_CLASS: AtomicSwapExpirePayload,
                 PROCESSOR: self._swap_expire,
-                EMIT_EVENT: Events.SWAP_EXPIRE.value
+                EMIT_EVENT: Events.SWAP_EXPIRE.value,
+                VALIDATOR: AtomicSwapExpirePayloadForm,
             },
             AtomicSwapMethod.SET_SECRET_LOCK: {
                 PB_CLASS: AtomicSwapSetSecretLockPayload,
                 PROCESSOR: self._swap_set_lock,
-                EMIT_EVENT: Events.SWAP_SET_SECRET_LOCK.value
+                EMIT_EVENT: Events.SWAP_SET_SECRET_LOCK.value,
+                VALIDATOR: AtomicSwapSetSecretLockPayloadForm,
             },
             AtomicSwapMethod.CLOSE: {
                 PB_CLASS: AtomicSwapClosePayload,
                 PROCESSOR: self._swap_close,
-                EMIT_EVENT: Events.SWAP_CLOSE.value
+                EMIT_EVENT: Events.SWAP_CLOSE.value,
+                VALIDATOR: AtomicSwapClosePayloadForm,
             },
         }
 
@@ -146,9 +160,6 @@ class AtomicSwapHandler(BasicHandler):
         swap_information.sender_address_non_local = swap_init_payload.sender_address_non_local
         swap_information.receiver_address = swap_init_payload.receiver_address
         swap_information.is_initiator = not swap_init_payload.secret_lock_by_solicitor
-
-        if not AccountHandler().is_handler_address(swap_information.receiver_address):
-            raise InvalidTransaction('Receiver address is not of a blockchain token type.')
 
         commission_amount = int(_get_setting_value(context, SETTINGS_SWAP_COMMISSION))
         if commission_amount < 0:

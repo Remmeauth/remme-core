@@ -12,6 +12,7 @@ from remme.protos.account_pb2 import Account
 from remme.protos.pub_key_pb2 import (
     PubKeyStorage,
     PubKeyMethod,
+    NewPubKeyPayload,
 )
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.settings import ZERO_ADDRESS
@@ -20,7 +21,9 @@ from remme.tp.pub_key import (
     PubKeyHandler,
 )
 from testing.conftest import create_signer
-from testing.utils.client import generate_rsa_signature, generate_address
+from testing.utils.client import (
+    generate_rsa_signature, generate_address, proto_error_msg
+)
 from testing.mocks.stub import StubContext
 from .base import (
     ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY,
@@ -46,6 +49,46 @@ INPUTS = OUTPUTS = [
     ZERO_ADDRESS,
     IS_NODE_ECONOMY_ENABLED_ADDRESS,
 ]
+
+
+def test_public_key_handler_store_with_empty_proto():
+    """
+    Case: send transaction request to store certificate public key with empty proto
+    Expect: invalid transaction error
+    """
+    new_public_key_payload = NewPubKeyPayload()
+
+    transaction_payload = TransactionPayload()
+    transaction_payload.method = PubKeyMethod.STORE
+    transaction_payload.data = new_public_key_payload.SerializeToString()
+
+    serialized_transaction_payload = transaction_payload.SerializeToString()
+
+    transaction_header = generate_header(serialized_transaction_payload, INPUTS, OUTPUTS)
+
+    serialized_header = transaction_header.SerializeToString()
+
+    transaction_request = TpProcessRequest(
+        header=transaction_header,
+        payload=serialized_transaction_payload,
+        signature=create_signer(private_key=SENDER_PRIVATE_KEY).sign(serialized_header),
+    )
+
+    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={})
+
+    with pytest.raises(InvalidTransaction) as error:
+        PubKeyHandler().apply(transaction=transaction_request, context=mock_context)
+
+    assert proto_error_msg(
+        NewPubKeyPayload,
+        {
+            'entity_hash': ['This field is required.'],
+            'entity_hash_signature': ['This field is required.'],
+            'valid_from': ['This field is required.'],
+            'valid_to': ['This field is required.'],
+            'configuration': ['At least one of RSAConfiguration, ECDSAConfiguration or Ed25519Configuration must be set'],
+        }
+    ) == str(error.value)
 
 
 def test_public_key_handler_rsa_store():

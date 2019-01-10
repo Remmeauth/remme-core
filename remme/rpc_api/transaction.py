@@ -26,8 +26,11 @@ from sawtooth_sdk.protobuf.transaction_pb2 import (
 )
 
 from remme.shared.exceptions import KeyNotFound
+from remme.tp.basic import PB_CLASS, VALIDATOR
+from remme.tp.__main__ import TP_HANDLERS
 from remme.clients.account import AccountClient
 from remme.clients.pub_key import PubKeyClient
+from remme.protos.transaction_pb2 import TransactionPayload
 
 
 __all__ = (
@@ -72,6 +75,34 @@ async def send_tokens(request):
     return result['data']
 
 
+def _get_proto_validator(current_handler, tr_payload_pb):
+    processor = current_handler.get_state_processor()
+    try:
+        state_processor = processor[tr_payload_pb.method]
+    except KeyError:
+        logger.debug(f'Payload method "{tr_payload_pb.method}" '
+                     f'not found for processor {processor}')
+        return
+
+    try:
+        pb_class = state_processor[PB_CLASS]
+        validator_class = state_processor[VALIDATOR]
+    except KeyError:
+        logger.debug('"validator_class" or "pb_class" not found '
+                     f'in {state_processor}')
+        return
+
+    try:
+        data_pb = pb_class()
+        data_pb.ParseFromString(tr_payload_pb.data)
+    except DecodeError:
+        logger.debug('Failed to parse payload proto '
+                     f'with protobuf "{pb_class}"')
+        return
+
+    return validator_class.load_proto(data_pb)
+
+
 async def send_raw_transaction(request):
     try:
         data = request.params['data']
@@ -107,12 +138,39 @@ async def send_raw_transaction(request):
             message='Failed to parse transaction head proto'
         )
 
+    try:
+        tr_payload_pb = TransactionPayload()
+        tr_payload_pb.ParseFromString(tr_pb.payload)
+    except DecodeError:
+        raise RpcGenericServerDefinedError(
+            error_code=-32050,
+            message='Failed to parse transaction payload proto'
+        )
+
     prefix, public_key = tr_head_pb.signer_public_key[:2], \
         tr_head_pb.signer_public_key[2:]
     if prefix in ('02', '03') and len(public_key) != 64:
         raise RpcGenericServerDefinedError(
             error_code=-32050,
             message='Signer public key format is not valid'
+        )
+
+    try:
+        handler = TP_HANDLERS[tr_head_pb.family_name]
+    except KeyError:
+        raise RpcGenericServerDefinedError(
+            error_code=-32050,
+            message='Validation handler not set for this method'
+        )
+
+    validator = _get_proto_validator(handler, tr_payload_pb)
+    if validator and not validator.validate():
+        logger.debug('Form "send_raw_transaction" validator errors: '
+                     f'{validator.errors}')
+        raise RpcGenericServerDefinedError(
+            error_code=-32050,
+            message=f'Invalid "{validator.get_pb_class().__name__}" '
+                    'structure'
         )
 
     client = PubKeyClient()
