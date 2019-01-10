@@ -6,7 +6,7 @@ format = "[%(asctime)s.%(msecs)03d [%(threadName)s] %(module)s %(levelname)s] %(
 datefmt = "%H:%M:%S"
 
 [handlers.file]
-level = "DEBUG"
+level = "INFO"
 formatter = "standard"
 class = "logging.handlers.RotatingFileHandler"
 filename = "/var/log/remme/poet-validator-registry.log"
