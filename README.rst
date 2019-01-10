@@ -149,3 +149,74 @@ REMME software and documentation are licensed under `Apache License Version 2.0
    :target: https://www.npmjs.com/package/remme
 .. |nuget| image:: https://img.shields.io/nuget/v/REMME.Auth.Client.svg
    :target: https://www.nuget.org/packages/REMME.Auth.Client/
+
+Documentation
+===============
+
+Sawtooth overview
+-----------------
+
+Context
+~~~~~~~
+
+Context is an interface for getting, setting, and deleting validator state. To simplify this, consider ``the context`` as programming code that have methods for creating or changing information in database, the ``state``. If you have programmer experience, look at this like on `object relational mapping <https://en.wikipedia.org/wiki/Object-relational_mapping>`_ (ORM). You can store anything you want to state. ``Remme Core`` supports storing account balances and public keys, so take a look at the example of changing balance of the account using simple programming classes.
+
+.. code-block:: python
+
+   account = Account.get_by_address(address='112007db8a00c010402e2e3a7d03491323e761e0ea612481c518605648ceeb5ed454f7')
+   
+   print(account.balance) # 15000
+   account.balance -= 5000
+   account.save()
+   
+   print(account.balance) # 10000
+   
+We have taken away 5000 tokens from account balance. How we will do this using context? All interactions with state should be through `context instance <https://github.com/hyperledger/sawtooth-core/blob/master/sdk/python/sawtooth_sdk/processor/context.py#L22>`_.
+
+.. code-block:: python
+
+   data_to_store_in_state = {
+       '112007db8a00c010402e2e3a7d03491323e761e0ea612481c518605648ceeb5ed454f7': 10000
+   }
+
+   context.set_state(data_to_store_in_state)
+   
+As you can see, we do not subtract the tokens amount from current balance, but just override — this is a flow state works. So you need to get account balance before subtraction to prevent from any errors like subtraction from zero balance account.
+
+Along with data to store, state requires the unique identifier to store the data by. In our case unique identifier match the address, but if we store, for instance, public key information, we should create a brant unique identifier first. It is like each user on Facebook have own `id` and putting this it to the browser address textbox (`https://www.facebook.com/dmytrostriletskyi <https://www.facebook.com/dmytrostriletskyi>`_), you fetch the data related to identifier.
+
+Using `get_state <https://sawtooth.hyperledger.org/docs/core/releases/latest/sdks/python_sdk/processor.html?highlight=context#processor.context.Context.get_state>`_ method, we can fetch the data related to address. This method accept the list of addresses, so you could fetch multiple addresses data, in our case this data is account data.
+
+.. code-block:: python
+
+   entries = context.get_state(['112007db8a00c010402e2e3a7d03491323e761e0ea612481c518605648ceeb5ed454f7'])
+
+The statement above return the list of objects that have the following abstract structure.
+
+.. code-block:: python
+
+   class Entry:
+       address
+       balance
+
+So check the balance before subtraction.
+
+.. code-block:: python
+
+   if Entry.balance < 5000:
+       raise Error('The balance of the account have not enough founds to substract 5000 tokens.')
+
+   Entry.balance -= 5000
+
+   data_to_store_in_state = {
+       Entry.address: Entry.balance
+   }
+
+   context.set_state(data_to_store_in_state)
+
+So the summary here is:
+
+1. To interact with reading and storing data, use ``get_state`` and ``set_state``.
+2. You need an unique identifier to store and get the data by.
+3. State has non-traditional way of changing (tokens subtraction in case of balance), but overriding the data.
+4. State structure looks like `key-value storage <https://en.wikipedia.org/wiki/Key-value_database>`_.
