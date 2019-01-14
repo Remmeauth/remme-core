@@ -112,42 +112,59 @@ Flags available for ``run.sh`` are:
 Ubuntu 16.04 and 18.04
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Open the terminal, using `this guide <https://askubuntu.com/a/183777>`_ and start typing commands one by one.
-
-.. code-block:: console
-
-   $ export REMME_CORE_RELEASE=0.6.0-alpha
-   $ sudo apt-get install curl -y
-   $ cd /home/ && curl -L https://github.com/Remmeauth/remme-core/archive/v$REMME_CORE_RELEASE.tar.gz | tar zx
-   $ cd remme-core-$REMME_CORE_RELEASE
-   $ sudo apt update && sudo apt upgrade -y
-   $ sudo apt install apt-transport-https ca-certificates curl software-properties-common
-   $ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-   $ sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-   $ sudo apt update
-   $ sudo apt install docker-ce -y 
-   $ sudo curl -o /usr/local/bin/docker-compose -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)"
-   $ sudo chmod +x /usr/local/bin/docker-compose
-   $ ./scripts/run.sh -g
-
-Or you can copy-paste a bunch of command at once.
+Open the terminal, using `this guide <https://askubuntu.com/a/183777>`_ and just copy and paste this huge command below.
 
 .. code-block:: console
 
    $ export REMME_CORE_RELEASE=0.6.0-alpha && \
-         sudo apt-get install curl -y && \
-         cd /home/ && curl -L https://github.com/Remmeauth/remme-core/archive/v$REMME_CORE_RELEASE.tar.gz | tar zx && \
+         sudo apt-get install apt-transport-https ca-certificates curl software-properties-common -y && \
+         cd /home/ && curl -L https://github.com/Remmeauth/remme-core/archive/v$REMME_CORE_RELEASE.tar.gz | sudo tar zx && \
          cd remme-core-$REMME_CORE_RELEASE && \
          sudo apt update && sudo apt upgrade -y && \
-         sudo apt install apt-transport-https ca-certificates curl software-properties-common && \
          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - && \
-         sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" && \
          sudo apt update && \
-         sudo apt install docker-ce -y && \
+         sudo apt install docker.io -y && \
          sudo curl -o /usr/local/bin/docker-compose -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" && \
          sudo chmod +x /usr/local/bin/docker-compose && \
-         ./scripts/run.sh -g
-    
+         sudo ./scripts/run.sh -g
+
+Or you can copy and paste it one by one. Some commands does not do response, so jump to the next one calmly if you do not see output.
+
+.. code-block:: console
+
+   $ export REMME_CORE_RELEASE=0.6.0-alpha
+   $ sudo apt install apt-transport-https ca-certificates curl software-properties-common -y
+   $ cd /home/ && curl -L https://github.com/Remmeauth/remme-core/archive/v$REMME_CORE_RELEASE.tar.gz | sudo tar zx
+   $ cd remme-core-$REMME_CORE_RELEASE
+   $ sudo apt update && sudo apt upgrade -y
+   $ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+   $ sudo apt update
+   $ sudo apt install docker.io -y 
+   $ sudo curl -o /usr/local/bin/docker-compose -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)"
+   $ sudo chmod +x /usr/local/bin/docker-compose
+   $ sudo ./scripts/run.sh -g
+
+To check if your node did setup correctly, send getting node configurations keys request.
+
+.. code-block:: console
+
+   $ export NODE_IP_ADDRESS=127.0.0.1
+   $ curl -X POST http://$NODE_IP_ADDRESS:8080 -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python -m json.tool
+
+Response should be similar.
+
+
+.. code-block:: console
+
+   $ {
+       "id": "11",
+       "jsonrpc": "2.0",
+       "result": {
+         "node_public_key": "028e7e9b060d7c407e428676299ced9afef4ce782995294d8ea01fd0f08cec9765",
+         "storage_public_key": "028e7e9b060d7c407e428676299ced9afef4ce782995294d8ea01fd0f08cec9765"
+       }
+     }
+
 Digital Ocean
 ~~~~~~~~~~~~~
 
@@ -160,7 +177,7 @@ If you a bit fimilar with cloud services and/or `virtual private servers <https:
 .. image:: https://habrastorage.org/webt/v9/dt/ni/v9dtni9i-hrx3bvfy69xchqabvo.png
 
 4. Open the terminal, using this guide for `Ubuntu <https://askubuntu.com/a/183777>`_ or this for `MacOS <https://blog.teamtreehouse.com/introduction-to-the-mac-os-x-command-line>`_.
-5. Then connect to the server by IP-address and type ``yes`` to verify you want to continue the connection.
+5. Then connect to the server by IP-address from the mail (change in examples below) and type ``yes`` to verify you want to continue the connection.
 
 .. code-block:: console
 
@@ -169,7 +186,7 @@ If you a bit fimilar with cloud services and/or `virtual private servers <https:
       ECDSA key fingerprint is SHA256:AJnmHx1DeCDFCBddVxZmTt64H7WPxykoCsa0ZTCcUnY.
       Are you sure you want to continue connecting (yes/no)? yes
       
-6. Type password from the mail while connection and while requesting it again (``(current) UNIX password``).
+6. Type password from the mail while connection and while requesting it again (``(current) UNIX password``). Attention, when you copy paste password or type it manually, it will be hidden from your eye, so just paste and press ``Enter``.
 
 .. code-block:: console
 
@@ -187,6 +204,7 @@ If you a bit fimilar with cloud services and/or `virtual private servers <https:
       Retype new UNIX password:
 
 8. Copy paste commands from the section about where we explained how to install the run the node on Ubuntu 16.04 and 18.04.
+9. Check node did setup correctly, send getting node configurations keys, changing `127.0.0.1` to the the IP address from mail.
 
 For developers & contributors
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
