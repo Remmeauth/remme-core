@@ -7,6 +7,12 @@ from .account import (
     GenesisPayloadForm,
     get_address_form,
 )
+from .pub_key import (
+    NewPublicKeyPayloadForm,
+    NewPubKeyStoreAndPayPayloadForm,
+    RevokePubKeyPayloadForm,
+)
+from .account import TransferPayloadForm, GenesisPayloadForm
 from .atomic_swap import (
     AtomicSwapInitPayloadForm,
     AtomicSwapApprovePayloadForm,
