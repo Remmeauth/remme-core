@@ -8,7 +8,8 @@ Welcome to REMME's documentation!
 .. toctree::
    :maxdepth: 2
 
-   remme-launch
+   introduction
+   user-guide
 
 .. toctree::
    :maxdepth: 2
