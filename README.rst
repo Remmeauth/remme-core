@@ -149,7 +149,8 @@ To check if your node did setup correctly, send getting node configurations keys
 .. code-block:: console
 
    $ export NODE_IP_ADDRESS=127.0.0.1
-   $ curl -X POST http://$NODE_IP_ADDRESS:8080 -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python -m json.tool
+   $ curl -X POST http://$NODE_IP_ADDRESS:8080 -H 'Content-Type: application/json' -d \
+         '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python -m json.tool
 
 Response should be similar.
 
@@ -203,8 +204,11 @@ If you a bit fimilar with cloud services and/or `virtual private servers <https:
       Enter new UNIX password:
       Retype new UNIX password:
 
-8. Copy paste commands from the section about where we explained how to install the run the node on Ubuntu 16.04 and 18.04.
-9. Check node did setup correctly, send getting node configurations keys, changing `127.0.0.1` to the the IP address from mail.
+8. Copy paste commands from the section about where we explained how to install the run the node on Ubuntu 16.04 and 18.04. If while installation on server you get the same screen, just press enter key to keep instalation on.
+
+.. image:: https://habrastorage.org/webt/fz/go/i2/fzgoi2xsajoxzdxmm8tvve0kke4.png
+
+10. Check node did setup correctly, send getting node configurations keys, changing `127.0.0.1` to the the IP address from mail.
 
 For developers & contributors
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
