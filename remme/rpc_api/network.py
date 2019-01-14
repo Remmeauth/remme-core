@@ -20,7 +20,6 @@ from remme.clients.pub_key import PubKeyClient
 __all__ = (
     'get_node_info',
     'fetch_peers',
-    # 'fetch_status',
 )
 
 logger = logging.getLogger(__name__)
@@ -35,8 +34,3 @@ async def get_node_info(request):
 async def fetch_peers(request):
     client = PubKeyClient()
     return await client.fetch_peers()
-
-
-# async def fetch_status(request):
-#     client = PubKeyClient()
-#     return client.fetch_status()

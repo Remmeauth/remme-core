@@ -117,7 +117,7 @@ def test_account_handler_with_empty_proto():
     assert proto_error_msg(
         TransferPayload,
         {
-            'address_to': ['This field is required.'],
+            'address_to': ['Missed address'],
             'value': ['This field is required.'],
         }
     ) == str(error.value)

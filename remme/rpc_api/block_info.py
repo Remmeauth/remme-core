@@ -14,12 +14,11 @@
 # ------------------------------------------------------------------------
 import logging
 
-from aiohttp_json_rpc import (
-    RpcInvalidParamsError,
-)
-
 from remme.clients.block_info import BlockInfoClient
 from remme.shared.exceptions import KeyNotFound
+from remme.shared.forms import IdentifierForm
+
+from .utils import validate_params
 
 
 __all__ = (
@@ -62,12 +61,9 @@ async def list_blocks(request):
     return await client.list_blocks(ids, start, limit, head, reverse)
 
 
+@validate_params(IdentifierForm)
 async def fetch_block(request):
-    try:
-        id = request.params['id']
-    except KeyError:
-        raise RpcInvalidParamsError(message='Missed id')
-
+    id = request.params['id']
     client = BlockInfoClient()
     try:
         return await client.fetch_block(id)
