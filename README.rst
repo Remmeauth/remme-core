@@ -109,6 +109,84 @@ Flags available for ``run.sh`` are:
   - ``-u`` to start a node (default flag)
   - ``-d`` to stop a node
 
+Ubuntu 16.04 and 18.04
+~~~~~~~~~~~~~~~~~~~~~~
+
+Open the terminal, using `this guide <https://askubuntu.com/a/183777>`_ and start typing commands one by one.
+
+.. code-block:: console
+
+   $ export REMME_CORE_RELEASE=0.6.0-alpha
+   $ sudo apt-get install curl -y
+   $ cd /home/ && curl -L https://github.com/Remmeauth/remme-core/archive/v$REMME_CORE_RELEASE.tar.gz | tar zx
+   $ cd remme-core-$REMME_CORE_RELEASE
+   $ sudo apt update && sudo apt upgrade -y
+   $ sudo apt install apt-transport-https ca-certificates curl software-properties-common
+   $ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+   $ sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+   $ sudo apt update
+   $ sudo apt install docker-ce -y 
+   $ sudo curl -o /usr/local/bin/docker-compose -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)"
+   $ sudo chmod +x /usr/local/bin/docker-compose
+   $ ./scripts/run.sh -g
+
+Or you can copy-paste a bunch of command at once.
+
+.. code-block:: console
+
+   $ export REMME_CORE_RELEASE=0.6.0-alpha && \
+         sudo apt-get install curl -y && \
+         cd /home/ && curl -L https://github.com/Remmeauth/remme-core/archive/v$REMME_CORE_RELEASE.tar.gz | tar zx && \
+         cd remme-core-$REMME_CORE_RELEASE && \
+         sudo apt update && sudo apt upgrade -y && \
+         sudo apt install apt-transport-https ca-certificates curl software-properties-common && \
+         curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - && \
+         sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" && \
+         sudo apt update && \
+         sudo apt install docker-ce -y && \
+         sudo curl -o /usr/local/bin/docker-compose -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" && \
+         sudo chmod +x /usr/local/bin/docker-compose && \
+         ./scripts/run.sh -g
+    
+Digital Ocean
+~~~~~~~~~~~~~
+
+If you a bit fimilar with cloud services and/or `virtual private servers <https://en.wikipedia.org/wiki/Virtual_private_server>`_ (VPS), have payment card with $5 per month to rent the one and want to publish ``Remme-core`` on the Internet to share it with friends, follow the steps below:
+
+1. `Create Digital Ocean account <https://cloud.digitalocean.com/registrations/new>`_.
+2. `Create droplet (server) <https://www.digitalocean.com/docs/droplets/how-to/create/>`_ to locate the node on, choose any version of Ubuntu destribution we have guide above.
+3. Take a look at your e-mail box to find your new server details.
+
+.. image:: https://habrastorage.org/webt/v9/dt/ni/v9dtni9i-hrx3bvfy69xchqabvo.png
+
+4. Open the terminal, using this guide for `Ubuntu <https://askubuntu.com/a/183777>`_ or this for `MacOS <https://blog.teamtreehouse.com/introduction-to-the-mac-os-x-command-line>`_.
+5. Then connect to the server by IP-address and type ``yes`` to verify you want to continue the connection.
+
+.. code-block:: console
+
+    $ ssh root@157.230.129.118
+    $ The authenticity of host '157.230.129.118 (157.230.129.118)' can't be established.
+      ECDSA key fingerprint is SHA256:AJnmHx1DeCDFCBddVxZmTt64H7WPxykoCsa0ZTCcUnY.
+      Are you sure you want to continue connecting (yes/no)? yes
+      
+6. Type password from the mail while connection and while requesting it again (``(current) UNIX password``).
+
+.. code-block:: console
+
+    $ root@157.230.129.118's password: 
+    
+7. Create brand new password due to the security reasons and you are almost ready!
+
+.. code-block:: console
+
+    $ ...
+      Changing password for root.
+      (current) UNIX password:
+      Enter new UNIX password:
+      Retype new UNIX password:
+
+8. Copy paste commands from the section about where we explained how to install the run the node on Ubuntu 16.04 and 18.04.
+
 For developers & contributors
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
