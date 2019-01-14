@@ -81,10 +81,14 @@ class Router:
 
     def __init__(self, stream):
         self._stream = stream
+        self._open_lock = asyncio.Lock()
 
     async def _handle_response(self, msg_type, resp_proto, req):
+        await self._open_lock.acquire()
         if not self._stream.has_transport:
             await self._stream.open()
+        self._open_lock.release()
+
 
         try:
             msg = await self._stream.send(
