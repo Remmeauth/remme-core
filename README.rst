@@ -174,14 +174,15 @@ If you a bit fimilar with cloud services and/or `virtual private servers <https:
 .. code-block:: console
 
     $ root@157.230.129.118's password: 
+      ...
+      Changing password for root.
+      (current) UNIX password:
     
 7. Create brand new password due to the security reasons and you are almost ready!
 
 .. code-block:: console
 
     $ ...
-      Changing password for root.
-      (current) UNIX password:
       Enter new UNIX password:
       Retype new UNIX password:
 
