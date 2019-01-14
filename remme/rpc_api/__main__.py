@@ -23,6 +23,7 @@ from aiohttp import web
 import aiohttp_cors
 
 from remme.shared.logging_setup import setup_logging
+from remme.shared.messaging import Connection
 from remme.settings.default import load_toml_with_defaults
 
 from ._base import JsonRpc
@@ -72,4 +73,9 @@ if __name__ == '__main__':
 
     logger.info('All server parts loaded')
 
-    web.run_app(app, host=arguments.bind, port=arguments.port)
+    async def start_app():
+        stream = Connection.get_single_connection(zmq_url)
+        await stream.open()
+        return app
+
+    web.run_app(start_app(), host=arguments.bind, port=arguments.port)
