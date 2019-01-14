@@ -353,15 +353,15 @@ class PubKeyHandler(BasicHandler):
         """
         new_public_key_payload = transaction_payload.pub_key_payload
 
-        secp256k1_public_key = Secp256k1PublicKey.from_hex(transaction_payload.owner_public_key.decode())
+        owner_secp256k1_public_key = Secp256k1PublicKey.from_hex(transaction_payload.owner_public_key.decode())
 
         is_owner_public_key_payload_signature_valid = Secp256k1Context().verify(
             signature=transaction_payload.signature_by_owner.decode(),
             message=new_public_key_payload.SerializeToString(),
-            public_key=secp256k1_public_key,
+            public_key=owner_secp256k1_public_key,
         )
         if not is_owner_public_key_payload_signature_valid:
-            raise InvalidTransaction('Public key owner\'s signature is invalid!')
+            raise InvalidTransaction('Public key owner\'s signature is invalid.')
 
         conf_name = new_public_key_payload.WhichOneof('configuration')
         if not conf_name:

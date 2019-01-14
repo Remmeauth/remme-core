@@ -44,14 +44,8 @@ class NewPublicKeyPayloadForm(ProtoForm):
 
 class NewPubKeyStoreAndPayPayloadForm(ProtoForm):
 
-    # pub_key_payload = fields.FieldList(fields.FormField(NewPublicKeyPayloadForm), max_entries=1000)
     owner_public_key = fields.StringField(validators=[validators.DataRequired()])
     signature_by_owner = fields.StringField(validators=[validators.DataRequired()])
-    #
-    # def validate(self):
-    #     is_valid = super().validate()
-    #
-    #     return is_valid
 
 
 class RevokePubKeyPayloadForm(ProtoForm):
