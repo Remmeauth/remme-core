@@ -166,6 +166,43 @@ Response should be similar.
        }
      }
 
+Cloud computing services or virtual private servers (VPS)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Digital Ocean** — cloud services that help to deploy and scale applications that run simultaneously on multiple computers. Digital Ocean optimized configuration process saves your team time when running and scaling distributed applications, AI & machine learning workloads, hosted services, client websites, or CI/CD environments. 
+
+**References**:
+
+1. Digital Ocean website — `https://www.digitalocean.com <https://www.digitalocean.com>`_.
+
+.. image:: https://habrastorage.org/webt/fo/r9/lf/for9lfnp3fvh7m7ktspq2-vq_4o.png
+.. image:: https://habrastorage.org/webt/v1/br/aa/v1braanm3or87lcykngp785fkcc.png
+.. image:: https://habrastorage.org/webt/so/07/dp/so07dpb_rv0ixxt8pxmo16hmrhu.png
+.. image:: https://habrastorage.org/webt/to/jr/hf/tojrhfuv6rvjf5aaxgnbuapnf88.png
+.. image:: https://habrastorage.org/webt/ez/io/lu/ezioluea_9svree-lx27gxaoyce.png
+
+.. image:: https://habrastorage.org/webt/g3/ee/eu/g3eeeu3tf0vesfjjsf_rw2hi5ii.png
+.. image:: https://habrastorage.org/webt/l3/8_/vo/l38_vog1qxel1dhuxvtwdyshzek.png
+
+.. image:: https://habrastorage.org/webt/u5/oc/g5/u5ocg5gt4qblk6fjd1xr4hbyeh0.png
+.. image:: https://habrastorage.org/webt/bh/hg/cu/bhhgcufnr5ynqmcgogqyaz2mxyo.png
+.. image:: https://habrastorage.org/webt/jm/0k/c_/jm0kc_7-6cu88-8hbeapqkysyjg.png
+.. image:: https://habrastorage.org/webt/4p/y2/kb/4py2kbgzp7o1btb2dbmqownt0aa.png
+
+.. image:: https://habrastorage.org/webt/fp/rv/qd/fprvqd3nk6us1qauax-v_ct_lfe.png
+.. image:: https://habrastorage.org/webt/od/eq/05/odeq0563fgdrn7chqwzb4qmeije.png
+
+.. image:: https://habrastorage.org/webt/fz/go/i2/fzgoi2xsajoxzdxmm8tvve0kke4.png
+
+
+
+.. image:: https://habrastorage.org/webt/y8/mk/-5/y8mk-5ukwhyrs0pgsntoxuoy4tw.png
+.. image:: https://habrastorage.org/webt/tm/je/i1/tmjei1awx38asdxzcx8iqmzfbik.png
+
+.. image:: https://habrastorage.org/webt/fp/d3/kj/fpd3kjvzx5pvvg2mffsujgspg4m.png
+
+
+
 Digital Ocean
 ~~~~~~~~~~~~~
 
