@@ -9,6 +9,7 @@ Welcome to REMME's documentation!
    :maxdepth: 2
 
    remme-launch
+   user-guide
 
 .. toctree::
    :maxdepth: 2
