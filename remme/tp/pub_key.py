@@ -231,6 +231,9 @@ class PubKeyHandler(BasicHandler):
         """
         Send fixed tokens value from address that want to store public key to node's storage address.
         """
+        if ZERO_ADDRESS == address_from:
+            raise InvalidTransaction('Transactions from zero address is used only for internal purposes.')
+
         transfer_payload = TransferPayload()
         transfer_payload.address_to = address_to
         transfer_payload.value = PUB_KEY_STORE_PRICE
@@ -240,6 +243,29 @@ class PubKeyHandler(BasicHandler):
         )
 
         return transfer_state
+
+    @staticmethod
+    def _get_public_key_processor(transaction_payload):
+        """
+        Get public key processor (class with functionality according to kind of key) class.
+        """
+        conf_name = transaction_payload.WhichOneof('configuration')
+        if not conf_name:
+            raise InvalidTransaction('Configuration for public key not set')
+
+        conf_payload = getattr(transaction_payload, conf_name)
+
+        processor_cls = detect_processor_cls(conf_payload)
+        processor = processor_cls(
+            transaction_payload.entity_hash,
+            transaction_payload.entity_hash_signature,
+            transaction_payload.valid_from,
+            transaction_payload.valid_to,
+            transaction_payload.hashing_algorithm,
+            conf_payload,
+        )
+
+        return processor
 
     def _store_pub_key(self, context, signer_pubkey, transaction_payload):
         """
@@ -261,76 +287,51 @@ class PubKeyHandler(BasicHandler):
             - https://docs.remme.io/remme-core/docs/family-pub-key.html
             - https://github.com/Remmeauth/remme-client-python/blob/develop/remme/remme_public_key_storage.py
         """
-        conf_name = transaction_payload.WhichOneof('configuration')
-        if not conf_name:
-            raise InvalidTransaction('Configuration for public key not set')
+        processor = self._get_public_key_processor(transaction_payload=transaction_payload)
 
-        conf_payload = getattr(transaction_payload, conf_name)
-
-        processor_cls = detect_processor_cls(conf_payload)
-        processor = processor_cls(transaction_payload.entity_hash,
-                                  transaction_payload.entity_hash_signature,
-                                  transaction_payload.valid_from,
-                                  transaction_payload.valid_to,
-                                  transaction_payload.hashing_algorithm,
-                                  conf_payload)
+        if not processor.verify():
+            raise InvalidTransaction('Invalid signature')
 
         public_key = processor.get_public_key()
 
         public_key_to_store_address = self.make_address_from_data(public_key)
-        LOGGER.info('Public key address {}'.format(public_key_to_store_address))
-
         sender_account_address = AccountHandler().make_address_from_data(signer_pubkey)
-        LOGGER.info('Account address {}'.format(sender_account_address))
 
-        data, account = get_multiple_data(context, [
+        public_key_information, sender_account = get_multiple_data(context, [
             (public_key_to_store_address, PubKeyStorage),
             (sender_account_address, Account),
         ])
-        if data:
+        if public_key_information:
             raise InvalidTransaction('This public key is already registered.')
 
-        sig_is_valid = processor.verify()
-        if sig_is_valid is False:
-            raise InvalidTransaction('Invalid signature')
+        if not sender_account:
+            sender_account = Account()
 
         if not self._is_public_key_validity_exceeded(
             valid_from=transaction_payload.valid_from,
-            valid_to=transaction_payload.valid_to
+            valid_to=transaction_payload.valid_to,
         ):
-            raise InvalidTransaction('The public key validity exceeds '
-                                     'the maximum value.')
+            raise InvalidTransaction('The public key validity exceeds the maximum value.')
 
-        data = PubKeyStorage()
-        data.owner = signer_pubkey
-        data.payload.CopyFrom(transaction_payload)
-        data.is_revoked = False
-
-        if not account:
-            account = Account()
+        public_key_information = PubKeyStorage()
+        public_key_information.owner = signer_pubkey
+        public_key_information.payload.CopyFrom(transaction_payload)
+        public_key_information.is_revoked = False
 
         state = {
-            sender_account_address: account,
-            public_key_to_store_address: data
+            sender_account_address: sender_account,
+            public_key_to_store_address: public_key_information,
         }
 
-        is_economy_enabled = _get_setting_value(context,
-                                                'remme.economy_enabled',
-                                                'true').lower()
-        if is_economy_enabled == 'true':
+        charging_state = self._charge_for_storing(context, state, sender_account_address)
+        state.update(charging_state)
 
-            if ZERO_ADDRESS != sender_account_address:
+        sender_account = state.get(sender_account_address)
 
-                transfer_state = self._charge_tokens_for_storing(
-                    context=context, address_from=sender_account_address,
-                    address_to=ZERO_ADDRESS,
-                )
-
-                state.update(transfer_state)
-                account = transfer_state[sender_account_address]
-
-        if public_key_to_store_address not in account.pub_keys:
-            account.pub_keys.append(public_key_to_store_address)
+        self._store_public_key_to_account(
+            public_key_to_store_address=public_key_to_store_address,
+            public_key_to_store_owner_account=sender_account,
+        )
 
         return state
 
@@ -363,22 +364,9 @@ class PubKeyHandler(BasicHandler):
         if not is_owner_public_key_payload_signature_valid:
             raise InvalidTransaction('Public key owner\'s signature is invalid.')
 
-        conf_name = new_public_key_payload.WhichOneof('configuration')
-        if not conf_name:
-            raise InvalidTransaction('Configuration for public key not set')
+        processor = self._get_public_key_processor(transaction_payload=transaction_payload.pub_key_payload)
 
-        conf_payload = getattr(new_public_key_payload, conf_name)
-
-        processor_cls = detect_processor_cls(conf_payload)
-        processor = processor_cls(new_public_key_payload.entity_hash,
-                                  new_public_key_payload.entity_hash_signature,
-                                  new_public_key_payload.valid_from,
-                                  new_public_key_payload.valid_to,
-                                  new_public_key_payload.hashing_algorithm,
-                                  conf_payload)
-
-        sig_is_valid = processor.verify()
-        if sig_is_valid is False:
+        if not processor.verify():
             raise InvalidTransaction('Payed public key has invalid signature.')
 
         public_key = processor.get_public_key()
@@ -416,21 +404,38 @@ class PubKeyHandler(BasicHandler):
             public_key_to_store_address: public_key_information,
         }
 
+        charging_state = self._charge_for_storing(context=context, state=state, address_from=payer_for_storing_address)
+        state.update(charging_state)
+
+        self._store_public_key_to_account(
+            public_key_to_store_address=public_key_to_store_address,
+            public_key_to_store_owner_account=public_key_to_store_owner_account,
+        )
+
+        return state
+
+    def _charge_for_storing(self, context, state, address_from):
+        """
+        Send fixed tokens value from address to zero address.
+        """
         is_economy_enabled = _get_setting_value(context, 'remme.economy_enabled', 'true').lower()
         if is_economy_enabled == 'true':
 
-            if ZERO_ADDRESS != payer_for_storing_address:
+            transfer_state = self._charge_tokens_for_storing(
+                context=context, address_from=address_from, address_to=ZERO_ADDRESS,
+            )
 
-                transfer_state = self._charge_tokens_for_storing(
-                    context=context, address_from=payer_for_storing_address, address_to=ZERO_ADDRESS,
-                )
-
-                state.update(transfer_state)
-
-        if public_key_to_store_address not in public_key_to_store_owner_account.pub_keys:
-            public_key_to_store_owner_account.pub_keys.append(public_key_to_store_address)
+            state.update(transfer_state)
 
         return state
+
+    @staticmethod
+    def _store_public_key_to_account(public_key_to_store_address, public_key_to_store_owner_account):
+        """
+        Store public keys to account.
+        """
+        if public_key_to_store_address not in public_key_to_store_owner_account.pub_keys:
+            public_key_to_store_owner_account.pub_keys.append(public_key_to_store_address)
 
     @staticmethod
     def _revoke_pub_key(context, signer_pubkey, revoke_pub_key_payload):
