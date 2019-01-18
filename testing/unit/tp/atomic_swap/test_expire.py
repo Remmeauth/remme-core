@@ -34,6 +34,7 @@ from remme.settings.helper import _make_settings_key
 from remme.shared.utils import hash512, web3_hash
 from remme.tp.atomic_swap import AtomicSwapHandler
 from remme.tp.basic import BasicHandler
+from remme.tp.context import CacheContextService
 
 from remme.settings import (
     SETTINGS_KEY_ZERO_ADDRESS_OWNERS,
@@ -417,7 +418,7 @@ def test_expire_atomic_swap_before_invalid_withdrawal_by_alice():
         BLOCK_INFO_ADDRESS: SERIALIZED_BLOCK_INFO,
     })
 
-    current_timestamp = AtomicSwapHandler()._get_latest_block_info(mock_context_for_blocks).timestamp
+    current_timestamp = AtomicSwapHandler()._get_latest_block_info(CacheContextService(mock_context_for_blocks)).timestamp
 
     existing_swap_info_to_expire = AtomicSwapInfo()
     existing_swap_info_to_expire.swap_id = SWAP_ID

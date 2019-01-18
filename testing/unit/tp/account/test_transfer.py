@@ -21,6 +21,7 @@ from remme.protos.transaction_pb2 import TransactionPayload
 from remme.settings import ZERO_ADDRESS
 from remme.shared.utils import hash512
 from remme.tp.account import AccountHandler
+from remme.tp.context import CacheContextService
 from testing.conftest import create_signer
 from testing.mocks.stub import StubContext
 from testing.utils.client import proto_error_msg
@@ -277,7 +278,7 @@ def test_account_transfer_from_address():
     mock_context = create_context(account_from_balance=ACCOUNT_FROM_BALANCE, account_to_balance=ACCOUNT_TO_BALANCE)
 
     result = AccountHandler()._transfer_from_address(
-        context=mock_context, address_from=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
+        context=CacheContextService(mock_context), address_from=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
     )
 
     assert result.get(ACCOUNT_ADDRESS_FROM).balance == expected_account_from_balance
@@ -297,7 +298,7 @@ def test_account_transfer_from_address_zero_amount():
 
     with pytest.raises(InvalidTransaction) as error:
         AccountHandler()._transfer_from_address(
-            context=mock_context, address_from=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
+            context=CacheContextService(mock_context), address_from=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
         )
 
     assert f'Could not transfer with zero amount.' == str(error.value)
@@ -316,7 +317,7 @@ def test_account_transfer_from_address_to_address_not_account_type():
 
     with pytest.raises(InvalidTransaction) as error:
         AccountHandler()._transfer_from_address(
-            context=mock_context, address_from=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
+            context=CacheContextService(mock_context), address_from=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
         )
 
     assert f'Receiver address has to be of an account type.' == str(error.value)
@@ -335,7 +336,7 @@ def test_account_transfer_from_address_send_to_itself():
 
     with pytest.raises(InvalidTransaction) as error:
         AccountHandler()._transfer_from_address(
-            context=mock_context, address_from=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
+            context=CacheContextService(mock_context), address_from=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
         )
 
     assert f'Account cannot send tokens to itself.' == str(error.value)
@@ -354,7 +355,7 @@ def test_account_transfer_from_address_without_tokens():
 
     with pytest.raises(InvalidTransaction) as error:
         AccountHandler()._transfer_from_address(
-            context=mock_context, address_from=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
+            context=CacheContextService(mock_context), address_from=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
         )
 
     assert 'Not enough transferable balance. Sender\'s current balance: 0.' == str(error.value)
@@ -378,7 +379,7 @@ def test_account_transfer_from_address_without_previous_usage():
 
     with pytest.raises(InvalidTransaction) as error:
         AccountHandler()._transfer_from_address(
-            context=mock_context, address_from=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
+            context=CacheContextService(mock_context), address_from=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
         )
 
     assert f'Not enough transferable balance. Sender\'s current balance: 0.' == str(error.value)

@@ -37,6 +37,7 @@ from remme.settings import (
 from remme.settings.helper import _make_settings_key
 from remme.tp.atomic_swap import AtomicSwapHandler
 from remme.tp.basic import BasicHandler
+from remme.tp.context import CacheContextService
 
 TOKENS_AMOUNT_TO_SWAP = 200
 SWAP_COMMISSION_AMOUNT = 100
@@ -228,7 +229,7 @@ def test_atomic_swap_init():
     swap_info.swap_id = SWAP_ID
     swap_info.state = AtomicSwapInfo.OPENED
     swap_info.amount = TOKENS_AMOUNT_TO_SWAP
-    swap_info.created_at = AtomicSwapHandler()._get_latest_block_info(mock_context).timestamp
+    swap_info.created_at = AtomicSwapHandler()._get_latest_block_info(CacheContextService(mock_context)).timestamp
     swap_info.email_address_encrypted_optional = ALICE_EMAIL_ADDRESS_ENCRYPTED_BY_INITIATOR
     swap_info.sender_address = BOT_ADDRESS
     swap_info.sender_address_non_local = BOT_ETHEREUM_ADDRESS

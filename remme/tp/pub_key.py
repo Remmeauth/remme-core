@@ -26,6 +26,7 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.serialization import load_der_public_key
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
+from sawtooth_sdk.protobuf.setting_pb2 import Setting
 from sawtooth_signing.secp256k1 import (
     Secp256k1PublicKey,
     Secp256k1Context
@@ -33,12 +34,6 @@ from sawtooth_signing.secp256k1 import (
 from secp256k1 import lib
 
 from remme.settings import ZERO_ADDRESS
-from remme.tp.basic import (
-    BasicHandler, get_data, get_multiple_data, PB_CLASS, PROCESSOR,
-    VALIDATOR,
-)
-from remme.tp.account import AccountHandler
-
 from remme.protos.account_pb2 import Account, TransferPayload
 from remme.protos.pub_key_pb2 import (
     PubKeyStorage,
@@ -47,12 +42,14 @@ from remme.protos.pub_key_pb2 import (
     RevokePubKeyPayload,
     PubKeyMethod,
 )
-from remme.settings.helper import _get_setting_value
+from remme.settings.helper import _get_setting_value, _make_settings_key
 from remme.shared.forms import (
     NewPublicKeyPayloadForm,
     RevokePubKeyPayloadForm,
     NewPubKeyStoreAndPayPayloadForm,
 )
+from .account import AccountHandler
+from .context import preload_state
 
 LOGGER = logging.getLogger(__name__)
 
@@ -109,7 +106,7 @@ class RSAProcessor(BasePubKeyProcessor):
         try:
             verifier = load_der_public_key(self.get_public_key(),
                                            default_backend())
-        except ValueError as e:
+        except ValueError:
             raise InvalidTransaction(
                 'Cannot deserialize the provided public key. '
                 'Check if it is in DER format.')
@@ -190,6 +187,7 @@ class Ed25519Processor(BasePubKeyProcessor):
 
 
 class PubKeyHandler(BasicHandler):
+
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
 

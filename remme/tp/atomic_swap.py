@@ -16,6 +16,7 @@
 import datetime
 import logging
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
+from sawtooth_sdk.protobuf.setting_pb2 import Setting
 
 from remme.protos.account_pb2 import Account
 from remme.protos.atomic_swap_pb2 import (
@@ -24,20 +25,12 @@ from remme.protos.atomic_swap_pb2 import (
     AtomicSwapSetSecretLockPayload, AtomicSwapClosePayload
 )
 from remme.settings import SETTINGS_SWAP_COMMISSION, ZERO_ADDRESS
-from remme.settings.helper import _get_setting_value
+from remme.settings.helper import _get_setting_value, _make_settings_key
 
-from remme.tp.basic import (
-    BasicHandler,
-    get_data,
-    PROCESSOR,
-    PB_CLASS,
-    VALIDATOR,
-)
+
 from remme.shared.utils import web3_hash
-
 from remme.clients.account import AccountClient
 from remme.clients.block_info import BlockInfoClient, CONFIG_ADDRESS
-from remme.tp.account import AccountHandler
 from remme.protos.block_info_pb2 import BlockInfo, BlockInfoConfig
 
 from remme.shared.constants import Events, EMIT_EVENT
@@ -47,6 +40,16 @@ from remme.shared.forms import (
     AtomicSwapExpirePayloadForm,
     AtomicSwapSetSecretLockPayloadForm,
     AtomicSwapClosePayloadForm,
+)
+
+from .account import AccountHandler
+from .context import preload_state
+from .basic import (
+    BasicHandler,
+    get_data,
+    PROCESSOR,
+    PB_CLASS,
+    VALIDATOR,
 )
 
 
@@ -69,8 +72,8 @@ NOT_PERMITTED_TO_CHANGE_SWAP_STATUSES = (AtomicSwapInfo.CLOSED, AtomicSwapInfo.E
 
 
 class AtomicSwapHandler(BasicHandler):
-    """
-    Atomic swap implementation.
+
+    """Atomic swap implementation.
 
     References:
         - https://github.com/decred/atomicswap
@@ -124,17 +127,24 @@ class AtomicSwapHandler(BasicHandler):
         if not block_info_config:
             raise InvalidTransaction('Block config not found.')
 
-        LOGGER.info(f'Current latest block number: {block_info_config.latest_block + 1}')
+        LOGGER.debug(f'Current latest block number: {block_info_config.latest_block + 1}')
 
         block_info = get_data(context, BlockInfo, BlockInfoClient.create_block_address(block_info_config.latest_block))
 
         if not block_info:
             raise InvalidTransaction(f'Block {block_info_config.latest_block + 1} not found.')
 
-        LOGGER.info(f'Block with number successfully loaded: {block_info.block_num + 1}')
+        LOGGER.debug(f'Block with number successfully loaded: {block_info.block_num + 1}')
 
         return block_info
 
+    @preload_state((
+        (AtomicSwapInfo, lambda self, ctx, signer, pb: self.make_address_from_data(pb.swap_id)),
+        (BlockInfoConfig, CONFIG_ADDRESS),
+        (Setting, _make_settings_key(SETTINGS_SWAP_COMMISSION)),
+        (Account, lambda self, ctx, signer, pb: AccountHandler().make_address_from_data(signer)),
+        (Account, ZERO_ADDRESS),
+    ))
     def _swap_init(self, context, signer_pubkey, swap_init_payload):
         """
         if SecretLockOptionalBob is provided, Bob uses _swap_init to respond to requested swap
@@ -191,6 +201,9 @@ class AtomicSwapHandler(BasicHandler):
             **transfer_state,
         }
 
+    @preload_state((
+        (AtomicSwapInfo, lambda self, ctx, signer, pb: self.make_address_from_data(pb.swap_id)),
+    ))
     def _swap_set_lock(self, context, signer_pubkey, swap_set_lock_payload):
         """
         Set secret lock.
@@ -222,6 +235,9 @@ class AtomicSwapHandler(BasicHandler):
             address_swap_info_is_stored_by: swap_information,
         }
 
+    @preload_state((
+        (AtomicSwapInfo, lambda self, ctx, signer, pb: self.make_address_from_data(pb.swap_id)),
+    ))
     def _swap_approve(self, context, signer_pubkey, swap_approve_payload):
         """
         Only called by Alice to approve REMchain => other transaction for Bob to close it.
@@ -259,6 +275,10 @@ class AtomicSwapHandler(BasicHandler):
             address_swap_info_is_stored_by: swap_information,
         }
 
+    @preload_state((
+        (AtomicSwapInfo, lambda self, ctx, signer, pb: self.make_address_from_data(pb.swap_id)),
+        (BlockInfoConfig, CONFIG_ADDRESS),
+    ))
     def _swap_expire(self, context, signer_pubkey, swap_expire_payload):
         """
         Transaction initiator (Alice) decides to withdraw deposit in 24 hours, or Bob in 48 hours.
@@ -308,6 +328,9 @@ class AtomicSwapHandler(BasicHandler):
             swap_information.sender_address: account,
         }
 
+    @preload_state((
+        (AtomicSwapInfo, lambda self, ctx, signer, pb: self.make_address_from_data(pb.swap_id)),
+    ))
     def _swap_close(self, context, signer_pubkey, swap_close_payload):
         """
         Close atomic swap.
