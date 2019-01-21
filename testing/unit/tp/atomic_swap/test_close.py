@@ -110,7 +110,7 @@ def test_close_with_empty_proto():
     assert proto_error_msg(
         AtomicSwapClosePayload,
         {
-            'swap_id': ['This field is required.'],
+            'swap_id': ['Missed swap_id'],
             'secret_key': ['This field is required.'],
         }
     ) == str(error.value)

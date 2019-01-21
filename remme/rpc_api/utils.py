@@ -15,9 +15,39 @@
 import os
 import logging
 import importlib
+import functools
+
+from aiohttp_json_rpc import RpcInvalidParamsError
 
 
 logger = logging.getLogger(__name__)
+
+
+def validate_params(form_class):
+    def decorator(func):
+        def _get_first_error(message):
+            if isinstance(message, list):
+                message = message[0]
+                return _get_first_error(message)
+            return message
+
+        @functools.wraps(func)
+        async def wrapper(request, *args, **kwargs):
+            logger.debug(f'Req params: {request.params}')
+            form = form_class(**request.params)
+            if not form.validate():
+                try:
+                    message = _get_first_error(
+                        list(form.errors.values())[0][0])
+                except IndexError as e:
+                    logger.exception(e)
+                    message = 'Validation failed'
+                raise RpcInvalidParamsError(message=message)
+
+            request.params = form.data
+            return await func(request, *args, **kwargs)
+        return wrapper
+    return decorator
 
 
 def load_methods(prefix, modules="*"):

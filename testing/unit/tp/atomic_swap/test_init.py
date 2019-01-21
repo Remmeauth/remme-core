@@ -148,10 +148,10 @@ def test_atomic_swap_init_with_empty_proto():
     assert proto_error_msg(
         AtomicSwapInitPayload,
         {
-            'receiver_address': ['This field is required.'],
+            'receiver_address': ['Missed address'],
             'sender_address_non_local': ['This field is required.'],
             'amount': ['This field is required.'],
-            'swap_id': ['This field is required.'],
+            'swap_id': ['Missed swap_id'],
             'created_at': ['This field is required.'],
         }
     ) == str(error.value)

@@ -14,12 +14,11 @@
 # ------------------------------------------------------------------------
 import logging
 
-from aiohttp_json_rpc import (
-    RpcInvalidParamsError,
-)
-
 from remme.clients.block_info import BasicClient
 from remme.shared.exceptions import KeyNotFound
+from remme.shared.forms import get_address_form
+
+from .utils import validate_params
 
 
 __all__ = (
@@ -41,11 +40,9 @@ async def list_state(request):
     return await client.list_state(address, start, limit, head, reverse)
 
 
+@validate_params(get_address_form('address'))
 async def fetch_state(request):
-    try:
-        address = request.params['address']
-    except KeyError:
-        raise RpcInvalidParamsError(message='Missed address')
+    address = request.params['address']
     head = request.params.get('head')
 
     client = BasicClient()
