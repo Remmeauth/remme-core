@@ -93,8 +93,7 @@ def get_multiple_data(context, data):
 
 
 class BasicHandler(metaclass=Singleton):
-    """
-        BasicHandler contains shared logic...
+    """BasicHandler contains shared logic...
     """
 
     def __init__(self, name, versions):

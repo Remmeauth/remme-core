@@ -24,6 +24,7 @@ from remme.protos.account_pb2 import Account
 
 
 class AccountClient(BasicClient):
+
     def __init__(self):
         super().__init__(AccountHandler)
 
