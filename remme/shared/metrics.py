@@ -26,6 +26,7 @@ import time
 from datetime import datetime
 from influxdb import InfluxDBClient
 from influxdb.exceptions import InfluxDBClientError, InfluxDBServerError
+from remme.settings.default import load_toml_with_defaults
 
 LOGGER = logging.getLogger(__name__)
 
@@ -176,3 +177,16 @@ class MetricsSender:
         >>> measurement.done()
         """
         return _TimeMeasurement(self, metric)
+
+
+config = load_toml_with_defaults('/config/remme-client-config.toml')['remme']['metrics']
+
+METRICS_SENDER = MetricsSender(
+    config['influxdb_address'],
+    config['influxdb_port'],
+    config['influxdb_user'],
+    config['influxdb_password'],
+    config['influxdb_database']
+)
+"""Global MetricsSender instance initialized from the configuration file.
+"""
