@@ -1,9 +1,13 @@
-import functools
+import logging
 
 from google.protobuf.text_format import ParseError
 from sawtooth_sdk.processor.exceptions import InternalError
+from sawtooth_sdk.protobuf import state_context_pb2
 
 from remme.settings import STATE_TIMEOUT_SEC
+
+
+logger = logging.getLogger(__name__)
 
 
 class CacheContextService:
@@ -12,46 +16,47 @@ class CacheContextService:
         self._storage = {}
         self._context = context
 
-    def get_context(self):
-        return self._context
+    def preload_state(self, addresses):
+        addresses = list(filter(lambda a: len(a) == 70, addresses))
+        entries = self.get_state(addresses)
+        for i, entry in enumerate(entries):
+            self._storage[entry.address] = entry.data
 
-    def _fetch_cached_storage(self, resolvers):
-        for address, _ in resolvers:
-            try:
-                pb = self._storage[address]
-            except KeyError:
-                pb = None
-            yield (address, pb)
-
-    def _get_addresses_to_reload(self, resolvers):
-        return [addr for addr, pb in self._fetch_cached_storage(resolvers)
-                if pb is None]
-
-    def get_cleared_data(self, resolvers, timeout=STATE_TIMEOUT_SEC):
-        raw_data = self.get_state([el[0] for el in resolvers])
-        raw_data = {entry.address: entry.data for entry in raw_data}
-        for address, pb_class in resolvers:
-            try:
-                data = pb_class()
-                data.ParseFromString(raw_data[address])
-                yield data
-            except ParseError:
-                raise InternalError('Failed to deserialize data')
-            except Exception:
-                yield None
+        logger.debug(f'Stored data for addresses: {self._storage}')
 
     def get_cached_data(self, resolvers, timeout=STATE_TIMEOUT_SEC):
-        addresses_to_reload = self._get_addresses_to_reload(resolvers)
-        update_required = not self._storage or addresses_to_reload
+        for address, pb_class in resolvers:
+            try:
+                data = self._storage[address]
+                logger.debug('Got loaded data for address '
+                             f'"{address}": {data}')
+            except KeyError:
+                try:
+                    data = self.get_state([address])[0].data
+                    self._storage[address] = data
+                    logger.debug('Got pre-loaded data for address '
+                                 f'"{address}": {data}')
+                except IndexError:
+                    yield None
+                    continue
+                except Exception as e:
+                    logger.exception(e)
+                    raise InternalError(f'Address "{address}" does not '
+                                        'have access to data')
 
-        if update_required:
-            data = self.get_cleared_data(resolvers, timeout)
-            self._storage.update({
-                resolvers[i][0]: pb for i, pb in enumerate(data)
-            })
+            if data is None:
+                yield data
+                continue
 
-        for address, _ in resolvers:
-            yield self._storage.get(address)
+            try:
+                pb = pb_class()
+                pb.ParseFromString(data)
+                yield pb
+            except ParseError:
+                raise InternalError('Failed to deserialize data')
+            except Exception as e:
+                logger.exception(e)
+                yield None
 
     def get_state(self, addresses, timeout=STATE_TIMEOUT_SEC):
         return self._context.get_state(addresses, timeout)
@@ -68,20 +73,3 @@ class CacheContextService:
     def add_event(self, event_type, attributes=None, data=None,
                   timeout=STATE_TIMEOUT_SEC):
         return self._context.add_event(event_type, attributes, data, timeout)
-
-
-def preload_state(resolvers):
-    def _resolve_methods(handler, ctx, signer, pub):
-        for pb_cls, resolver in resolvers:
-            if callable(resolver):
-                resolver = resolver(handler, ctx, signer, pub)
-            yield (resolver, pb_cls)
-
-    def wrapper(func):
-        @functools.wraps(func)
-        def inner_wrapper(handler, ctx, signer, pub):
-            resolvers = list(_resolve_methods(handler, ctx, signer, pub))
-            ctx.get_cached_data(resolvers)
-            return func(handler, ctx, signer, pub)
-        return inner_wrapper
-    return wrapper

@@ -20,8 +20,9 @@ from google.protobuf.message import DecodeError
 from google.protobuf.text_format import ParseError
 from sawtooth_processor_test.message_factory import MessageFactory
 from sawtooth_sdk.processor.exceptions import InternalError, InvalidTransaction
-from remme.protos.transaction_pb2 import TransactionPayload
+from sawtooth_sdk.protobuf.transaction_pb2 import TransactionHeader
 
+from remme.protos.transaction_pb2 import TransactionPayload
 from remme.shared.utils import hash512, Singleton, from_proto_to_dict
 
 from .context import CacheContextService
@@ -138,12 +139,10 @@ class BasicHandler(metaclass=Singleton):
         try:
             transaction_payload = TransactionPayload()
             transaction_payload.ParseFromString(transaction.payload)
-
         except DecodeError:
             raise InvalidTransaction('Cannot decode transaction payload.')
 
         state_processor = self.get_state_processor()
-
         try:
             data_pb = state_processor[transaction_payload.method][PB_CLASS]()
             data_pb.ParseFromString(transaction_payload.data)
@@ -159,6 +158,7 @@ class BasicHandler(metaclass=Singleton):
                                      f'detailed: {validator.errors}')
 
         context_service = CacheContextService(context=context)
+        context_service.preload_state(transaction.header.inputs)
         updated_state = processor(context_service, transaction.header.signer_public_key, data_pb)
 
         context_service.set_state({k: v.SerializeToString() for k, v in updated_state.items()})

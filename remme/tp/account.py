@@ -20,9 +20,8 @@ from remme.protos.account_pb2 import (
     Account, GenesisStatus, AccountMethod, GenesisPayload,
     TransferPayload
 )
-from remme.settings.helper import _get_setting_value
 from remme.settings import (
-    GENESIS_ADDRESS, ZERO_ADDRESS, SETTINGS_KEY_ZERO_ADDRESS_OWNERS
+    GENESIS_ADDRESS, ZERO_ADDRESS
 )
 from remme.shared.forms import TransferPayloadForm, GenesisPayloadForm
 from remme.shared.constants import Events, EMIT_EVENT
@@ -30,7 +29,6 @@ from remme.shared.constants import Events, EMIT_EVENT
 from .basic import (
     PB_CLASS, PROCESSOR, VALIDATOR, BasicHandler, get_data, get_multiple_data
 )
-from .context import preload_state
 
 
 LOGGER = logging.getLogger(__name__)
@@ -66,9 +64,6 @@ class AccountHandler(BasicHandler):
             }
         }
 
-    @preload_state((
-        (GenesisStatus, GENESIS_ADDRESS),
-    ))
     def _genesis(self, context, pub_key, genesis_payload):
         signer_key = self.make_address_from_data(pub_key)
         genesis_status = get_data(context, GenesisStatus, GENESIS_ADDRESS)
@@ -92,10 +87,6 @@ class AccountHandler(BasicHandler):
             GENESIS_ADDRESS: genesis_status
         }
 
-    @preload_state((
-        (Account, lambda self, ctx, signer, pb: self.make_address_from_data(signer)),
-        (Account, lambda self, ctx, signer, pb: pb.address_to),
-    ))
     def _transfer(self, context, public_key, transfer_payload):
         """
         Make public transfer.

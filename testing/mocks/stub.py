@@ -100,13 +100,11 @@ class StubContext:
             if address not in self.inputs:
                 raise AuthorizationException(f'Tried to get unauthorized address: {addresses}')
 
-        response = []
-
-        for address in addresses:
-            if address in self._state and self._state.get(address) is not None:
-                response.append(
-                    StubContextTpStateEntry(address=address, data=self._state.get(address)),
-                )
+        response = [
+            StubContextTpStateEntry(address=address,
+                                    data=self._state.get(address))
+            for address in addresses
+        ]
 
         return response
 

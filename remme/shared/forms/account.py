@@ -6,7 +6,9 @@ from ._fields import AddressField
 
 class TransferPayloadForm(ProtoForm):
     address_to = AddressField()
-    value = fields.IntegerField(validators=[validators.DataRequired()])
+    value = fields.IntegerField(validators=[
+        validators.DataRequired(message='Could not transfer with zero amount.')
+    ])
 
 
 class GenesisPayloadForm(ProtoForm):

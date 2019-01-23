@@ -43,7 +43,6 @@ from remme.shared.forms import (
 )
 
 from .account import AccountHandler
-from .context import preload_state
 from .basic import (
     BasicHandler,
     get_data,
@@ -138,13 +137,6 @@ class AtomicSwapHandler(BasicHandler):
 
         return block_info
 
-    @preload_state((
-        (AtomicSwapInfo, lambda self, ctx, signer, pb: self.make_address_from_data(pb.swap_id)),
-        (BlockInfoConfig, CONFIG_ADDRESS),
-        (Setting, _make_settings_key(SETTINGS_SWAP_COMMISSION)),
-        (Account, lambda self, ctx, signer, pb: AccountHandler().make_address_from_data(signer)),
-        (Account, ZERO_ADDRESS),
-    ))
     def _swap_init(self, context, signer_pubkey, swap_init_payload):
         """
         if SecretLockOptionalBob is provided, Bob uses _swap_init to respond to requested swap
@@ -201,9 +193,6 @@ class AtomicSwapHandler(BasicHandler):
             **transfer_state,
         }
 
-    @preload_state((
-        (AtomicSwapInfo, lambda self, ctx, signer, pb: self.make_address_from_data(pb.swap_id)),
-    ))
     def _swap_set_lock(self, context, signer_pubkey, swap_set_lock_payload):
         """
         Set secret lock.
@@ -235,9 +224,6 @@ class AtomicSwapHandler(BasicHandler):
             address_swap_info_is_stored_by: swap_information,
         }
 
-    @preload_state((
-        (AtomicSwapInfo, lambda self, ctx, signer, pb: self.make_address_from_data(pb.swap_id)),
-    ))
     def _swap_approve(self, context, signer_pubkey, swap_approve_payload):
         """
         Only called by Alice to approve REMchain => other transaction for Bob to close it.
@@ -275,10 +261,6 @@ class AtomicSwapHandler(BasicHandler):
             address_swap_info_is_stored_by: swap_information,
         }
 
-    @preload_state((
-        (AtomicSwapInfo, lambda self, ctx, signer, pb: self.make_address_from_data(pb.swap_id)),
-        (BlockInfoConfig, CONFIG_ADDRESS),
-    ))
     def _swap_expire(self, context, signer_pubkey, swap_expire_payload):
         """
         Transaction initiator (Alice) decides to withdraw deposit in 24 hours, or Bob in 48 hours.
@@ -328,9 +310,6 @@ class AtomicSwapHandler(BasicHandler):
             swap_information.sender_address: account,
         }
 
-    @preload_state((
-        (AtomicSwapInfo, lambda self, ctx, signer, pb: self.make_address_from_data(pb.swap_id)),
-    ))
     def _swap_close(self, context, signer_pubkey, swap_close_payload):
         """
         Close atomic swap.
