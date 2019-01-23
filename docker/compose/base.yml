@@ -42,7 +42,7 @@ services:
     container_name: remme_consensus_devmode
     image: remme/sawtooth:latest
     network_mode: "service:validator"
-    entrypoint: devmode-rust -vv --connect tcp://127.0.0.1:5005
+    entrypoint: devmode-engine-rust -vv --connect tcp://127.0.0.1:5005
 
   validator-rest-api:
     container_name: remme_validator_rest_api
