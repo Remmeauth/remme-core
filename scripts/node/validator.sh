@@ -1,4 +1,4 @@
-# TODO add BlockInfo back when new Sawtooth implementation stabilizes
+#!/usr/bin/env bash
 
 eval `python3 /scripts/toml-to-env.py`
 
@@ -32,6 +32,16 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
             -o devmode.batch
 
         GENESIS_BATCHES="$GENESIS_BATCHES devmode.batch"
+    elif [ "$REMME_CONSENSUS" = "remme" ]; then
+        echo "REMME consensus is set to use. Writing consensus specific settings..."
+        sawset proposal create \
+        -k /etc/sawtooth/keys/validator.priv \
+            remme.consensus.voters_number=1 \
+            remme.consensus.timing=3 \
+            remme.consensus.allowed_validators="$(cat /etc/sawtooth/keys/validator.pub)" \
+            -o consensus.batch
+
+        GENESIS_BATCHES="$GENESIS_BATCHES consensus.batch"
     fi
 
     echo "Writing REMME settings..."
