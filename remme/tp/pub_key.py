@@ -354,10 +354,13 @@ class PubKeyHandler(BasicHandler):
         """
         new_public_key_payload = transaction_payload.pub_key_payload
 
-        owner_secp256k1_public_key = Secp256k1PublicKey.from_hex(transaction_payload.owner_public_key.decode())
+        owner_public_key_as_bytes = transaction_payload.owner_public_key
+        owner_public_key_as_hex = owner_public_key_as_bytes.hex()
+
+        owner_secp256k1_public_key = Secp256k1PublicKey.from_hex(owner_public_key_as_hex)
 
         is_owner_public_key_payload_signature_valid = Secp256k1Context().verify(
-            signature=transaction_payload.signature_by_owner.decode(),
+            signature=transaction_payload.signature_by_owner.hex(),
             message=new_public_key_payload.SerializeToString(),
             public_key=owner_secp256k1_public_key,
         )
@@ -372,7 +375,7 @@ class PubKeyHandler(BasicHandler):
         public_key = processor.get_public_key()
         public_key_to_store_address = self.make_address_from_data(public_key)
 
-        public_key_to_store_owner_address = AccountHandler().make_address_from_data(transaction_payload.owner_public_key)
+        public_key_to_store_owner_address = AccountHandler().make_address_from_data(owner_public_key_as_hex)
         payer_for_storing_address = AccountHandler().make_address_from_data(signer_pubkey)
 
         public_key_information, public_key_to_store_owner_account, payer_for_storing_account = get_multiple_data(context, [
@@ -394,7 +397,7 @@ class PubKeyHandler(BasicHandler):
             raise InvalidTransaction('The public key validity exceeds the maximum value.')
 
         public_key_information = PubKeyStorage()
-        public_key_information.owner = transaction_payload.owner_public_key
+        public_key_information.owner = owner_public_key_as_hex
         public_key_information.payload.CopyFrom(new_public_key_payload)
         public_key_information.is_revoked = False
 

@@ -129,8 +129,8 @@ def test_store_rsa_public_key_for_other():
 
     new_public_key_store_and_pay_payload = NewPubKeyStoreAndPayPayload(
         pub_key_payload=new_public_key_payload,
-        owner_public_key=OWNER_PUBLIC_KEY.encode(),
-        signature_by_owner=signature_by_owner.encode(),
+        owner_public_key=bytes.fromhex(OWNER_PUBLIC_KEY),
+        signature_by_owner=bytes.fromhex(signature_by_owner),
     )
 
     transaction_payload = TransactionPayload()
@@ -227,8 +227,8 @@ def test_store_ed25519_public_key():
 
     new_public_key_store_and_pay_payload = NewPubKeyStoreAndPayPayload(
         pub_key_payload=new_public_key_payload,
-        owner_public_key=OWNER_PUBLIC_KEY.encode(),
-        signature_by_owner=signature_by_owner.encode(),
+        owner_public_key=bytes.fromhex(OWNER_PUBLIC_KEY),
+        signature_by_owner=bytes.fromhex(signature_by_owner),
     )
 
     transaction_payload = TransactionPayload()
@@ -325,8 +325,8 @@ def test_store_ecdsa_public_key():
 
     new_public_key_store_and_pay_payload = NewPubKeyStoreAndPayPayload(
         pub_key_payload=new_public_key_payload,
-        owner_public_key=OWNER_PUBLIC_KEY.encode(),
-        signature_by_owner=signature_by_owner.encode(),
+        owner_public_key=bytes.fromhex(OWNER_PUBLIC_KEY),
+        signature_by_owner=bytes.fromhex(signature_by_owner),
     )
 
     transaction_payload = TransactionPayload()
@@ -467,12 +467,12 @@ def test_store_public_key_for_other_bad_owner_signature():
     """
     new_public_key_payload = generate_rsa_payload(key=CERTIFICATE_PUBLIC_KEY)
 
-    bad_owner_signature = b'8376g487h9doinjcht8978032iub9yc89u023[owds'
+    bad_owner_signature = 'dd8b2dca17d4d507f77edd8b2dca17d4d507f77edd8b2dca17d4d507f77edd8b2dca17d4d507f77e'
 
     new_public_key_store_and_pay_payload = NewPubKeyStoreAndPayPayload(
         pub_key_payload=new_public_key_payload,
-        owner_public_key=OWNER_PUBLIC_KEY.encode(),
-        signature_by_owner=bad_owner_signature,
+        owner_public_key=bytes.fromhex(OWNER_PUBLIC_KEY),
+        signature_by_owner=bytes.fromhex(bad_owner_signature),
     )
 
     transaction_payload = TransactionPayload()
@@ -522,8 +522,8 @@ def test_store_public_key_for_other_already_registered_public_key():
 
     new_public_key_store_and_pay_payload = NewPubKeyStoreAndPayPayload(
         pub_key_payload=new_public_key_payload,
-        owner_public_key=OWNER_PUBLIC_KEY.encode(),
-        signature_by_owner=signature_by_owner.encode(),
+        owner_public_key=bytes.fromhex(OWNER_PUBLIC_KEY),
+        signature_by_owner=bytes.fromhex(signature_by_owner),
     )
 
     transaction_payload = TransactionPayload()
@@ -584,8 +584,8 @@ def test_store_public_key_for_other_not_der_public_key_format():
 
     new_public_key_store_and_pay_payload = NewPubKeyStoreAndPayPayload(
         pub_key_payload=new_public_key_payload,
-        owner_public_key=OWNER_PUBLIC_KEY.encode(),
-        signature_by_owner=signature_by_owner.encode(),
+        owner_public_key=bytes.fromhex(OWNER_PUBLIC_KEY),
+        signature_by_owner=bytes.fromhex(signature_by_owner),
     )
 
     transaction_payload = TransactionPayload()
@@ -635,8 +635,8 @@ def test_store_public_key_for_other_invalid_certificate_signature():
 
     new_public_key_store_and_pay_payload = NewPubKeyStoreAndPayPayload(
         pub_key_payload=new_public_key_payload,
-        owner_public_key=OWNER_PUBLIC_KEY.encode(),
-        signature_by_owner=signature_by_owner.encode(),
+        owner_public_key=bytes.fromhex(OWNER_PUBLIC_KEY),
+        signature_by_owner=bytes.fromhex(signature_by_owner),
     )
 
     transaction_payload = TransactionPayload()
@@ -676,8 +676,8 @@ def test_store_public_key_for_other_public_key_exceeded_validity():
 
     new_public_key_store_and_pay_payload = NewPubKeyStoreAndPayPayload(
         pub_key_payload=new_public_key_payload,
-        owner_public_key=OWNER_PUBLIC_KEY.encode(),
-        signature_by_owner=signature_by_owner.encode(),
+        owner_public_key=bytes.fromhex(OWNER_PUBLIC_KEY),
+        signature_by_owner=bytes.fromhex(signature_by_owner),
     )
 
     transaction_payload = TransactionPayload()
@@ -719,8 +719,8 @@ def test_store_public_key_for_other_economy_is_not_enabled():
 
     new_public_key_store_and_pay_payload = NewPubKeyStoreAndPayPayload(
         pub_key_payload=new_public_key_payload,
-        owner_public_key=OWNER_PUBLIC_KEY.encode(),
-        signature_by_owner=signature_by_owner.encode(),
+        owner_public_key=bytes.fromhex(OWNER_PUBLIC_KEY),
+        signature_by_owner=bytes.fromhex(signature_by_owner),
     )
 
     transaction_payload = TransactionPayload()
