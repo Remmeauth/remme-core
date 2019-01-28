@@ -42,5 +42,11 @@ class NewPublicKeyPayloadForm(ProtoForm):
         return is_valid
 
 
+class NewPubKeyStoreAndPayPayloadForm(ProtoForm):
+
+    owner_public_key = fields.StringField(validators=[validators.DataRequired()])
+    signature_by_owner = fields.StringField(validators=[validators.DataRequired()])
+
+
 class RevokePubKeyPayloadForm(ProtoForm):
     address = AddressField()

@@ -121,9 +121,9 @@ def generate_ecdsa_payload(key=None, entity_hash=None, entity_hash_signature=Non
     )
 
 
-def generate_header(payload, inputs, outputs):
+def generate_header(payload, inputs, outputs, signer_public_key=SENDER_PUBLIC_KEY):
     return TransactionHeader(
-        signer_public_key=SENDER_PUBLIC_KEY,
+        signer_public_key=signer_public_key,
         family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
         family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
         inputs=inputs,
