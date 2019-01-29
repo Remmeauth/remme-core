@@ -22,6 +22,7 @@ easy to use. The metric collection mechanism is based on InfluxDB.
 import logging
 import platform
 from requests.exceptions import ConnectionError
+from concurrent.futures import ThreadPoolExecutor
 import time
 from datetime import datetime
 from influxdb import InfluxDBClient
@@ -55,13 +56,15 @@ class _TimeMeasurement:
         self._done = False
         self._start_time = time.time()
 
-    def done(self):
+    def done(self, noblock=False):
         """Sends the time metric to the collector.
 
         The metric format is
             {
                 'execution_time': stop_time - self._start_time
             }
+
+        :param noblock: Optional. When set to `True` the call is non-blocking.
         """
         if self._done:
             return
@@ -71,7 +74,7 @@ class _TimeMeasurement:
         values = {
             'execution_time': stop_time - self._start_time
         }
-        self._metrics_sender.send_metric(self._metric, values)
+        self._metrics_sender.send_metric(self._metric, values, noblock)
 
 
 class MetricsSender:
@@ -97,6 +100,7 @@ class MetricsSender:
         :param db: The name of the database for metrics.
         """
         self._influxdb_client = InfluxDBClient(address, port, user, password)
+        self._thread_pool = ThreadPoolExecutor()
         self._ready = False
 
         try:
@@ -122,7 +126,7 @@ class MetricsSender:
         self._influxdb_client.switch_database(db)
         self._ready = True
 
-    def send_metric(self, metric, values):
+    def send_metric(self, metric, values, noblock=False):
         """Send metrics to the database.
 
         If the connection initialization was not successful, this method will do
@@ -130,6 +134,7 @@ class MetricsSender:
 
         :param metric: The name of the metric (will be prefixed with "remme").
         :param values: The dict of values for the metric.
+        :param noblock: Optional. When set to `True` the call is non-blocking.
 
         :Example:
 
@@ -155,6 +160,12 @@ class MetricsSender:
             'fields': values
         }
 
+        if noblock:
+            self._thread_pool.submit(self._write_point, data_point)
+        else:
+            self._write_point(data_point)
+
+    def _write_point(self, data_point):
         try:
             self._influxdb_client.write_points([data_point])
         except InfluxDBClientError:
