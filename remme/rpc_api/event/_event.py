@@ -138,8 +138,9 @@ async def unsubscribe(request):
         try:
             del subsevt[event_type]
         except KeyError:
-            raise ClientException(
-                message='Subscription not found')
+            pass
+            # raise ClientException(
+            #     message='Subscription not found')
 
     return 'UNSUBSCRIBED'
 
