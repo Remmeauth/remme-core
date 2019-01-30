@@ -14,14 +14,18 @@
 # ------------------------------------------------------------------------
 import logging
 import json
+import warnings
 
 from google.protobuf.message import DecodeError
 from google.protobuf.text_format import ParseError
 from sawtooth_processor_test.message_factory import MessageFactory
 from sawtooth_sdk.processor.exceptions import InternalError, InvalidTransaction
-from remme.protos.transaction_pb2 import TransactionPayload
+from sawtooth_sdk.protobuf.transaction_pb2 import TransactionHeader
 
+from remme.protos.transaction_pb2 import TransactionPayload
 from remme.shared.utils import hash512, Singleton, from_proto_to_dict
+
+from .context import CacheContextService
 
 
 LOGGER = logging.getLogger(__name__)
@@ -62,34 +66,15 @@ def get_event_attributes(updated_state, header_signature):
 
 
 def get_data(context, pb_class, address):
-    raw_data = context.get_state([address])
-    LOGGER.debug(f'The context data {raw_data} have been fetched by address {address}.')
-
-    if raw_data:
-        try:
-            data = pb_class()
-            data.ParseFromString(raw_data[0].data)
-            return data
-        except IndexError:
-            return None
-        except ParseError:
-            raise InternalError('Failed to deserialize data')
-    else:
-        return None
+    data = get_multiple_data(context, [(address, pb_class)])
+    try:
+        return next(data)
+    except StopIteration:
+        pass
 
 
 def get_multiple_data(context, data):
-    raw_data = context.get_state([el[0] for el in data])
-    raw_data = {entry.address: entry.data for entry in raw_data}
-    datas = []
-    for address, pb_class in data:
-        try:
-            data = pb_class()
-            data.ParseFromString(raw_data[address])
-            datas.append(data)
-        except Exception:
-            datas.append(None)
-    return datas
+    return context.get_cached_data(data)
 
 
 class BasicHandler(metaclass=Singleton):
@@ -154,12 +139,10 @@ class BasicHandler(metaclass=Singleton):
         try:
             transaction_payload = TransactionPayload()
             transaction_payload.ParseFromString(transaction.payload)
-
         except DecodeError:
             raise InvalidTransaction('Cannot decode transaction payload.')
 
         state_processor = self.get_state_processor()
-
         try:
             data_pb = state_processor[transaction_payload.method][PB_CLASS]()
             data_pb.ParseFromString(transaction_payload.data)
@@ -174,15 +157,17 @@ class BasicHandler(metaclass=Singleton):
                                      f'"{validator._pb_class.__name__}", '
                                      f'detailed: {validator.errors}')
 
-        updated_state = processor(context, transaction.header.signer_public_key, data_pb)
+        context_service = CacheContextService(context=context)
+        context_service.preload_state(transaction.header.inputs)
+        updated_state = processor(context_service, transaction.header.signer_public_key, data_pb)
 
-        context.set_state({k: v.SerializeToString() for k, v in updated_state.items()})
+        context_service.set_state({k: v.SerializeToString() for k, v in updated_state.items()})
 
         event_name = state_processor[transaction_payload.method].get(EMIT_EVENT, None)
 
         if event_name:
             event_attributes = get_event_attributes(updated_state, transaction.signature)
-            add_event(context, event_name, event_attributes)
+            add_event(context_service, event_name, event_attributes)
 
     def make_address(self, appendix):
         address = self._prefix + appendix

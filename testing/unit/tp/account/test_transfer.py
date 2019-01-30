@@ -118,7 +118,7 @@ def test_account_handler_with_empty_proto():
         TransferPayload,
         {
             'address_to': ['Missed address'],
-            'value': ['This field is required.'],
+            'value': ['Could not transfer with zero amount.'],
         }
     ) == str(error.value)
 
@@ -274,14 +274,48 @@ def test_account_transfer_from_address():
     transfer_payload.address_to = ACCOUNT_ADDRESS_TO
     transfer_payload.value = TOKENS_AMOUNT_TO_SEND
 
-    mock_context = create_context(account_from_balance=ACCOUNT_FROM_BALANCE, account_to_balance=ACCOUNT_TO_BALANCE)
+    transaction_payload = TransactionPayload()
+    transaction_payload.method = AccountMethod.TRANSFER
+    transaction_payload.data = transfer_payload.SerializeToString()
 
-    result = AccountHandler()._transfer_from_address(
-        context=mock_context, address_from=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
+    serialized_transaction_payload = transaction_payload.SerializeToString()
+
+    transaction_header = TransactionHeader(
+        signer_public_key=RANDOM_NODE_PUBLIC_KEY,
+        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
+        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
+        inputs=INPUTS,
+        outputs=OUTPUTS,
+        dependencies=[],
+        payload_sha512=hash512(data=serialized_transaction_payload),
+        batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
+        nonce=time.time().hex().encode(),
     )
 
-    assert result.get(ACCOUNT_ADDRESS_FROM).balance == expected_account_from_balance
-    assert result.get(ACCOUNT_ADDRESS_TO).balance == expected_account_to_balance
+    serialized_header = transaction_header.SerializeToString()
+
+    transaction_request = TpProcessRequest(
+        header=transaction_header,
+        payload=serialized_transaction_payload,
+        signature=create_signer(private_key=ACCOUNT_FROM_PRIVATE_KEY).sign(serialized_header),
+    )
+
+    mock_context = create_context(account_from_balance=ACCOUNT_FROM_BALANCE, account_to_balance=ACCOUNT_TO_BALANCE)
+
+    AccountHandler().apply(transaction=transaction_request, context=mock_context)
+
+    state_as_list = mock_context.get_state(addresses=[
+        ACCOUNT_ADDRESS_FROM, ACCOUNT_ADDRESS_TO,
+    ])
+
+    state_as_dict = {}
+    for entry in state_as_list:
+        acc = Account()
+        acc.ParseFromString(entry.data)
+        state_as_dict[entry.address] = acc
+
+    assert state_as_dict.get(ACCOUNT_ADDRESS_FROM, Account()).balance == expected_account_from_balance
+    assert state_as_dict.get(ACCOUNT_ADDRESS_TO, Account()).balance == expected_account_to_balance
 
 
 def test_account_transfer_from_address_zero_amount():
@@ -295,12 +329,41 @@ def test_account_transfer_from_address_zero_amount():
     transfer_payload.address_to = ACCOUNT_ADDRESS_TO
     transfer_payload.value = 0
 
-    with pytest.raises(InvalidTransaction) as error:
-        AccountHandler()._transfer_from_address(
-            context=mock_context, address_from=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
-        )
+    transaction_payload = TransactionPayload()
+    transaction_payload.method = AccountMethod.TRANSFER
+    transaction_payload.data = transfer_payload.SerializeToString()
 
-    assert f'Could not transfer with zero amount.' == str(error.value)
+    serialized_transaction_payload = transaction_payload.SerializeToString()
+
+    transaction_header = TransactionHeader(
+        signer_public_key=RANDOM_NODE_PUBLIC_KEY,
+        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
+        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
+        inputs=INPUTS,
+        outputs=OUTPUTS,
+        dependencies=[],
+        payload_sha512=hash512(data=serialized_transaction_payload),
+        batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
+        nonce=time.time().hex().encode(),
+    )
+
+    serialized_header = transaction_header.SerializeToString()
+
+    transaction_request = TpProcessRequest(
+        header=transaction_header,
+        payload=serialized_transaction_payload,
+        signature=create_signer(private_key=ACCOUNT_FROM_PRIVATE_KEY).sign(serialized_header),
+    )
+
+    with pytest.raises(InvalidTransaction) as error:
+        AccountHandler().apply(transaction=transaction_request, context=mock_context)
+
+    assert proto_error_msg(
+        TransferPayload,
+        {
+            'value': ['Could not transfer with zero amount.'],
+        }
+    ) == str(error.value)
 
 
 def test_account_transfer_from_address_to_address_not_account_type():
@@ -314,12 +377,41 @@ def test_account_transfer_from_address_to_address_not_account_type():
     transfer_payload.address_to = ADDRESS_NOT_ACCOUNT_TYPE
     transfer_payload.value = TOKENS_AMOUNT_TO_SEND
 
-    with pytest.raises(InvalidTransaction) as error:
-        AccountHandler()._transfer_from_address(
-            context=mock_context, address_from=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
-        )
+    transaction_payload = TransactionPayload()
+    transaction_payload.method = AccountMethod.TRANSFER
+    transaction_payload.data = transfer_payload.SerializeToString()
 
-    assert f'Receiver address has to be of an account type.' == str(error.value)
+    serialized_transaction_payload = transaction_payload.SerializeToString()
+
+    transaction_header = TransactionHeader(
+        signer_public_key=RANDOM_NODE_PUBLIC_KEY,
+        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
+        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
+        inputs=INPUTS,
+        outputs=OUTPUTS,
+        dependencies=[],
+        payload_sha512=hash512(data=serialized_transaction_payload),
+        batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
+        nonce=time.time().hex().encode(),
+    )
+
+    serialized_header = transaction_header.SerializeToString()
+
+    transaction_request = TpProcessRequest(
+        header=transaction_header,
+        payload=serialized_transaction_payload,
+        signature=create_signer(private_key=ACCOUNT_FROM_PRIVATE_KEY).sign(serialized_header),
+    )
+
+    with pytest.raises(InvalidTransaction) as error:
+        AccountHandler().apply(transaction=transaction_request, context=mock_context)
+
+    assert proto_error_msg(
+        TransferPayload,
+        {
+            'address_to': ['Address is not of a blockchain token type.'],
+        }
+    ) == str(error.value)
 
 
 def test_account_transfer_from_address_send_to_itself():
@@ -333,10 +425,34 @@ def test_account_transfer_from_address_send_to_itself():
     transfer_payload.address_to = ACCOUNT_ADDRESS_FROM
     transfer_payload.value = TOKENS_AMOUNT_TO_SEND
 
+    transaction_payload = TransactionPayload()
+    transaction_payload.method = AccountMethod.TRANSFER
+    transaction_payload.data = transfer_payload.SerializeToString()
+
+    serialized_transaction_payload = transaction_payload.SerializeToString()
+
+    transaction_header = TransactionHeader(
+        signer_public_key=RANDOM_NODE_PUBLIC_KEY,
+        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
+        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
+        inputs=INPUTS,
+        outputs=OUTPUTS,
+        dependencies=[],
+        payload_sha512=hash512(data=serialized_transaction_payload),
+        batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
+        nonce=time.time().hex().encode(),
+    )
+
+    serialized_header = transaction_header.SerializeToString()
+
+    transaction_request = TpProcessRequest(
+        header=transaction_header,
+        payload=serialized_transaction_payload,
+        signature=create_signer(private_key=ACCOUNT_FROM_PRIVATE_KEY).sign(serialized_header),
+    )
+
     with pytest.raises(InvalidTransaction) as error:
-        AccountHandler()._transfer_from_address(
-            context=mock_context, address_from=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
-        )
+        AccountHandler().apply(transaction=transaction_request, context=mock_context)
 
     assert f'Account cannot send tokens to itself.' == str(error.value)
 
@@ -352,10 +468,34 @@ def test_account_transfer_from_address_without_tokens():
     transfer_payload.address_to = ACCOUNT_ADDRESS_TO
     transfer_payload.value = TOKENS_AMOUNT_TO_SEND
 
+    transaction_payload = TransactionPayload()
+    transaction_payload.method = AccountMethod.TRANSFER
+    transaction_payload.data = transfer_payload.SerializeToString()
+
+    serialized_transaction_payload = transaction_payload.SerializeToString()
+
+    transaction_header = TransactionHeader(
+        signer_public_key=RANDOM_NODE_PUBLIC_KEY,
+        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
+        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
+        inputs=INPUTS,
+        outputs=OUTPUTS,
+        dependencies=[],
+        payload_sha512=hash512(data=serialized_transaction_payload),
+        batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
+        nonce=time.time().hex().encode(),
+    )
+
+    serialized_header = transaction_header.SerializeToString()
+
+    transaction_request = TpProcessRequest(
+        header=transaction_header,
+        payload=serialized_transaction_payload,
+        signature=create_signer(private_key=ACCOUNT_FROM_PRIVATE_KEY).sign(serialized_header),
+    )
+
     with pytest.raises(InvalidTransaction) as error:
-        AccountHandler()._transfer_from_address(
-            context=mock_context, address_from=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
-        )
+        AccountHandler().apply(transaction=transaction_request, context=mock_context)
 
     assert 'Not enough transferable balance. Sender\'s current balance: 0.' == str(error.value)
 
@@ -376,9 +516,33 @@ def test_account_transfer_from_address_without_previous_usage():
     transfer_payload.address_to = ACCOUNT_ADDRESS_TO
     transfer_payload.value = TOKENS_AMOUNT_TO_SEND
 
+    transaction_payload = TransactionPayload()
+    transaction_payload.method = AccountMethod.TRANSFER
+    transaction_payload.data = transfer_payload.SerializeToString()
+
+    serialized_transaction_payload = transaction_payload.SerializeToString()
+
+    transaction_header = TransactionHeader(
+        signer_public_key=RANDOM_NODE_PUBLIC_KEY,
+        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
+        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
+        inputs=INPUTS,
+        outputs=OUTPUTS,
+        dependencies=[],
+        payload_sha512=hash512(data=serialized_transaction_payload),
+        batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
+        nonce=time.time().hex().encode(),
+    )
+
+    serialized_header = transaction_header.SerializeToString()
+
+    transaction_request = TpProcessRequest(
+        header=transaction_header,
+        payload=serialized_transaction_payload,
+        signature=create_signer(private_key=ACCOUNT_FROM_PRIVATE_KEY).sign(serialized_header),
+    )
+
     with pytest.raises(InvalidTransaction) as error:
-        AccountHandler()._transfer_from_address(
-            context=mock_context, address_from=ACCOUNT_ADDRESS_FROM, transfer_payload=transfer_payload,
-        )
+        AccountHandler().apply(transaction=transaction_request, context=mock_context)
 
     assert f'Not enough transferable balance. Sender\'s current balance: 0.' == str(error.value)

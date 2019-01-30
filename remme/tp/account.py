@@ -20,11 +20,15 @@ from remme.protos.account_pb2 import (
     Account, GenesisStatus, AccountMethod, GenesisPayload,
     TransferPayload
 )
-from remme.settings.helper import _get_setting_value
-from remme.settings import GENESIS_ADDRESS, ZERO_ADDRESS, SETTINGS_KEY_ZERO_ADDRESS_OWNERS
-from remme.tp.basic import PB_CLASS, PROCESSOR, VALIDATOR, BasicHandler, get_data, get_multiple_data
+from remme.settings import (
+    GENESIS_ADDRESS, ZERO_ADDRESS
+)
 from remme.shared.forms import TransferPayloadForm, GenesisPayloadForm
 from remme.shared.constants import Events, EMIT_EVENT
+
+from .basic import (
+    PB_CLASS, PROCESSOR, VALIDATOR, BasicHandler, get_data, get_multiple_data
+)
 
 
 LOGGER = logging.getLogger(__name__)
@@ -40,8 +44,8 @@ def get_account_by_address(context, address):
     return account
 
 
-# TODO: ensure receiver_account.balance += transfer_payload.amount is within uint64
 class AccountHandler(BasicHandler):
+
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
 
