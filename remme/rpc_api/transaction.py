@@ -31,7 +31,7 @@ from remme.tp.__main__ import TP_HANDLERS
 from remme.clients.account import AccountClient
 from remme.clients.pub_key import PubKeyClient
 from remme.protos.transaction_pb2 import TransactionPayload
-from remme.shared.forms import IdentifierForm, IdentifiersForm
+from remme.shared.forms import ProtoForm, IdentifierForm, IdentifiersForm
 
 from .utils import validate_params
 
@@ -51,6 +51,7 @@ __all__ = (
 logger = logging.getLogger(__name__)
 
 
+@validate_params(ProtoForm)
 async def send_tokens(request):
     try:
         amount = request.params['amount']
@@ -105,6 +106,7 @@ def _get_proto_validator(current_handler, tr_payload_pb):
     return validator_class.load_proto(data_pb)
 
 
+@validate_params(ProtoForm)
 async def send_raw_transaction(request):
     try:
         data = request.params['data']
@@ -188,6 +190,7 @@ async def list_receipts(request):
         raise KeyNotFound(f'Transactions with ids "{ids}" not found')
 
 
+@validate_params(ProtoForm, ignore_fields=('ids', 'start', 'limit', 'head', 'reverse'))
 async def list_batches(request):
     client = AccountClient()
     ids = request.params.get('ids')
@@ -218,6 +221,7 @@ async def get_batch_status(request):
     return await client.get_batch_status(id)
 
 
+@validate_params(ProtoForm, ignore_fields=('ids', 'start', 'limit', 'head', 'reverse', 'family_name'))
 async def list_transactions(request):
     client = AccountClient()
     ids = request.params.get('ids')

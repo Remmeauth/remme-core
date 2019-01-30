@@ -23,7 +23,7 @@ from aiohttp_json_rpc import RpcInvalidParamsError
 logger = logging.getLogger(__name__)
 
 
-def validate_params(form_class):
+def validate_params(form_class, ignore_fields=None):
     def decorator(func):
         def _get_first_error(message):
             if isinstance(message, list):
@@ -34,7 +34,7 @@ def validate_params(form_class):
         @functools.wraps(func)
         async def wrapper(request, *args, **kwargs):
             logger.debug(f'Req params: {request.params}')
-            form = form_class(**request.params)
+            form = form_class(ignore_fields=ignore_fields, **request.params)
             if not form.validate():
                 try:
                     message = _get_first_error(
@@ -44,7 +44,6 @@ def validate_params(form_class):
                     message = 'Validation failed'
                 raise RpcInvalidParamsError(message=message)
 
-            request.params = form.data
             return await func(request, *args, **kwargs)
         return wrapper
     return decorator

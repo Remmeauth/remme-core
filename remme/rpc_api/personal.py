@@ -13,7 +13,7 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 from remme.clients.pub_key import PubKeyClient
-from remme.shared.forms import NodePKForm
+from remme.shared.forms import ProtoForm, NodePKForm
 
 from .utils import validate_params
 
@@ -31,6 +31,7 @@ async def set_node_key(request):
     return True
 
 
+@validate_params(ProtoForm)
 async def export_node_key(request):
     client = PubKeyClient()
     return client.get_private_key()
