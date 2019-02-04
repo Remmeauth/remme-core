@@ -68,3 +68,9 @@ max_age = 10000
 # This allows cookies and credentials to be submitted across domains.
 allow_credentials = false
 
+[remme.metrics]
+influxdb_address = "localhost"
+influxdb_port = 8086
+influxdb_user = "lrdata"
+influxdb_password = "12345678"
+influxdb_database = "lrdata"

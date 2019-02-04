@@ -24,6 +24,7 @@ from sawtooth_sdk.protobuf.transaction_pb2 import TransactionHeader
 
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.shared.utils import hash512, Singleton, from_proto_to_dict
+from remme.shared.metrics import METRICS_SENDER
 
 from .context import CacheContextService
 
@@ -157,6 +158,10 @@ class BasicHandler(metaclass=Singleton):
                                      f'"{validator._pb_class.__name__}", '
                                      f'detailed: {validator.errors}')
 
+        measurement = METRICS_SENDER.get_time_measurement(
+            f'tp.{self._family_name}.{transaction_payload.method}'
+        )
+
         context_service = CacheContextService(context=context)
         context_service.preload_state(transaction.header.inputs)
         updated_state = processor(context_service, transaction.header.signer_public_key, data_pb)
@@ -168,6 +173,8 @@ class BasicHandler(metaclass=Singleton):
         if event_name:
             event_attributes = get_event_attributes(updated_state, transaction.signature)
             add_event(context_service, event_name, event_attributes)
+
+        measurement.done()
 
     def make_address(self, appendix):
         address = self._prefix + appendix
