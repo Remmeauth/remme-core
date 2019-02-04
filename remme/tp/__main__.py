@@ -22,13 +22,14 @@ from sawtooth_sdk.processor.core import TransactionProcessor
 from remme.tp.atomic_swap import AtomicSwapHandler
 from remme.tp.pub_key import PubKeyHandler
 from remme.tp.account import AccountHandler
+from remme.tp.multisignature_account import MultisignatureAccountHandler
 from remme.shared.logging_setup import setup_logging
 from remme.settings.default import load_toml_with_defaults
 
 
 TP_HANDLERS = {
     handler._family_name: handler
-    for handler in (AccountHandler(), PubKeyHandler(), AtomicSwapHandler())
+    for handler in (AccountHandler(), PubKeyHandler(), AtomicSwapHandler(), MultisignatureAccountHandler())
 }
 
 if __name__ == '__main__':
