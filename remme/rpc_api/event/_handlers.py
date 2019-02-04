@@ -286,6 +286,7 @@ class AtomicSwapEventHandler(BaseEventHandler):
         Events.SWAP_APPROVE.value,
         Events.SWAP_EXPIRE.value,
         Events.SWAP_SET_SECRET_LOCK.value,
+        Events.SAWTOOTH_BLOCK_COMMIT.value,
     )
 
     @classmethod
