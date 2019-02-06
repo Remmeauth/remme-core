@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
-
-eval `python3 /scripts/toml-to-env.py`
-
 ADDITIONAL_ARGS=""
 
-echo "Economy enabled: $REMME_ECONOMY_ENABLED"
+echo "Genesis host is $GENESIS_HOST"
+
+if [ "$NODEHOST" = "$GENESIS_HOST" ]; then
+    REMME_START_MODE=genesis
+    echo "Generating genesis block on $NODEHOST..."
+else
+    REMME_START_MODE=run
+    echo "Starting a simple node at $NODEHOST..."
+fi
 
 if [ ! -f /etc/sawtooth/keys/validator.priv ]; then
     echo "validator key pair not found - creating a new one..."
@@ -23,26 +28,15 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
     sawset genesis -k /etc/sawtooth/keys/validator.priv
     GENESIS_BATCHES="config-genesis.batch"
 
-    if [ "$REMME_CONSENSUS" = "devmode" ]; then
-        echo "Devmode consensus is set to use. Writing consensus specific settings..."
-        sawset proposal create \
-            -k /etc/sawtooth/keys/validator.priv \
-            sawtooth.consensus.min_wait_time=5 \
-            sawtooth.consensus.max_wait_time=30 \
-            -o devmode.batch
+    echo "REMME consensus is set to use. Writing consensus specific settings..."
+    sawset proposal create \
+    -k /etc/sawtooth/keys/validator.priv \
+        remme.consensus.voters_number=1 \
+        remme.consensus.timing=3 \
+        remme.consensus.allowed_validators="$(cat /etc/sawtooth/keys/validator.pub)" \
+        -o consensus.batch
 
-        GENESIS_BATCHES="$GENESIS_BATCHES devmode.batch"
-    elif [ "$REMME_CONSENSUS" = "remme" ]; then
-        echo "REMME consensus is set to use. Writing consensus specific settings..."
-        sawset proposal create \
-        -k /etc/sawtooth/keys/validator.priv \
-            remme.consensus.voters_number=1 \
-            remme.consensus.timing=3 \
-            remme.consensus.allowed_validators="$(cat /etc/sawtooth/keys/validator.pub)" \
-            -o consensus.batch
-
-        GENESIS_BATCHES="$GENESIS_BATCHES consensus.batch"
-    fi
+    GENESIS_BATCHES="$GENESIS_BATCHES consensus.batch"
 
     echo "Writing REMME settings..."
     echo "Writing out validator public key: "
@@ -63,10 +57,8 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
 
     GENESIS_BATCHES="$GENESIS_BATCHES settings_config.batch"
 
-    if [ "$REMME_ECONOMY_ENABLED" = "True" ]; then
-        echo "Economy model is enabled. Writing the batch to enable it..."
-        GENESIS_BATCHES="$GENESIS_BATCHES /genesis/batch/token-proposal.batch"
-    fi
+    echo "Economy model is enabled. Writing the batch to enable it..."
+    GENESIS_BATCHES="$GENESIS_BATCHES /genesis/batch/token-proposal.batch"
 
     echo "Writing batch injector settings..."
     sawset proposal create \
@@ -83,15 +75,16 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
     echo "Genesis block generated!"
 fi
 
-if [ "$REMME_START_MODE" = "run" ] && [ -s "/config/seeds-list.txt" ]; then
-    echo "Gettings the seeds list..."
-    SEEDS=$(sed ':a;N;$!ba;s/\n/,/g' /config/seeds-list.txt)
-    ADDITIONAL_ARGS="$ADDITIONAL_ARGS --seeds $SEEDS --peers $SEEDS"
-fi
+SEEDS_LIST=$(kubectl get pods -l role=remme-node -o jsonpath="{.items[*].status.podIP}" | sed -E "s/([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/tcp:\/\/\1\-\2-\3-\4.default\.pod\.cluster\.local:8800/g" | sed "s/ /,/g")
+ADDITIONAL_ARGS="$ADDITIONAL_ARGS --peers $SEEDS_LIST"
+
+echo "Seeds list is $SEEDS_LIST"
+
+VALIDATOR_HOST=$(echo $PODIP | sed -E "s/([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/\1\-\2-\3-\4.default\.pod\.cluster\.local/g")
 
 echo "Starting the validator..."
 sawtooth-validator -vv \
-    --endpoint tcp://$REMME_VALIDATOR_IP:$REMME_VALIDATOR_PORT \
+    --endpoint tcp://$VALIDATOR_HOST:8800 \
     --bind component:tcp://127.0.0.1:4004 \
     --bind consensus:tcp://127.0.0.1:5005 \
     --bind network:tcp://0.0.0.0:8800 \
