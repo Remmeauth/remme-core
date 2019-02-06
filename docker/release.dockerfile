@@ -7,7 +7,6 @@ COPY ./pyproject.* ./
 COPY ./README.* ./
 COPY ./remme ./remme
 COPY ./protos ./protos
-COPY ./scripts/node /project/scripts
 RUN apk --update --no-cache add --virtual .build_deps rsync pkgconf build-base autoconf automake protobuf libtool libffi-dev python3-dev zeromq-dev openssl-dev && \
     poetry config settings.virtualenvs.create false && \
     poetry install --no-dev && \
@@ -15,3 +14,4 @@ RUN apk --update --no-cache add --virtual .build_deps rsync pkgconf build-base a
     pip3 uninstall -y poetry && \
     rm -rf ./protos ./pyproject.* && \
     apk del .build_deps
+COPY ./scripts/node /project/scripts
