@@ -31,6 +31,15 @@ logger = logging.getLogger(__name__)
 
 
 async def get_node_config(request):
+
+    from remme.shared.forms.pkc import NodeConfigForm
+    from werkzeug.datastructures import MultiDict
+
+    form = NodeConfigForm(MultiDict(request.params))
+
+    if not form.validate():
+        return form.errors
+
     client = PubKeyClient()
     return {
         'node_public_key': client.get_public_key(),

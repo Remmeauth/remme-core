@@ -31,3 +31,31 @@ class ProtoForm(Form):
 
     def get_pb_class(self):
         return getattr(self, '_pb_class', None)
+
+
+from wtforms import fields, validators
+from wtforms import Form
+
+from remme.shared.forms._fields import AddressField
+from werkzeug.datastructures import MultiDict
+
+
+class GenericExcessParametersForm(Form):
+
+    def process(self, formdata=None, obj=None, data=None, **kwargs):
+        self.formdata = formdata
+        super().process(formdata, obj, data, **kwargs)
+
+    def validate(self):
+        is_valid = super().validate()
+
+        for form_parameter_name in self.formdata.keys():
+            if form_parameter_name not in self:
+
+                if is_valid:
+                    is_valid = False
+
+                msg = [f'Excess request parameter.']
+                self.errors[form_parameter_name] = msg
+
+        return is_valid
