@@ -1,17 +1,25 @@
-from wtforms import fields, validators
+from marshmallow import fields, validate
 
 from .base import ProtoForm
-from ._fields import AddressField, SwapIDField
+from ._fields import AddressField, SwapIDField, RequiredString
 
 
 class AtomicSwapInitPayloadForm(ProtoForm):
     receiver_address = AddressField()
-    sender_address_non_local = fields.StringField(validators=[validators.DataRequired()])
-    amount = fields.IntegerField(validators=[validators.DataRequired()])
+    sender_address_non_local = RequiredString()
+    amount = fields.Integer(
+        required=True,
+        validate=validate.Range(
+            min=1, error='Missing data for required field.'),
+        error_messages={'required': 'Missing data for required field.'})
     swap_id = SwapIDField()
-    secret_lock_by_solicitor = fields.StringField(validators=[validators.Optional()])
-    email_address_encrypted_by_initiator = fields.StringField(validators=[validators.Optional()])
-    created_at = fields.IntegerField(validators=[validators.DataRequired()])
+    secret_lock_by_solicitor = fields.String()
+    email_address_encrypted_by_initiator = fields.String()
+    created_at = fields.Integer(
+        required=True,
+        validate=validate.Range(
+            min=1, error='Missing data for required field.'),
+        error_messages={'required': 'Missing data for required field.'})
 
 
 class AtomicSwapApprovePayloadForm(ProtoForm):
@@ -24,12 +32,12 @@ class AtomicSwapExpirePayloadForm(ProtoForm):
 
 class AtomicSwapSetSecretLockPayloadForm(ProtoForm):
     swap_id = SwapIDField()
-    secret_lock = fields.StringField(validators=[validators.DataRequired()])
+    secret_lock = RequiredString()
 
 
 class AtomicSwapClosePayloadForm(ProtoForm):
     swap_id = SwapIDField()
-    secret_key = fields.StringField(validators=[validators.DataRequired()])
+    secret_key = RequiredString()
 
 
 class AtomicSwapForm(ProtoForm):

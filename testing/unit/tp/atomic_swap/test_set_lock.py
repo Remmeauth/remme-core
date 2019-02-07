@@ -13,7 +13,7 @@ from sawtooth_sdk.protobuf.transaction_pb2 import (
 
 from testing.conftest import create_signer
 from testing.mocks.stub import StubContext
-from testing.utils.client import proto_error_msg
+from testing.utils.client import assert_check_errors
 from remme.protos.atomic_swap_pb2 import (
     AtomicSwapInfo,
     AtomicSwapSetSecretLockPayload,
@@ -85,13 +85,13 @@ def test_set_lock_with_empty_proto():
     with pytest.raises(InvalidTransaction) as error:
         AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
 
-    assert proto_error_msg(
-        AtomicSwapSetSecretLockPayload,
+    assert_check_errors(
         {
-            'swap_id': ['Missed swap_id'],
-            'secret_lock': ['This field is required.'],
-        }
-    ) == str(error.value)
+            'swap_id': ['Incorrect atomic swap identifier.'],
+            'secret_lock': ['Missing data for required field.'],
+        },
+        error.value
+    )
 
 
 def test_set_lock_to_atomic_swa():

@@ -15,7 +15,7 @@ from sawtooth_sdk.protobuf.transaction_pb2 import (
 
 from testing.conftest import create_signer
 from testing.mocks.stub import StubContext
-from testing.utils.client import proto_error_msg
+from testing.utils.client import assert_check_errors
 from remme.clients.block_info import (
     CONFIG_ADDRESS,
     BlockInfoClient,
@@ -145,16 +145,16 @@ def test_atomic_swap_init_with_empty_proto():
     with pytest.raises(InvalidTransaction) as error:
         AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
 
-    assert proto_error_msg(
-        AtomicSwapInitPayload,
+    assert_check_errors(
         {
-            'receiver_address': ['Missed address'],
-            'sender_address_non_local': ['This field is required.'],
-            'amount': ['This field is required.'],
-            'swap_id': ['Missed swap_id'],
-            'created_at': ['This field is required.'],
-        }
-    ) == str(error.value)
+            'receiver_address': ['Address is not of a blockchain token type.'],
+            'sender_address_non_local': ['Missing data for required field.'],
+            'amount': ['Missing data for required field.'],
+            'swap_id': ['Incorrect atomic swap identifier.'],
+            'created_at': ['Missing data for required field.'],
+        },
+        error.value
+    )
 
 
 def test_atomic_swap_init():
@@ -476,10 +476,10 @@ def test_atomic_swap_init_swap_receiver_address_invalid_type():
     with pytest.raises(InvalidTransaction) as error:
         AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
 
-    assert proto_error_msg(
-        AtomicSwapInitPayload,
-        {'receiver_address': ['Address is not of a blockchain token type.']}
-    ) == str(error.value)
+    assert_check_errors(
+        {'receiver_address': ['Address is not of a blockchain token type.']},
+        error.value
+    )
 
 
 def test_atomic_swap_init_swap_wrong_commission_address():

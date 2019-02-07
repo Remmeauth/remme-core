@@ -20,6 +20,7 @@ from aiohttp_json_rpc import (
     RpcGenericServerDefinedError,
     RpcInvalidParamsError,
 )
+from marshmallow import ValidationError
 from google.protobuf.message import DecodeError
 from sawtooth_sdk.protobuf.transaction_pb2 import (
     Transaction, TransactionHeader
@@ -77,7 +78,7 @@ async def send_tokens(request):
     return result['data']
 
 
-def _get_proto_validator(current_handler, tr_payload_pb):
+def _transaction_validate(current_handler, tr_payload_pb):
     processor = current_handler.get_state_processor()
     try:
         state_processor = processor[tr_payload_pb.method]
@@ -102,7 +103,14 @@ def _get_proto_validator(current_handler, tr_payload_pb):
                      f'with protobuf "{pb_class}"')
         return
 
-    return validator_class.load_proto(data_pb)
+    try:
+        return validator_class.load_proto(data_pb)
+    except ValidationError:
+        raise RpcGenericServerDefinedError(
+            error_code=-32050,
+            message=f'Invalid "{data_pb.__class__.__name__}" '
+                    'structure'
+        )
 
 
 async def send_raw_transaction(request):
@@ -162,15 +170,7 @@ async def send_raw_transaction(request):
             message='Validation handler not set for this method'
         )
 
-    validator = _get_proto_validator(handler, tr_payload_pb)
-    if validator and not validator.validate():
-        logger.debug('Form "send_raw_transaction" validator errors: '
-                     f'{validator.errors}')
-        raise RpcGenericServerDefinedError(
-            error_code=-32050,
-            message=f'Invalid "{validator.get_pb_class().__name__}" '
-                    'structure'
-        )
+    _transaction_validate(handler, tr_payload_pb)
 
     client = PubKeyClient()
     response = await client.send_raw_transaction(tr_pb)

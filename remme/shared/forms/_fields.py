@@ -1,28 +1,49 @@
-from wtforms import fields, validators
+from marshmallow import (
+    fields, validate,
+)
 
 
-class AddressField(fields.StringField):
+class RequiredString(fields.String):
 
-    validators = [
-        validators.DataRequired(message='Missed address'),
-        validators.Regexp('[0-9a-f]{70}',
-                          message='Address is not of a blockchain token type.')
-    ]
-
-
-class SwapIDField(fields.StringField):
-
-    validators = [
-        validators.DataRequired(message='Missed swap_id'),
-        validators.Regexp('[0-9a-f]{64}',
-                          message='Incorrect atomic swap identifier.')
-    ]
+    def __init__(
+        self, required=True, allow_none=False,
+        validate=validate.Length(min=1, error='Missing data for required field.'),
+        **kwargs
+    ):
+        super().__init__(required=required, allow_none=allow_none, validate=validate, **kwargs)
 
 
-class IDField(fields.StringField):
+class AddressField(fields.String):
 
-    validators = [
-        validators.DataRequired(message='Missed id'),
-        validators.Regexp('[0-9a-f]{128}',
-                          message='Incorrect identifier.')
-    ]
+    default_error_messages = {
+        'required': 'Missed address',
+    }
+
+    def __init__(self, required=True, validate=[
+        validate.Regexp(r'[0-9a-f]{70}', error='Address is not of a blockchain token type.')
+    ], *args, **kwargs):
+        super().__init__(required=required, validate=validate, *args, **kwargs)
+
+
+class SwapIDField(fields.String):
+
+    default_error_messages = {
+        'required': 'Missed swap_id',
+    }
+
+    def __init__(self, required=True, validate=[
+        validate.Regexp(r'[0-9a-f]{64}', error='Incorrect atomic swap identifier.')
+    ], *args, **kwargs):
+        super().__init__(required=required, validate=validate, *args, **kwargs)
+
+
+class IDField(fields.String):
+
+    default_error_messages = {
+        'required': 'Missed id',
+    }
+
+    def __init__(self, required=True, validate=[
+        validate.Regexp(r'[0-9a-f]{128}', error='Incorrect identifier.')
+    ], *args, **kwargs):
+        super().__init__(required=required, validate=validate, *args, **kwargs)

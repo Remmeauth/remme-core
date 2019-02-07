@@ -24,7 +24,7 @@ from remme.shared.utils import hash512
 from remme.tp.account import AccountHandler
 from testing.conftest import create_signer
 from testing.mocks.stub import StubContext
-from testing.utils.client import proto_error_msg
+from testing.utils.client import assert_check_errors
 
 TOKENS_AMOUNT_TO_SUPPLY = 1_000_000
 
@@ -83,10 +83,10 @@ def test_account_handler_genesis_apply_with_empty_proto():
     with pytest.raises(InvalidTransaction) as error:
         AccountHandler().apply(transaction=transaction_request, context=mock_context)
 
-    assert proto_error_msg(
-        GenesisPayload,
-        {'total_supply': ['This field is required.']}
-    ) == str(error.value)
+    assert_check_errors(
+        {'total_supply': ['Could not transfer with zero amount.']},
+        error.value
+    )
 
 
 def test_account_handler_genesis_apply():

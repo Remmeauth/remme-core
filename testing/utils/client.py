@@ -12,6 +12,7 @@ References:
 """
 import hashlib
 import binascii
+from collections.abc import Mapping
 
 import ed25519
 from sawtooth_signing import create_context, CryptoFactory
@@ -24,6 +25,23 @@ from cryptography.hazmat.primitives.asymmetric import (
     padding,
     rsa,
 )
+
+
+def check_errors_in_string(errors, err_msg):
+    def _ers(errors):
+        for errk, errmsg in errors.items():
+            if isinstance(errmsg, Mapping):
+                yield from _ers(errmsg)
+            else:
+                yield errk, errmsg
+
+    return {errk: errmsg for errk, errmsg in _ers(errors) \
+        if f"'{errk}': {errmsg}" not in str(err_msg)}
+
+
+def assert_check_errors(errors, err_msg):
+    result = check_errors_in_string(errors, err_msg)
+    assert not result, f"Errors: {result}, not found in: {err_msg}"
 
 
 def proto_error_msg(proto, errors):

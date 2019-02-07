@@ -15,7 +15,7 @@ from remme.tp.pub_key import PubKeyHandler
 
 from testing.conftest import create_signer
 from testing.mocks.stub import StubContext
-from testing.utils.client import proto_error_msg
+from testing.utils.client import assert_check_errors
 from .base import (
     ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY,
     SENDER_PUBLIC_KEY,
@@ -59,10 +59,10 @@ def test_public_key_handler_revoke_with_empty_proto():
     with pytest.raises(InvalidTransaction) as error:
         PubKeyHandler().apply(transaction=transaction_request, context=mock_context)
 
-    assert proto_error_msg(
-        RevokePubKeyPayload,
-        {'address': ['Missed address']}
-    ) == str(error.value)
+    assert_check_errors(
+        {'address': ['Address is not of a blockchain token type.']},
+        error.value
+    )
 
 
 def test_public_key_handler_revoke():

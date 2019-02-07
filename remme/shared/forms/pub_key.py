@@ -1,51 +1,67 @@
-from wtforms import fields, validators
+from marshmallow import (
+    fields,
+    validate,
+    validates_schema,
+    ValidationError,
+)
 
 from remme.protos.pub_key_pb2 import NewPubKeyPayload
+
 from .base import ProtoForm
-from ._fields import AddressField
+from ._validate import Choice
+from ._fields import AddressField, RequiredString
 
 
 class RSAConfigurationForm(ProtoForm):
-    key = fields.StringField(validators=[validators.DataRequired()])
-    padding = fields.SelectField(choices=NewPubKeyPayload.RSAConfiguration.Padding.items())
+    key = RequiredString()
+    padding = fields.Field(
+        required=True, validate=Choice(NewPubKeyPayload.RSAConfiguration.Padding.items()))
 
 
 class ECDSAConfigurationForm(ProtoForm):
-    key = fields.StringField(validators=[validators.DataRequired()])
-    ec = fields.SelectField(choices=NewPubKeyPayload.ECDSAConfiguration.EC.items())
+    key = RequiredString()
+    ec = fields.Field(
+        required=True, validate=Choice(NewPubKeyPayload.ECDSAConfiguration.EC.items()))
 
 
 class Ed25519ConfigurationForm(ProtoForm):
-    key = fields.StringField(validators=[validators.DataRequired()])
+    key = RequiredString()
 
 
 class NewPublicKeyPayloadForm(ProtoForm):
-    hashing_algorithm = fields.SelectField(choices=NewPubKeyPayload.HashingAlgorithm.items())
+    hashing_algorithm = fields.Field(
+        required=True, validate=Choice(NewPubKeyPayload.HashingAlgorithm.items()))
 
-    entity_hash = fields.StringField(validators=[validators.DataRequired()])
-    entity_hash_signature = fields.StringField(validators=[validators.DataRequired()])
+    entity_hash = RequiredString()
+    entity_hash_signature = RequiredString()
 
-    valid_from = fields.IntegerField(validators=[validators.DataRequired()])
-    valid_to = fields.IntegerField(validators=[validators.DataRequired()])
+    valid_from = fields.Integer(required=True)
+    valid_to = fields.Integer(required=True)
 
-    rsa = fields.FieldList(fields.FormField(RSAConfigurationForm), max_entries=1)
-    ecdsa = fields.FieldList(fields.FormField(ECDSAConfigurationForm), max_entries=1)
-    ed25519 = fields.FieldList(fields.FormField(Ed25519ConfigurationForm), max_entries=1)
+    rsa = fields.Nested(RSAConfigurationForm)
+    ecdsa = fields.Nested(ECDSAConfigurationForm)
+    ed25519 = fields.Nested(Ed25519ConfigurationForm)
 
-    def validate(self):
-        is_valid = super().validate()
-        if not self.rsa.data and not self.ecdsa.data and not self.ed25519.data:
-            msg = ['At least one of RSAConfiguration, ECDSAConfiguration or '
-                   'Ed25519Configuration must be set']
-            self.errors['configuration'] = msg
-            is_valid = False
-        return is_valid
+    @validates_schema
+    def validate_configuration(self, data):
+        if all((cfg not in data for cfg in ['rsa', 'ecdsa', 'ed25519'])):
+            raise ValidationError(
+                'At least one of RSAConfiguration, ECDSAConfiguration or '
+                'Ed25519Configuration must be set', ['configuration']
+            )
 
 
 class NewPubKeyStoreAndPayPayloadForm(ProtoForm):
 
-    owner_public_key = fields.StringField(validators=[validators.DataRequired()])
-    signature_by_owner = fields.StringField(validators=[validators.DataRequired()])
+    pub_key_payload = fields.Nested(NewPublicKeyPayloadForm, required=True)
+    owner_public_key = fields.String(
+        required=True, allow_none=False,
+        validate=validate.Length(min=1, error='Missing data for required field.')
+    )
+    signature_by_owner = fields.String(
+        required=True, allow_none=False,
+        validate=validate.Length(min=1, error='Missing data for required field.')
+    )
 
 
 class RevokePubKeyPayloadForm(ProtoForm):

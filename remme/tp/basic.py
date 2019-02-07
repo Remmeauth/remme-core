@@ -21,6 +21,7 @@ from google.protobuf.text_format import ParseError
 from sawtooth_processor_test.message_factory import MessageFactory
 from sawtooth_sdk.processor.exceptions import InternalError, InvalidTransaction
 from sawtooth_sdk.protobuf.transaction_pb2 import TransactionHeader
+from marshmallow import ValidationError
 
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.shared.utils import hash512, Singleton, from_proto_to_dict
@@ -152,11 +153,12 @@ class BasicHandler(metaclass=Singleton):
         except KeyError:
             raise InvalidTransaction(f'Invalid account method value ({transaction_payload.method}) has been set.')
 
-        validator = validator_class.load_proto(data_pb)
-        if not validator.validate():
+        try:
+            validator_class().load_proto(data_pb)
+        except ValidationError as e:
             raise InvalidTransaction(f'Invalid protobuf data of '
-                                     f'"{validator._pb_class.__name__}", '
-                                     f'detailed: {validator.errors}')
+                                     f'"{data_pb.__class__.__name__}", '
+                                     f'detailed: {e.messages}')
 
         measurement = METRICS_SENDER.get_time_measurement(
             f'tp.{self._family_name}.{transaction_payload.method}'

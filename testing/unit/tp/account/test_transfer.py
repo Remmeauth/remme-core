@@ -23,7 +23,7 @@ from remme.shared.utils import hash512
 from remme.tp.account import AccountHandler
 from testing.conftest import create_signer
 from testing.mocks.stub import StubContext
-from testing.utils.client import proto_error_msg
+from testing.utils.client import assert_check_errors
 
 RANDOM_NODE_PUBLIC_KEY = '039d6881f0a71d05659e1f40b443684b93c7b7c504ea23ea8949ef5216a2236940'
 
@@ -114,13 +114,13 @@ def test_account_handler_with_empty_proto():
     with pytest.raises(InvalidTransaction) as error:
         AccountHandler().apply(transaction=transaction_request, context=mock_context)
 
-    assert proto_error_msg(
-        TransferPayload,
+    assert_check_errors(
         {
-            'address_to': ['Missed address'],
+            'address_to': ['Address is not of a blockchain token type.'],
             'value': ['Could not transfer with zero amount.'],
-        }
-    ) == str(error.value)
+        },
+        error.value
+    )
 
 
 def test_account_handler_apply():
@@ -358,12 +358,12 @@ def test_account_transfer_from_address_zero_amount():
     with pytest.raises(InvalidTransaction) as error:
         AccountHandler().apply(transaction=transaction_request, context=mock_context)
 
-    assert proto_error_msg(
-        TransferPayload,
+    assert_check_errors(
         {
             'value': ['Could not transfer with zero amount.'],
-        }
-    ) == str(error.value)
+        },
+        error.value
+    )
 
 
 def test_account_transfer_from_address_to_address_not_account_type():
@@ -406,12 +406,12 @@ def test_account_transfer_from_address_to_address_not_account_type():
     with pytest.raises(InvalidTransaction) as error:
         AccountHandler().apply(transaction=transaction_request, context=mock_context)
 
-    assert proto_error_msg(
-        TransferPayload,
+    assert_check_errors(
         {
             'address_to': ['Address is not of a blockchain token type.'],
-        }
-    ) == str(error.value)
+        },
+        error.value
+    )
 
 
 def test_account_transfer_from_address_send_to_itself():

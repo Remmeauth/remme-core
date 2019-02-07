@@ -1,4 +1,4 @@
-from wtforms import fields, validators
+from marshmallow import fields, validate
 
 from .base import ProtoForm
 from ._fields import IDField
@@ -9,8 +9,4 @@ class IdentifierForm(ProtoForm):
 
 
 class IdentifiersForm(ProtoForm):
-    ids = fields.FieldList(IDField(validators=[
-        validators.DataRequired(message='Missed ids'),
-        validators.Regexp('[0-9a-f]{128}',
-                          message='Incorrect identifier.')
-    ]), min_entries=1)
+    ids = fields.List(IDField(error_messages={'required': 'Missed ids'}), required=True)

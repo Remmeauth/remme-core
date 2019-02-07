@@ -14,7 +14,7 @@ from sawtooth_sdk.protobuf.transaction_pb2 import (
 
 from testing.conftest import create_signer
 from testing.mocks.stub import StubContext
-from testing.utils.client import proto_error_msg
+from testing.utils.client import assert_check_errors
 from remme.protos.atomic_swap_pb2 import (
     AtomicSwapInfo,
     AtomicSwapClosePayload,
@@ -107,13 +107,13 @@ def test_close_with_empty_proto():
     with pytest.raises(InvalidTransaction) as error:
         AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
 
-    assert proto_error_msg(
-        AtomicSwapClosePayload,
+    assert_check_errors(
         {
-            'swap_id': ['Missed swap_id'],
-            'secret_key': ['This field is required.'],
-        }
-    ) == str(error.value)
+            'swap_id': ['Incorrect atomic swap identifier.'],
+            'secret_key': ['Missing data for required field.'],
+        },
+        error.value
+    )
 
 
 def test_close_atomic_swap():

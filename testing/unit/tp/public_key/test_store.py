@@ -22,7 +22,7 @@ from remme.tp.pub_key import (
 )
 from testing.conftest import create_signer
 from testing.utils.client import (
-    generate_rsa_signature, generate_address, proto_error_msg
+    generate_rsa_signature, generate_address, assert_check_errors
 )
 from testing.mocks.stub import StubContext
 from .base import (
@@ -79,16 +79,16 @@ def test_public_key_handler_store_with_empty_proto():
     with pytest.raises(InvalidTransaction) as error:
         PubKeyHandler().apply(transaction=transaction_request, context=mock_context)
 
-    assert proto_error_msg(
-        NewPubKeyPayload,
+    assert_check_errors(
         {
-            'entity_hash': ['This field is required.'],
-            'entity_hash_signature': ['This field is required.'],
-            'valid_from': ['This field is required.'],
-            'valid_to': ['This field is required.'],
+            'entity_hash': ['Missing data for required field.'],
+            'entity_hash_signature': ['Missing data for required field.'],
+            # 'valid_from': ['Missing data for required field.'],
+            # 'valid_to': ['Missing data for required field.'],
             'configuration': ['At least one of RSAConfiguration, ECDSAConfiguration or Ed25519Configuration must be set'],
-        }
-    ) == str(error.value)
+        },
+        error.value
+    )
 
 
 def test_public_key_handler_rsa_store():

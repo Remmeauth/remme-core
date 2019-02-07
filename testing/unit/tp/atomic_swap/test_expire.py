@@ -15,7 +15,7 @@ from sawtooth_sdk.protobuf.transaction_pb2 import (
 
 from testing.conftest import create_signer
 from testing.mocks.stub import StubContext
-from testing.utils.client import proto_error_msg
+from testing.utils.client import assert_check_errors
 from remme.protos.atomic_swap_pb2 import (
     AtomicSwapExpirePayload,
     AtomicSwapInfo,
@@ -133,12 +133,12 @@ def test_expire_with_empty_proto():
     with pytest.raises(InvalidTransaction) as error:
         AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
 
-    assert proto_error_msg(
-        AtomicSwapExpirePayload,
+    assert_check_errors(
         {
-            'swap_id': ['Missed swap_id'],
-        }
-    ) == str(error.value)
+            'swap_id': ['Incorrect atomic swap identifier.'],
+        },
+        error.value
+    )
 
 
 def test_expire_atomic_swap():
