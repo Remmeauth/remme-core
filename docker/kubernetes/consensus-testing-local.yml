@@ -58,14 +58,6 @@ spec:
           args:
             - /project/scripts/genesis.sh
       containers:
-        # - name: kubectl-proxy
-        #   image: remme/sawtooth:latest
-        #   ports:
-        #     - containerPort: 8001
-        #   command:
-        #     - kubectl
-        #   args:
-        #     - proxy
         - name: validator
           image: remme/sawtooth:latest
           imagePullPolicy: Never
@@ -108,7 +100,19 @@ spec:
             - --
             - --connect
             - tcp://127.0.0.1:5005
-        - name: validator-rest-api
+        - name: sawtooth-rest-api
+          image: remme/sawtooth:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8008
+          command:
+            - sawtooth-rest-api
+          args:
+            - --connect
+            - tcp://127.0.0.1:4004
+            - --bind
+            - 0.0.0.0:8008
+        - name: block-info-tp
           image: remme/sawtooth:latest
           imagePullPolicy: Never
           command:
