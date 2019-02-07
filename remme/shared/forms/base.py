@@ -1,7 +1,7 @@
 import logging
 from collections.abc import Mapping
 
-from wtforms import Form
+from wtforms import Form, fields
 
 from werkzeug.datastructures import MultiDict
 from remme.shared.utils import message_to_dict
@@ -32,17 +32,21 @@ class ProtoForm(Form):
         return form
 
     @classmethod
-    def load_data(cls, data):
-        formdata = MultiDict(data)
-        form = cls(formdata)
+    def _gen_load(cls, form, data):
         for k, v in data.items():
-            if not isinstance(v, Mapping):
-                continue
             try:
                 field = getattr(form, k)
             except AttributeError:
                 continue
-            field.append_entry(v)
+            if not isinstance(field, fields.FormField):
+                field.data = int(v) if str(v).isdigit() else v
+                continue
+            cls._gen_load(field.form, v)
+            
+    @classmethod
+    def load_data(cls, data):
+        form = cls(**data)
+        cls._gen_load(form, data)
         return form
 
     def get_pb_class(self):
