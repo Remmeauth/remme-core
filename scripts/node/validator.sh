@@ -16,6 +16,8 @@ if [ ! -f /etc/sawtooth/keys/validator.priv ]; then
     sawadm keygen
 fi
 
+echo "Node public key $(cat /etc/sawtooth/keys/validator.pub)"
+
 if [ "$REMME_START_MODE" = "genesis" ]; then
     echo "Building the genesis block..."
 
@@ -32,7 +34,7 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
     sawset proposal create \
     -k /etc/sawtooth/keys/validator.priv \
         remme.consensus.voters_number=1 \
-        remme.consensus.timing=3 \
+        remme.consensus.timing=10 \
         remme.consensus.allowed_validators="$(cat /etc/sawtooth/keys/validator.pub)" \
         -o consensus.batch
 
