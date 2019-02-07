@@ -18,7 +18,7 @@ import logging
 from google.protobuf.json_format import MessageToJson
 
 from remme.clients.atomic_swap import AtomicSwapClient
-from remme.shared.forms import AtomicSwapForm
+from remme.shared.forms import ProtoForm, AtomicSwapForm
 from remme.shared.exceptions import KeyNotFound
 
 from .utils import validate_params
@@ -49,6 +49,7 @@ async def get_atomic_swap_info(request):
     return json.loads(data)
 
 
+@validate_params(ProtoForm)
 async def get_atomic_swap_public_key(request):
     client = AtomicSwapClient()
     try:

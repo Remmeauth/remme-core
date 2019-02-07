@@ -18,7 +18,7 @@ import binascii
 
 from remme.clients.pub_key import PubKeyClient
 from remme.shared.exceptions import KeyNotFound
-from remme.shared.forms import get_address_form
+from remme.shared.forms import ProtoForm, get_address_form
 
 from .utils import validate_params
 
@@ -30,6 +30,7 @@ __all__ = (
 logger = logging.getLogger(__name__)
 
 
+@validate_params(ProtoForm)
 async def get_node_config(request):
     client = PubKeyClient()
     return {
@@ -43,6 +44,9 @@ async def get_public_key_info(request):
     client = PubKeyClient()
     try:
         pub_key_data = await client.get_status(public_key_address)
+
+        if not pub_key_data.payload.ByteSize():
+            raise KeyNotFound
 
         conf_name = pub_key_data.payload.WhichOneof('configuration')
         conf_payload = getattr(pub_key_data.payload, conf_name)

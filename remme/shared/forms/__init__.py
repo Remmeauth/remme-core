@@ -1,3 +1,4 @@
+from .base import ProtoForm
 from .pub_key import (
     NewPublicKeyPayloadForm,
     RevokePubKeyPayloadForm,

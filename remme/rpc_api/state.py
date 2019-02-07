@@ -16,7 +16,7 @@ import logging
 
 from remme.clients.block_info import BasicClient
 from remme.shared.exceptions import KeyNotFound
-from remme.shared.forms import get_address_form
+from remme.shared.forms import ProtoForm, get_address_form
 
 from .utils import validate_params
 
@@ -29,6 +29,7 @@ __all__ = (
 logger = logging.getLogger(__name__)
 
 
+@validate_params(ProtoForm, ignore_fields=('address', 'start', 'limit', 'head', 'reverse'))
 async def list_state(request):
     client = BasicClient()
     address = request.params.get('address')
@@ -40,7 +41,7 @@ async def list_state(request):
     return await client.list_state(address, start, limit, head, reverse)
 
 
-@validate_params(get_address_form('address'))
+@validate_params(get_address_form('address'), ignore_fields=('head',))
 async def fetch_state(request):
     address = request.params['address']
     head = request.params.get('head')
