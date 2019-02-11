@@ -3,13 +3,14 @@ REMME Core
 
 |Jenkins| |Docker Stars| |Gitter|
 
-REMME is a blockchain-based protocol used for issuing and management of X.509
-client certificates to resolve issues related to cybersecurity, IoT
-connectivity, data integrity, digital copyright protection, transparency etc. 
+REMME is a blockchain-based protocol used for issuing and management of public keys to resolve
+issues related to cybersecurity, IoT connectivity, data integrity, digital copyright protection, transparency etc.
 
-REMME Core is built on Hyperledger Sawtooth platform, allowing to be flexible in
-language choice during the development process. REMME Core supports JS, .NET,
-that’s why you to easily embed REMME Core in your project. 
+Remme core is built on Hyperledger Sawtooth platform, allowing to be flexible in language choice during the
+development process.`Remme core exposes application programming interface based on RPC API.
+
+Remme also supports `JS <https://github.com/Remmeauth/remme-client-js>`_ and `.NET <https://github.com/Remmeauth/remme-client-dotnet>`_
+programming libraries that wrap its application programming interface, so that you could easily embed the protocol in your project.
 
 🔖 Documentation
 ----------------
