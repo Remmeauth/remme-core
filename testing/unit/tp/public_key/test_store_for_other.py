@@ -100,16 +100,16 @@ def test_store_rsa_public_key_for_other_with_empty_proto():
     assert proto_error_msg(
         NewPubKeyStoreAndPayPayload,
         {
-            # 'pub_key_payload': {
-            #     'hashing_algorithm': ['Not a valid choice'],
-            #     'entity_hash': ['This field is required.'],
-            #     'entity_hash_signature': ['This field is required.'],
-            #     'valid_from': ['This field is required.'],
-            #     'valid_to': ['This field is required.'],
-            #     'configuration': [
-            #         'At least one of RSAConfiguration, ECDSAConfiguration or Ed25519Configuration must be set',
-            #     ],
-            # },
+            'pub_key_payload': {
+                'hashing_algorithm': ['Not a valid choice'],
+                'entity_hash': ['This field is required.'],
+                'entity_hash_signature': ['This field is required.'],
+                'valid_from': ['This field is required.'],
+                'valid_to': ['This field is required.'],
+                'configuration': [
+                    'At least one of RSAConfiguration, ECDSAConfiguration or Ed25519Configuration must be set',
+                ],
+            },
             'owner_public_key': ['This field is required.'],
             'signature_by_owner': ['This field is required.'],
         }
