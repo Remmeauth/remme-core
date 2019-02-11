@@ -29,3 +29,4 @@ To get started, choose the guide for the cloud provider.
    :maxdepth: 2
 
    cloud/digital-ocean.rst
+   cloud/vultr.rst

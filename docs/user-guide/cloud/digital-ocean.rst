@@ -32,7 +32,7 @@ Open your e-mail box, find the confirmation letter from Digital Ocean and click 
    :align: center
    :alt: Confirm e-mail link
 
-Fill up the form with credit\debit card details to pay for cloud services. You also have the option of using ``PayPal`` account.
+Fill up the form with credit/debit card details to pay for cloud services. You also have the option of using ``PayPal`` account.
 
 .. image:: /img/user-guide/cloud/digital-ocean/credit-card-form.png
    :width: 100%
@@ -100,7 +100,7 @@ The following metrics will be available in the droplet's menu.
    :align: center
    :alt: Droplet monitoring
 
-Then generate your personal ``SSH-key`` and add to the droplet. This step is not required, but we highly recommend to do it for security reasons.
+Then generate your personal ``SSH key`` and add to the droplet. This step is not required, but we highly recommend to do it for security reasons.
 Visit :doc:`/user-guide/troubleshooting` section to find information about ``SSH key`` and instructions how to generate it.
 
 The example of ``SSH key`` and adding it to the droplet is illustrated on the image below.
@@ -128,12 +128,12 @@ Step 4: login to droplet
 ========================
 
 If you have added ``SSH key``, you won't receive an mail with password that illustrated below to access to the droplet,
-you will authenticate yourself with the password from ``SSH key`` instead. So miss this chapter and go to the second one.
+you will authenticate yourself with the password from ``SSH key`` instead.
 
 .. image:: /img/user-guide/cloud/digital-ocean/droplet-ssh-key-login.png
    :width: 100%
    :align: center
-   :alt: Droplet SSH-key login
+   :alt: Droplet SSH key login
 
 If you haven't added ``SSH key``, then check e-mail box to find a letter from ``Digital Ocean`` with details about your droplet.
 ``IP-address``, ``username`` and ``password`` are used for login to droplet.
