@@ -31,11 +31,13 @@ from remme.tp.__main__ import TP_HANDLERS
 from remme.clients.account import AccountClient
 from remme.clients.pub_key import PubKeyClient
 from remme.protos.transaction_pb2 import TransactionPayload
+from remme.shared.forms import ProtoForm, IdentifierForm, IdentifiersForm
+
+from .utils import validate_params
 
 
 __all__ = (
     'send_raw_transaction',
-    # 'send_tokens',
     'get_batch_status',
 
     'list_receipts',
@@ -49,6 +51,7 @@ __all__ = (
 logger = logging.getLogger(__name__)
 
 
+@validate_params(ProtoForm)
 async def send_tokens(request):
     try:
         amount = request.params['amount']
@@ -103,17 +106,15 @@ def _get_proto_validator(current_handler, tr_payload_pb):
     return validator_class.load_proto(data_pb)
 
 
+@validate_params(ProtoForm)
 async def send_raw_transaction(request):
     try:
         data = request.params['data']
     except KeyError:
         raise RpcInvalidParamsError(message='Missed data')
 
-    with suppress(Exception):
-        data = data.encode('utf-8')
-
     try:
-        transaction = base64.b64decode(data)
+        transaction = base64.b64decode(data.encode('utf-8'))
     except Exception:
         raise RpcGenericServerDefinedError(
             error_code=-32050,
@@ -178,18 +179,18 @@ async def send_raw_transaction(request):
     return response['data']
 
 
+@validate_params(IdentifiersForm)
 async def list_receipts(request):
+    ids = request.params['ids']
+
     client = AccountClient()
-    try:
-        ids = request.params['ids']
-    except KeyError:
-        raise RpcInvalidParamsError(message='Missed ids')
     try:
         return await client.list_receipts(ids)
     except KeyNotFound:
         raise KeyNotFound(f'Transactions with ids "{ids}" not found')
 
 
+@validate_params(ProtoForm, ignore_fields=('ids', 'start', 'limit', 'head', 'reverse'))
 async def list_batches(request):
     client = AccountClient()
     ids = request.params.get('ids')
@@ -201,11 +202,9 @@ async def list_batches(request):
     return await client.list_batches(ids, start, limit, head, reverse)
 
 
+@validate_params(IdentifierForm)
 async def fetch_batch(request):
-    try:
-        id = request.params['id']
-    except KeyError:
-        raise RpcInvalidParamsError(message='Missed id')
+    id = request.params['id']
 
     client = AccountClient()
     try:
@@ -214,17 +213,15 @@ async def fetch_batch(request):
         raise KeyNotFound(f'Batch with id "{id}" not found')
 
 
+@validate_params(IdentifierForm)
 async def get_batch_status(request):
-    try:
-        id = request.params['id']
-    except KeyError:
-        raise RpcInvalidParamsError(message='Missed id')
+    id = request.params['id']
 
     client = AccountClient()
-
     return await client.get_batch_status(id)
 
 
+@validate_params(ProtoForm, ignore_fields=('ids', 'start', 'limit', 'head', 'reverse', 'family_name'))
 async def list_transactions(request):
     client = AccountClient()
     ids = request.params.get('ids')
@@ -237,12 +234,9 @@ async def list_transactions(request):
     return await client.list_transactions(ids, start, limit, head, reverse, family_name)
 
 
+@validate_params(IdentifierForm)
 async def fetch_transaction(request):
-    try:
-        id = request.params['id']
-    except KeyError:
-        raise RpcInvalidParamsError(message='Missed id')
-
+    id = request.params['id']
     client = AccountClient()
     try:
         return await client.fetch_transaction(id)

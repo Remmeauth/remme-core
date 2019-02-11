@@ -61,7 +61,7 @@ def test_public_key_handler_revoke_with_empty_proto():
 
     assert proto_error_msg(
         RevokePubKeyPayload,
-        {'address': ['This field is required.']}
+        {'address': ['Missed address']}
     ) == str(error.value)
 
 

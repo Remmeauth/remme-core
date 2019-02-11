@@ -83,9 +83,6 @@ class Router:
         self._stream = stream
 
     async def _handle_response(self, msg_type, resp_proto, req):
-        if not self._stream.has_transport:
-            await self._stream.open()
-
         try:
             msg = await self._stream.send(
                 message_type=msg_type,

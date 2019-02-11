@@ -33,7 +33,7 @@ Open a terminal on your PC. Visit :doc:`/user-guide/troubleshooting` section to 
 .. code-block:: console
 
    $ export REMME_CORE_RELEASE=0.6.0-alpha && \
-         sudo apt-get install apt-transport-https ca-certificates curl software-properties-common -y && \
+         sudo apt-get install apt-transport-https ca-certificates curl software-properties-common make -y && \
          cd /home/ && curl -L https://github.com/Remmeauth/remme-core/archive/v$REMME_CORE_RELEASE.tar.gz | sudo tar zx && \
          cd remme-core-$REMME_CORE_RELEASE && \
          sudo apt update && sudo apt upgrade -y && \
@@ -42,7 +42,7 @@ Open a terminal on your PC. Visit :doc:`/user-guide/troubleshooting` section to 
          sudo apt install docker.io -y && \
          sudo curl -o /usr/local/bin/docker-compose -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" && \
          sudo chmod +x /usr/local/bin/docker-compose && \
-         sudo ./scripts/run.sh -g
+         make run_genesis_bg
 
 .. image:: /img/user-guide/cloud/digital-ocean/installation-command.png
    :width: 100%
@@ -105,3 +105,4 @@ What's next?
 
 1. Visit our :doc:`/user-guide/advanced-guide` for more details on user experience.
 2. Communication with the node is available through :doc:`/apis/rpc` API, so check it out.
+

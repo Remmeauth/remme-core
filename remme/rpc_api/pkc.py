@@ -16,12 +16,11 @@ import time
 import logging
 import binascii
 
-from aiohttp_json_rpc import (
-    RpcInvalidParamsError,
-)
-
 from remme.clients.pub_key import PubKeyClient
 from remme.shared.exceptions import KeyNotFound
+from remme.shared.forms import ProtoForm, get_address_form
+
+from .utils import validate_params
 
 __all__ = (
     'get_node_config',
@@ -31,6 +30,7 @@ __all__ = (
 logger = logging.getLogger(__name__)
 
 
+@validate_params(ProtoForm)
 async def get_node_config(request):
     client = PubKeyClient()
     return {
@@ -38,16 +38,15 @@ async def get_node_config(request):
     }
 
 
+@validate_params(get_address_form('public_key_address'))
 async def get_public_key_info(request):
-    request.params = request.params or {}
-    try:
-        public_key_address = request.params['public_key_address']
-    except KeyError:
-        raise RpcInvalidParamsError(message='Missed public_key_address')
-
+    public_key_address = request.params['public_key_address']
     client = PubKeyClient()
     try:
         pub_key_data = await client.get_status(public_key_address)
+
+        if not pub_key_data.payload.ByteSize():
+            raise KeyNotFound
 
         conf_name = pub_key_data.payload.WhichOneof('configuration')
         conf_payload = getattr(pub_key_data.payload, conf_name)

@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------
-from aiohttp_json_rpc import (
-    RpcInvalidParamsError,
-)
-
 from remme.clients.pub_key import PubKeyClient
+from remme.shared.forms import ProtoForm, NodePKForm
+
+from .utils import validate_params
 
 
 __all__ = (
@@ -25,16 +24,14 @@ __all__ = (
 )
 
 
+@validate_params(NodePKForm)
 async def set_node_key(request):
-    try:
-        private_key = request.params['private_key']
-    except KeyError:
-        raise RpcInvalidParamsError(message='Missed private key')
-
+    private_key = request.params['private_key']
     PubKeyClient.set_priv_key_to_file(private_key)
     return True
 
 
+@validate_params(ProtoForm)
 async def export_node_key(request):
     client = PubKeyClient()
     return client.get_private_key()

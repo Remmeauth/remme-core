@@ -18,20 +18,17 @@ import hashlib
 from functools import lru_cache
 
 
-from sawtooth_sdk.processor.handler import TransactionHandler
 from sawtooth_sdk.messaging.future import FutureTimeoutError
-from sawtooth_sdk.processor.exceptions import InternalError, InvalidTransaction
+from sawtooth_sdk.processor.exceptions import InternalError
 
 from sawtooth_sdk.protobuf.setting_pb2 import Setting
+
 
 LOGGER = logging.getLogger(__name__)
 
 
 # The config namespace is special: it is not derived from a hash.
 SETTINGS_NAMESPACE = '000000'
-
-# Number of seconds to wait for state operations to succeed
-STATE_TIMEOUT_SEC = 10
 
 
 def _get_setting_value(context, key, default_value=None):
@@ -52,18 +49,15 @@ def get_setting_from_key_value(key, value):
 
 
 def _get_setting_entry(context, address):
-    setting = Setting()
+    from remme.tp.basic import get_data  # noqa
 
     try:
-        entries_list = context.get_state([address], timeout=STATE_TIMEOUT_SEC)
+        entry = get_data(context, Setting, address)
     except FutureTimeoutError:
         LOGGER.warning('Timeout occured on context.get_state([%s])', address)
         raise InternalError('Unable to get {}'.format(address))
 
-    if entries_list:
-        setting.ParseFromString(entries_list[0].data)
-
-    return setting
+    return entry if entry else Setting()
 
 
 def _to_hash(value):

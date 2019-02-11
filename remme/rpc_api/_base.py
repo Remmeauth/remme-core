@@ -230,6 +230,16 @@ class JsonRpc(JsonRpc):
             return await self._ws_send_str(request, string)
         return self._http_send_str(request, string)
 
+    async def _ws_send_str(self, client, string):
+        if client.ws._writer.transport.is_closing():
+            try:
+                self.clients.remove(client)
+            except ValueError:
+                pass
+            await client.ws.close()
+
+        await client.ws.send_str(string)
+
     async def _print_storage_state(self):
         while self._print_storage_state_running:
             await asyncio.sleep(5)

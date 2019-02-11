@@ -6,23 +6,19 @@ Troubleshooting is a form of problem solving, often applied to repair failed pro
 Troubleshooting is needed to identify the symptoms. Determining the most likely cause allows to eliminate the potential
 causes of a problem.
 
-Examples of terminal commands
-=============================
+Command line notation
+=====================
+
+Throughout the documentation, we’ll show some commands used in the terminal. Lines that you should enter in a terminal all start with ``$``.
+You don’t need to type in the ``$`` character, it indicates the start of each command. Lines that don’t start with ``$`` typically show
+the output of the previous command.
 
 The typical command line interface looks like this.
 
 .. code-block:: console
 
-   Dmytros-MacBook-Pro:remme-core dmytrostriletskyi$
-
-Documentation's terminal command examples start from dollar symbol (``$``) to separate each one.
-
-.. code-block:: console
-
    $ export REMME_CORE_RELEASE=0.6.0-alpha
    $ ./scripts/run.sh -d
-
-If you copy the example of a terminal command, do not include dollar symbol (``$``).
 
 Nodes network
 =============
@@ -138,8 +134,8 @@ And you will get the same result.
 Install Docker
 ==============
 
-On Mac OS
-~~~~~~~~~
+Mac OS
+~~~~~~
 
 Visit |page_to_download_docker| to download ``Docker`` from the official website. Downloading requires an account registration.
 
@@ -177,7 +173,7 @@ The whale in the top status bar indicates that ``Docker`` is running, and access
    :alt: Find Docker legend, whale, in the menu bar
 
 If the installation is done, you will see the message with the next steps and a link to the documentation. You don’t need
-to log in to the popup for further Remme-core usage. Click the whale (whale menu) in the status bar to dismiss this popup.
+to log in to the popup for further ``Remme-core`` usage. Click the whale (whale menu) in the status bar to dismiss this popup.
 
 .. image:: /img/user-guide/troubleshooting/install-docker/mac-os/docker-is-installed.png
    :width: 100%
@@ -189,3 +185,70 @@ Visit |official_install_docker_on_mac_tutorial| for more detailed experience wit
 .. |official_install_docker_on_mac_tutorial| raw:: html
 
    <a href="https://docs.docker.com/docker-for-mac/install/" target="_blank">official install Docker on Mac OS tutorial</a>
+
+SSH key
+=======
+
+``Secure Shell (SSH)`` is a cryptographic network protocol for operating network services securely over an unsecured network.
+Typical applications include remote command-line login and remote command execution, but any network service can be secured with ``SSH``.
+
+Visit |what_are_ssh_keys_reference| for more detailed experience with ``SSH``.
+
+.. |what_are_ssh_keys_reference| raw:: html
+
+   <a href="https://jumpcloud.com/blog/what-are-ssh-keys/" target="_blank">this page</a>
+
+Windows
+~~~~~~~
+
+You should check for existing SSH keys on your local computer by the ``cd %userprofile%/.ssh`` terminal command.
+If you see ``No such file or directory``, then there aren't any existing keys.
+
+If you don't have an existing ``SSH key`` that you wish to use, log in to your local computer as an administrator,
+type the terminal command ``ssh-keygen -t rsa -C "your-email@example.com``. Associating the key with your email address
+helps you to identify the key later on. Just press ``Enter`` to accept the default location and file name. If the ``.ssh``
+directory doesn't exist, the system creates one for you. Enter, and re-enter, a passphrase when prompted.
+
+The whole interaction will look similar to the picture below.
+
+.. image:: /img/user-guide/troubleshooting/ssh-key/windows/ssh-key-generation.png
+   :width: 100%
+   :align: center
+   :alt: SSH-key key generation
+
+To get the ``SSH public key`` use the following commands:
+
+.. code-block:: console
+
+   $ cd %userprofile%/.ssh
+   $ clip < id_rsa.pub
+
+The last command will copy it to your buffer, so you can to paste it anywhere.
+
+Ubuntu & Mac OS
+~~~~~~~~~~~~~~~
+
+You should check for existing ``SSH keys`` on your local computer by the ``cat ~/.ssh/id_rsa.pub`` terminal command.
+
+.. image:: /img/user-guide/troubleshooting/ssh-key/unix/no-ssh-key-output.png
+   :width: 100%
+   :align: center
+   :alt: No SSH-key output
+
+If you had a ``SSH key``, output would be as illustrated on the picture below:
+
+.. image:: /img/user-guide/troubleshooting/ssh-key/unix/ssh-key-output.png
+   :width: 100%
+   :align: center
+   :alt: SSH-key output
+
+To generate a ``SSH key``, type the terminal command ``ssh-keygen -t rsa -C "your-email@example.com``. Associating the key with your
+e-mail address helps you to identify the key later on. Just press ``Enter`` to accept the default location and file name.
+If the ``.ssh`` directory doesn't exist, the system creates one for you. Enter, and re-enter, a passphrase when prompted.
+
+The whole interaction will look similar to the picture below.
+
+.. image:: /img/user-guide/troubleshooting/ssh-key/unix/ssh-key-generation.png
+   :width: 100%
+   :align: center
+   :alt: SSH-key key generation

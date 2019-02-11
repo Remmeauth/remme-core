@@ -28,18 +28,39 @@ class NewPublicKeyPayloadForm(ProtoForm):
     valid_from = fields.IntegerField(validators=[validators.DataRequired()])
     valid_to = fields.IntegerField(validators=[validators.DataRequired()])
 
-    rsa = fields.FieldList(fields.FormField(RSAConfigurationForm), max_entries=1)
-    ecdsa = fields.FieldList(fields.FormField(ECDSAConfigurationForm), max_entries=1)
-    ed25519 = fields.FieldList(fields.FormField(Ed25519ConfigurationForm), max_entries=1)
+    rsa = fields.FormField(RSAConfigurationForm)
+    ecdsa = fields.FormField(ECDSAConfigurationForm)
+    ed25519 = fields.FormField(Ed25519ConfigurationForm)
 
     def validate(self):
         is_valid = super().validate()
-        if not self.rsa.data and not self.ecdsa.data and not self.ed25519.data:
+        pt_error_keys = ['rsa', 'ecdsa', 'ed25519']
+        if all((ek in self.errors for ek in pt_error_keys)):
             msg = ['At least one of RSAConfiguration, ECDSAConfiguration or '
                    'Ed25519Configuration must be set']
-            self.errors['configuration'] = msg
+            self._errors['configuration'] = msg
+            for cfg in pt_error_keys:
+                del self._errors[cfg]
             is_valid = False
+        else:
+            for ek in pt_error_keys:
+                if ek not in self.errors:
+                    cp_errs = pt_error_keys[:]
+                    cp_errs.remove(ek)
+                    for cfg in cp_errs:
+                        del self._errors[cfg]
+                    if not self._errors:
+                        is_valid = True
+                    break
+            
         return is_valid
+
+
+class NewPubKeyStoreAndPayPayloadForm(ProtoForm):
+
+    pub_key_payload = fields.FormField(NewPublicKeyPayloadForm)
+    owner_public_key = fields.StringField(validators=[validators.DataRequired()])
+    signature_by_owner = fields.StringField(validators=[validators.DataRequired()])
 
 
 class RevokePubKeyPayloadForm(ProtoForm):

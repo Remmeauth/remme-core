@@ -14,12 +14,11 @@
 # ------------------------------------------------------------------------
 import logging
 
-from aiohttp_json_rpc import (
-    RpcInvalidParamsError,
-)
-
 from remme.clients.block_info import BlockInfoClient
 from remme.shared.exceptions import KeyNotFound
+from remme.shared.forms import ProtoForm, IdentifierForm
+
+from .utils import validate_params
 
 
 __all__ = (
@@ -33,6 +32,7 @@ __all__ = (
 logger = logging.getLogger(__name__)
 
 
+@validate_params(ProtoForm)
 async def get_block_number(request):
     try:
         block_config = await BlockInfoClient().get_block_info_config()
@@ -41,6 +41,7 @@ async def get_block_number(request):
         return 0
 
 
+@validate_params(ProtoForm, ignore_fields=('start', 'limit'))
 async def get_blocks(request):
     start = request.params.get('start', 0)
     limit = request.params.get('limit', 0)
@@ -51,6 +52,7 @@ async def get_blocks(request):
         raise KeyNotFound('Blocks not found')
 
 
+@validate_params(ProtoForm, ignore_fields=('address', 'start', 'limit', 'head', 'reverse'))
 async def list_blocks(request):
     client = BlockInfoClient()
     ids = request.params.get('ids')
@@ -62,12 +64,9 @@ async def list_blocks(request):
     return await client.list_blocks(ids, start, limit, head, reverse)
 
 
+@validate_params(IdentifierForm)
 async def fetch_block(request):
-    try:
-        id = request.params['id']
-    except KeyError:
-        raise RpcInvalidParamsError(message='Missed id')
-
+    id = request.params['id']
     client = BlockInfoClient()
     try:
         return await client.fetch_block(id)

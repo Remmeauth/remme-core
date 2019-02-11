@@ -56,15 +56,6 @@ Here the nodes available for communication:
 
    <a href="https://node-4-testnet.remme.io" target="_blank">https://node-4-testnet.remme.io</a>
 
-Technical requirements
-======================
-
-1. ``Docker`` (18.0.0+) and ``Docker Compose`` (17.09.0+).
-2. Unix system i.e. ``MacOS``, ``Linux`` to :doc:`/user-guide/local` and :doc:`/user-guide/cloud`; with ``Windows`` :doc:`/user-guide/cloud` is possible only.
-3. At least 2GB hard drive storage.
-4. At least 1GB RAM.
-5. Machine’s time settings are up-to-date.
-
 References
 ==========
 

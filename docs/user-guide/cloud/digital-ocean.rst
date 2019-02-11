@@ -32,7 +32,7 @@ Open your e-mail box, find the confirmation letter from Digital Ocean and click 
    :align: center
    :alt: Confirm e-mail link
 
-Fill up the form with credit\debit card details to pay for cloud services. You also have the option of using ``PayPal`` account.
+Fill up the form with credit/debit card details to pay for cloud services. You also have the option of using ``PayPal`` account.
 
 .. image:: /img/user-guide/cloud/digital-ocean/credit-card-form.png
    :width: 100%
@@ -72,12 +72,43 @@ Create it with green button at the right-top corner of the screen.
    :align: center
    :alt: Create droplet
 
-Specify image ``Ubuntu 18.10 x64``, consider it as operating system, and choose the size of memory and processor power for ``$5 per month``.
+Specify image ``Ubuntu 16.04 x64``, consider it as operating system, and choose the size of memory and processor power for ``$15 per month``.
 
 .. image:: /img/user-guide/cloud/digital-ocean/droplet-image-and-size.png
    :width: 100%
    :align: center
    :alt: Specify droplet image and size
+
+We recommend to enable backups to revert the server if you will occasionally do something wrong.
+
+.. image:: /img/user-guide/cloud/digital-ocean/droplet-enable-backup.png
+   :width: 100%
+   :align: center
+   :alt: Enable droplet backup
+
+Check a checkbox ``Monitoring`` to enable the server to collect server performance metrics.
+
+.. image:: /img/user-guide/cloud/digital-ocean/droplet-ssh-key.png
+   :width: 100%
+   :align: center
+   :alt: Droplet SSH key
+
+The following metrics will be available in the droplet's menu.
+
+.. image:: /img/user-guide/cloud/digital-ocean/droplet-monitoring.png
+   :width: 100%
+   :align: center
+   :alt: Droplet monitoring
+
+Then generate your personal ``SSH key`` and add to the droplet. This step is not required, but we highly recommend to do it for security reasons.
+Visit :doc:`/user-guide/troubleshooting` section to find information about ``SSH key`` and instructions how to generate it.
+
+The example of ``SSH key`` and adding it to the droplet is illustrated on the image below.
+
+.. image:: /img/user-guide/cloud/digital-ocean/droplet-ssh-key-adding.png
+   :width: 100%
+   :align: center
+   :alt: Droplet SSH key adding
 
 Go below, specify the name of the server to which we will connect (i.e. ``remme-core-testnet-node``) and press ``Start``.
 
@@ -93,7 +124,18 @@ Wait for your droplet to be ready as illustrated on the image below.
    :align: center
    :alt: Droplet is ready
 
-Check e-mail box to find a letter from ``Digital Ocean`` with details about your droplet.
+Step 4: login to droplet
+========================
+
+If you have added ``SSH key``, you won't receive an mail with password that illustrated below to access to the droplet,
+you will authenticate yourself with the password from ``SSH key`` instead.
+
+.. image:: /img/user-guide/cloud/digital-ocean/droplet-ssh-key-login.png
+   :width: 100%
+   :align: center
+   :alt: Droplet SSH key login
+
+If you haven't added ``SSH key``, then check e-mail box to find a letter from ``Digital Ocean`` with details about your droplet.
 ``IP-address``, ``username`` and ``password`` are used for login to droplet.
 
 .. image:: /img/user-guide/cloud/digital-ocean/droplet-information-e-mail.png
@@ -143,7 +185,7 @@ Copy the command above and paste to the terminal.
 .. code-block:: console
 
    $ export REMME_CORE_RELEASE=0.6.0-alpha && \
-         sudo apt-get install apt-transport-https ca-certificates curl software-properties-common -y && \
+         sudo apt-get install apt-transport-https ca-certificates curl software-properties-common make -y && \
          cd /home/ && curl -L https://github.com/Remmeauth/remme-core/archive/v$REMME_CORE_RELEASE.tar.gz | sudo tar zx && \
          cd remme-core-$REMME_CORE_RELEASE && \
          sudo apt update && sudo apt upgrade -y && \
@@ -152,7 +194,7 @@ Copy the command above and paste to the terminal.
          sudo apt install docker.io -y && \
          sudo curl -o /usr/local/bin/docker-compose -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" && \
          sudo chmod +x /usr/local/bin/docker-compose && \
-         sudo ./scripts/run.sh -g
+         make run_genesis_bg
 
 .. image:: /img/user-guide/cloud/digital-ocean/installation-command.png
    :width: 100%
@@ -188,7 +230,7 @@ To check if your node did a correct setup, open a brand new terminal window and 
    $ curl -X POST http://$NODE_IP_ADDRESS:8080 -H 'Content-Type: application/json' -d \
          '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python -m json.tool
 
-Response should look similar.
+Response should looks similar.
 
 .. code-block:: console
 
@@ -211,5 +253,13 @@ The flow is illustrated below.
 What's next?
 ============
 
-1. Visit our :doc:`/user-guide/advanced-guide` for more details on user experience.
-2. Communication with the node is available through :doc:`/apis/rpc` API, so check it out.
+1. Secure your account with two-factor authentication that adds an extra layer of security to your account. To log in, you'll
+need to provide a code along with your username and password.
+
+.. image:: /img/user-guide/cloud/digital-ocean/2-fa-authentication.png
+   :width: 100%
+   :align: center
+   :alt: 2FA authentication
+
+2. Visit our :doc:`/user-guide/advanced-guide` for more details on user experience.
+3. Communication with the node is available through :doc:`/apis/rpc` API, so check it out.

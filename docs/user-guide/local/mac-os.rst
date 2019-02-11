@@ -41,7 +41,7 @@ Open a terminal on your PC. Visit :doc:`/user-guide/troubleshooting` section to 
          unzip v$REMME_CORE_RELEASE.zip && \
          rm -rf v$REMME_CORE_RELEASE.zip && \
          cd remme-core-$REMME_CORE_RELEASE && \
-         ./scripts/run.sh -g
+         make run_genesis_bg
 
 .. image:: /img/user-guide/local/mac-os/installation-command.png
    :width: 100%

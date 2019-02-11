@@ -20,6 +20,7 @@ Welcome to REMME's documentation!
    architecture
    remme-framework
    remme-client
+   influxdb
 
 .. toctree::
    :maxdepth: 2

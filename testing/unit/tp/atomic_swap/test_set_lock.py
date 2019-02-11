@@ -88,7 +88,7 @@ def test_set_lock_with_empty_proto():
     assert proto_error_msg(
         AtomicSwapSetSecretLockPayload,
         {
-            'swap_id': ['This field is required.'],
+            'swap_id': ['Missed swap_id'],
             'secret_lock': ['This field is required.'],
         }
     ) == str(error.value)

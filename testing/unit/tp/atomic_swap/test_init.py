@@ -148,10 +148,10 @@ def test_atomic_swap_init_with_empty_proto():
     assert proto_error_msg(
         AtomicSwapInitPayload,
         {
-            'receiver_address': ['This field is required.'],
+            'receiver_address': ['Missed address'],
             'sender_address_non_local': ['This field is required.'],
             'amount': ['This field is required.'],
-            'swap_id': ['This field is required.'],
+            'swap_id': ['Missed swap_id'],
             'created_at': ['This field is required.'],
         }
     ) == str(error.value)
@@ -228,7 +228,7 @@ def test_atomic_swap_init():
     swap_info.swap_id = SWAP_ID
     swap_info.state = AtomicSwapInfo.OPENED
     swap_info.amount = TOKENS_AMOUNT_TO_SWAP
-    swap_info.created_at = AtomicSwapHandler()._get_latest_block_info(mock_context).timestamp
+    swap_info.created_at = CURRENT_TIMESTAMP
     swap_info.email_address_encrypted_optional = ALICE_EMAIL_ADDRESS_ENCRYPTED_BY_INITIATOR
     swap_info.sender_address = BOT_ADDRESS
     swap_info.sender_address_non_local = BOT_ETHEREUM_ADDRESS

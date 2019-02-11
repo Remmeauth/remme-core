@@ -15,13 +15,13 @@
 import json
 import logging
 
-from aiohttp_json_rpc import (
-    RpcInvalidParamsError,
-)
 from google.protobuf.json_format import MessageToJson
 
 from remme.clients.atomic_swap import AtomicSwapClient
+from remme.shared.forms import ProtoForm, AtomicSwapForm
 from remme.shared.exceptions import KeyNotFound
+
+from .utils import validate_params
 
 
 __all__ = (
@@ -33,13 +33,10 @@ __all__ = (
 LOGGER = logging.getLogger(__name__)
 
 
+@validate_params(AtomicSwapForm)
 async def get_atomic_swap_info(request):
     client = AtomicSwapClient()
-    try:
-        swap_id = request.params['swap_id']
-    except KeyError as e:
-        raise RpcInvalidParamsError(message='Missed swap_id')
-
+    swap_id = request.params['swap_id']
     try:
         swap_info = await client.swap_get(swap_id)
     except KeyNotFound as e:
@@ -52,6 +49,7 @@ async def get_atomic_swap_info(request):
     return json.loads(data)
 
 
+@validate_params(ProtoForm)
 async def get_atomic_swap_public_key(request):
     client = AtomicSwapClient()
     try:

@@ -32,6 +32,7 @@ services:
     ports:
       - '0.0.0.0:${REMME_VALIDATOR_PORT:-8800}:8800'
       - '0.0.0.0:${REMME_REST_API_PORT:-8080}:8080'
+      - '0.0.0.0:8086:8086'
     env_file:
       - ../../config/network-config.env
     environment:
@@ -42,7 +43,7 @@ services:
     container_name: remme_consensus_devmode
     image: remme/sawtooth:latest
     network_mode: "service:validator"
-    entrypoint: devmode-rust -vv --connect tcp://127.0.0.1:5005
+    entrypoint: devmode-engine-rust -vv --connect tcp://127.0.0.1:5005
 
   validator-rest-api:
     container_name: remme_validator_rest_api
@@ -80,6 +81,8 @@ services:
       - ../../config/log/remme-tp.toml:/etc/sawtooth/log_config.toml
       - logs:/var/log/remme
     entrypoint: python3 -m remme.tp
+    depends_on:
+      - influxdb
 
   remme-rpc-api:
     container_name: remme_rpc_api
@@ -96,7 +99,20 @@ services:
       - logs:/var/log/remme/
     entrypoint: python3 -m remme.rpc_api
 
+  influxdb:
+    container_name: remme_influxdb
+    image: influxdb
+    network_mode: "service:validator"
+    environment:
+      - INFLUXDB_HTTP_AUTH_ENABLED=false
+      - INFLUXDB_ADMIN_PASSWORD='12345678'
+      - INFLUXDB_USER=lrdata
+      - INFLUXDB_USER_PASSWORD='12345678'
+    volumes:
+      - metrics:/var/lib/influxdb
+
 volumes:
   validator_keys:
   chain_data:
   logs:
+  metrics:

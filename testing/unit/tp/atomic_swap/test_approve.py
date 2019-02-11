@@ -98,7 +98,7 @@ def test_approve_with_empty_proto():
     assert proto_error_msg(
         AtomicSwapApprovePayload,
         {
-            'swap_id': ['This field is required.'],
+            'swap_id': ['Missed swap_id'],
         }
     ) == str(error.value)
 

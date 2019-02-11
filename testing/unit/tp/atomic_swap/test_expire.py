@@ -136,7 +136,7 @@ def test_expire_with_empty_proto():
     assert proto_error_msg(
         AtomicSwapExpirePayload,
         {
-            'swap_id': ['This field is required.'],
+            'swap_id': ['Missed swap_id'],
         }
     ) == str(error.value)
 
@@ -417,13 +417,11 @@ def test_expire_atomic_swap_before_invalid_withdrawal_by_alice():
         BLOCK_INFO_ADDRESS: SERIALIZED_BLOCK_INFO,
     })
 
-    current_timestamp = AtomicSwapHandler()._get_latest_block_info(mock_context_for_blocks).timestamp
-
     existing_swap_info_to_expire = AtomicSwapInfo()
     existing_swap_info_to_expire.swap_id = SWAP_ID
     existing_swap_info_to_expire.state = AtomicSwapInfo.OPENED
     existing_swap_info_to_expire.sender_address = ALICE_ADDRESS
-    existing_swap_info_to_expire.created_at = current_timestamp
+    existing_swap_info_to_expire.created_at = CURRENT_TIMESTAMP
     existing_swap_info_to_expire.is_initiator = False
     serialized_existing_swap_info_to_expire = existing_swap_info_to_expire.SerializeToString()
 
@@ -436,7 +434,7 @@ def test_expire_atomic_swap_before_invalid_withdrawal_by_alice():
     with pytest.raises(InvalidTransaction) as error:
         AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
 
-    assert f'Swap non initiator needs to wait 48 hours since timestamp {current_timestamp} to withdraw.' == \
+    assert f'Swap non initiator needs to wait 48 hours since timestamp {CURRENT_TIMESTAMP} to withdraw.' == \
            str(error.value)
 
 
