@@ -2,15 +2,118 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
-and this project adheres to
+and this project adheres to [Semantic Versioning](https://semver.org).
 
-## Unreleased
+## [0.7.0-alpha] - 2018-12-27
+### Added
+- Support for ECDSA (secp256k1) and Ed25519 public key storing. Architecture of the corresponding
+  transaction family was redefined to make it easily extendable.
+- Finalized WebSockets implementation. You can connect to them using
+  `ws://YOUR_NODE_ADDRESS:YOUR_NODE_PORT/`. A few details:
+  - The message format is based on JSON RPC.
+  - You can track new blocks, batches, transactions statuses, transfers and atomic swap events.
+  - For more information please refer to
+    [documentation](https://docs.remme.io/remme-core/docs/rpc-api.html).
+- One user may request another to pay for their certificates via a special workflow.
+- JSON RPC API:
+  - Now it is possible to filter transactions by their transaction families names.
+  - API implementation pre-validates transactions before they are processed. This removes a bit of
+    workload from the transaction processing system.
+- WebSockets:
+  - Block timestamp is returned along with its ID in events.
+- The possibility to collect metrics to InfluxDB from the core.
+
+
 ### Changed
-- Autotorestart Docker containers when running in background.
+- Upgraded Sawtooth to the stable branch `1.1.x`.
+- Significantly (up to 2.5x) improved the performance of the transaction processing by batching read
+  and write operations.
+- Atomic Swap no longer uses user-provided timestamps. Instead it relies on the data provided by the
+  `BlockInfo` transaction family.
+- Atomic Swap is not using an explicit intermediate storage for tokens locked for a swap. This data
+  is now contained only in atomic swap state entries instead. Such approach gives us less state read
+  and writes and thus improves the overall atomic swap transactions processing speed.
+- Improved validation of JSON RPC requests bodies.
+- Development setup:
+  - Testing framework was changed to `pytest` and custom validator mock was used to write tests for
+    transaction families. This makes our tests significantly faster and easier to use. For more
+    information please refer to [README.md].
+  - Faster builds for the development setup.
+
+### Removed
+- log.io
+
+### Fixed
+- Numerous bugs in WebSockets and RPC API implementation.
+
+## [0.6.0-alpha] - 2018-11-20
+### Added
+- JSON RPC. This was introduced as replacement of REST API which is more consistent in terms of data
+  format and is transport-agnostic (can be used with HTTP, WebSockets or anything else, for example
+  Unix sockets). Documentation is available [here](https://docs.remme.io/remme-core/docs/rpc-api.html).
+- The possibility to withdraw tokens from `0x0` address for a designated list of its owners.
+  This address is used in atomic swap implementation and will be used in basic economical model
+  implementation.
+- Tokens burnt during public keys registration are now transferred to a specified address instead of
+  burning.
+
+### Changed
+- Logging:
+  - Logging settings are loaded to containers from configuration files. Log configuration files are
+    in `config/log` directory.
+  - Disabled native Docker logging for application containers.
+  - Logs are stored in `remme_logs` volume.
+  - Better default logging setup:
+    - Log files are rotated by their size (50 MB each).
+    - 20 latest log files are stored.
+    - All loggers use the `DEBUG` logging level by default.
+  - Added fallback to the default configuration in case of errors.
+- Restructured `Makefile`, build and deployment tooling.
+  - Complex scripts are moved away from `Makefile` to `build` directory and `scripts/run.sh`.
+  - Scripts that are responsible for starting up the software in Docker containers are now in
+    `scripts/node`.
+  - `build/ci` contains scripts related to continuous integration and delivery.
+  - You can see the documentation on those scripts in [BUILD.md](BUILD.md).
+- Move to Poetry configuration system for Python projects. This brings much more consistent
+  configuration and tooling for the Python part of the project.
+- Upgrade Sawtooth framework to nightly branch. Will move to stable when the required branch
+  stabilizes. This brings the following updates:
+  - Improvements in performance of the API.
+  - Consensus engine is separated from the `validator` component and runs as a separate service.
+    This allows to easily integrate our own consensus engine that is being worked on.
+  - Improvements to the event system that allow us to provide transaction state updates via
+    WebSockets more efficiently.
+  - The system currently use `devmode` consensus.
+- Docker setup now uses only two custom containers: one contains installation of Sawtooth and
+  another contains REMME installation.
+- Removed `web3` from dependencies. The atomic swap component implements Ethereum-compatible hashing
+  function now.
+
+### Removed
+- REST API. Removed in favor of JSON RPC.
+- Documentation on the core is entirely technical now. Documentation sections like "Use cases" are
+  now in separate sections of documentation. Check them out at https://docs.remme.io/
+
+### Fixed
+- Synchronization issues in atomic swaps transaction family.
+- Token transfer transaction with zero amount of transferred tokens are rejected now.
+- Application crash on some cases of incorrect configuration.
+
+### Security
+- Update `requests` Python library to mitigate CVE-2018-18074.
 
 ## [0.5.2-alpha] - 2018-09-27
 ### Fixed
 - Several starting up issues
+
+## [0.5.1-alpha] - 2018-09-13
+### Changes
+- Batches submitted from REST API are now signed by the key of the validator (the same as the key for
+  block signing). This is required for compatibility with the upcoming update of Sawtooth which will
+  remove performance limitations for batches submitted with the validator key.
+- Versions of critical non-Python dependencies are now fixed.
+### Fixed
+- A couple of minor bugs in BlockInfo component.
 
 ## [0.5.1-alpha] - 2018-09-13
 ### Changes
@@ -49,7 +152,7 @@ and this project adheres to
 ### Fixed
 - Swagger UI always opens correctly.
 ### Security
-- Upgrade py-cryptography to eliminate CVE-2018-10903.
+- Upgrade py-cryptography to mitigate CVE-2018-10903.
 
 ## [0.4.0-alpha] - 2018-07-16
 ### Added
