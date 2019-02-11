@@ -12,7 +12,7 @@ The format is based on [Keep a Changelog][1] and this project adheres to [Semant
   `ws://YOUR_NODE_ADDRESS:YOUR_NODE_PORT/`. A few details:
   - The message format is based on JSON RPC.
   - You can track new blocks, batches, transactions statuses, transfers and atomic swap events.
-  - For more information please refer to [documentation][3].
+  - For more information please refer to [documentation][6].
 - One user may request another to pay for their certificates via a special workflow.
 - JSON RPC API:
   - Now it is possible to filter transactions by their transaction families names.
@@ -20,7 +20,7 @@ The format is based on [Keep a Changelog][1] and this project adheres to [Semant
     workload from the transaction processing system.
 - Block timestamp is returned along with its ID in WebSockets events.
 - The possibility to collect metrics to InfluxDB from the core.
-
+- Guides for running a node on different cloud providers.
 
 ### Changed
 - Upgraded Sawtooth to the stable branch `1.1.x`.
@@ -261,3 +261,4 @@ The format is based on [Keep a Changelog][1] and this project adheres to [Semant
 [3]: https://docs.remme.io/remme-core/docs/rpc-api.html
 [4]: https://github.com/zalando/connexion
 [5]: https://sawtooth.hyperledger.org/docs/core/releases/1.0.1/architecture/poet.html
+[6]: https://docs.remme.io/remme-core/docs/remme-ws.html
