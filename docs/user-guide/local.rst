@@ -19,7 +19,8 @@ Technical requirements
 2. Unix system i.e. ``MacOS``, ``Linux``.
 3. At least 2 CPU cores.
 4. At least 2 GB RAM.
-5. Machine’s time settings are up-to-date.
+5. At least 60 GB free hard drive space.
+6. Machine’s time settings are up-to-date.
 
 Operating systems
 =================

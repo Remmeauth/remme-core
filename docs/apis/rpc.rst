@@ -1,5 +1,6 @@
-REMME Core: RPC-API
-====================
+***
+RPC
+***
 
 ========
 Overview

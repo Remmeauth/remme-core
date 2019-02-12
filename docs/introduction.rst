@@ -9,7 +9,7 @@ Overview
 related to cybersecurity, IoT connectivity, data integrity, digital copyright protection, transparency etc.
 
 ``Remme core`` is built on Hyperledger Sawtooth platform, allowing to be flexible in language choice during the
-development process. ``Remme core`` exposes application programming interface based on :doc:`/rpc-api`.
+development process. ``Remme core`` exposes application programming interface based on :doc:`/apis/rpc` API.
 
 ``Remme`` also supports |js_client_library| and |dotnet_client_library| programming libraries that wrap its application
 programming interface, so that you could easily embed the protocol in your project.

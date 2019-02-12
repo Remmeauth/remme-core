@@ -7,7 +7,7 @@ Troubleshooting is needed to identify the symptoms. Determining the most likely 
 causes of a problem.
 
 Command line notation
-=============================
+=====================
 
 Throughout the documentation, we’ll show some commands used in the terminal. Lines that you should enter in a terminal all start with ``$``.
 You don’t need to type in the ``$`` character, it indicates the start of each command. Lines that don’t start with ``$`` typically show

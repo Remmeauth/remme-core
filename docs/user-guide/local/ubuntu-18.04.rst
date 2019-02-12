@@ -104,4 +104,5 @@ What's next?
 ============
 
 1. Visit our :doc:`/user-guide/advanced-guide` for more details on user experience.
-2. Communication with the node is available through :doc:`/rpc-api`, so check it out.
+2. Communication with the node is available through :doc:`/apis/rpc` API, so check it out.
+
