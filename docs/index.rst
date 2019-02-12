@@ -5,6 +5,7 @@
 
 Welcome to REMME's documentation!
 =================================
+
 .. toctree::
    :maxdepth: 2
 
@@ -19,8 +20,7 @@ Welcome to REMME's documentation!
    architecture
    remme-framework
    remme-client
-   remme-ws
-   remme-ws-events
+   influxdb
 
 .. toctree::
    :maxdepth: 2
@@ -32,13 +32,10 @@ Welcome to REMME's documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: SDK:
+   :caption: APIs:
 
-   rpc-api
-
-
-
-
+   apis/rpc.rst
+   apis/ws.rst
 
 Indices and tables
 ==================

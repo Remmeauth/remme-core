@@ -54,17 +54,6 @@ processor power for ``$20 per month``.
 Also, we recommend to enable backups to revert the server if you will occasionally do something wrong. So, in the additional
 feature list, check a checkbox ``Enable Auto Backups`` to enable the server backups.
 
-Then generate your personal ``SSH key``, finding button ``Add now`` in the ``SSH keys`` section. This step is not required,
-but we highly recommend to do it for security reasons. Visit :doc:`/user-guide/troubleshooting` section to find information
-about ``SSH key`` and instructions how to generate it.
-
-The example of SSH key and adding it to the server is illustrated on the image below.
-
-.. image:: /img/user-guide/cloud/vultr/server-ssh-key-adding.png
-   :width: 100%
-   :align: center
-   :alt: Server ssh key adding
-
 Go below, specify the name of the server to which we will connect (i.e. ``remme-core-testnet-node``) and press ``Deploy Now``.
 
 .. image:: /img/user-guide/cloud/vultr/server-hostname-and-start.png
@@ -82,16 +71,7 @@ Wait for your server to be ready as illustrated on the image below.
 Step 3: login to server
 =======================
 
-If you have added ``SSH key``, you won't not need the password from the server, you will authenticate yourself with the
-password from ``SSH key`` instead.
-
-.. image:: /img/user-guide/cloud/digital-ocean/droplet-ssh-key-login.png
-   :width: 100%
-   :align: center
-   :alt: Droplet SSH-key login
-
-If you haven’t added ``SSH key``, check server details by clicking on it. There will be ``IP-address``, ``username``, and
-``password`` which are used for login to the server.
+Check server details by clicking on it. There will be ``IP-address``, ``username``, and ``password`` which are used for login to the server.
 
 .. image:: /img/user-guide/cloud/vultr/server-details.png
    :width: 100%
@@ -224,6 +204,4 @@ need to provide a code along with your username and password.
    :alt: Server type and size
 
 4. Visit our :doc:`/user-guide/advanced-guide` for more details on user experience.
-5. Communication with the node is available through :doc:`/rpc-api`, so check it out.
-
-
+5. Communication with the node is available through :doc:`/apis/rpc` API, so check it out.

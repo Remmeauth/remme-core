@@ -143,6 +143,9 @@ If you haven't added ``SSH key``, then check e-mail box to find a letter from ``
    :align: center
    :alt: Droplet information
 
+Step 4: login to droplet
+========================
+
 Open a terminal on your PC. Visit :doc:`/user-guide/troubleshooting` section to find instructions how to do it.
 
 The image below, illustrated how to connect to the droplet - type ``ssh root@157.230.146.230``. Do the same, but
@@ -259,4 +262,4 @@ need to provide a code along with your username and password.
    :alt: 2FA authentication
 
 2. Visit our :doc:`/user-guide/advanced-guide` for more details on user experience.
-3. Communication with the node is available through :doc:`/rpc-api`, so check it out.
+3. Communication with the node is available through :doc:`/apis/rpc` API, so check it out.
