@@ -114,9 +114,9 @@ class RSAProcessor(BasePubKeyProcessor):
 
         try:
             verifier.verify(self._entity_hash_signature, self._entity_hash,
-                            self.get_padding(), self.get_hashing_algorithm()())
+                            self._get_padding(), self.get_hashing_algorithm()())
             return True
-        except InvalidSignature:
+        except Exception:
             return False
 
     def get_hashing_algorithm(self):
@@ -124,7 +124,7 @@ class RSAProcessor(BasePubKeyProcessor):
             .Name(self._hashing_algorithm)
         return getattr(hashes, alg_name)
 
-    def get_padding(self):
+    def _get_padding(self):
         Padding = NewPubKeyPayload.RSAConfiguration.Padding
         if self._config.padding == Padding.Value('PSS'):
             return padding.PSS(mgf=padding.MGF1(self.get_hashing_algorithm()()),
@@ -173,12 +173,12 @@ class ECDSAProcessor(BasePubKeyProcessor):
 class Ed25519Processor(BasePubKeyProcessor):
 
     def verify(self):
-        verifier = ed25519.VerifyingKey(self.get_public_key())
-        msg_digest = self.get_hashing_algorithm()(self._entity_hash).digest()
         try:
+            verifier = ed25519.VerifyingKey(self.get_public_key())
+            msg_digest = self.get_hashing_algorithm()(self._entity_hash).digest()
             verifier.verify(self._entity_hash_signature, msg_digest)
             return True
-        except ed25519.BadSignatureError:
+        except Exception:
             return False
 
     def get_hashing_algorithm(self):
