@@ -151,7 +151,7 @@ class JsonRpc(JsonRpc):
             raw_msg = data.data
         try:
             msg = decode_msg(raw_msg)
-            self.logger.debug('message decoded: %s', msg)
+            self.logger.debug(f'message decoded: {msg}')
 
         except RpcError as error:
             return await self._send_str(http_request, encode_error(error))
@@ -163,7 +163,7 @@ class JsonRpc(JsonRpc):
 
             # check if method is available
             if method not in http_request.methods:
-                self.logger.debug('method %s is unknown or restricted', method)
+                self.logger.debug(f'method {method} is unknown or restricted')
 
                 if method in self.rpc_methods:
                     err_msg = 'Method is disabled by the node administrator'
@@ -218,7 +218,7 @@ class JsonRpc(JsonRpc):
             result = encode_result(msg.data['id'], msg.data['result'])
             return await self._send_str(http_request, result)
         else:
-            self.logger.debug('unsupported msg type (%s)', msg.type)
+            self.logger.debug(f'unsupported msg type ({msg.type})')
 
             return await self._send_str(http_request, encode_error(
                 RpcInvalidRequestError(msg_id=msg.data.get('id', None))
