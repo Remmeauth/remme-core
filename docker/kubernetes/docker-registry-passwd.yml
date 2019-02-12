@@ -14,9 +14,10 @@
 # ------------------------------------------------------------------------
 
 apiVersion: v1
-kind: ConfigMap
+kind: Secret
 metadata:
-  name: consensus-testing-config
-  namespace: default
+  name: docker-registry
+  namespace: remme-test
+type: Opaque
 data:
-  GENESIS_HOST: kube-node-1
+  HTPASSWD: xxxxxxxx
