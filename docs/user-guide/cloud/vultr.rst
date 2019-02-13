@@ -9,7 +9,11 @@ and provides frictionless provisioning of public cloud, storage and single-tenan
 Step 1: sign up
 ===============
 
-Visit `registration link <https://www.vultr.com/register/>`_ to create your own account on ``Vultr``.
+Visit |registration_link| to create your own account on ``Vultr``.
+
+.. |registration_link| raw:: html
+
+   <a href="https://www.vultr.com/register/" target="_blank">registration link</a>
 
 .. image:: /img/user-guide/cloud/vultr/sign-up-form.png
    :width: 100%
@@ -54,7 +58,17 @@ processor power for ``$20 per month``.
 Also, we recommend to enable backups to revert the server if you will occasionally do something wrong. So, in the additional
 feature list, check a checkbox ``Enable Auto Backups`` to enable the server backups.
 
-Go below, specify the name of the server to which we will connect (i.e. ``remme-core-testnet-node``) and press ``Deploy Now``.
+Then generate your personal ``SSH key`` and add to the server. This step is not required, but we highly recommend to do it for security reasons.
+Visit :doc:`/user-guide/troubleshooting` section to find information about ``SSH key`` and instructions how to generate it.
+
+The example of ``SSH key`` and adding it to the droplet is illustrated on the image below.
+
+.. image:: /img/user-guide/cloud/vultr/server-ssh-key-adding.png
+   :width: 100%
+   :align: center
+   :alt: Droplet SSH key adding
+
+Remember to click on a created ``SSH key`` to activate it. Go below, specify the name of the server to which we will connect (i.e. ``remme-core-testnet-node``) and press ``Deploy Now``.
 
 .. image:: /img/user-guide/cloud/vultr/server-hostname-and-start.png
    :width: 100%
@@ -71,16 +85,24 @@ Wait for your server to be ready as illustrated on the image below.
 Step 3: login to server
 =======================
 
-Check server details by clicking on it. There will be ``IP-address``, ``username``, and ``password`` which are used for login to the server.
+Open a terminal on your PC. Visit :doc:`/user-guide/troubleshooting` section to find instructions how to do it.
+
+If you have added ``SSH key`` you will authenticate yourself with the password from ``SSH key`` instead of the password
+from the server that illustrated below.
+
+.. image:: /img/user-guide/cloud/vultr/login-to-the-server-ssh.png
+   :width: 100%
+   :align: center
+   :alt: Droplet SSH key login
+
+If you haven't added ``SSH key``, check server details by clicking on it. There will be ``IP-address``, ``username``, and ``password`` which are used for login to the server.
 
 .. image:: /img/user-guide/cloud/vultr/server-details.png
    :width: 100%
    :align: center
    :alt: Server details
 
-Open a terminal on your PC. Visit :doc:`/user-guide/troubleshooting` section to find instructions how to do it.
-
-The image below, illustrated how to connect to the server - type ``ssh root@95.179.156.74``. Do the same, but
+The image below, illustrated how to connect to the server via its password - type ``ssh root@95.179.156.74``. Do the same, but
 instead of ``95.179.156.74``, put your ``IP-address`` from the server details.
 
 Then type ``yes``, to continue the connection.
@@ -112,7 +134,7 @@ Copy the command above and paste to the terminal.
 
 .. code-block:: console
 
-   $ export REMME_CORE_RELEASE=0.6.0-alpha && \
+   $ export REMME_CORE_RELEASE=0.7.0-alpha && \
          sudo apt-get install apt-transport-https ca-certificates curl software-properties-common make -y && \
          cd /home/ && curl -L https://github.com/Remmeauth/remme-core/archive/v$REMME_CORE_RELEASE.tar.gz | sudo tar zx && \
          cd remme-core-$REMME_CORE_RELEASE && \
@@ -122,7 +144,7 @@ Copy the command above and paste to the terminal.
          sudo apt install docker.io -y && \
          sudo curl -o /usr/local/bin/docker-compose -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" && \
          sudo chmod +x /usr/local/bin/docker-compose && \
-         make run_genesis_bg
+         sudo make run_genesis_bg
 
 .. image:: /img/user-guide/cloud/digital-ocean/installation-command.png
    :width: 100%
@@ -158,7 +180,7 @@ To check if your node did a correct setup, open a brand new terminal window and 
    $ curl -X POST http://$NODE_IP_ADDRESS:8080 -H 'Content-Type: application/json' -d \
          '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python -m json.tool
 
-Response should looks similar.
+Response should look similar.
 
 .. code-block:: console
 
@@ -166,8 +188,7 @@ Response should looks similar.
        "id": "11",
        "jsonrpc": "2.0",
        "result": {
-           "node_public_key": "028e7e9b060d7c407e428676299ced9afef4ce782995294d8ea01fd0f08cec9765",
-           "storage_public_key": "028e7e9b060d7c407e428676299ced9afef4ce782995294d8ea01fd0f08cec9765"
+           "node_public_key": "028e7e9b060d7c407e428676299ced9afef4ce782995294d8ea01fd0f08cec9765"
        }
    }
 
