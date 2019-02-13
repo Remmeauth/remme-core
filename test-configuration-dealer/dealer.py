@@ -22,17 +22,25 @@ KEY_NUM = 50
 
 num_connections = 0
 context = create_context('secp256k1')
-keys = [context.new_random_private_key().as_hex() for _ in range(KEY_NUM)]
+keys = [context.new_random_private_key() for _ in range(KEY_NUM)]
 ips = []
 
 
 async def get_config(request):
     global num_connections, ips
     ip = request.remote
+    privkey = keys[num_connections]
+    pubkey = context.get_public_key(privkey).as_hex()
+    if num_connections == 0:
+        run_mode = 'genesis'
+    else:
+        run_mode = 'run'
     result = {
-        'privkey': keys[num_connections],
+        'privkey': privkey.as_hex(),
+        'pubkey': pubkey,
         'ip': ip,
         'peers': ','.join(ips),
+        'run_mode': run_mode,
     }
     ips.append(f'tcp://{ip}:8800')
     num_connections += 1

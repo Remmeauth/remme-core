@@ -1,20 +1,11 @@
-#!/usr/bin/env bash
+#!/bin/bash
+
+echo "Node settings:"
+cat /config/network-config.env
+
+source /config/network-config.env
+
 ADDITIONAL_ARGS=""
-
-echo "Genesis host is $GENESIS_HOST"
-
-if [ "$NODEHOST" = "$GENESIS_HOST" ]; then
-    REMME_START_MODE=genesis
-    echo "Generating genesis block on $NODEHOST..."
-else
-    REMME_START_MODE=run
-    echo "Starting a simple node at $NODEHOST..."
-fi
-
-if [ ! -f /etc/sawtooth/keys/validator.priv ]; then
-    echo "validator key pair not found - creating a new one..."
-    sawadm keygen
-fi
 
 echo "Node public key $(cat /etc/sawtooth/keys/validator.pub)"
 
@@ -77,16 +68,13 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
     echo "Genesis block generated!"
 fi
 
-SEEDS_LIST=$(kubectl get pods -l role=remme-node -o jsonpath="{.items[*].status.podIP}" | sed -E "s/([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/tcp:\/\/\1\-\2-\3-\4.default\.pod\.cluster\.local:8800/g" | sed "s/ /,/g")
-ADDITIONAL_ARGS="$ADDITIONAL_ARGS --peers $SEEDS_LIST"
-
-echo "Seeds list is $SEEDS_LIST"
-
-VALIDATOR_HOST=$(echo $PODIP | sed -E "s/([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/\1\-\2-\3-\4.default\.pod\.cluster\.local/g")
+if [ ! -z "$SEEDS_LIST" ]; then
+    ADDITIONAL_ARGS="$ADDITIONAL_ARGS --peering dynamic --seeds $SEEDS_LIST"
+fi
 
 echo "Starting the validator..."
 sawtooth-validator -vv \
-    --endpoint tcp://$VALIDATOR_HOST:8800 \
+    --endpoint tcp://$REMME_VALIDATOR_IP:8800 \
     --bind component:tcp://127.0.0.1:4004 \
     --bind consensus:tcp://127.0.0.1:5005 \
     --bind network:tcp://0.0.0.0:8800 \
