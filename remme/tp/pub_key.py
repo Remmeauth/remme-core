@@ -386,6 +386,9 @@ class PubKeyHandler(BasicHandler):
         if public_key_information:
             raise InvalidTransaction('This public key is already registered.')
 
+        if public_key_to_store_owner_account is None:
+            public_key_to_store_owner_account = Account()
+
         if payer_for_storing_account is None:
             payer_for_storing_account = Account()
 

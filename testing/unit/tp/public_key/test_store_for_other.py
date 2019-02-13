@@ -402,6 +402,144 @@ def test_store_ecdsa_public_key():
     assert expected_state == state_as_dict
 
 
+def test_store_rsa_public_key_no_owner_account():
+    """
+    Case: send transaction request, to store certificate public key (RSA) for other, when owner account does not exist.
+    Expect: public key information is stored to blockchain linked to the newly created owner account's address.
+    """
+    new_public_key_payload = generate_rsa_payload(key=CERTIFICATE_PUBLIC_KEY)
+    serialized_new_public_key_payload = new_public_key_payload.SerializeToString()
+
+    private_key = Secp256k1PrivateKey.from_hex(OWNER_PRIVATE_KEY)
+    signature_by_owner = Secp256k1Context().sign(serialized_new_public_key_payload, private_key)
+
+    new_public_key_store_and_pay_payload = NewPubKeyStoreAndPayPayload(
+        pub_key_payload=new_public_key_payload,
+        owner_public_key=bytes.fromhex(OWNER_PUBLIC_KEY),
+        signature_by_owner=bytes.fromhex(signature_by_owner),
+    )
+
+    transaction_payload = TransactionPayload()
+    transaction_payload.method = PubKeyMethod.STORE_AND_PAY
+    transaction_payload.data = new_public_key_store_and_pay_payload.SerializeToString()
+
+    serialized_transaction_payload = transaction_payload.SerializeToString()
+
+    transaction_header = generate_header(
+        serialized_transaction_payload, INPUTS, OUTPUTS, signer_public_key=PAYER_PUBLIC_KEY,
+    )
+
+    serialized_header = transaction_header.SerializeToString()
+
+    transaction_request = TpProcessRequest(
+        header=transaction_header,
+        payload=serialized_transaction_payload,
+        signature=create_signer(private_key=PAYER_PRIVATE_KEY).sign(serialized_header),
+    )
+
+    payer_account = Account()
+    payer_account.balance = PAYER_INITIAL_BALANCE
+    serialized_payer_account = payer_account.SerializeToString()
+
+    zero_account = Account()
+    zero_account.balance = 0
+    serialized_zero_account = zero_account.SerializeToString()
+
+    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
+        PAYER_ADDRESS: serialized_payer_account,
+        ZERO_ADDRESS: serialized_zero_account,
+    })
+
+    expected_public_key_storage = PubKeyStorage()
+    expected_public_key_storage.owner = OWNER_PUBLIC_KEY
+    expected_public_key_storage.payload.CopyFrom(new_public_key_payload)
+    expected_public_key_storage.is_revoked = False
+    expected_serialized_public_key_storage = expected_public_key_storage.SerializeToString()
+
+    expected_payer_account = Account()
+    expected_payer_account.balance = PAYER_INITIAL_BALANCE - PUB_KEY_STORE_PRICE
+    serialized_expected_payer_account = expected_payer_account.SerializeToString()
+
+    expected_owner_account = Account()
+    expected_owner_account.pub_keys.append(ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY)
+    serialized_expected_owner_account = expected_owner_account.SerializeToString()
+
+    expected_zero_account = Account()
+    expected_zero_account.balance = 0 + PUB_KEY_STORE_PRICE
+    expected_serialized_zero_account = expected_zero_account.SerializeToString()
+
+    expected_state = {
+        OWNER_ADDRESS: serialized_expected_owner_account,
+        PAYER_ADDRESS: serialized_expected_payer_account,
+        ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY: expected_serialized_public_key_storage,
+        ZERO_ADDRESS: expected_serialized_zero_account,
+    }
+
+    PubKeyHandler().apply(transaction=transaction_request, context=mock_context)
+
+    state_as_list = mock_context.get_state(addresses=[
+        OWNER_ADDRESS, PAYER_ADDRESS, ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY, ZERO_ADDRESS,
+    ])
+
+    state_as_dict = {entry.address: entry.data for entry in state_as_list}
+
+    assert expected_state == state_as_dict
+
+
+def test_store_public_key_for_other_no_payer_account():
+    """
+    Case: send transaction request, to store certificate public key for other, when payer account does not exist.
+    Expect: invalid transaction error is raised with not enough transferable balance error message.
+    """
+    new_public_key_payload = generate_rsa_payload(key=CERTIFICATE_PUBLIC_KEY)
+    serialized_new_public_key_payload = new_public_key_payload.SerializeToString()
+
+    private_key = Secp256k1PrivateKey.from_hex(OWNER_PRIVATE_KEY)
+    signature_by_owner = Secp256k1Context().sign(serialized_new_public_key_payload, private_key)
+
+    new_public_key_store_and_pay_payload = NewPubKeyStoreAndPayPayload(
+        pub_key_payload=new_public_key_payload,
+        owner_public_key=bytes.fromhex(OWNER_PUBLIC_KEY),
+        signature_by_owner=bytes.fromhex(signature_by_owner),
+    )
+
+    transaction_payload = TransactionPayload()
+    transaction_payload.method = PubKeyMethod.STORE_AND_PAY
+    transaction_payload.data = new_public_key_store_and_pay_payload.SerializeToString()
+
+    serialized_transaction_payload = transaction_payload.SerializeToString()
+
+    transaction_header = generate_header(
+        serialized_transaction_payload, INPUTS, OUTPUTS, signer_public_key=PAYER_PUBLIC_KEY,
+    )
+
+    serialized_header = transaction_header.SerializeToString()
+
+    transaction_request = TpProcessRequest(
+        header=transaction_header,
+        payload=serialized_transaction_payload,
+        signature=create_signer(private_key=PAYER_PRIVATE_KEY).sign(serialized_header),
+    )
+
+    owner_account = Account()
+    owner_account.pub_keys.append(RANDOM_ALREADY_STORED_OWNER_PUBLIC_KEY_ADDRESS)
+    serialized_owner_account = owner_account.SerializeToString()
+
+    zero_account = Account()
+    zero_account.balance = 0
+    serialized_zero_account = zero_account.SerializeToString()
+
+    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
+        OWNER_ADDRESS: serialized_owner_account,
+        ZERO_ADDRESS: serialized_zero_account,
+    })
+
+    with pytest.raises(InvalidTransaction) as error:
+        PubKeyHandler().apply(transaction=transaction_request, context=mock_context)
+
+    assert 'Not enough transferable balance. Sender\'s current balance: 0.' == str(error.value)
+
+
 def test_store_public_key_for_other_decode_error():
     """
     Case: send transaction request, to store certificate public key for other, with invalid transaction payload.
