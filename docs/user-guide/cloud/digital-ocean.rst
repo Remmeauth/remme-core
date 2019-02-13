@@ -9,7 +9,11 @@ applications, AI & ML workloads, hosted services, client websites, or CI/CD envi
 Step 1: sign up
 ===============
 
-Visit `registration link <https://cloud.digitalocean.com/registrations/new>`_ to create your own account on ``Digital Ocean``.
+Visit |registration_link| to create your own account on ``Digital Ocean``.
+
+.. |registration_link| raw:: html
+
+   <a href="https://cloud.digitalocean.com/registrations/new" target="_blank">registration link</a>
 
 If you login through another services such as ``Google``, some steps below couldn't be suitable for you.
 
@@ -25,7 +29,7 @@ After entering initial credentials you will get the pop-up to verify the account
    :align: center
    :alt: Confirm e-mail pop-up
 
-Open your e-mail box, find the confirmation letter from Digital Ocean and click on the link.
+Open your e-mail box, find the confirmation letter from ``Digital Ocean`` and click on the link.
 
 .. image:: /img/user-guide/cloud/digital-ocean/confirm-e-mail-link.png
    :width: 100%
@@ -127,6 +131,8 @@ Wait for your droplet to be ready as illustrated on the image below.
 Step 4: login to droplet
 ========================
 
+Open a terminal on your PC. Visit :doc:`/user-guide/troubleshooting` section to find instructions how to do it.
+
 If you have added ``SSH key``, you won't receive an mail with password that illustrated below to access to the droplet,
 you will authenticate yourself with the password from ``SSH key`` instead.
 
@@ -143,12 +149,7 @@ If you haven't added ``SSH key``, then check e-mail box to find a letter from ``
    :align: center
    :alt: Droplet information
 
-Step 4: login to droplet
-========================
-
-Open a terminal on your PC. Visit :doc:`/user-guide/troubleshooting` section to find instructions how to do it.
-
-The image below, illustrated how to connect to the droplet - type ``ssh root@157.230.146.230``. Do the same, but
+The image below, illustrated how to connect to the droplet via its password - type ``ssh root@157.230.146.230``. Do the same, but
 instead of ``157.230.146.230``, put your ``IP-address`` from the e-mail.
 
 Then type ``yes``, to continue the connection.
@@ -184,7 +185,7 @@ Copy the command above and paste to the terminal.
 
 .. code-block:: console
 
-   $ export REMME_CORE_RELEASE=0.6.0-alpha && \
+   $ export REMME_CORE_RELEASE=0.7.0-alpha && \
          sudo apt-get install apt-transport-https ca-certificates curl software-properties-common make -y && \
          cd /home/ && curl -L https://github.com/Remmeauth/remme-core/archive/v$REMME_CORE_RELEASE.tar.gz | sudo tar zx && \
          cd remme-core-$REMME_CORE_RELEASE && \
@@ -194,12 +195,12 @@ Copy the command above and paste to the terminal.
          sudo apt install docker.io -y && \
          sudo curl -o /usr/local/bin/docker-compose -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" && \
          sudo chmod +x /usr/local/bin/docker-compose && \
-         make run_genesis_bg
+         sudo make run_genesis_bg
 
 .. image:: /img/user-guide/cloud/digital-ocean/installation-command.png
    :width: 100%
    :align: center
-   :alt: Proof core is up
+   :alt: Terminal installation command
 
 The expected result of the command is illustrated below.
 
@@ -213,7 +214,7 @@ If during the installation same window as illustrated below appears, just press 
 .. image:: /img/user-guide/cloud/digital-ocean/installation-possible-window.png
    :width: 100%
    :align: center
-   :alt: Proof core is up
+   :alt: Installation possible window
 
 When you see the same output as illustrated below, it means the node is ready to accept requests.
 
@@ -230,7 +231,7 @@ To check if your node did a correct setup, open a brand new terminal window and 
    $ curl -X POST http://$NODE_IP_ADDRESS:8080 -H 'Content-Type: application/json' -d \
          '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python -m json.tool
 
-Response should looks similar.
+Response should look similar.
 
 .. code-block:: console
 
@@ -238,8 +239,7 @@ Response should looks similar.
        "id": "11",
        "jsonrpc": "2.0",
        "result": {
-           "node_public_key": "028e7e9b060d7c407e428676299ced9afef4ce782995294d8ea01fd0f08cec9765",
-           "storage_public_key": "028e7e9b060d7c407e428676299ced9afef4ce782995294d8ea01fd0f08cec9765"
+           "node_public_key": "028e7e9b060d7c407e428676299ced9afef4ce782995294d8ea01fd0f08cec9765"
        }
    }
 

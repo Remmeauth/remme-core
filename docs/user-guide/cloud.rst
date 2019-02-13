@@ -28,5 +28,6 @@ To get started, choose the guide for the cloud provider.
 .. toctree::
    :maxdepth: 2
 
+   cloud/aws.rst
    cloud/digital-ocean.rst
    cloud/vultr.rst
