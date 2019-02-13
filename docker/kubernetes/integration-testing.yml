@@ -13,6 +13,52 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
+# CREATE NAMESPACE
+# ================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: remme-test
+---
+# CONFIGURATION DEALER
+# ====================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: configuration-dealer
+  namespace: remme-test
+spec:
+  selector:
+    matchLabels:
+      app: configuration-dealer
+  template:
+    metadata:
+      labels:
+        app: configuration-dealer
+    spec:
+      containers:
+      - name: configuration-dealer
+        image: remme/test-configuration-dealer:latest
+        ports:
+        - name: http
+          containerPort: 8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: configuration-dealer
+  namespace: remme-test
+spec:
+  selector:
+    app: configuration-dealer
+  type: ClusterIP
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: http
+---
+# DEPLOY NODES
+# ============
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -23,16 +69,16 @@ spec:
     matchLabels:
       app: remme-node
   template:
+    metadata:
+      labels:
+        app: remme-node
     spec:
-      metadata:
-        labels:
-          app: remme-node
-      imagePullSecrets:
-      - name: regcred
       volumes:
       - name: validator-keys
         emptyDir: {}
       - name: genesis-data
+        emptyDir: {}
+      - name: config
         emptyDir: {}
       # Pull node settings
       initContainers:
@@ -43,6 +89,8 @@ spec:
           mountPath: /etc/sawtooth/keys
         - name: genesis-data
           mountPath: /genesis/batch
+        - name: config
+          mountPath: /config
         command:
         - sh
         args:
@@ -54,8 +102,13 @@ spec:
         volumeMounts:
         - name: validator-keys
           mountPath: /etc/sawtooth/keys
+          readOnly: true
         - name: genesis-data
           mountPath: /genesis/batch
+          readOnly: true
+        - name: config
+          mountPath: /config
+          readOnly: true
         ports:
         - name: external-nodes
           containerPort: 8800
@@ -65,7 +118,7 @@ spec:
         - name: consensus
           containerPort: 5005
         command:
-        - sh
+        - bash
         args:
         - /scripts/validator.sh
       - name: consensus
@@ -73,6 +126,7 @@ spec:
         volumeMounts:
         - name: validator-keys
           mountPath: /etc/sawtooth/keys
+          readOnly: true
         command:
         - cargo
         args:
