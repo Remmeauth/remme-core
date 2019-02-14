@@ -315,6 +315,43 @@ def test_public_key_handler_ecdsa_store():
     assert expected_state == state_as_dict
 
 
+def test_public_key_handler_non_existing_sender_account():
+    """
+    Case: send transaction request, to store certificate public key, from non-existing account.
+    Expect: invalid transaction error is raised with not enough transferable balance error message.
+    """
+    new_public_key_payload = generate_rsa_payload()
+
+    transaction_payload = TransactionPayload()
+    transaction_payload.method = PubKeyMethod.STORE
+    transaction_payload.data = new_public_key_payload.SerializeToString()
+
+    serialized_transaction_payload = transaction_payload.SerializeToString()
+
+    transaction_header = generate_header(serialized_transaction_payload, INPUTS, OUTPUTS)
+
+    serialized_header = transaction_header.SerializeToString()
+
+    transaction_request = TpProcessRequest(
+        header=transaction_header,
+        payload=serialized_transaction_payload,
+        signature=create_signer(private_key=SENDER_PRIVATE_KEY).sign(serialized_header),
+    )
+
+    zero_account = Account()
+    zero_account.balance = 0
+    serialized_zero_account = zero_account.SerializeToString()
+
+    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
+        ZERO_ADDRESS: serialized_zero_account,
+    })
+
+    with pytest.raises(InvalidTransaction) as error:
+        PubKeyHandler().apply(transaction=transaction_request, context=mock_context)
+
+    assert 'Not enough transferable balance. Sender\'s current balance: 0.' == str(error.value)
+
+
 def test_public_key_handler_store_decode_error():
     """
     Case: send transaction request, to store certificate public key, with invalid transaction payload.
