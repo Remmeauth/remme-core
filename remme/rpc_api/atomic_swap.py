@@ -1,13 +1,27 @@
+# Copyright 2018 REMME
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ------------------------------------------------------------------------
 import json
 import logging
 
-from aiohttp_json_rpc import (
-    RpcInvalidParamsError,
-)
 from google.protobuf.json_format import MessageToJson
 
 from remme.clients.atomic_swap import AtomicSwapClient
+from remme.shared.forms import ProtoForm, AtomicSwapForm
 from remme.shared.exceptions import KeyNotFound
+
+from .utils import validate_params
 
 
 __all__ = (
@@ -19,15 +33,12 @@ __all__ = (
 LOGGER = logging.getLogger(__name__)
 
 
+@validate_params(AtomicSwapForm)
 async def get_atomic_swap_info(request):
     client = AtomicSwapClient()
+    swap_id = request.params['swap_id']
     try:
-        swap_id = request.params['swap_id']
-    except KeyError as e:
-        raise RpcInvalidParamsError(message='Missed swap_id')
-
-    try:
-        swap_info = client.swap_get(swap_id)
+        swap_info = await client.swap_get(swap_id)
     except KeyNotFound as e:
         raise KeyNotFound(f'Atomic swap with id "{swap_id}" not found')
     LOGGER.info(f'Get swap info {swap_info}')
@@ -38,9 +49,10 @@ async def get_atomic_swap_info(request):
     return json.loads(data)
 
 
+@validate_params(ProtoForm)
 async def get_atomic_swap_public_key(request):
     client = AtomicSwapClient()
     try:
-        return client.get_pub_key_encryption()
+        return await client.get_pub_key_encryption()
     except KeyNotFound:
         raise KeyNotFound('Public key for atomic swap not set')

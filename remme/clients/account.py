@@ -18,12 +18,13 @@ from remme.clients.basic import BasicClient
 from remme.tp.account import AccountHandler
 from remme.shared.exceptions import KeyNotFound
 from remme.settings.helper import _make_settings_key
-from remme.settings import SETTINGS_KEY_GENESIS_OWNERS
+from remme.settings import SETTINGS_KEY_ZERO_ADDRESS_OWNERS
 
 from remme.protos.account_pb2 import Account
 
 
 class AccountClient(BasicClient):
+
     def __init__(self):
         super().__init__(AccountHandler)
 
@@ -56,21 +57,22 @@ class AccountClient(BasicClient):
 
         return self._send_transaction(AccountMethod.TRANSFER, transfer, addresses_input, addresses_output)
 
-    def get_account(self, address):
+    async def get_account(self, address):
         account = Account()
-        account.ParseFromString(self.get_value(address))
+        raw_account = await self.get_value(address)
+        account.ParseFromString(raw_account)
         return account
 
-    def get_pub_keys(self, address):
+    async def get_pub_keys(self, address):
         try:
-            account = self.get_account(address)
+            account = await self.get_account(address)
             return list(account.pub_keys)
         except KeyNotFound:
             return []
 
-    def get_balance(self, address):
+    async def get_balance(self, address):
         try:
-            account = self.get_account(address)
+            account = await self.get_account(address)
             return account.balance
         except KeyNotFound:
             return 0

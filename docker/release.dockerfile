@@ -2,7 +2,7 @@ FROM alpine:3.8
 WORKDIR /project/remme
 RUN apk --update --no-cache add --force python3 libffi openssl libzmq && \
     pip3 install --upgrade pip && \
-    pip3 install poetry
+    pip3 install poetry==0.12.10
 COPY ./pyproject.* ./
 COPY ./README.* ./
 COPY ./remme ./remme

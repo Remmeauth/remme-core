@@ -4,13 +4,18 @@ GENESIS_MODE=0
 OPERATION_SPECIFIED=0
 OPERATION=u
 BG_MODE=0
-RUN_LOGIO=0
 
 source ./config/network-config.env
 
 export REMME_REST_API_PORT
 export REMME_VALIDATOR_PORT
 export REMME_VALIDATOR_IP
+
+eval_with_log() {
+    cmd=$1
+    echo -e "\033[90m$ $cmd\033[0m\n"
+    eval $cmd
+}
 
 function check_op {
     if [ $OPERATION_SPECIFIED -eq 1 ]; then
@@ -36,9 +41,6 @@ while getopts ":gudbl" opt; do
         b)
             BG_MODE=1
             ;;
-        l)
-            RUN_LOGIO=1
-            ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
             exit
@@ -51,9 +53,13 @@ COMPOSE_DIR=./docker/compose
 COMPOSE_FILES="-f $COMPOSE_DIR/base.yml"
 if [ $GENESIS_MODE -eq 1 ]; then
     COMPOSE_FILES="$COMPOSE_FILES -f $COMPOSE_DIR/genesis.yml"
+    if [ ${DEV:-0} -eq 1 ]; then
+        COMPOSE_FILES="$COMPOSE_FILES -f $COMPOSE_DIR/development-genesis.yml"
+    fi
 fi
-if [ $RUN_LOGIO -eq 1 ]; then
-    COMPOSE_FILES="-f $COMPOSE_DIR/logio.yml"
+
+if [ ${DEV:-0} -eq 1 ]; then
+    COMPOSE_FILES="$COMPOSE_FILES -f $COMPOSE_DIR/development.yml"
 fi
 
 ADDITIONAL_ARGS=""
@@ -62,10 +68,14 @@ if [ $BG_MODE -eq 1 ]; then
     ADDITIONAL_ARGS="$ADDITIONAL_ARGS -d"
 fi
 
-COMMAND="docker-compose --project-name remme"
+if [ ${RESTART_ALWAYS:-0} -eq 1 ]; then
+    COMPOSE_FILES="$COMPOSE_FILES -f $COMPOSE_DIR/restart-always.yml"
+fi
+
+COMMAND="docker-compose $COMPOSE_FILES --project-name remme"
 
 if [ "$OPERATION" == "u" ]; then
-    $COMMAND $COMPOSE_FILES up $ADDITIONAL_ARGS
+    eval_with_log "$COMMAND up $ADDITIONAL_ARGS"
 else
-    $COMMAND -f $COMPOSE_DIR/base.yml -f $COMPOSE_DIR/genesis.yml down
+    eval_with_log "$COMMAND down"
 fi

@@ -8,6 +8,11 @@ keys/
 docs/generated
 docs/README.rst
 docs/html/
+remme/protos/
 !remme/protos/__init__.py
 docker-compose/default_export
 logs/
+poetry.lock
+.pytest_cache
+.coverage
+.vscode

@@ -22,14 +22,11 @@ import logging
 from aiohttp import web
 import aiohttp_cors
 
-from zmq.asyncio import ZMQEventLoop
 from remme.shared.logging_setup import setup_logging
-
-from remme.shared.stream import Stream
-from remme.ws import WsApplicationHandler, WsEventSocketHandler
+from remme.shared.messaging import Connection
 from remme.settings.default import load_toml_with_defaults
 
-from .base import JsonRpc
+from ._base import JsonRpc
 
 
 logger = logging.getLogger(__name__)
@@ -51,8 +48,7 @@ if __name__ == '__main__':
     parser.add_argument('--bind', default=cfg_rpc["bind"])
     arguments = parser.parse_args()
 
-    loop = ZMQEventLoop()
-    asyncio.set_event_loop(loop)
+    loop = asyncio.get_event_loop()
 
     app = web.Application(loop=loop)
     cors_config = cfg_rpc["cors"]
@@ -69,19 +65,17 @@ if __name__ == '__main__':
             expose_headers=cors_config["expose_headers"]
         ) for ao in cors_config["allow_origin"]
     })
-    rpc = JsonRpc(loop=loop, max_workers=1)
+    zmq_url = f'tcp://{ cfg_ws["validator_ip"] }:{ cfg_ws["validator_port"] }'
+    rpc = JsonRpc(zmq_url=zmq_url, websocket_state_logger=cfg_rpc['websocket_state_logger'], loop=loop, max_workers=1)
     rpc.load_from_modules(cfg_rpc['available_modules'])
     cors.add(app.router.add_route('GET', '/', rpc))
     cors.add(app.router.add_route('POST', '/', rpc))
 
-    # Remme ws
-    stream = Stream(f'tcp://{ cfg_ws["validator_ip"] }:{ cfg_ws["validator_port"] }')
-    ws_handler = WsApplicationHandler(stream, loop=loop)
-    cors.add(app.router.add_route('GET', '/ws', ws_handler.subscriptions))
-    ws_event_handler = WsEventSocketHandler(stream, loop=loop)
-    # FIXME: Merge with one ws in future
-    cors.add(app.router.add_route('GET', '/ws/events', ws_event_handler.subscriptions))
-
     logger.info('All server parts loaded')
 
-    web.run_app(app, host=arguments.bind, port=arguments.port)
+    async def start_app():
+        stream = Connection.get_single_connection(zmq_url)
+        await stream.open()
+        return app
+
+    web.run_app(start_app(), host=arguments.bind, port=arguments.port)

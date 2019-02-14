@@ -25,6 +25,7 @@ services:
       driver: none
 
   validator-rest-api:
+    restart: always
     logging:
       driver: none
 

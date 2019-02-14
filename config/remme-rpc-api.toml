@@ -6,7 +6,10 @@ port = 8080
 exports_folder = "./default_export"
 
 # List of available modules for rpc
-available_modules = "pkc,transaction,block_info,account,network,atomic_swap,state"
+available_modules = "pkc,transaction,block_info,account,network,atomic_swap,state,event,personal"
+
+# Enable logging for internal state of WebSocket handler
+websocket_state_logger = false
 
 [remme.rpc_api.cors]
 # The origin, or list of origins to allow requests from.
@@ -35,3 +38,4 @@ max_age = 10000
 # If true, injects the Access-Control-Allow-Credentials header in responses.
 # This allows cookies and credentials to be submitted across domains.
 allow_credentials = false
+

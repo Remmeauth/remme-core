@@ -14,8 +14,7 @@
 # ------------------------------------------------------------------------
 
 .PHONY: clean run_genesis run_genesis_bg stop_genesis run run_bg stop run_docs
-.PHONY: run_logio run_logio_bg stop_logio test release docker_push docs build
-.PHONY: test
+.PHONY: test release docker_push docs build
 
 RUN_SCRIPT=./scripts/run.sh
 BUILD_DIR=./build
@@ -25,6 +24,9 @@ build:
 
 build_dev:
 	$(BUILD_DIR)/build.sh
+
+build_protobuf:
+	protoc -I=./protos --python_out=./remme/protos ./protos/*.proto
 
 clean:
 	$(BUILD_DIR)/clean.sh
@@ -38,41 +40,32 @@ run_genesis:
 run_genesis_bg:
 	$(RUN_SCRIPT) -g -u -b
 
-stop:
-	$(RUN_SCRIPT) -g -d
-
 run:
 	$(RUN_SCRIPT) -u
 
 run_bg:
 	$(RUN_SCRIPT) -u -b
 
-restart_no_genesis:
-	make stop && make build_dev && make run
+start_no_genesis:
+	make stop && make build_dev && DEV=1 make run
 
-restart:
-	make stop && make build_dev && make run_genesis
+start:
+	make stop && make build_dev && DEV=1 make run_genesis
 
-restart_bg:
-	make stop && make build_dev && make run_genesis_bg
+startd:
+	make stop && make build_dev && DEV=1 make run_genesis_bg
+
+stop:
+	$(RUN_SCRIPT) -g -d
 
 docs:
-	$(BUILD_DIR)/build-docs.sh
+	sphinx-build -b html ./docs ./docs/html
 
 run_docs:
-	$(BUILD_DIR)/docs-server.sh
+	sphinx-autobuild -H 0.0.0.0 -p 8000 ./docs ./docs/html
 
-run_logio:
-	$(RUN_SCRIPT) -l -u
-
-run_logio_bg:
-	$(RUN_SCRIPT) -l -u -b
-
-stop_logio:
-	$(RUN_SCRIPT) -l -d
-
-test:
-	$(BUILD_DIR)/test.sh
+test: build_dev
+	docker-compose -f ./docker/compose/testing.yml up --abort-on-container-exit
 
 release:
 	$(BUILD_DIR)/release.sh
@@ -85,3 +78,6 @@ lint:
 
 lint_html:
 	pylint --output-format=json `find . -name "*.py"` | pylint-json2html -o report.html
+
+enter_testing_console:
+	docker run -v `realpath .`:/project/remme -it remme/remme-core:latest /bin/bash
