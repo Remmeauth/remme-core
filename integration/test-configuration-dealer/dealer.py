@@ -46,6 +46,20 @@ async def get_config(request):
     num_connections += 1
     return web.json_response(result)
 
+
+async def get_key_pair(request):
+    num = int(request.match_info['num'])
+    if num >= len(keys):
+        return web.Response(status=404)
+    privkey = keys[num]
+    pubkey = context.get_public_key(privkey).as_hex()
+    result = {
+        'privkey': privkey.as_hex(),
+        'pubkey': pubkey,
+    }
+    return web.json_response(result)
+
 app = web.Application()
 app.router.add_get('/', get_config)
+app.router.add_get('/keys/{num:\d+}', get_key_pair)
 web.run_app(app, port=8000)

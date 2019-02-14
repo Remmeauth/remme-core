@@ -15,8 +15,14 @@
 version: '3.4'
 
 services:
-  sawtooth:
+  dealer:
     build:
-      context: .
+      context: ./test-configuration-dealer
       dockerfile: Dockerfile
     image: remme/test-configuration-dealer:latest
+
+  tests:
+    build:
+      context: ./tests
+      dockerfile: Dockerfile
+    image: remme/integration-tests:latest

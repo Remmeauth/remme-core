@@ -20,6 +20,22 @@ kind: Namespace
 metadata:
   name: remme-test
 ---
+# ALLOW KUBECTL FROM PODS
+# =======================
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: test-rbac
+  namespace: remme-test
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: remme-test
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+---
 # CONFIGURATION DEALER
 # ====================
 apiVersion: apps/v1
@@ -62,7 +78,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nodes-deployment
+  name: nodes
   namespace: remme-test
 spec:
   selector:
@@ -178,3 +194,19 @@ spec:
         - name: http
           containerPort: 8080
           hostPort: 8080
+---
+# RUN TESTS
+# =========
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: tests
+  namespace: remme-test
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: tests
+        image: remme/integration-tests:latest
