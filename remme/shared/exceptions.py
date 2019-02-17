@@ -53,3 +53,8 @@ class InvalidResourceId(RemmeRpcError):
 class CountInvalid(RemmeRpcError):
     MESSAGE = 'Invalid limit count'
     ERROR_CODE = -32005
+
+
+class ResourceConsensusInvalid(RemmeRpcError):
+    MESSAGE = 'Invalid or missing consensus'
+    ERROR_CODE = -32006

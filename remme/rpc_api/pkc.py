@@ -17,6 +17,7 @@ import logging
 import binascii
 
 from remme.clients.pub_key import PubKeyClient
+from remme.clients.account import AccountClient
 from remme.shared.exceptions import KeyNotFound
 from remme.shared.forms import ProtoForm, get_address_form
 
@@ -32,9 +33,9 @@ logger = logging.getLogger(__name__)
 
 @validate_params(ProtoForm)
 async def get_node_config(request):
-    client = PubKeyClient()
     return {
-        'node_public_key': client.get_public_key(),
+        'node_public_key': PubKeyClient().get_public_key(),
+        'node_address': AccountClient().get_signer_address(),
     }
 
 
