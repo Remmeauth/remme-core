@@ -42,6 +42,13 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
         "remme.settings.pub_key_encryption=$(cat /etc/sawtooth/keys/validator.pub)" \
         "remme.settings.genesis_owners=$(cat /etc/sawtooth/keys/validator.pub)" \
         remme.settings.swap_comission=100 \
+        remme.settings.committee_size=10 \
+        remme.settings.blockchain_size=300 \
+        remme.settings.obligatory_payment=1 \
+        remme.settings.transaction_fee=0.0010 \
+        remme.settings.blockchain_tax=0.1 \
+        remme.settings.minimum_stake=250000 \
+        remme.settings.minimum_bet=10000 \
         -o settings_config.batch
 
     GENESIS_BATCHES="$GENESIS_BATCHES settings_config.batch"
