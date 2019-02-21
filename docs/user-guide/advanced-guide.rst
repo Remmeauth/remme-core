@@ -6,7 +6,7 @@ Types of node running
 =====================
 
 As stated in our guides, during the first run, you need to initialize the genesis (first block on the blockchain)
-block with a command ``make run_genesis_bg`` that have run your node in the background mode (no output to the terminal window).
+block with a command ``make run_genesis_bg`` that have run your node in the background mode (no application output to the terminal window).
 
 Also there is a bunch of commands, as ``make run_genesis_bg`` you did:
 
