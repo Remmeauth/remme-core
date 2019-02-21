@@ -3,13 +3,13 @@ Amazon Web Services (AWS)
 *************************
 
 **Amazon Web Services (AWS)** is a subsidiary of ``Amazon`` that provides on-demand cloud computing platforms to individuals,
-companies and governments, on a paid subscription basis. The technology allows subscribers to have at their disposal a
-virtual cluster of computers, available all the time, through the Internet.
+companies and governments on a paid subscription basis. The technology allows subscribers to have at their disposal a
+virtual cluster of computers, available all the time, through the internet.
 
 Step 1: sign up
 ===============
 
-Visit |registration_link| to create your own account on ``AWS``.
+Visit the |registration_link| to create your own account on ``AWS``.
 
 .. |registration_link| raw:: html
 
@@ -20,21 +20,21 @@ Visit |registration_link| to create your own account on ``AWS``.
    :align: center
    :alt: Sign up form
 
-Fill up your contact information along with credit/debit card details to pay for cloud services.
+Enter your contact information along with credit/debit card details into the form  to pay for cloud services.
 
 .. image:: /img/user-guide/cloud/aws/sign-up-contact-info.png
    :width: 100%
    :align: center
    :alt: Sign up contact information
 
-After entering initial credentials you will get the new screen to verify the account.
+After entering initial credentials you will see the following screen for verifying the account.
 
 .. image:: /img/user-guide/cloud/aws/sign-up-confirmation.png
    :width: 100%
    :align: center
    :alt: Sign up confirmation
 
-Choose support plan. Read more about it by the |aws_support_plans|.
+Choose a support plan. Read more about this in the |aws_support_plans|.
 
 .. |aws_support_plans| raw:: html
 
@@ -45,7 +45,7 @@ Choose support plan. Read more about it by the |aws_support_plans|.
    :align: center
    :alt: Choose account plan
 
-Then you will be redirected to ``AWS management console``. Press ``Launch a virtual machine`` to create your first server called ``EC2``.
+You will then be redirected to ``AWS management console``. Press ``Launch a virtual machine`` to create your first server called ``EC2``.
 
 .. image:: /img/user-guide/cloud/aws/aws-management-console.png
    :width: 100%
@@ -60,21 +60,22 @@ servers that can run applications. They have varying combinations of CPU, memory
 and give you the flexibility to choose the appropriate mix of resources for your applications. Learn more about instance
 types and how they can meet your computing needs.
 
-Type ``Ubuntu 16.04 LTS`` to the search bar, choose ``AWS Marketplace`` and select image ``Ubuntu 16.04 LTS - Xenial (HVM)`` consider it as operating system, then in appeared windows click ``Continue``.
+Type ``Ubuntu 16.04 LTS`` into the search bar, choose ``AWS Marketplace`` and select image ``Ubuntu 16.04 LTS - Xenial (HVM)``,
+which should be regarded as an operating system, then in the window that appears click ``Continue``.
 
 .. image:: /img/user-guide/cloud/aws/choose-instance-image.png
    :width: 100%
    :align: center
    :alt: Choose instance image
 
-Choose ``t2.medium`` type of the instance that fit all technical requirements for the node, then press ``Next: Configure Instance Details``.
+Choose the ``t2.medium`` type of the instance that fits all technical requirements for the node then press ``Next: Configure Instance Details``.
 
 .. image:: /img/user-guide/cloud/aws/choose-instance-type.png
    :width: 100%
    :align: center
    :alt: Choose instance type
 
-Leave default instance details, then press ``Next: Add Storage``.
+Leave the default instance details, then press ``Next: Add Storage``.
 
 .. image:: /img/user-guide/cloud/aws/configure-instance.png
    :width: 100%
@@ -96,8 +97,8 @@ Set tag named ``Name`` with value ``remme-core-testnet-node``, then press ``Next
    :alt: Set name tag
 
 
-Add next rule and specify ``Custom TCP`` for type, ``8080`` for port range, ``0.0.0.0/0`` for source and ``Open node RPC API port`` for description.
-Add next rule and specify ``Custom TCP`` for type, ``8800`` for port range, ``0.0.0.0/0`` for source and ``Nodes synchronisation`` for description.
+Add the next rule and specify ``Custom TCP`` for type, ``8080`` for port range ``0.0.0.0/0`` for source and ``Open node RPC API port`` for description.
+Add the next rule and specify ``Custom TCP`` for type, ``8800`` for port range ``0.0.0.0/0`` for source and ``Nodes synchronisation`` for description.
 Then press ``Review and Launch``.
 
 .. image:: /img/user-guide/cloud/aws/instance-firewall.png
@@ -105,14 +106,14 @@ Then press ``Review and Launch``.
    :align: center
    :alt: Open RPC API port for requests
 
-That review your instance configurations to make sure you follow the guide, then press ``Launch``.
+Then review your instance configurations to make sure you're following the guide, then press ``Launch``.
 
 .. image:: /img/user-guide/cloud/aws/review-instance-launch.png
    :width: 100%
    :align: center
    :alt: Review instance launch
 
-Choose ``Create a new keypair`` and leave the name ``MyPrivateKeyForConnectionToInstance``, then press ``Launch instance``.
+Choose ``Create a new keypair`` and leave the any name you want (``MyPrivateKeyForConnectionToInstance`` on the screen), then press ``Launch instance``.
 
 .. image:: /img/user-guide/cloud/aws/private-key-for-connection-to-instance.png
    :width: 100%
@@ -126,7 +127,8 @@ Then you will be redirected to the launch status page. Click on the instance ide
    :align: center
    :alt: Instance is launching
 
-Instances dashboard should be opened. Take a look at your instance, its status (should be running). Find ``public DNS`` and ``IPv4 Public IP``, you need it for the father steps.
+The instances dashboard should be opened. Take a look at your instance, its status (should be running). Find ``public DNS``
+and ``IPv4 Public IP``, which you will need for subsequent steps.
 
 .. image:: /img/user-guide/cloud/aws/instances-dashboard.png
    :width: 100%
@@ -136,7 +138,7 @@ Instances dashboard should be opened. Take a look at your instance, its status (
 Step 4: login to instance
 =========================
 
-If you will click on the button ``Connect``, you get the instructions how to connect to the instance.
+If you click on the ``Connect`` button, you will get the instructions (terminal commands) on how to connect to the instance.
 If you use ``Windows``, please follow |windows_putty_aws_guide| from ``AWS``.
 
 .. |windows_putty_aws_guide| raw:: html
@@ -147,20 +149,6 @@ If you use ``Windows``, please follow |windows_putty_aws_guide| from ``AWS``.
    :width: 100%
    :align: center
    :alt: How to connect to instance instructions
-
-For ``Ubuntu`` and ``Mac`` open a terminal on your PC. Visit :doc:`/user-guide/troubleshooting` section to find instructions how to do it.
-Then move your private key file to the favorite directory (or go to the directory where private key file is located |how_to_use_cd_guide|),
-make your key not be publicly viewable for ``SSH`` to work, and connect to the instance by using its ``public DNS``.
-
-.. |how_to_use_cd_guide| raw:: html
-
-   <a href="http://www.linfo.org/cd.html" target="_blank">using cd command</a>
-
-.. code-block:: console
-
-   $ mv ~/Downloads/MyPrivateKeyForConnectionToInstance.pem .
-   $ chmod 400 MyPrivateKeyForConnectionToInstance.pem
-   $ ssh -i "MyPrivateKeyForConnectionToInstance.pem" ubuntu@ec2-18-219-65-206.us-east-2.compute.amazonaws.com
 
 The flow is illustrated below.
 
@@ -183,23 +171,14 @@ If you need any assistance connecting to your instance, please see |connection_t
 Step 5: start the project
 =========================
 
-Visit ``Remme-core`` `releases list <https://github.com/Remmeauth/remme-core/releases>`_  to choose the right version
-based on the changelog of each option.
-
-.. image:: /img/releases_list_on_github.png
-   :width: 100%
-   :align: center
-   :alt: Github page with Remme core releases
-
-Then change the value of ``REMME_CORE_RELEASE`` below. Though, we would recommend the latest version of the project that
-already specified in the command below.
-
-Copy the command above and paste to the terminal.
+Copy commands below and paste it into the terminal. You can change the value of ``REMME_CORE_RELEASE`` below, just take
+a look at our `release list <https://github.com/Remmeauth/remme-core/releases>`_. We would recommend the latest version of
+the project that already specified in the command below.
 
 .. code-block:: console
 
-   $ export REMME_CORE_RELEASE=0.7.0-alpha && \
-         sudo apt-get install apt-transport-https ca-certificates curl software-properties-common make -y && \
+   $ export REMME_CORE_RELEASE=0.7.0-alpha
+   $ sudo apt-get install apt-transport-https ca-certificates curl software-properties-common make -y && \
          cd /home/ && curl -L https://github.com/Remmeauth/remme-core/archive/v$REMME_CORE_RELEASE.tar.gz | sudo tar zx && \
          cd remme-core-$REMME_CORE_RELEASE && \
          sudo apt update && sudo apt upgrade -y && \
@@ -215,14 +194,14 @@ Copy the command above and paste to the terminal.
    :align: center
    :alt: Terminal installation command example
 
-The expected result of the command is illustrated below.
+The expected result of this command is illustrated below.
 
 .. image:: /img/user-guide/cloud/digital-ocean/installation-output.png
    :width: 100%
    :align: center
    :alt: Installation output
 
-If during the installation same window as illustrated below appears, just press ``Enter``.
+If during installation the same window as illustrated below appears, just press ``Enter``.
 
 .. image:: /img/user-guide/cloud/digital-ocean/installation-possible-window.png
    :width: 100%
@@ -236,7 +215,12 @@ When you see the same output as illustrated below, it means the node is ready to
    :align: center
    :alt: Proof core is up
 
-To check if your node did a correct setup, open a brand new terminal window and send getting node configurations keys request.
+To check if your node has completed a correct setup, open a brand new terminal window and send a request to get node configurations.
+If you use ``Windows``, change word ``export`` to ``set`` and install (download an archive and open it) |curl_tool| to send a request the node. Remember to change ``18.219.65.206`` to your instance ``public DNS``.
+
+.. |curl_tool| raw:: html
+
+   <a href="https://curl.haxx.se/download.html" target="_blank">tool named curl </a>
 
 .. code-block:: console
 
@@ -244,7 +228,7 @@ To check if your node did a correct setup, open a brand new terminal window and 
    $ curl -X POST http://$NODE_IP_ADDRESS:8080 -H 'Content-Type: application/json' -d \
          '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python -m json.tool
 
-Response should looks similar.
+The response should look similar to this:
 
 .. code-block:: console
 

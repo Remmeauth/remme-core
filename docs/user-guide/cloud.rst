@@ -14,7 +14,7 @@ Before running the project on a PC, check out the :doc:`/user-guide/troubleshoot
 The common requirements to publish the project on cloud service:
 
 1. E-mail to register yourself on cloud provider website.
-2. Credit\debit card, or PayPal to rent a server.
+2. Credit/debit card, or PayPal to rent a server.
 3. Unix system i.e. ``MacOS``, ``Linux``, or ``Windows``, or any other operating system that supports terminal application.
 4. Browser to visit cloud provider website.
 
