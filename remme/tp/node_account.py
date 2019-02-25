@@ -11,8 +11,7 @@ from remme.shared.constants import Events, EMIT_EVENT
 from .basic import (
     PB_CLASS, PROCESSOR, VALIDATOR, BasicHandler, get_data, get_multiple_data
 )
-
-
+from remme.settings.helper import _get_setting_value
 LOGGER = logging.getLogger(__name__)
 
 FAMILY_NAME = 'node_account'
@@ -54,15 +53,16 @@ class NodeAccountHandler(BasicHandler):
 
         if node_account.node_state != NodeAccount.NodeState.NEW:
             raise InvalidTransaction('Masternode is already opened or closed')
+        minimum_stake = _get_setting_value(context, 'minimum_stake')
 
-        if internal_transfer_payload.amount < remme.settings.minimum_stake:
+        if internal_transfer_payload.amount < minimum_stake:
             raise InvalidTransaction('Initial stake is too low')
 
         node_account.node_state = NodeAccount.NodeState.OPENED
 
         node_account.balance -= internal_transfer_payload.value
-        frozen_part = remme.settings.minimum_stake
-        unfrozen_part = internal_transfer_payload.value - remme.settings.minimum_stake
+        frozen_part = minimum_stake
+        unfrozen_part = internal_transfer_payload.value - minimum_stake
         node_account.reputational.frozen += frozen_part
         node_account.reputational.unfrozen += unfrozen_part
 
