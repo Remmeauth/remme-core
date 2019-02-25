@@ -9,35 +9,21 @@ user interface concept.
 Step 1: install Docker
 ======================
 
-Make sure ``Docker`` is installed on your ``Mac``. Visit :doc:`/user-guide/troubleshooting` section to find corresponding instructions.
+Make sure ``Docker`` is installed on your ``Mac``. Visit the :doc:`/user-guide/troubleshooting` section to find corresponding instructions.
 
-Step 2: choose release version
+Step 2: install and start node
 ==============================
 
-Visit ``Remme-core`` `releases list <https://github.com/Remmeauth/remme-core/releases>`_  to choose the right version
-based on the changelog of each option.
+Open a terminal on your PC. Visit the :doc:`/user-guide/troubleshooting` section to find instructions.
 
-.. image:: /img/releases_list_on_github.png
-   :width: 100%
-   :align: center
-   :alt: Github page with Remme core releases
-
-Then change the value of ``REMME_CORE_RELEASE`` below. Though, we would recommend the latest version of the project that
-already specified in the command below.
-
-.. |remme_core_releases_list| raw:: html
-
-   <a href="https://github.com/Remmeauth/remme-core/releases" target="_blank">Remme-core releases list</a>
-
-Step 3: install, build and run the node
-=======================================
-
-Open a terminal on your PC. Visit :doc:`/user-guide/troubleshooting` section to find instructions. Then copy the command below and paste to the terminal.
+Copy commands below and paste it into the terminal. You can change the value of ``REMME_CORE_RELEASE`` below, just take
+a look at our `release list <https://github.com/Remmeauth/remme-core/releases>`_. We would recommend the latest version of
+the project that already specified in the command below.
 
 .. code-block:: console
 
-   $ export REMME_CORE_RELEASE=0.6.0-alpha && \
-         curl -OL https://github.com/Remmeauth/remme-core/archive/v$REMME_CORE_RELEASE.zip && \
+   $ export REMME_CORE_RELEASE=0.7.0-alpha
+   $ curl -OL https://github.com/Remmeauth/remme-core/archive/v$REMME_CORE_RELEASE.zip && \
          unzip v$REMME_CORE_RELEASE.zip && \
          rm -rf v$REMME_CORE_RELEASE.zip && \
          cd remme-core-$REMME_CORE_RELEASE && \
@@ -62,7 +48,7 @@ When you see the same output as illustrated below, it means the node is ready to
    :align: center
    :alt: Proof core is up
 
-Step 4: ensure the node is working
+Step 3: ensure the node is working
 ==================================
 
 To check if your node did a correct set-up, open a brand new terminal window and send getting node configurations keys request.

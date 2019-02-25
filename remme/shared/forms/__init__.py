@@ -13,7 +13,14 @@ from .pub_key import (
     NewPubKeyStoreAndPayPayloadForm,
     RevokePubKeyPayloadForm,
 )
-from .account import TransferPayloadForm, GenesisPayloadForm
+from .account import (
+    TransferPayloadForm,
+    GenesisPayloadForm
+)
+from .node_account import (
+    NodeAccountInternalTransferPayloadForm,
+    CloseMasternodePayloadForm
+)
 from .atomic_swap import (
     AtomicSwapInitPayloadForm,
     AtomicSwapApprovePayloadForm,
