@@ -47,6 +47,9 @@ How to build on REMME Core
    * - REMME .NET SDK
      - `remme-client-dotnet <https://github.com/Remmeauth/remme-client-dotnet>`_
      - |nuget|
+   * - REMME Java SDK
+     - `remme-client-java <https://github.com/Remmeauth/remme-client-dotnet>`_
+     - |maven|
 
 4. Use REMME Testnet to check your ideas.
 5. Discuss your integration concept in `REMME tech community
@@ -150,5 +153,7 @@ REMME software and documentation are licensed under `Apache License Version 2.0
    :target: https://www.npmjs.com/package/remme
 .. |nuget| image:: https://img.shields.io/nuget/v/REMME.Auth.Client.svg
    :target: https://www.nuget.org/packages/REMME.Auth.Client/
+.. |maven| image:: https://img.shields.io/maven-central/v/io.remme.java/remme-java-lib.svg
+   :target: https://mvnrepository.com/artifact/io.remme.java/remme-java-lib
 .. |Jenkins| image:: https://jenkins.remme.io/buildStatus/icon?job=remme-core/dev
    :target: https://jenkins.remme.io/view/1.GitHub_Integration/job/remme-core/job/dev/
