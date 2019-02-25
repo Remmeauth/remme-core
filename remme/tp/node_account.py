@@ -2,7 +2,7 @@ import logging
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
 from remme.protos.node_account_pb2 import (
-    NodeAccount, NodeAccountMethod, NodeAccountInternalTransferPayload
+    NodeAccount, NodeAccountMethod, NodeAccountInternalTransferPayload,
 )
 
 from remme.shared.forms import NodeAccountInternalTransferPayloadForm
@@ -52,16 +52,13 @@ class NodeAccountHandler(BasicHandler):
 
         node_account = get_node_account_by_address(context, node_account_address)
 
-        if node_account.is_masternode_closed is True:
-            raise InvalidTransaction('Masternode is already closed')
-
-        if node_account.is_masternode is True:
-            raise InvalidTransaction('Node is already a masternode')
+        if node_account.node_state != NodeAccount.NodeState.NEW:
+            raise InvalidTransaction('Masternode is already opened or closed')
 
         if internal_transfer_payload.amount < remme.settings.minimum_stake:
             raise InvalidTransaction('Initial stake is too low')
 
-        node_account.is_masternode = True
+        node_account.node_state = NodeAccount.NodeState.OPENED
 
         node_account.balance -= internal_transfer_payload.value
         frozen_part = remme.settings.minimum_stake
@@ -74,14 +71,10 @@ class NodeAccountHandler(BasicHandler):
 
         node_account = get_node_account_by_address(context, node_account_address)
 
-        if node_account.is_masternode_closed is True:
-            raise InvalidTransaction('Masternode is already closed')
+        if node_account.node_state != NodeAccount.NodeState.OPENED:
+            raise InvalidTransaction('Masternode is not opened or has been closed ')
 
-        if node_account.is_masternode is False:
-            raise InvalidTransaction('Node is not masternode')
-
-        node_account.is_masternode_closed = True
-        node_account.is_masternode = False
+        node_account.node_state = NodeAccount.NodeState.CLOSED
 
         node_account.balance += node_account.reputational.frozen
         node_account.balance += node_account.reputational.unfrozen
