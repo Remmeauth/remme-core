@@ -5,21 +5,12 @@ from remme.protos.node_account_pb2 import (
     NodeAccount, NodeAccountMethod, NodeAccountInternalTransferPayload
 )
 
-from remme.protos.transaction_pb2 import (
-    TransactionPayload
-)
-
-from remme.settings import (
-    GENESIS_ADDRESS, ZERO_ADDRESS,
-)
-from remme.shared.forms import TransferPayloadForm, GenesisPayloadForm
+from remme.shared.forms import NodeAccountInternalTransferPayloadForm
 from remme.shared.constants import Events, EMIT_EVENT
 
 from .basic import (
     PB_CLASS, PROCESSOR, VALIDATOR, BasicHandler, get_data, get_multiple_data
 )
-
-from .account import get_account_by_address
 
 
 LOGGER = logging.getLogger(__name__)
@@ -42,16 +33,17 @@ class NodeAccountHandler(BasicHandler):
     def get_state_processor(self):
         return {
             NodeAccountMethod.INITIALIZE_MASTERNODE: {
-                PB_CLASS: TransactionPayload,
+                PB_CLASS: NodeAccountInternalTransferPayload,
                 PROCESSOR: self._initialize_masternode,
-               # VALIDATOR: TransferPayloadForm,
+                VALIDATOR: NodeAccountInternalTransferPayloadForm,
             },
             NodeAccountMethod.CLOSE_MASTERNODE: {
                 PROCESSOR: self._close_masternode,
             },
             NodeAccountMethod.TRANSFER_FROM_UNFROZEN_TO_OPERATIONAL: {
-                PB_CLASS: TransactionPayload,
+                PB_CLASS: NodeAccountInternalTransferPayload,
                 PROCESSOR: self._transfer_from_unfrozen_to_operational,
+                VALIDATOR: NodeAccountInternalTransferPayloadForm,
             }
         }
 
