@@ -17,27 +17,30 @@ from remme.protos.account_pb2 import (
     AccountMethod,
     TransferPayload,
 )
+from remme.protos.node_account_pb2 import (
+    NodeAccount,
+)
 from remme.protos.transaction_pb2 import TransactionPayload
-from remme.settings import ZERO_ADDRESS
 from remme.shared.utils import hash512
 from remme.tp.account import AccountHandler
 from testing.conftest import create_signer
 from testing.mocks.stub import StubContext
 from testing.utils.client import proto_error_msg
 
-RANDOM_NODE_PUBLIC_KEY = '039d6881f0a71d05659e1f40b443684b93c7b7c504ea23ea8949ef5216a2236940'
+RANDOM_NODE_PUBLIC_KEY = '039d6881f0a71d05659e1f40b443684b93c7b7c504ea23ea8949ef5216a2236942'
 
 ADDRESS_NOT_ACCOUNT_TYPE = '000000' + 'cfe1b3dc02df0003ac396037f85b98cf9f99b0beae000dc5e9e8b6dab4'
 
 TOKENS_AMOUNT_TO_SEND = 1000
 
-ACCOUNT_FROM_BALANCE = 10000
-ACCOUNT_TO_BALANCE = 1000
+ACCOUNT_FROM_BALANCE = NODE_ACCOUNT_FROM_BALANCE = 10000
+ACCOUNT_TO_BALANCE = NODE_ACCOUNT_TO_BALANCE = 1000
 
 ACCOUNT_ADDRESS_FROM = '112007d71fa7e120c60fb392a64fd69de891a60c667d9ea9e5d9d9d617263be6c20202'
 ACCOUNT_ADDRESS_TO = '1120071db7c02f5731d06df194dc95465e9b277c19e905ce642664a9a0d504a3909e31'
 
 ACCOUNT_FROM_PRIVATE_KEY = '1cb15ecfe1b3dc02df0003ac396037f85b98cf9f99b0beae000dc5e9e8b6dab4'
+ACCOUNT_FROM_PUBLIC_KEY = '039d6881f0a71d05659e1f40b443684b93c7b7c504ea23ea8949ef5216a2236940'
 
 INPUTS = OUTPUTS = [
     ACCOUNT_ADDRESS_FROM,
@@ -90,7 +93,7 @@ def test_account_handler_with_empty_proto():
     serialized_transaction_payload = transaction_payload.SerializeToString()
 
     transaction_header = TransactionHeader(
-        signer_public_key=RANDOM_NODE_PUBLIC_KEY,
+        signer_public_key=ACCOUNT_FROM_PUBLIC_KEY,
         family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
         family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
         inputs=INPUTS,
@@ -155,7 +158,7 @@ def test_account_handler_apply():
     serialized_transaction_payload = transaction_payload.SerializeToString()
 
     transaction_header = TransactionHeader(
-        signer_public_key=RANDOM_NODE_PUBLIC_KEY,
+        signer_public_key=ACCOUNT_FROM_PUBLIC_KEY,
         family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
         family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
         inputs=INPUTS,
@@ -202,7 +205,7 @@ def test_account_handler_apply_invalid_transfer_method():
     serialized_transaction_payload = transaction_payload.SerializeToString()
 
     transaction_header = TransactionHeader(
-        signer_public_key=RANDOM_NODE_PUBLIC_KEY,
+        signer_public_key=ACCOUNT_FROM_PUBLIC_KEY,
         family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
         family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
         inputs=INPUTS,
@@ -236,7 +239,7 @@ def test_account_handler_apply_decode_error():
     serialized_not_valid_transaction_payload = b'F1120071db7c02f5731d06df194dc95465e9b27'
 
     transaction_header = TransactionHeader(
-        signer_public_key=RANDOM_NODE_PUBLIC_KEY,
+        signer_public_key=ACCOUNT_FROM_PUBLIC_KEY,
         family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
         family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
         inputs=INPUTS,
@@ -281,7 +284,7 @@ def test_account_transfer_from_address():
     serialized_transaction_payload = transaction_payload.SerializeToString()
 
     transaction_header = TransactionHeader(
-        signer_public_key=RANDOM_NODE_PUBLIC_KEY,
+        signer_public_key=ACCOUNT_FROM_PUBLIC_KEY,
         family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
         family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
         inputs=INPUTS,
@@ -336,7 +339,7 @@ def test_account_transfer_from_address_zero_amount():
     serialized_transaction_payload = transaction_payload.SerializeToString()
 
     transaction_header = TransactionHeader(
-        signer_public_key=RANDOM_NODE_PUBLIC_KEY,
+        signer_public_key=ACCOUNT_FROM_PUBLIC_KEY,
         family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
         family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
         inputs=INPUTS,
@@ -384,7 +387,7 @@ def test_account_transfer_from_address_to_address_not_account_type():
     serialized_transaction_payload = transaction_payload.SerializeToString()
 
     transaction_header = TransactionHeader(
-        signer_public_key=RANDOM_NODE_PUBLIC_KEY,
+        signer_public_key=ACCOUNT_FROM_PUBLIC_KEY,
         family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
         family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
         inputs=INPUTS,
@@ -432,7 +435,7 @@ def test_account_transfer_from_address_send_to_itself():
     serialized_transaction_payload = transaction_payload.SerializeToString()
 
     transaction_header = TransactionHeader(
-        signer_public_key=RANDOM_NODE_PUBLIC_KEY,
+        signer_public_key=ACCOUNT_FROM_PUBLIC_KEY,
         family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
         family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
         inputs=INPUTS,
@@ -475,7 +478,7 @@ def test_account_transfer_from_address_without_tokens():
     serialized_transaction_payload = transaction_payload.SerializeToString()
 
     transaction_header = TransactionHeader(
-        signer_public_key=RANDOM_NODE_PUBLIC_KEY,
+        signer_public_key=ACCOUNT_FROM_PUBLIC_KEY,
         family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
         family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
         inputs=INPUTS,
@@ -523,7 +526,7 @@ def test_account_transfer_from_address_without_previous_usage():
     serialized_transaction_payload = transaction_payload.SerializeToString()
 
     transaction_header = TransactionHeader(
-        signer_public_key=RANDOM_NODE_PUBLIC_KEY,
+        signer_public_key=ACCOUNT_FROM_PUBLIC_KEY,
         family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
         family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
         inputs=INPUTS,
@@ -546,3 +549,86 @@ def test_account_transfer_from_address_without_previous_usage():
         AccountHandler().apply(transaction=transaction_request, context=mock_context)
 
     assert f'Not enough transferable balance. Sender\'s current balance: 0.' == str(error.value)
+
+
+def test_node_account_transfer():
+    """
+    Case: send transaction request to send tokens to node account from node account.
+    Expect: addresses data, stored in state, are changed according to transfer amount.
+    """
+    node_account_from_address_ = 'eeecb9' + '26d7a378a639a68c096ffb0bc065a692c9a4d71dd032eed8c26227ca9602adc5'
+    node_account_to_address = 'eeecb9' + '1db7c02f5731d06df194dc95465e9b277c19e905ce642664a9a0d504a3909e31'
+
+    node_account_private_key_from = '654f2e48649e470460cc5954265023d4b25282747a82cb6361e87dd35d101ec7'
+    node_account_public_key_from = '0262f3ed84ee6a2e3d92580d0e1bfdc5515c149bb037259bb7e60fae2ea7f8548c'
+
+    inputs = outputs = [
+        node_account_from_address_,
+        node_account_to_address
+    ]
+
+    node_account_from = NodeAccount()
+    node_account_from.balance = NODE_ACCOUNT_FROM_BALANCE - TOKENS_AMOUNT_TO_SEND
+    expected_serialized_node_account_from_balance = node_account_from.SerializeToString()
+
+    node_account_to = NodeAccount()
+    node_account_to.balance = NODE_ACCOUNT_TO_BALANCE + TOKENS_AMOUNT_TO_SEND
+    expected_serialized_node_account_to_balance = node_account_to.SerializeToString()
+
+    expected_state = {
+        node_account_from_address_: expected_serialized_node_account_from_balance,
+        node_account_to_address: expected_serialized_node_account_to_balance,
+    }
+
+    transfer_payload = TransferPayload()
+    transfer_payload.sender_account_type = 1  # NODE ACCOUNT
+    transfer_payload.address_to = node_account_to_address
+    transfer_payload.value = TOKENS_AMOUNT_TO_SEND
+
+    transaction_payload = TransactionPayload()
+    transaction_payload.method = AccountMethod.TRANSFER
+    transaction_payload.data = transfer_payload.SerializeToString()
+
+    serialized_transaction_payload = transaction_payload.SerializeToString()
+
+    transaction_header = TransactionHeader(
+        signer_public_key=node_account_public_key_from,
+        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
+        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
+        inputs=inputs,
+        outputs=outputs,
+        dependencies=[],
+        payload_sha512=hash512(data=serialized_transaction_payload),
+        batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
+        nonce=time.time().hex().encode(),
+    )
+
+    serialized_header = transaction_header.SerializeToString()
+
+    transaction_request = TpProcessRequest(
+        header=transaction_header,
+        payload=serialized_transaction_payload,
+        signature=create_signer(private_key=node_account_private_key_from).sign(serialized_header),
+    )
+
+    node_account_from = NodeAccount()
+    node_account_from.balance = NODE_ACCOUNT_FROM_BALANCE
+    serialized_node_account_from_balance = node_account_from.SerializeToString()
+
+    node_account_to = NodeAccount()
+    node_account_to.balance = NODE_ACCOUNT_TO_BALANCE
+    serialized_node_account_to_balance = node_account_to.SerializeToString()
+
+    initial_state = {
+        node_account_from_address_: serialized_node_account_from_balance,
+        node_account_to_address: serialized_node_account_to_balance,
+    }
+
+    mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state=initial_state)
+
+    AccountHandler().apply(transaction=transaction_request, context=mock_context)
+
+    state_as_list = mock_context.get_state(addresses=[node_account_from_address_, node_account_to_address])
+    state_as_dict = {entry.address: entry.data for entry in state_as_list}
+
+    assert expected_state == state_as_dict
