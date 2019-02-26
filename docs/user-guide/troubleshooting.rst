@@ -13,11 +13,11 @@ Throughout the documentation, we’ll show some commands used in the terminal. L
 You don’t need to type in the ``$`` character, it indicates the start of each command. Lines that don’t start with ``$`` typically show
 the output of the previous command.
 
-The typical command line interface looks like this.
+The typical command line interface looks like this. There two separated commands, so you should enter it one by one.
 
 .. code-block:: console
 
-   $ export REMME_CORE_RELEASE=0.6.0-alpha
+   $ export REMME_CORE_RELEASE=0.7.0-alpha
    $ ./scripts/run.sh -d
 
 Nodes network
@@ -205,9 +205,10 @@ You should check for existing SSH keys on your local computer by the ``cd %userp
 If you see ``No such file or directory``, then there aren't any existing keys.
 
 If you don't have an existing ``SSH key`` that you wish to use, log in to your local computer as an administrator,
-type the terminal command ``ssh-keygen -t rsa -C "your-email@example.com``. Associating the key with your email address
-helps you to identify the key later on. Just press ``Enter`` to accept the default location and file name. If the ``.ssh``
-directory doesn't exist, the system creates one for you. Enter, and re-enter, a passphrase when prompted.
+type the terminal command ``ssh-keygen -t rsa -C "your-email@example.com``, use your own email here.
+Associating the key with your email address helps you to identify the key later on. Just press ``Enter`` to accept the
+default location and file name. If the ``.ssh`` directory doesn't exist, the system creates one for you.
+Enter, and re-enter, a passphrase when prompted.
 
 The whole interaction will look similar to the picture below.
 
@@ -242,8 +243,8 @@ If you had a ``SSH key``, output would be as illustrated on the picture below:
    :align: center
    :alt: SSH-key output
 
-To generate a ``SSH key``, type the terminal command ``ssh-keygen -t rsa -C "your-email@example.com``. Associating the key with your
-e-mail address helps you to identify the key later on. Just press ``Enter`` to accept the default location and file name.
+To generate a ``SSH key``, type the terminal command ``ssh-keygen -t rsa -C "your-email@example.com``, use your own email here.
+Associating the key with your e-mail address helps you to identify the key later on. Just press ``Enter`` to accept the default location and file name.
 If the ``.ssh`` directory doesn't exist, the system creates one for you. Enter, and re-enter, a passphrase when prompted.
 
 The whole interaction will look similar to the picture below.

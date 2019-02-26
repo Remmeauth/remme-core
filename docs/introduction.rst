@@ -56,6 +56,8 @@ Here the nodes available for communication:
 
    <a href="https://node-4-testnet.remme.io" target="_blank">https://node-4-testnet.remme.io</a>
 
+It is okay if you see ``This site can’t be reached``, node just doesn't have an interface.
+
 References
 ==========
 

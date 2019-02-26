@@ -3,23 +3,23 @@ WebSocket
 *********
 
 The ``WebSocket`` protocol enables interaction between a ``web browser`` (or other client application) and a ``web server``
-with lower overheads, facilitating real-time data transfer from and to the server. This is made possible by providing
+with lower overheads, facilitating real-time data transfer to and from the server. This is made possible by providing
 a standardized way for the server to send content to the client without being first requested by the client,
 and allowing messages to be passed back and forth while keeping the connection open.
 
-``Remme`` provides a lot of data you can ``listen`` from the blockchain. For instance, your can be notified about a newly created
-transaction to your transfer or when your ``Atomic Swap`` transaction is approved.
+``Remme`` provides a lot of data you can ``listen`` to from the blockchain. For instance, you can be notified about a newly created
+transaction transferred from you when your ``Atomic Swap`` transaction is approved.
 
 Disclaimer
 ==========
 
-To illustrate the ``WebSockets`` requests, ``wscat`` is used. To install the tool use the following command:
+To illustrate the ``WebSockets`` requests, ``wscat`` is used. To install the tool, use the following command:
 
 .. code-block:: console
 
     $ npm install -g wscat
 
-Afterwards, check it out by following the command below. It sends a request to the echo server which will reply with same message that you sent.
+Afterwards, check it out by following the command below. It sends a request to the echo server which will reply with the same message that you sent.
 
 .. code-block:: console
 
@@ -30,15 +30,15 @@ Afterwards, check it out by following the command below. It sends a request to t
     > you are awesome!
     < you are awesome!
 
-If this stage is completed successfully, go on reading!
+If this stage is completed successfully, continue reading!
 
 URI to connect to
 =================
 
-To connect to the node's ``WebSockets`` you need to reach the following URI via ``POST`` method — ``ws://node_address:node_port``.
+To connect to the node's ``WebSockets`` you need to reach the following URI via ``POST`` method: ``ws://node_address:node_port``.
 
 If you want to connect to a local node, use ``ws://127.0.0.1:8080``. In case you are connecting to a production, choose a preferred node in the
-:doc:`/introduction` section and fill in the following pattern ``wss://<name>:8080``. For instance, ``wss://node-2-testnet.remme.io:8080``).
+:doc:`/introduction` section and fill in the following pattern ``ws://<name>:8080``. For instance, ``ws://node-2-testnet.remme.io:8080``.
 
 Event subscription
 ==================
@@ -57,7 +57,7 @@ To subscribe to an event you need to call a method in ``JSON RPC`` format:
         "id": "42"
     }
 
-With ``wscat`` the same request should be made one line.
+With ``wscat`` the same request should be made in one line.
 
 .. code-block:: console
 
@@ -66,8 +66,8 @@ With ``wscat`` the same request should be made one line.
     > {"jsonrpc":"2.0","method":"subscribe","params":{"event_type":"transfer", "address":"112007db8a00c010402e2e3a7d03491323e761e0ea612481c518605648ceeb5ed454f7"},"id":"42"}
     < {"jsonrpc": "2.0", "id": "42", "result": "SUBSCRIBED"}
 
-If the request is completed successfully, you will get the response that you are subscribed to transfer events.
-If the request failed, for example because of invalid address value, you will get the following response:
+If the request is completed successfully, you will get the response to which you are subscribed to transfer events.
+If the request failed, for example because of an invalid address value, you will get the following response:
 
 .. code-block:: console
 
@@ -114,7 +114,7 @@ In ``wscat``, it will be performed like this:
 Unsubscription
 ==============
 
-In case you want to cancel notifications on incoming events, call the unsubscribe method for the event type of subscription.
+In case you want to cancel notifications of incoming events, call the unsubscribe method for the event type of subscription.
 
 .. code-block:: javascript
 
@@ -145,7 +145,7 @@ Atomic Swap
 
 :doc:`/family-atomic-swap` events.
 
-**The example of the request:**
+**An example of the request:**
 
 .. code-block:: javascript
 
@@ -221,7 +221,7 @@ Atomic Swap
 +--------------------------------------+--------------------------------------------------------------------------------------------+
 | ``state``                            | State of the atomic swap (empty, opened, secret_lock_provided, approved, closed, expired). |
 +--------------------------------------+--------------------------------------------------------------------------------------------+
-| ``email_address_encrypted_optional`` | Encrypted e-mail address to receive notifications.                                         |
+| ``email_address_encrypted_optional`` | Encrypted email address to receive notifications.                                          |
 +--------------------------------------+--------------------------------------------------------------------------------------------+
 | ``secret_key``                       | `SHA-512 <https://en.wikipedia.org/wiki/SHA-2>`_ sequence.                                 |
 +--------------------------------------+--------------------------------------------------------------------------------------------+
@@ -237,7 +237,7 @@ Delivers status updates on the batch with the provided identifier. Read more by 
 
    <a href="https://sawtooth.hyperledger.org/docs/core/releases/1.0/architecture/transactions_and_batches.html" target="_blank">reference</a>
 
-**The example of the request:**
+**An example of the request:**
 
 .. code-block:: javascript
 
@@ -308,7 +308,7 @@ The arrival of new blocks. Read more by the |blocks_references|.
 
    <a href="https://sawtooth.hyperledger.org/docs/core/releases/1.0/transaction_family_specifications/blockinfo_transaction_family.html" target="_blank">reference</a>
 
-**The example of the request:**
+**An example of the request:**
 
 .. code-block:: javascript
 
@@ -358,9 +358,9 @@ The arrival of new blocks. Read more by the |blocks_references|.
 Transfer
 --------
 
-Delivers new token transfers from or to the address.
+Delivers new token transfers to or from the address.
 
-**The example of the request:**
+**An example of the request:**
 
 .. code-block:: javascript
 
