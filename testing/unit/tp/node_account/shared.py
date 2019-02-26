@@ -20,7 +20,7 @@ TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS = {
 }
 
 
-def create_context(account_from_balance, node_state=NodeAccount.NodeState.Value('NEW')):
+def create_context(account_from_balance, node_state=NodeAccount.NodeState.Value('NEW'), frozen=0, unfrozen=0):
     """
     Create stub context with initial data.
 
@@ -34,6 +34,8 @@ def create_context(account_from_balance, node_state=NodeAccount.NodeState.Value(
 
     node_account_protobuf.balance = account_from_balance
     node_account_protobuf.node_state = node_state
+    node_account_protobuf.reputation.frozen = frozen
+    node_account_protobuf.reputation.unfrozen = unfrozen
     serialized_account_from_balance = node_account_protobuf.SerializeToString()
 
     initial_state = {

@@ -1,5 +1,5 @@
 """
-Provide tests for node account handler apply (genesis) method implementation.
+Provide tests for node account handler initialize masternode implementation
 """
 import time
 
@@ -28,6 +28,7 @@ from testing.mocks.stub import StubContext
 from testing.utils.client import proto_error_msg
 
 from .shared import *
+
 
 def test_init_masternode():
     """
@@ -88,8 +89,8 @@ def test_init_masternode():
 
 def test_low_stake():
     """
-    Case: initialize masternode
-    Expect: masternode is initialized
+    Case: initialize masternode with low stake
+    Expect: Exception: Initial stake is too low
     """
     INITIAL_STAKE = MINIMUM_STAKE - 1
     internal_transfer_payload = NodeAccountInternalTransferPayload()
@@ -126,13 +127,13 @@ def test_low_stake():
     with pytest.raises(InvalidTransaction) as error:
         NodeAccountHandler().apply(transaction=transaction_request, context=mock_context)
 
-    assert 'Initial stake is too low' == str(error.value)
+    assert 'Initial stake is too low.' == str(error.value)
 
 
 def test_open_opened_masternode():
     """
-    Case: initialize masternode
-    Expect: masternode is initialized
+    Case: initialize already opened masternode
+    Expect: Exception: Masternode is already opened or closed.
     """
     INITIAL_STAKE = 300000
 
@@ -170,13 +171,13 @@ def test_open_opened_masternode():
     with pytest.raises(InvalidTransaction) as error:
         NodeAccountHandler().apply(transaction=transaction_request, context=mock_context)
 
-    assert 'Masternode is already opened or closed' == str(error.value)
+    assert 'Masternode is already opened or closed.' == str(error.value)
 
 
 def test_open_closed_masternode():
     """
-    Case: initialize masternode
-    Expect: masternode is initialized
+    Case: initialize already closed masternode
+    Expect: Exception: Masternode is already opened or closed.
     """
     INITIAL_STAKE = 300000
 
@@ -214,4 +215,4 @@ def test_open_closed_masternode():
     with pytest.raises(InvalidTransaction) as error:
         NodeAccountHandler().apply(transaction=transaction_request, context=mock_context)
 
-    assert 'Masternode is already opened or closed' == str(error.value)
+    assert 'Masternode is already opened or closed.' == str(error.value)

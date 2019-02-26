@@ -39,6 +39,8 @@ class NodeAccountHandler(BasicHandler):
             },
             NodeAccountMethod.CLOSE_MASTERNODE: {
                 PROCESSOR: self._close_masternode,
+                PB_CLASS: NodeAccountInternalTransferPayload,
+                VALIDATOR: NodeAccountInternalTransferPayloadForm,
             },
             NodeAccountMethod.TRANSFER_FROM_UNFROZEN_TO_OPERATIONAL: {
                 PB_CLASS: NodeAccountInternalTransferPayload,
@@ -53,11 +55,11 @@ class NodeAccountHandler(BasicHandler):
         node_account = get_node_account_by_address(context, node_account_address)
 
         if node_account.node_state != NodeAccount.NodeState.Value('NEW'):
-            raise InvalidTransaction('Masternode is already opened or closed')
+            raise InvalidTransaction('Masternode is already opened or closed.')
         minimum_stake = 250000#_get_setting_value(context, 'minimum_stake')
 
         if internal_transfer_payload.value < minimum_stake:
-            raise InvalidTransaction('Initial stake is too low')
+            raise InvalidTransaction('Initial stake is too low.')
 
         node_account.node_state = NodeAccount.NodeState.Value('OPENED')
 
@@ -71,21 +73,21 @@ class NodeAccountHandler(BasicHandler):
             node_account_address: node_account,
         }
 
-    def _close_masternode(self, context, node_account_public_key):
+    def _close_masternode(self, context, node_account_public_key, payload):
         node_account_address = self.make_address_from_data(node_account_public_key)
 
         node_account = get_node_account_by_address(context, node_account_address)
 
         if node_account.node_state != NodeAccount.NodeState.Value('OPENED'):
-            raise InvalidTransaction('Masternode is not opened or has been closed ')
+            raise InvalidTransaction('Masternode is not opened or has been closed.')
 
         node_account.node_state = NodeAccount.NodeState.Value('CLOSED')
 
-        node_account.balance += node_account.reputational.frozen
-        node_account.balance += node_account.reputational.unfrozen
+        node_account.balance += node_account.reputation.frozen
+        node_account.balance += node_account.reputation.unfrozen
 
-        node_account.reputational.frozen = 0
-        node_account.reputational.unfrozen = 0
+        node_account.reputation.frozen = 0
+        node_account.reputation.unfrozen = 0
 
         return {
             node_account_address: node_account,
@@ -97,7 +99,7 @@ class NodeAccountHandler(BasicHandler):
 
         node_account = get_node_account_by_address(context, node_account_address)
 
-        node_account.reputational.unfrozen -= internal_transfer_payload.value
+        node_account.reputation.unfrozen -= internal_transfer_payload.value
         node_account.balance += internal_transfer_payload.value
 
         return {
