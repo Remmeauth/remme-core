@@ -12,12 +12,9 @@ from sawtooth_sdk.protobuf.transaction_pb2 import (
     TransactionHeader,
 )
 
-from remme.protos.account_pb2 import (
-    Account,
-    AccountMethod,
-    TransferPayload,
+from remme.protos.node_account_pb2 import (
+    NodeAccountInternalTransferPayload, NodeAccountMethod, NodeAccount, EmptyPayload
 )
-from remme.protos.node_account_pb2 import NodeAccountInternalTransferPayload, NodeAccountMethod, NodeAccount
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.settings import ZERO_ADDRESS
 from remme.shared.utils import hash512
@@ -39,12 +36,11 @@ def test_close_masternode():
     UNFROZEN = 10000
     OPERATIONAL = 5000
 
-    internal_transfer_payload = NodeAccountInternalTransferPayload()
-    internal_transfer_payload.value = 300000
+    empty_payload = EmptyPayload()
 
     transaction_payload = TransactionPayload()
     transaction_payload.method = NodeAccountMethod.CLOSE_MASTERNODE
-    transaction_payload.data = internal_transfer_payload.SerializeToString()
+    transaction_payload.data = empty_payload.SerializeToString()
 
     serialized_transaction_payload = transaction_payload.SerializeToString()
 
@@ -98,12 +94,11 @@ def test_close_new_masternode():
     UNFROZEN = 10000
     OPERATIONAL = 5000
 
-    internal_transfer_payload = NodeAccountInternalTransferPayload()
-    internal_transfer_payload.value = 300000
+    empty_payload = EmptyPayload()
 
     transaction_payload = TransactionPayload()
     transaction_payload.method = NodeAccountMethod.CLOSE_MASTERNODE
-    transaction_payload.data = internal_transfer_payload.SerializeToString()
+    transaction_payload.data = empty_payload.SerializeToString()
 
     serialized_transaction_payload = transaction_payload.SerializeToString()
 
@@ -145,12 +140,11 @@ def test_close_closed_masternode():
     UNFROZEN = 10000
     OPERATIONAL = 5000
 
-    internal_transfer_payload = NodeAccountInternalTransferPayload()
-    internal_transfer_payload.value = 300000
+    empty_payload = EmptyPayload()
 
     transaction_payload = TransactionPayload()
     transaction_payload.method = NodeAccountMethod.CLOSE_MASTERNODE
-    transaction_payload.data = internal_transfer_payload.SerializeToString()
+    transaction_payload.data = empty_payload.SerializeToString()
 
     serialized_transaction_payload = transaction_payload.SerializeToString()
 

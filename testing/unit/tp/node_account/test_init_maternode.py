@@ -12,12 +12,9 @@ from sawtooth_sdk.protobuf.transaction_pb2 import (
     TransactionHeader,
 )
 
-from remme.protos.account_pb2 import (
-    Account,
-    AccountMethod,
-    TransferPayload,
+from remme.protos.node_account_pb2 import (
+    NodeAccountInternalTransferPayload, NodeAccountMethod, NodeAccount
 )
-from remme.protos.node_account_pb2 import NodeAccountInternalTransferPayload, NodeAccountMethod, NodeAccount
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.settings import ZERO_ADDRESS
 from remme.shared.utils import hash512

@@ -3,11 +3,14 @@ from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
 from remme.protos.account_pb2 import AccountMethod
 from remme.protos.node_account_pb2 import (
-    NodeAccount, NodeAccountMethod, NodeAccountInternalTransferPayload,
+    NodeAccount, NodeAccountMethod, NodeAccountInternalTransferPayload, EmptyPayload
 )
 
-from remme.shared.forms import NodeAccountInternalTransferPayloadForm
+from remme.shared.forms import (
+    NodeAccountInternalTransferPayloadForm, EmptyPayloadForm
+)
 from remme.shared.constants import Events, EMIT_EVENT
+from remme.settings import SETTINGS_MINIMUM_STAKE
 
 from .basic import (
     PB_CLASS, PROCESSOR, VALIDATOR, BasicHandler, get_data, get_multiple_data
@@ -17,13 +20,6 @@ LOGGER = logging.getLogger(__name__)
 
 FAMILY_NAME = 'node_account'
 FAMILY_VERSIONS = ['0.1']
-
-
-def get_node_account_by_address(context, address):
-    account = get_data(context, NodeAccount, address)
-    if account is None:
-        return NodeAccount()
-    return account
 
 
 class NodeAccountHandler(BasicHandler):
@@ -39,8 +35,8 @@ class NodeAccountHandler(BasicHandler):
             },
             NodeAccountMethod.CLOSE_MASTERNODE: {
                 PROCESSOR: self._close_masternode,
-                PB_CLASS: NodeAccountInternalTransferPayload,
-                VALIDATOR: NodeAccountInternalTransferPayloadForm,
+                PB_CLASS: EmptyPayload,
+                VALIDATOR: EmptyPayloadForm,
             },
             NodeAccountMethod.TRANSFER_FROM_UNFROZEN_TO_OPERATIONAL: {
                 PB_CLASS: NodeAccountInternalTransferPayload,
@@ -52,11 +48,11 @@ class NodeAccountHandler(BasicHandler):
     def _initialize_masternode(self, context, node_account_public_key, internal_transfer_payload):
         node_account_address = self.make_address_from_data(node_account_public_key)
 
-        node_account = get_node_account_by_address(context, node_account_address)
+        node_account = get_data(context, NodeAccount, node_account_address)
 
         if node_account.node_state != NodeAccount.NodeState.Value('NEW'):
             raise InvalidTransaction('Masternode is already opened or closed.')
-        minimum_stake = 250000#_get_setting_value(context, 'minimum_stake')
+        minimum_stake = int(_get_setting_value(context, SETTINGS_MINIMUM_STAKE))
 
         if internal_transfer_payload.value < minimum_stake:
             raise InvalidTransaction('Initial stake is too low.')
@@ -64,9 +60,9 @@ class NodeAccountHandler(BasicHandler):
         node_account.node_state = NodeAccount.NodeState.Value('OPENED')
 
         node_account.balance -= internal_transfer_payload.value
-        frozen_part = minimum_stake
+
         unfrozen_part = internal_transfer_payload.value - minimum_stake
-        node_account.reputation.frozen += frozen_part
+        node_account.reputation.frozen += minimum_stake
         node_account.reputation.unfrozen += unfrozen_part
 
         return {
@@ -76,7 +72,7 @@ class NodeAccountHandler(BasicHandler):
     def _close_masternode(self, context, node_account_public_key, payload):
         node_account_address = self.make_address_from_data(node_account_public_key)
 
-        node_account = get_node_account_by_address(context, node_account_address)
+        node_account = get_data(context, NodeAccount, node_account_address)
 
         if node_account.node_state != NodeAccount.NodeState.Value('OPENED'):
             raise InvalidTransaction('Masternode is not opened or has been closed.')
@@ -97,7 +93,7 @@ class NodeAccountHandler(BasicHandler):
 
         node_account_address = self.make_address_from_data(node_account_public_key)
 
-        node_account = get_node_account_by_address(context, node_account_address)
+        node_account = get_data(context, NodeAccount, node_account_address)
 
         node_account.reputation.unfrozen -= internal_transfer_payload.value
         node_account.balance += internal_transfer_payload.value
