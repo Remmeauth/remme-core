@@ -33,6 +33,7 @@ services:
       - genesis_data:/genesis/batch
       - ../../config/remme-client-config.toml:/config/remme-client-config.toml
       - ../../config/remme-genesis-config.toml:/config/remme-genesis-config.toml
+      - ../../config/network-config.env:/config/network-config.env
     environment:
       - REMME_START_MODE=genesis
     command: sh /project/scripts/genesis.sh
