@@ -1,4 +1,4 @@
 [remme.genesis]
 token_supply = 1000000000000
 economy_enabled = true
-consensus = "devmode"
+consensus = "remme"

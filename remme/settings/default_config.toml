@@ -35,7 +35,7 @@ port = 8080
 exports_folder = "./default_export"
 
 # List of available modules for rpc
-available_modules = "pkc,transaction,block_info,account,network,atomic_swap,state,event"
+available_modules = "pkc,transaction,block_info,account,network,atomic_swap,state,event,personal"
 
 # Enable logging for internal state of WebSocket handler
 websocket_state_logger = false
