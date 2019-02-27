@@ -27,6 +27,7 @@ services:
       - ../../config/sawtooth-validator-config.toml:/etc/sawtooth/validator.toml
       - ../../config/seeds-list.txt:/config/seeds-list.txt
       - ../../config/log/validator.toml:/etc/sawtooth/log_config.toml
+      - ../../config/network-config.env:/config/network-config.env
       - logs:/var/log/remme
     network_mode: bridge
     ports:
