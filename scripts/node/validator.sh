@@ -1,10 +1,8 @@
-# TODO add BlockInfo back when new Sawtooth implementation stabilizes
-
-eval `python3 /scripts/toml-to-env.py`
+#!/bin/bash
 
 ADDITIONAL_ARGS=""
 
-echo "Economy enabled: $REMME_ECONOMY_ENABLED"
+echo "Node public key $(cat /etc/sawtooth/keys/validator.pub)"
 
 if [ ! -f /etc/sawtooth/keys/validator.priv ]; then
     echo "validator key pair not found - creating a new one..."
@@ -23,16 +21,15 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
     sawset genesis -k /etc/sawtooth/keys/validator.priv
     GENESIS_BATCHES="config-genesis.batch"
 
-    if [ "$REMME_CONSENSUS" = "devmode" ]; then
-        echo "Devmode consensus is set to use. Writing consensus specific settings..."
-        sawset proposal create \
-            -k /etc/sawtooth/keys/validator.priv \
-            sawtooth.consensus.min_wait_time=5 \
-            sawtooth.consensus.max_wait_time=30 \
-            -o devmode.batch
+    echo "REMME consensus is set to use. Writing consensus specific settings..."
+    sawset proposal create \
+    -k /etc/sawtooth/keys/validator.priv \
+        remme.consensus.voters_number=1 \
+        remme.consensus.timing=10 \
+        remme.consensus.allowed_validators="$(cat /etc/sawtooth/keys/validator.pub)" \
+        -o consensus.batch
 
-        GENESIS_BATCHES="$GENESIS_BATCHES devmode.batch"
-    fi
+    GENESIS_BATCHES="$GENESIS_BATCHES consensus.batch"
 
     echo "Writing REMME settings..."
     echo "Writing out validator public key: "
@@ -53,10 +50,8 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
 
     GENESIS_BATCHES="$GENESIS_BATCHES settings_config.batch"
 
-    if [ "$REMME_ECONOMY_ENABLED" = "True" ]; then
-        echo "Economy model is enabled. Writing the batch to enable it..."
-        GENESIS_BATCHES="$GENESIS_BATCHES /genesis/batch/token-proposal.batch"
-    fi
+    echo "Economy model is enabled. Writing the batch to enable it..."
+    GENESIS_BATCHES="$GENESIS_BATCHES /genesis/batch/token-proposal.batch"
 
     echo "Writing batch injector settings..."
     sawset proposal create \
