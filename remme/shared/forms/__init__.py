@@ -14,6 +14,9 @@ from .pub_key import (
     RevokePubKeyPayloadForm,
 )
 from .account import TransferPayloadForm, GenesisPayloadForm
+from .node_account import (
+    NodeAccountInternalTransferPayloadForm,
+)
 from .atomic_swap import (
     AtomicSwapInitPayloadForm,
     AtomicSwapApprovePayloadForm,
