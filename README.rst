@@ -132,9 +132,12 @@ You can run ``make test`` to run automated tests.
 Building documentation
 ----------------------
 
-Prerequesites for building the documentation are ``sphinx`` and
-``sphinx_rtd_theme``. You can build the documentation with ``make docs``
-command.
+You can build the documentation locally with the following commands:
+
+.. code-block:: console
+
+   $ git clone git@github.com:Remmeauth/remme-core.git && cd remme-core
+   $ make build_docs && open $pwd/docs/html/index.html
 
 License
 -------
