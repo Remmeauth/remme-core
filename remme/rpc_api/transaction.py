@@ -31,7 +31,7 @@ from remme.tp.__main__ import TP_HANDLERS
 from remme.clients.account import AccountClient
 from remme.clients.pub_key import PubKeyClient
 from remme.protos.transaction_pb2 import TransactionPayload
-from remme.shared.forms import IdentifierForm, IdentifiersForm
+from remme.shared.forms import IdentifierForm, IdentifiersForm, BatchIdentifierForm
 
 from .utils import validate_params
 
@@ -210,7 +210,7 @@ async def fetch_batch(request):
         raise KeyNotFound(f'Batch with id "{id}" not found')
 
 
-@validate_params(IdentifierForm)
+@validate_params(BatchIdentifierForm)
 async def get_batch_status(request):
     id = request.params['id']
 
