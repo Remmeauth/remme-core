@@ -46,7 +46,7 @@ Copy the command below and paste into the terminal which will create an ``SSL ce
          sudo apt update && \
          sudo apt install certbot nginx python-certbot-nginx -y && \
          sudo certbot run --nginx -d $DOMAIN --non-interactive --agree-tos -m $EMAIL && \
-         curl https://gist.githubusercontent.com/dmytrostriletskyi/cce03d2aca0e2eaae3b8555eff252c0b/raw/74b9d1e33d30c35cbe3f51c8521143807b51880b/nginx.conf > /etc/nginx/nginx.conf && \
+         curl https://raw.githubusercontent.com/Remmeauth/remme-core/dev/docs/user-guide/templates/letsencrypt-nginx.conf > /etc/nginx/nginx.conf && \
          sed -i "s@websitenamewithdomain@$DOMAIN@" /etc/nginx/nginx.conf && \
          sudo systemctl restart nginx && \
          echo "* * * * * $USER /usr/bin/certbot renew" >> /etc/crontab
@@ -240,7 +240,7 @@ Then open a terminal window with the server and copy and paste the command below
    $ sudo apt-get update && sudo apt-get install nginx -y && \
          cd / && COMODO_AUTH_FILE=$(ls *.txt) && COMODO_AUTH_FILE_NAME=${COMODO_AUTH_FILE%.*} && \
          mkdir /var/www/comodo/ && mv /$COMODO_AUTH_FILE_NAME.txt /var/www/comodo/ && \
-         curl https://gist.githubusercontent.com/dmytrostriletskyi/d5e66f4969bf081fb906d714dfbfda6b/raw/161be759469b9b6fad6f72b9702b943056051ce9/nginx.conf > /etc/nginx/nginx.conf && \
+         curl https://raw.githubusercontent.com/Remmeauth/remme-core/dev/docs/user-guide/templates/comodo-auth-file-nginx.conf > /etc/nginx/nginx.conf && \
          sed -i "s@comodohashfile@$COMODO_AUTH_FILE_NAME@" /etc/nginx/nginx.conf && \
          sudo systemctl restart nginx
 
@@ -280,7 +280,7 @@ Then open a terminal window with the server and copy and paste the commands belo
          cd "CER - CRT Files" && cat ${DOMAIN%.*}_${DOMAIN##*.}.crt My_CA_Bundle.ca-bundle > ssl-bundle.crt && \
          cd .. && mv CER\ -\ CRT\ Files/ssl-bundle.crt . && \
          mkdir /etc/comodo/ && mv server.key ssl-bundle.crt /etc/comodo/ && \
-         curl https://gist.githubusercontent.com/dmytrostriletskyi/fce9d6cd9f4529989dbc600b8d2e907b/raw/29bff62d2e1d935805d186707870ff0700e3dc85/nginx.conf > /etc/nginx/nginx.conf && \
+         curl https://raw.githubusercontent.com/Remmeauth/remme-core/dev/docs/user-guide/templates/comodo-nginx.conf > /etc/nginx/nginx.conf && \
          sed -i "s@websitenamewithdomain@$DOMAIN@" /etc/nginx/nginx.conf && \
          sudo systemctl restart nginx
 
