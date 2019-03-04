@@ -7,3 +7,8 @@ class NodeAccountInternalTransferPayloadForm(ProtoForm):
     value = fields.IntegerField(validators=[
         validators.DataRequired(message='Could not transfer with zero amount.')
     ])
+
+
+class CloseMasternodePayloadForm(ProtoForm):
+    pass
+
