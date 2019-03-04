@@ -33,18 +33,18 @@ from testing.utils.client import (
 )
 from testing.mocks.stub import StubContext
 from .base import (
-    ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY,
-    CERTIFICATE_PUBLIC_KEY,
-    ED25519_PUBLIC_KEY,
-    ADDRESS_FROM_ED25519_PUBLIC_KEY,
-    ECDSA_PUBLIC_KEY,
     ADDRESS_FROM_ECDSA_PUBLIC_KEY,
+    ADDRESS_FROM_ED25519_PUBLIC_KEY,
+    ADDRESS_FROM_RSA_PUBLIC_KEY,
+    ECDSA_PUBLIC_KEY,
+    ED25519_PUBLIC_KEY,
     EXCEEDED_PUBLIC_KEY_VALIDITY_TIMESTAMP,
-    IS_NODE_ECONOMY_ENABLED_ADDRESS,
+    generate_ecdsa_payload,
+    generate_ed25519_payload,
     generate_header,
     generate_rsa_payload,
-    generate_ed25519_payload,
-    generate_ecdsa_payload,
+    IS_NODE_ECONOMY_ENABLED_ADDRESS,
+    RSA_PUBLIC_KEY,
 )
 
 OWNER_PRIVATE_KEY = 'baea35704ff361475ede4f6fee4a542e2e74eaaf07c38e1d1931e07de5e6487f'
@@ -58,8 +58,9 @@ PAYER_INITIAL_BALANCE = 5000
 
 RANDOM_ALREADY_STORED_OWNER_PUBLIC_KEY_ADDRESS = 'a23be17ca9c3bd150627ac6469f11ccf25c0c96d8bb8ac333879d3ea06a90413cd4536'
 
+RSA_PAYLOAD_WITH_PUBLIC_KEY = generate_rsa_payload(key=RSA_PUBLIC_KEY)
+
 INPUTS = OUTPUTS = [
-    ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY,
     OWNER_ADDRESS,
     PAYER_ADDRESS,
     ZERO_ADDRESS,
@@ -116,12 +117,19 @@ def test_store_rsa_public_key_for_other_with_empty_proto():
     ) == str(error.value)
 
 
-def test_store_rsa_public_key_for_other():
+@pytest.mark.parametrize('address_from_public_key, new_public_key_payload', [
+    (ADDRESS_FROM_RSA_PUBLIC_KEY, RSA_PAYLOAD_WITH_PUBLIC_KEY),
+    (ADDRESS_FROM_ECDSA_PUBLIC_KEY, generate_ecdsa_payload(key=ECDSA_PUBLIC_KEY)),
+    (ADDRESS_FROM_ED25519_PUBLIC_KEY, generate_ed25519_payload(key=ED25519_PUBLIC_KEY)),
+])
+def test_store_public_key_for_other(address_from_public_key, new_public_key_payload):
     """
-    Case: send transaction request to store certificate public key (RSA) for other.
+    Case: send transaction request to store certificate public key for other.
     Expect: public key information is stored to blockchain linked to owner address. Transaction sender paid for storing.
     """
-    new_public_key_payload = generate_rsa_payload(key=CERTIFICATE_PUBLIC_KEY)
+    INPUTS.append(address_from_public_key)
+    OUTPUTS.append(address_from_public_key)
+
     serialized_new_public_key_payload = new_public_key_payload.SerializeToString()
 
     private_key = Secp256k1PrivateKey.from_hex(OWNER_PRIVATE_KEY)
@@ -181,7 +189,7 @@ def test_store_rsa_public_key_for_other():
 
     expected_owner_account = Account()
     expected_owner_account.pub_keys.append(RANDOM_ALREADY_STORED_OWNER_PUBLIC_KEY_ADDRESS)
-    expected_owner_account.pub_keys.append(ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY)
+    expected_owner_account.pub_keys.append(address_from_public_key)
     serialized_expected_owner_account = expected_owner_account.SerializeToString()
 
     expected_zero_account = Account()
@@ -191,14 +199,14 @@ def test_store_rsa_public_key_for_other():
     expected_state = {
         OWNER_ADDRESS: serialized_expected_owner_account,
         PAYER_ADDRESS: serialized_expected_payer_account,
-        ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY: expected_serialized_public_key_storage,
+        address_from_public_key: expected_serialized_public_key_storage,
         ZERO_ADDRESS: expected_serialized_zero_account,
     }
 
     PubKeyHandler().apply(transaction=transaction_request, context=mock_context)
 
     state_as_list = mock_context.get_state(addresses=[
-        OWNER_ADDRESS, PAYER_ADDRESS, ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY, ZERO_ADDRESS,
+        OWNER_ADDRESS, PAYER_ADDRESS, address_from_public_key, ZERO_ADDRESS,
     ])
 
     state_as_dict = {entry.address: entry.data for entry in state_as_list}
@@ -206,20 +214,12 @@ def test_store_rsa_public_key_for_other():
     assert expected_state == state_as_dict
 
 
-def test_store_ed25519_public_key():
+def test_store_rsa_public_key_no_owner_account():
     """
-    Case: send transaction request to store certificate public key (Ed25519) for other.
-    Expect: public key information is stored to blockchain linked to owner address. Transaction sender paid for storing.
+    Case: send transaction request, to store certificate public key (RSA) for other, when owner account does not exist.
+    Expect: public key information is stored to blockchain linked to the newly created owner account's address.
     """
-    inputs = outputs = [
-        ADDRESS_FROM_ED25519_PUBLIC_KEY,
-        OWNER_ADDRESS,
-        PAYER_ADDRESS,
-        ZERO_ADDRESS,
-        IS_NODE_ECONOMY_ENABLED_ADDRESS,
-    ]
-
-    new_public_key_payload = generate_ed25519_payload(key=ED25519_PUBLIC_KEY)
+    new_public_key_payload = RSA_PAYLOAD_WITH_PUBLIC_KEY
     serialized_new_public_key_payload = new_public_key_payload.SerializeToString()
 
     private_key = Secp256k1PrivateKey.from_hex(OWNER_PRIVATE_KEY)
@@ -238,7 +238,7 @@ def test_store_ed25519_public_key():
     serialized_transaction_payload = transaction_payload.SerializeToString()
 
     transaction_header = generate_header(
-        serialized_transaction_payload, inputs, outputs, signer_public_key=PAYER_PUBLIC_KEY,
+        serialized_transaction_payload, INPUTS, OUTPUTS, signer_public_key=PAYER_PUBLIC_KEY,
     )
 
     serialized_header = transaction_header.SerializeToString()
@@ -253,16 +253,11 @@ def test_store_ed25519_public_key():
     payer_account.balance = PAYER_INITIAL_BALANCE
     serialized_payer_account = payer_account.SerializeToString()
 
-    owner_account = Account()
-    owner_account.pub_keys.append(RANDOM_ALREADY_STORED_OWNER_PUBLIC_KEY_ADDRESS)
-    serialized_owner_account = owner_account.SerializeToString()
-
     zero_account = Account()
     zero_account.balance = 0
     serialized_zero_account = zero_account.SerializeToString()
 
-    mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={
-        OWNER_ADDRESS: serialized_owner_account,
+    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
         PAYER_ADDRESS: serialized_payer_account,
         ZERO_ADDRESS: serialized_zero_account,
     })
@@ -278,8 +273,7 @@ def test_store_ed25519_public_key():
     serialized_expected_payer_account = expected_payer_account.SerializeToString()
 
     expected_owner_account = Account()
-    expected_owner_account.pub_keys.append(RANDOM_ALREADY_STORED_OWNER_PUBLIC_KEY_ADDRESS)
-    expected_owner_account.pub_keys.append(ADDRESS_FROM_ED25519_PUBLIC_KEY)
+    expected_owner_account.pub_keys.append(ADDRESS_FROM_RSA_PUBLIC_KEY)
     serialized_expected_owner_account = expected_owner_account.SerializeToString()
 
     expected_zero_account = Account()
@@ -289,14 +283,14 @@ def test_store_ed25519_public_key():
     expected_state = {
         OWNER_ADDRESS: serialized_expected_owner_account,
         PAYER_ADDRESS: serialized_expected_payer_account,
+        ADDRESS_FROM_RSA_PUBLIC_KEY: expected_serialized_public_key_storage,
         ZERO_ADDRESS: expected_serialized_zero_account,
-        ADDRESS_FROM_ED25519_PUBLIC_KEY: expected_serialized_public_key_storage,
     }
 
     PubKeyHandler().apply(transaction=transaction_request, context=mock_context)
 
     state_as_list = mock_context.get_state(addresses=[
-        OWNER_ADDRESS, PAYER_ADDRESS, ADDRESS_FROM_ED25519_PUBLIC_KEY, ZERO_ADDRESS,
+        OWNER_ADDRESS, PAYER_ADDRESS, ADDRESS_FROM_RSA_PUBLIC_KEY, ZERO_ADDRESS,
     ])
 
     state_as_dict = {entry.address: entry.data for entry in state_as_list}
@@ -304,20 +298,12 @@ def test_store_ed25519_public_key():
     assert expected_state == state_as_dict
 
 
-def test_store_ecdsa_public_key():
+def test_store_public_key_for_other_no_payer_account():
     """
-    Case: send transaction request to store certificate public key (ECDSA) for other.
-    Expect: public key information is stored to blockchain linked to owner address. Transaction sender paid for storing.
+    Case: send transaction request, to store certificate public key for other, when payer account does not exist.
+    Expect: invalid transaction error is raised with not enough transferable balance error message.
     """
-    inputs = outputs = [
-        ADDRESS_FROM_ECDSA_PUBLIC_KEY,
-        OWNER_ADDRESS,
-        PAYER_ADDRESS,
-        ZERO_ADDRESS,
-        IS_NODE_ECONOMY_ENABLED_ADDRESS,
-    ]
-
-    new_public_key_payload = generate_ecdsa_payload(key=ECDSA_PUBLIC_KEY)
+    new_public_key_payload = RSA_PAYLOAD_WITH_PUBLIC_KEY
     serialized_new_public_key_payload = new_public_key_payload.SerializeToString()
 
     private_key = Secp256k1PrivateKey.from_hex(OWNER_PRIVATE_KEY)
@@ -336,7 +322,7 @@ def test_store_ecdsa_public_key():
     serialized_transaction_payload = transaction_payload.SerializeToString()
 
     transaction_header = generate_header(
-        serialized_transaction_payload, inputs, outputs, signer_public_key=PAYER_PUBLIC_KEY,
+        serialized_transaction_payload, INPUTS, OUTPUTS, signer_public_key=PAYER_PUBLIC_KEY,
     )
 
     serialized_header = transaction_header.SerializeToString()
@@ -347,10 +333,6 @@ def test_store_ecdsa_public_key():
         signature=create_signer(private_key=PAYER_PRIVATE_KEY).sign(serialized_header),
     )
 
-    payer_account = Account()
-    payer_account.balance = PAYER_INITIAL_BALANCE
-    serialized_payer_account = payer_account.SerializeToString()
-
     owner_account = Account()
     owner_account.pub_keys.append(RANDOM_ALREADY_STORED_OWNER_PUBLIC_KEY_ADDRESS)
     serialized_owner_account = owner_account.SerializeToString()
@@ -359,47 +341,15 @@ def test_store_ecdsa_public_key():
     zero_account.balance = 0
     serialized_zero_account = zero_account.SerializeToString()
 
-    mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state={
+    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
         OWNER_ADDRESS: serialized_owner_account,
-        PAYER_ADDRESS: serialized_payer_account,
         ZERO_ADDRESS: serialized_zero_account,
     })
 
-    expected_public_key_storage = PubKeyStorage()
-    expected_public_key_storage.owner = OWNER_PUBLIC_KEY
-    expected_public_key_storage.payload.CopyFrom(new_public_key_payload)
-    expected_public_key_storage.is_revoked = False
-    expected_serialized_public_key_storage = expected_public_key_storage.SerializeToString()
+    with pytest.raises(InvalidTransaction) as error:
+        PubKeyHandler().apply(transaction=transaction_request, context=mock_context)
 
-    expected_payer_account = Account()
-    expected_payer_account.balance = PAYER_INITIAL_BALANCE - PUB_KEY_STORE_PRICE
-    serialized_expected_payer_account = expected_payer_account.SerializeToString()
-
-    expected_owner_account = Account()
-    expected_owner_account.pub_keys.append(RANDOM_ALREADY_STORED_OWNER_PUBLIC_KEY_ADDRESS)
-    expected_owner_account.pub_keys.append(ADDRESS_FROM_ECDSA_PUBLIC_KEY)
-    serialized_expected_owner_account = expected_owner_account.SerializeToString()
-
-    expected_zero_account = Account()
-    expected_zero_account.balance = 0 + PUB_KEY_STORE_PRICE
-    expected_serialized_zero_account = expected_zero_account.SerializeToString()
-
-    expected_state = {
-        OWNER_ADDRESS: serialized_expected_owner_account,
-        PAYER_ADDRESS: serialized_expected_payer_account,
-        ADDRESS_FROM_ECDSA_PUBLIC_KEY: expected_serialized_public_key_storage,
-        ZERO_ADDRESS: expected_serialized_zero_account,
-    }
-
-    PubKeyHandler().apply(transaction=transaction_request, context=mock_context)
-
-    state_as_list = mock_context.get_state(addresses=[
-        OWNER_ADDRESS, PAYER_ADDRESS, ADDRESS_FROM_ECDSA_PUBLIC_KEY, ZERO_ADDRESS,
-    ])
-
-    state_as_dict = {entry.address: entry.data for entry in state_as_list}
-
-    assert expected_state == state_as_dict
+    assert 'Not enough transferable balance. Sender\'s current balance: 0.' == str(error.value)
 
 
 def test_store_public_key_for_other_decode_error():
@@ -465,7 +415,7 @@ def test_store_public_key_for_other_bad_owner_signature():
     Case: send transaction request to store certificate public key for other with bad owner signature.
     Expect: invalid transaction error is raised with public key owner's signature is invalid error message.
     """
-    new_public_key_payload = generate_rsa_payload(key=CERTIFICATE_PUBLIC_KEY)
+    new_public_key_payload = RSA_PAYLOAD_WITH_PUBLIC_KEY
 
     bad_owner_signature = 'dd8b2dca17d4d507f77edd8b2dca17d4d507f77edd8b2dca17d4d507f77edd8b2dca17d4d507f77e'
 
@@ -500,7 +450,7 @@ def test_store_public_key_for_other_bad_owner_signature():
     serialized_already_registered_public_key = already_registered_public_key.SerializeToString()
 
     mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
-        ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY: serialized_already_registered_public_key,
+        ADDRESS_FROM_RSA_PUBLIC_KEY: serialized_already_registered_public_key,
     })
 
     with pytest.raises(InvalidTransaction) as error:
@@ -514,7 +464,7 @@ def test_store_public_key_for_other_already_registered_public_key():
     Case: send transaction request to store already registered certificate public key for other.
     Expect: invalid transaction error is raised with public key is already registered error message.
     """
-    new_public_key_payload = generate_rsa_payload(key=CERTIFICATE_PUBLIC_KEY)
+    new_public_key_payload = RSA_PAYLOAD_WITH_PUBLIC_KEY
     serialized_new_public_key_payload = new_public_key_payload.SerializeToString()
 
     private_key = Secp256k1PrivateKey.from_hex(OWNER_PRIVATE_KEY)
@@ -551,7 +501,7 @@ def test_store_public_key_for_other_already_registered_public_key():
     serialized_already_registered_public_key = already_registered_public_key.SerializeToString()
 
     mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
-        ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY: serialized_already_registered_public_key,
+        ADDRESS_FROM_RSA_PUBLIC_KEY: serialized_already_registered_public_key,
     })
 
     with pytest.raises(InvalidTransaction) as error:
@@ -626,7 +576,7 @@ def test_store_public_key_for_other_invalid_certificate_signature():
     entity_hash_signature = generate_rsa_signature(b'w', not_user_certificate_private_key)
 
     new_public_key_payload = generate_rsa_payload(
-        key=CERTIFICATE_PUBLIC_KEY, entity_hash_signature=entity_hash_signature,
+        key=RSA_PUBLIC_KEY, entity_hash_signature=entity_hash_signature,
     )
     serialized_new_public_key_payload = new_public_key_payload.SerializeToString()
 
@@ -667,7 +617,7 @@ def test_store_public_key_for_other_public_key_exceeded_validity():
     Expect: invalid transaction error is raised with validity exceeds the maximum value error message.
     """
     new_public_key_payload = generate_rsa_payload(
-        key=CERTIFICATE_PUBLIC_KEY, valid_to=int(EXCEEDED_PUBLIC_KEY_VALIDITY_TIMESTAMP),
+        key=RSA_PUBLIC_KEY, valid_to=int(EXCEEDED_PUBLIC_KEY_VALIDITY_TIMESTAMP),
     )
     serialized_new_public_key_payload = new_public_key_payload.SerializeToString()
 
@@ -711,7 +661,7 @@ def test_store_public_key_for_other_economy_is_not_enabled():
     Case: send transaction request, to store certificate public key for other, when economy isn't enabled.
     Expect: public key information is stored to blockchain linked to owner address. Owner hasn't paid for storing.
     """
-    new_public_key_payload = generate_rsa_payload(key=CERTIFICATE_PUBLIC_KEY)
+    new_public_key_payload = RSA_PAYLOAD_WITH_PUBLIC_KEY
     serialized_new_public_key_payload = new_public_key_payload.SerializeToString()
 
     private_key = Secp256k1PrivateKey.from_hex(OWNER_PRIVATE_KEY)
@@ -776,7 +726,7 @@ def test_store_public_key_for_other_economy_is_not_enabled():
 
     expected_owner_account = Account()
     expected_owner_account.pub_keys.append(RANDOM_ALREADY_STORED_OWNER_PUBLIC_KEY_ADDRESS)
-    expected_owner_account.pub_keys.append(ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY)
+    expected_owner_account.pub_keys.append(ADDRESS_FROM_RSA_PUBLIC_KEY)
     serialized_expected_owner_account = expected_owner_account.SerializeToString()
 
     expected_zero_account = Account()
@@ -786,14 +736,14 @@ def test_store_public_key_for_other_economy_is_not_enabled():
     expected_state = {
         OWNER_ADDRESS: serialized_expected_owner_account,
         PAYER_ADDRESS: serialized_expected_payer_account,
-        ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY: expected_serialized_public_key_storage,
+        ADDRESS_FROM_RSA_PUBLIC_KEY: expected_serialized_public_key_storage,
         ZERO_ADDRESS: expected_serialized_zero_account,
     }
 
     PubKeyHandler().apply(transaction=transaction_request, context=mock_context)
 
     state_as_list = mock_context.get_state(addresses=[
-        OWNER_ADDRESS, PAYER_ADDRESS, ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY, ZERO_ADDRESS,
+        OWNER_ADDRESS, PAYER_ADDRESS, ADDRESS_FROM_RSA_PUBLIC_KEY, ZERO_ADDRESS,
     ])
 
     state_as_dict = {entry.address: entry.data for entry in state_as_list}

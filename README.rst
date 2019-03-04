@@ -121,6 +121,8 @@ When you have this repository cloned go the project directory and run
 #. ``make build_dev`` (``make build`` for more compact but slower builds)
 #. ``make run_genesis`` or ``make run`` if you are working on an existing chain.
 
+Detailed instructions are available in `BUILD.md <BUILD.md>`_
+
 **NOTE:** on further runs you might want to run ``make run`` to persist the
 transaction created before. If you want to start with a clean chain, use ``make
 run_genesis`` again.
@@ -130,9 +132,12 @@ You can run ``make test`` to run automated tests.
 Building documentation
 ----------------------
 
-Prerequesites for building the documentation are ``sphinx`` and
-``sphinx_rtd_theme``. You can build the documentation with ``make docs``
-command.
+You can build the documentation locally with the following commands:
+
+.. code-block:: console
+
+   $ git clone git@github.com:Remmeauth/remme-core.git && cd remme-core
+   $ make build_docs && open docs/html/index.html
 
 License
 -------

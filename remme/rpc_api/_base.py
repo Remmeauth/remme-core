@@ -40,6 +40,7 @@ from aiohttp_json_rpc.exceptions import (
 from remme.shared.router import Router
 from remme.shared.exceptions import RemmeRpcError
 from remme.shared.messaging import Connection
+from remme.shared.metrics import METRICS_SENDER
 from .utils import load_methods
 
 
@@ -150,7 +151,7 @@ class JsonRpc(JsonRpc):
             raw_msg = data.data
         try:
             msg = decode_msg(raw_msg)
-            self.logger.debug('message decoded: %s', msg)
+            self.logger.debug(f'message decoded: {msg}')
 
         except RpcError as error:
             return await self._send_str(http_request, encode_error(error))
@@ -158,12 +159,13 @@ class JsonRpc(JsonRpc):
         # handle requests
         if msg.type == JsonRpcMsgTyp.REQUEST:
             self.logger.debug('msg gets handled as request')
+            method = msg.data['method']
 
             # check if method is available
-            if msg.data['method'] not in http_request.methods:
-                self.logger.debug('method %s is unknown or restricted',
-                                  msg.data['method'])
-                if msg.data['method'] in self.rpc_methods:
+            if method not in http_request.methods:
+                self.logger.debug(f'method {method} is unknown or restricted')
+
+                if method in self.rpc_methods:
                     err_msg = 'Method is disabled by the node administrator'
                 else:
                     err_msg = 'Method not found'
@@ -173,15 +175,17 @@ class JsonRpc(JsonRpc):
                                            message=err_msg)
                 ))
 
+            measurement = METRICS_SENDER.get_time_measurement(f'rpc_api.{method}')
+
             # call method
             raw_response = getattr(
-                http_request.methods[msg.data['method']].method,
+                http_request.methods[method].method,
                 'raw_response',
                 False,
             )
 
             try:
-                result = await http_request.methods[msg.data['method']](
+                result = await http_request.methods[method](
                     http_request=http_request,
                     rpc=self,
                     msg=msg,
@@ -190,24 +194,22 @@ class JsonRpc(JsonRpc):
                 if not raw_response:
                     result = encode_result(msg.data['id'], result)
 
-                return await self._send_str(http_request, result)
-
             except (RpcGenericServerDefinedError,
                     RpcInvalidRequestError,
                     RpcInvalidParamsError,
                     RemmeRpcError) as error:
 
-                return await self._send_str(
-                    http_request,
-                    encode_error(error, id=msg.data.get('id', None))
-                )
+                result = encode_error(error, id=msg.data.get('id', None))
 
             except Exception as error:
                 logging.error(error, exc_info=True)
 
-                return await self._send_str(http_request, encode_error(
+                result = encode_error(
                     RpcInternalError(msg_id=msg.data.get('id', None))
-                ))
+                )
+
+            measurement.done()
+            return await self._send_str(http_request, result)
 
         # handle result
         elif msg.type == JsonRpcMsgTyp.RESULT:
@@ -216,7 +218,7 @@ class JsonRpc(JsonRpc):
             result = encode_result(msg.data['id'], msg.data['result'])
             return await self._send_str(http_request, result)
         else:
-            self.logger.debug('unsupported msg type (%s)', msg.type)
+            self.logger.debug(f'unsupported msg type ({msg.type})')
 
             return await self._send_str(http_request, encode_error(
                 RpcInvalidRequestError(msg_id=msg.data.get('id', None))

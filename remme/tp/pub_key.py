@@ -13,6 +13,7 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 
+import copy
 import logging
 import hashlib
 import abc
@@ -114,9 +115,9 @@ class RSAProcessor(BasePubKeyProcessor):
 
         try:
             verifier.verify(self._entity_hash_signature, self._entity_hash,
-                            self.get_padding(), self.get_hashing_algorithm()())
+                            self._get_padding(), self.get_hashing_algorithm()())
             return True
-        except InvalidSignature:
+        except Exception:
             return False
 
     def get_hashing_algorithm(self):
@@ -124,7 +125,7 @@ class RSAProcessor(BasePubKeyProcessor):
             .Name(self._hashing_algorithm)
         return getattr(hashes, alg_name)
 
-    def get_padding(self):
+    def _get_padding(self):
         Padding = NewPubKeyPayload.RSAConfiguration.Padding
         if self._config.padding == Padding.Value('PSS'):
             return padding.PSS(mgf=padding.MGF1(self.get_hashing_algorithm()()),
@@ -173,12 +174,12 @@ class ECDSAProcessor(BasePubKeyProcessor):
 class Ed25519Processor(BasePubKeyProcessor):
 
     def verify(self):
-        verifier = ed25519.VerifyingKey(self.get_public_key())
-        msg_digest = self.get_hashing_algorithm()(self._entity_hash).digest()
         try:
+            verifier = ed25519.VerifyingKey(self.get_public_key())
+            msg_digest = self.get_hashing_algorithm()(self._entity_hash).digest()
             verifier.verify(self._entity_hash_signature, msg_digest)
             return True
-        except ed25519.BadSignatureError:
+        except Exception:
             return False
 
     def get_hashing_algorithm(self):
@@ -322,15 +323,19 @@ class PubKeyHandler(BasicHandler):
             public_key_to_store_address: public_key_information,
         }
 
-        charging_state = self._charge_for_storing(context, state, sender_account_address)
-        state.update(charging_state)
+        charging_state = self._charge_for_storing(context=context, address_from=sender_account_address)
+        if charging_state is not None:
+            state.update(charging_state)
+            sender_account = state.get(sender_account_address)
 
-        sender_account = state.get(sender_account_address)
-
-        self._store_public_key_to_account(
+        sender_account = self._store_public_key_to_account(
             public_key_to_store_address=public_key_to_store_address,
             public_key_to_store_owner_account=sender_account,
         )
+
+        state.update({
+            sender_account_address: sender_account,
+        })
 
         return state
 
@@ -386,6 +391,9 @@ class PubKeyHandler(BasicHandler):
         if public_key_information:
             raise InvalidTransaction('This public key is already registered.')
 
+        if public_key_to_store_owner_account is None:
+            public_key_to_store_owner_account = Account()
+
         if payer_for_storing_account is None:
             payer_for_storing_account = Account()
 
@@ -406,17 +414,22 @@ class PubKeyHandler(BasicHandler):
             public_key_to_store_address: public_key_information,
         }
 
-        charging_state = self._charge_for_storing(context=context, state=state, address_from=payer_for_storing_address)
-        state.update(charging_state)
+        charging_state = self._charge_for_storing(context=context, address_from=payer_for_storing_address)
+        if charging_state is not None:
+            state.update(charging_state)
 
-        self._store_public_key_to_account(
+        public_key_to_store_owner_account = self._store_public_key_to_account(
             public_key_to_store_address=public_key_to_store_address,
             public_key_to_store_owner_account=public_key_to_store_owner_account,
         )
 
+        state.update({
+            public_key_to_store_owner_address: public_key_to_store_owner_account,
+        })
+
         return state
 
-    def _charge_for_storing(self, context, state, address_from):
+    def _charge_for_storing(self, context, address_from):
         """
         Send fixed tokens value from address to zero address.
         """
@@ -427,17 +440,19 @@ class PubKeyHandler(BasicHandler):
                 context=context, address_from=address_from, address_to=ZERO_ADDRESS,
             )
 
-            state.update(transfer_state)
-
-        return state
+            return transfer_state
 
     @staticmethod
     def _store_public_key_to_account(public_key_to_store_address, public_key_to_store_owner_account):
         """
         Store public keys to account.
         """
-        if public_key_to_store_address not in public_key_to_store_owner_account.pub_keys:
-            public_key_to_store_owner_account.pub_keys.append(public_key_to_store_address)
+        account = copy.deepcopy(public_key_to_store_owner_account)
+
+        if public_key_to_store_address not in account.pub_keys:
+            account.pub_keys.append(public_key_to_store_address)
+
+        return account
 
     @staticmethod
     def _revoke_pub_key(context, signer_pubkey, revoke_pub_key_payload):
