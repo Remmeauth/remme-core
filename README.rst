@@ -137,7 +137,7 @@ You can build the documentation locally with the following commands:
 .. code-block:: console
 
    $ git clone git@github.com:Remmeauth/remme-core.git && cd remme-core
-   $ make build_docs && open $pwd/docs/html/index.html
+   $ make build_docs && open docs/html/index.html
 
 License
 -------
