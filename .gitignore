@@ -15,4 +15,4 @@ logs/
 poetry.lock
 .pytest_cache
 .coverage
-.vscode
+.vscode/
