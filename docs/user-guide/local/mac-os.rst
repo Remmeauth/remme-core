@@ -67,13 +67,12 @@ The response should look as illustrated below.
        "jsonrpc": "2.0",
        "result": {
            "node_public_key": "028e7e9b060d7c407e428676299ced9afef4ce782995294d8ea01fd0f08cec9765",
-           "storage_public_key": "028e7e9b060d7c407e428676299ced9afef4ce782995294d8ea01fd0f08cec9765"
        }
    }
 
 The flow is illustrated below.
 
-.. image:: /img/user-guide/cloud/digital-ocean/proof-core-is-working.png
+.. image:: /img/user-guide/local/proof-node-works.png
    :width: 100%
    :align: center
    :alt: Proof core is working
