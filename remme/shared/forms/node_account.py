@@ -11,3 +11,4 @@ class NodeAccountInternalTransferPayloadForm(ProtoForm):
 
 class CloseMasternodePayloadForm(ProtoForm):
     pass
+
