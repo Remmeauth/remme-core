@@ -29,6 +29,7 @@ from sawtooth_sdk.protobuf.block_pb2 import BlockHeader
 from sawtooth_sdk.protobuf.transaction_pb2 import TransactionHeader
 
 from remme.shared import exceptions as errors
+from remme.protos.consensus_messages_pb2 import ConsensusSeal
 
 
 LOGGER = logging.getLogger(__name__)
@@ -63,17 +64,6 @@ def web3_hash(data):
     return sha3.keccak_256(data).hexdigest()
 
 
-def from_proto_to_dict(proto_obj):
-    return MessageToDict(proto_obj, preserving_proto_field_name=True,
-                         including_default_value_fields=True)
-
-
-class AttrDict(dict):
-    def __init__(self, *args, **kwargs):
-        super(AttrDict, self).__init__(*args, **kwargs)
-        self.__dict__ = self
-
-
 def message_to_dict(message):
     """Converts a Protobuf object to a python dict with desired settings.
     """
@@ -91,6 +81,21 @@ def expand_batch(batch):
         batch['transactions'] = [
             expand_transaction(t) for t in batch['transactions']]
     return batch
+
+
+def parse_consensus(consensus_proto, resource):
+    """Deserializes a resource's base64 encoded Protobuf consensus.
+    """
+    consensus = consensus_proto()
+    try:
+        consensus_bytes = base64.b64decode(resource['header']['consensus'])
+        logging.debug(f"Consensus base64: {resource['header']['consensus']}")
+        consensus.ParseFromString(consensus_bytes)
+    except (KeyError, TypeError, ValueError, DecodeError):
+        pass
+
+    resource['consensus'] = message_to_dict(consensus)
+    return resource
 
 
 def parse_header(header_proto, resource):
@@ -206,6 +211,7 @@ def expand_block(block):
     """Deserializes a Block's header, and the header of its Batches.
     """
     parse_header(BlockHeader, block)
+    parse_consensus(ConsensusSeal, block)
     if 'batches' in block:
         block['batches'] = [expand_batch(b) for b in block['batches']]
     return block

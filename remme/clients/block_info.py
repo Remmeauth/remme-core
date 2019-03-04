@@ -1,4 +1,5 @@
 import logging
+import asyncio
 
 from remme.clients.basic import BasicClient
 from remme.protos.block_info_pb2 import BlockInfo, BlockInfoConfig
@@ -21,13 +22,12 @@ class BlockInfoClient(BasicClient):
         return bi
 
     async def get_blocks_info(self, start, limit):
-        blocks = []
         if not (start and limit):
             block_config = None
             try:
                 block_config = await self.get_block_info_config()
             except Exception:
-                return blocks
+                return []
 
             if not start:
                 start = block_config.latest_block + 1
@@ -38,13 +38,18 @@ class BlockInfoClient(BasicClient):
         if limit - start > 0:
             limit = start
 
-        for i in range(start - limit, start):
+        async def _get_block_data(i):
             try:
                 bi = await self.get_block_info(i)
-            except KeyNotFound:
-                continue
+                block = await self.list_blocks([bi.header_signature])
+            except Exception as e:
+                LOGGER.exception(e)
             else:
-                blocks.append(self.interpret_block_info(bi))
+                return self.interpret_block_info(bi, block)
+
+        blocks = await asyncio.gather(*(_get_block_data(i)
+                                        for i in range(start - limit, start)))
+        blocks = list(filter(None, blocks))
 
         return list(reversed(blocks))
 
@@ -59,9 +64,10 @@ class BlockInfoClient(BasicClient):
         return BLOCK_INFO_NAMESPACE + hex(block_num)[2:].zfill(62)
 
     @staticmethod
-    def interpret_block_info(block_info):
+    def interpret_block_info(block_info, block):
         return {"block_number": block_info.block_num + 1,
                 "timestamp": block_info.timestamp,
                 "previous_header_signature": block_info.previous_block_id,
                 "signer_public_key": block_info.signer_public_key,
-                "header_signature": block_info.header_signature}
+                "header_signature": block_info.header_signature,
+                "consensus": block['data'][0]['consensus']}

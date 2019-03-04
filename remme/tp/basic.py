@@ -23,7 +23,7 @@ from sawtooth_sdk.processor.exceptions import InternalError, InvalidTransaction
 from sawtooth_sdk.protobuf.transaction_pb2 import TransactionHeader
 
 from remme.protos.transaction_pb2 import TransactionPayload
-from remme.shared.utils import hash512, Singleton, from_proto_to_dict
+from remme.shared.utils import hash512, Singleton, message_to_dict
 from remme.shared.metrics import METRICS_SENDER
 
 from .context import CacheContextService
@@ -59,7 +59,7 @@ def get_event_attributes(updated_state, header_signature):
                                     'address': key,
                                     'type': value.__class__.__name__
                                  },
-                              **from_proto_to_dict(value)}
+                              **message_to_dict(value)}
                               for key, value in updated_state.items()]
     content_dict = {"entities_changed": json.dumps(entities_changed_list),
                     "header_signature": header_signature}
