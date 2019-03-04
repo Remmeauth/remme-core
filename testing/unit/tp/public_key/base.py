@@ -32,8 +32,8 @@ SENDER_PUBLIC_KEY = '03ecc5cb4094eb05319be6c7a63ebf17133d4ffaea48cdcfd1d5fc79dac
 SENDER_ADDRESS = '112007b9433e1da5c624ff926477141abedfd57585a36590b0a8edc4104ef28093ee30'
 SENDER_INITIAL_BALANCE = 5000
 
-CERTIFICATE_PRIVATE_KEY, CERTIFICATE_PUBLIC_KEY = generate_rsa_keys()
-ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY = generate_address('pub_key', CERTIFICATE_PUBLIC_KEY)
+RSA_PRIVATE_KEY, RSA_PUBLIC_KEY = generate_rsa_keys()
+ADDRESS_FROM_RSA_PUBLIC_KEY = generate_address('pub_key', RSA_PUBLIC_KEY)
 
 ED25519_PRIVATE_KEY, ED25519_PUBLIC_KEY = generate_ed25519_keys()
 ADDRESS_FROM_ED25519_PUBLIC_KEY = generate_address('pub_key', ED25519_PUBLIC_KEY)
@@ -62,11 +62,11 @@ TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS = {
 
 def generate_rsa_payload(key=None, entity_hash=None, entity_hash_signature=None, valid_to=int(CURRENT_TIMESTAMP_PLUS_YEAR)):
     if key is None:
-        key = CERTIFICATE_PUBLIC_KEY
+        key = RSA_PUBLIC_KEY
     if entity_hash is None:
         entity_hash = generate_entity_hash(MESSAGE)
     if entity_hash_signature is None:
-        entity_hash_signature = generate_rsa_signature(entity_hash, CERTIFICATE_PRIVATE_KEY)
+        entity_hash_signature = generate_rsa_signature(entity_hash, RSA_PRIVATE_KEY)
     return NewPubKeyPayload(
         entity_hash=entity_hash,
         entity_hash_signature=entity_hash_signature,
