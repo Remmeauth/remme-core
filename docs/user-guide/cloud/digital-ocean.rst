@@ -192,7 +192,8 @@ When you see the same output as illustrated below, it means the node is ready to
    :alt: Proof core is up
 
 To check if your node has completed a correct setup, open a brand new terminal window and send a request to get node configurations.
-If you use ``Windows``, change word ``export`` to ``set`` and install (download an archive and open it) |curl_tool| to send a request the node. Remember to change ``157.230.146.230`` to your droplet ``IP address``.
+If you use ``Windows``, change word ``export`` to ``set`` and install (download an archive and open it) |curl_tool| to send a request the node.
+Remember to change ``157.230.146.230`` to your droplet ``IP address``.
 
 .. |curl_tool| raw:: html
 
