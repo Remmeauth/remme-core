@@ -87,6 +87,7 @@ def test_account_handler_with_empty_proto():
     transfer_payload = TransferPayload()
 
     transaction_payload = TransactionPayload()
+    transfer_payload.sender_account_type = 1337
     transaction_payload.method = AccountMethod.TRANSFER
     transaction_payload.data = transfer_payload.SerializeToString()
 
@@ -120,6 +121,7 @@ def test_account_handler_with_empty_proto():
     assert proto_error_msg(
         TransferPayload,
         {
+            'sender_account_type': ['Not a valid choice'],
             'address_to': ['Missed address'],
             'value': ['Could not transfer with zero amount.'],
         }
@@ -556,11 +558,11 @@ def test_node_account_transfer():
     Case: send transaction request to send tokens to node account from node account.
     Expect: addresses data, stored in state, are changed according to transfer amount.
     """
-    node_account_from_address_ = 'eeecb9' + '26d7a378a639a68c096ffb0bc065a692c9a4d71dd032eed8c26227ca9602adc5'
-    node_account_to_address = 'eeecb9' + '1db7c02f5731d06df194dc95465e9b277c19e905ce642664a9a0d504a3909e31'
+    node_account_from_address_ = '116829' + '0abcb27dcbecb77a6ae3ae951f878cebd2fd94b07c4e21c54a49da0f57b81a65'
+    node_account_to_address = '116829' + '5026f956719c91b87198f6762e680391c1023d19da5fad9380fc026300e52ac8'
 
-    node_account_private_key_from = '654f2e48649e470460cc5954265023d4b25282747a82cb6361e87dd35d101ec7'
-    node_account_public_key_from = '0262f3ed84ee6a2e3d92580d0e1bfdc5515c149bb037259bb7e60fae2ea7f8548c'
+    node_account_private_key_from = '45a514955de0808f1fa0f38319ade0052bd36de91ae024c3422e6e9222e10604'
+    node_account_public_key_from = '0264f55d9e971961864a36a1a974d64cd8e76a8a07feb9f6a963e8923d0406c81d'
 
     inputs = outputs = [
         node_account_from_address_,
@@ -581,7 +583,7 @@ def test_node_account_transfer():
     }
 
     transfer_payload = TransferPayload()
-    transfer_payload.sender_account_type = 1  # NODE ACCOUNT
+    transfer_payload.sender_account_type = TransferPayload.NODE_ACCOUNT
     transfer_payload.address_to = node_account_to_address
     transfer_payload.value = TOKENS_AMOUNT_TO_SEND
 

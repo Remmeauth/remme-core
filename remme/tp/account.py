@@ -26,6 +26,7 @@ from remme.protos.account_pb2 import (
 from remme.protos.node_account_pb2 import (
     NodeAccount,
 )
+from remme.tp.node_account import NodeAccountHandler
 from remme.settings import (
     GENESIS_ADDRESS, ZERO_ADDRESS
 )
@@ -40,19 +41,6 @@ LOGGER = logging.getLogger(__name__)
 
 FAMILY_NAME = 'account'
 FAMILY_VERSIONS = ['0.1']
-
-
-def get_account_by_address(context, address):
-    account = get_data(context, Account, address)
-    if account is None:
-        return Account()
-    return account
-
-
-class NodeAccountHandler(BasicHandler):
-
-    def __init__(self):
-        super().__init__('node-account', ['0.1'])
 
 
 class AccountHandler(BasicHandler):
@@ -108,28 +96,41 @@ class AccountHandler(BasicHandler):
         References:
             - https://github.com/Remmeauth/remme-core/blob/dev/remme/genesis/__main__.py
         """
-        if transfer_payload.sender_account_type == TransferPayload.SenderAccountType.Value('ACCOUNT'):
+        if transfer_payload.sender_account_type == TransferPayload.ACCOUNT:
             address = self.make_address_from_data(public_key)
 
-        else:  # sender account type is node account
+        else:
             address = NodeAccountHandler().make_address_from_data(public_key)
 
         return self._transfer_from_address(context, address, transfer_payload)
 
+    def is_address_account_type(self, address):
+        """
+        Check if address is account address type.
+        """
+        return address.startswith(self._prefix) or \
+                address.startswith(NodeAccountHandler()._prefix) or \
+                address == ZERO_ADDRESS
+
     def _transfer_from_address(self, context, address_from, transfer_payload):
+
         if not transfer_payload.value:
             raise InvalidTransaction('Could not transfer with zero amount.')
 
-        if not transfer_payload.address_to.startswith(self._prefix) \
-                and not transfer_payload.address_to.startswith(NodeAccountHandler()._prefix) \
-                and transfer_payload.address_to != ZERO_ADDRESS:
+        if not self.is_address_account_type(address=transfer_payload.address_to):
             raise InvalidTransaction('Receiver address has to be of an account type.')
 
         if address_from == transfer_payload.address_to:
             raise InvalidTransaction('Account cannot send tokens to itself.')
 
-        sender_account_pb_class = Account if address_from[:6] == self._prefix else NodeAccount
-        receiver_account_pb_class = Account if transfer_payload.address_to[:6] == self._prefix else NodeAccount
+        pb_classes = {
+            '000000': Account,
+            AccountHandler()._prefix: Account,
+            NodeAccountHandler()._prefix: NodeAccount,
+        }
+
+        sender_account_pb_class = pb_classes.get(address_from[:6])
+        receiver_account_pb_class = pb_classes.get(transfer_payload.address_to[:6])
 
         sender_account, receiver_account = get_multiple_data(context, [
             (address_from, sender_account_pb_class),
