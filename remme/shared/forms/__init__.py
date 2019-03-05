@@ -21,6 +21,9 @@ from .node_account import (
     NodeAccountInternalTransferPayloadForm,
     CloseMasternodePayloadForm
 )
+from .obligatory_payment import (
+    ObligatoryPaymentPayloadForm
+)
 from .atomic_swap import (
     AtomicSwapInitPayloadForm,
     AtomicSwapApprovePayloadForm,

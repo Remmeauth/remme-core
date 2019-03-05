@@ -61,8 +61,8 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
     echo "Writing batch injector settings..."
     sawset proposal create \
         -k /etc/sawtooth/keys/validator.priv \
-        sawtooth.validator.batch_injectors=block_info \
-        "sawtooth.validator.block_validation_rules=NofX:1,block_info;XatY:block_info,0;local:0" \
+        "sawtooth.validator.batch_injectors=block_info;obligatory_payment" \
+        "sawtooth.validator.block_validation_rules=NofX:1,block_info;XatY:block_info,0;local:0;NofX:1,obligatory_payment;XatY:obligatory_payment,1;local:0;" \
         -o block_info_config.batch
 
     GENESIS_BATCHES="$GENESIS_BATCHES block_info_config.batch"
