@@ -23,6 +23,9 @@ from .node_account import (
     NodeAccountGenesisForm,
     SetBetPayloadForm,
 )
+from .obligatory_payment import (
+    ObligatoryPaymentPayloadForm
+)
 from .atomic_swap import (
     AtomicSwapInitPayloadForm,
     AtomicSwapApprovePayloadForm,
