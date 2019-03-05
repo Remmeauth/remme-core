@@ -174,3 +174,20 @@ class NodeAccountHandler(BasicHandler):
         return {
             node_account_address: node_account,
         }
+
+    # transaction? by consensus?
+    # penalty just minus or to zero?
+
+    def _penalty_because_rejected(self, context, penalty_amount, node_account_address):
+
+        node_account = get_data(context, NodeAccount, node_account_address)
+
+        if node_account is None:
+            raise InvalidTransaction('Invalid context or address.')
+
+        node_account.reputation.frozen -= penalty_amount
+
+        return {
+            node_account_address: node_account,
+        }
+
