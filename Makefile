@@ -58,6 +58,9 @@ startd:
 stop:
 	$(RUN_SCRIPT) -g -d
 
+docs:
+	sphinx-build -b html ./docs ./docs/html
+
 build_docs: build_dev
 	docker-compose -f ./docker/compose/docs.yml up --abort-on-container-exit
 
