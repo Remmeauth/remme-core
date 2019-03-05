@@ -9,18 +9,41 @@ Overview
 related to cybersecurity, IoT connectivity, data integrity, digital copyright protection, transparency etc.
 
 ``Remme core`` is built on Hyperledger Sawtooth platform, allowing to be flexible in language choice during the
-development process. ``Remme core`` exposes application programming interface based on :doc:`/apis/rpc` API.
+development process. ``Remme core`` exposes application programming interface based on :doc:`/apis/rpc` and
+:doc:`/apis/ws` API.
 
-``Remme`` also supports |js_client_library| and |dotnet_client_library| programming libraries that wrap its application
-programming interface, so that you could easily embed the protocol in your project.
+How to build on REMME Core
+==========================
 
-.. |js_client_library| raw:: html
+``Remme`` supports the following programming libraries that wrap its application programming interface, so that you could
+easily embed the protocol in your project.
 
-   <a href="https://github.com/Remmeauth/remme-client-js" target="_blank">JavaScript</a>
+.. list-table::
+   :header-rows: 1
 
-.. |dotnet_client_library| raw:: html
+   * - Library
+     - Repository
+     - Version
+   * - Javascript SDK
+     - `remme-client-js <https://github.com/Remmeauth/remme-client-js>`_
+     - |npm|
+   * - .NET SDK
+     - `remme-client-dotnet <https://github.com/Remmeauth/remme-client-dotnet>`_
+     - |nuget|
+   * - Java SDK
+     - `remme-client-java <https://github.com/Remmeauth/remme-client-dotnet>`_
+     - |maven|
 
-   <a href="https://github.com/Remmeauth/remme-client-dotnet" target="_blank">.NET</a>
+You could discuss your integration concept in the `technical community in Gitter <https://gitter.im/REMME-Tech>`_.
+
+.. |npm| image:: https://img.shields.io/npm/v/remme.svg
+   :target: https://www.npmjs.com/package/remme
+
+.. |nuget| image:: https://img.shields.io/nuget/v/REMME.Auth.Client.svg
+   :target: https://www.nuget.org/packages/REMME.Auth.Client/
+
+.. |maven| image:: https://img.shields.io/maven-central/v/io.remme.java/remme-java-lib.svg
+   :target: https://mvnrepository.com/artifact/io.remme.java/remme-java-lib
 
 Public testnet nodes list
 =========================
@@ -55,6 +78,8 @@ Here the nodes available for communication:
 .. |node_4| raw:: html
 
    <a href="https://node-4-testnet.remme.io" target="_blank">https://node-4-testnet.remme.io</a>
+
+It is okay if you see ``This site can’t be reached``, node just doesn't have an interface.
 
 References
 ==========

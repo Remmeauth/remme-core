@@ -7,33 +7,19 @@ official editions: ``Ubuntu Desktop`` for personal computers, ``Ubuntu Server`` 
 ``Ubuntu Core`` for IoT devices and robots. New releases of ``Ubuntu`` occur every six months,
 while long-term support releases occur every two years.
 
-Step 1: choose release version
+Step 1: install and start node
 ==============================
 
-Visit ``Remme-core`` `releases list <https://github.com/Remmeauth/remme-core/releases>`_  to choose the right version
-based on the changelog of each option.
+Open a terminal on your PC. Visit the :doc:`/user-guide/troubleshooting` section to find instructions.
 
-.. image:: /img/releases_list_on_github.png
-   :width: 100%
-   :align: center
-   :alt: Github page with Remme core releases
-
-Then change the value of ``REMME_CORE_RELEASE`` below. Though, we would recommend the latest version of the project that
-already specified in the command below.
-
-.. |remme_core_releases_list| raw:: html
-
-   <a href="https://github.com/Remmeauth/remme-core/releases" target="_blank">Remme-core releases list</a>
-
-Step 2: install, build and run the node
-=======================================
-
-Open a terminal on your PC. Visit :doc:`/user-guide/troubleshooting` section to find instructions. Then copy the command below and paste to the terminal.
+Copy commands below and paste it into the terminal. You can change the value of ``REMME_CORE_RELEASE`` below, just take
+a look at our `release list <https://github.com/Remmeauth/remme-core/releases>`_. We would recommend the latest version of
+the project that already specified in the command below.
 
 .. code-block:: console
 
-   $ export REMME_CORE_RELEASE=0.6.0-alpha && \
-         sudo apt-get install apt-transport-https ca-certificates curl software-properties-common make -y && \
+   $ export REMME_CORE_RELEASE=0.7.0-alpha
+   $ sudo apt-get install apt-transport-https ca-certificates curl software-properties-common make -y && \
          cd /home/ && curl -L https://github.com/Remmeauth/remme-core/archive/v$REMME_CORE_RELEASE.tar.gz | sudo tar zx && \
          cd remme-core-$REMME_CORE_RELEASE && \
          sudo apt update && sudo apt upgrade -y && \
@@ -42,9 +28,9 @@ Open a terminal on your PC. Visit :doc:`/user-guide/troubleshooting` section to 
          sudo apt install docker.io -y && \
          sudo curl -o /usr/local/bin/docker-compose -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" && \
          sudo chmod +x /usr/local/bin/docker-compose && \
-         make run_genesis_bg
+         sudo make run_genesis_bg
 
-.. image:: /img/user-guide/cloud/digital-ocean/installation-command.png
+.. image:: /img/user-guide/local/ubuntu/installation-command.png
    :width: 100%
    :align: center
    :alt: Proof core is up
@@ -70,7 +56,7 @@ When you see the same output as illustrated below, it means the node is ready to
    :align: center
    :alt: Proof core is up
 
-Step 3: ensure the node is working
+Step 2: ensure the node is working
 ==================================
 
 To check if your node did a correct set-up, open a brand new terminal window and send getting node configurations keys request.
@@ -88,14 +74,13 @@ The response should look as illustrated below.
        "id": "11",
        "jsonrpc": "2.0",
        "result": {
-           "node_public_key": "028e7e9b060d7c407e428676299ced9afef4ce782995294d8ea01fd0f08cec9765",
-           "storage_public_key": "028e7e9b060d7c407e428676299ced9afef4ce782995294d8ea01fd0f08cec9765"
+           "node_public_key": "028e7e9b060d7c407e428676299ced9afef4ce782995294d8ea01fd0f08cec9765"
        }
    }
 
 The flow is illustrated below.
 
-.. image:: /img/user-guide/cloud/digital-ocean/proof-core-is-working.png
+.. image:: /img/user-guide/local/proof-node-works.png
    :width: 100%
    :align: center
    :alt: Proof core is working
