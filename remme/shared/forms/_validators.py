@@ -1,7 +1,7 @@
 from wtforms import validators
 
 
-class TypeRequired(object):
+class AddressTypeRequired(object):
     """
     Validates the address for the required type.
 

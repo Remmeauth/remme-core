@@ -34,9 +34,7 @@ class Request:
         """
         Substitute request params setter.
         """
-        self._params = {
-            'public_key_address': value,
-        }
+        self._params = value
 
 
 @pytest.fixture
