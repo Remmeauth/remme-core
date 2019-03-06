@@ -14,11 +14,6 @@
 # ------------------------------------------------------------------------
 import logging
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
-from sawtooth_validator.journal.batch_injector import BatchInjector
-from sawtooth_validator.protobuf.batch_pb2 import (
-    Batch,
-    BatchHeader,
-)
 
 from sawtooth_sdk.protobuf.transaction_pb2 import (
     Transaction,
@@ -32,6 +27,11 @@ from remme.protos.obligatory_payment_pb2 import (
 
 from remme.protos.node_account_pb2 import (
     NodeAccount
+)
+from remme.settings import (
+    CONSENSUS_ALLOWED_VALIDATORS,
+    SETTINGS_OBLIGATORY_PAYMENT,
+    SETTINGS_COMMITTEE_SIZE,
 )
 
 from remme.shared.forms import (
@@ -54,6 +54,41 @@ FAMILY_NAME = 'obligatory_payment'
 FAMILY_VERSIONS = ['0.1']
 
 
+def withdraw_obligatory_payment(node_account, obligatory_payment):
+    if node_account.balance >= obligatory_payment:
+        node_account.balance -= obligatory_payment
+
+    elif node_account.reputation.unfrozen >= obligatory_payment:
+        node_account.reputation.unfrozen -= obligatory_payment
+
+    elif node_account.reputation.frozen >= obligatory_payment:
+        node_account.reputation.frozen -= obligatory_payment
+
+    else:
+        raise InvalidTransaction("Malformed committee. A node doesn't have enough tokens to pay obligatory payment.")
+
+def get_obligatory_payment_parameters(context):
+    committee_pub_keys = _get_setting_value(context, CONSENSUS_ALLOWED_VALIDATORS)
+    if committee_pub_keys is None or type(committee_pub_keys) != str:
+        raise InvalidTransaction('remme.consensus.allowed_validators is malformed. Should be list of public keys.')
+    committee_pub_keys = committee_pub_keys.split(';')
+
+    obligatory_payment = _get_setting_value(context, SETTINGS_OBLIGATORY_PAYMENT)
+    if obligatory_payment is None and not obligatory_payment.isdigit():
+        raise InvalidTransaction('remme.settings.obligatory_payment is malformed. Should be positive integer.')
+    obligatory_payment = int(obligatory_payment)
+
+    committee_size = _get_setting_value(context, SETTINGS_COMMITTEE_SIZE)
+    if committee_size is None and not committee_size.isdigit():
+        raise InvalidTransaction('remme.settings.committe_size is malformed. Should be positive integer.')
+    committee_size = int(committee_size)
+
+    if len(committee_pub_keys) != committee_size:
+        raise InvalidTransaction('Malformed committee.')
+
+    return committee_pub_keys, obligatory_payment, committee_size
+
+
 class ObligatoryPaymentHandler(BasicHandler):
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
@@ -69,85 +104,29 @@ class ObligatoryPaymentHandler(BasicHandler):
 
     def _pay_obligatory_payment(self, context, node_account_public_key, obligatory_payment_payload):
         node_account_address = self.make_address_from_data(node_account_public_key)
-
         node_account = get_data(context, NodeAccount, node_account_address)
 
-        #TODO: implement OP logic.
-
         if node_account is None:
-            node_account = NodeAccount()
+            raise InvalidTransaction('Invalid context or address.')
 
-        return {
+        committee_pub_keys, obligatory_payment, committee_size = get_obligatory_payment_parameters(context)
+
+        address_to_node_account_dict = {
             node_account_address: node_account,
         }
+        committee_pub_keys.remove(node_account_public_key)  # committee to charge obligatory payment
+        for pub_key in committee_pub_keys:
 
+            address = self.make_address_from_data(pub_key)
+            committee_node_account = get_data(context, NodeAccount, address)
 
-class ObligatoryPaymentInjector(BatchInjector):
-    """Inject ObligatoryPayment transaction at the beginning of blocks."""
+            if committee_node_account is None:
+                raise InvalidTransaction('Invalid context or address.')
 
-    def __init__(self, state_view_factory, signer):
-        self._state_view_factory = state_view_factory
-        self._signer = signer
+            withdraw_obligatory_payment(committee_node_account, obligatory_payment)
 
-    def create_batch(self):
-        payload = ObligatoryPaymentPayload().SerializeToString()
-        public_key = self._signer.get_public_key().as_hex()
+            address_to_node_account_dict[address] = committee_node_account
 
-        block_signer_address = ObligatoryPaymentHandler().make_address_from_data(data=public_key)
+        node_account.reputation.unfrozen += (committee_size-1)*obligatory_payment
 
-        INPUTS = OUTPUTS = [
-            block_signer_address
-        ]
-        #TODO: also for inputs and outputs need addresses of other masternodes in committee.
-
-        header = TransactionHeader(
-            signer_public_key=public_key,
-            family_name=FAMILY_NAME,
-            family_version=FAMILY_VERSIONS[0],
-            inputs=INPUTS,
-            outputs=OUTPUTS,
-            dependencies=[],
-            payload_sha512=hash512(payload).hexdigest(),
-            batcher_public_key=public_key,
-        ).SerializeToString()
-
-        transaction_signature = self._signer.sign(header)
-
-        transaction = Transaction(
-            header=header,
-            payload=payload,
-            header_signature=transaction_signature,
-        )
-
-        header = BatchHeader(
-            signer_public_key=public_key,
-            transaction_ids=[transaction_signature],
-        ).SerializeToString()
-
-        batch_signature = self._signer.sign(header)
-
-        return Batch(
-            header=header,
-            transactions=[transaction],
-            header_signature=batch_signature,
-        )
-
-    def block_start(self, previous_block):
-        """Returns an ordered list of batches to inject at the beginning of the
-        block. Can also return None if no batches should be injected.
-        Args:
-            previous_block (Block): The previous block.
-        Returns:
-            A list of batches to inject.
-        """
-
-        return [self.create_batch()]
-
-    def before_batch(self, previous_block, batch):
-        pass
-
-    def after_batch(self, previous_block, batch):
-        pass
-
-    def block_end(self, previous_block, batches):
-        pass
+        return address_to_node_account_dict

@@ -31,7 +31,7 @@ from remme.settings.default import load_toml_with_defaults
 TP_HANDLERS = {
     handler._family_name: handler
     for handler in (
-        AccountHandler(), PubKeyHandler(), AtomicSwapHandler(), NodeAccountHandler(), ObligatoryPaymentHandler
+        AccountHandler(), PubKeyHandler(), AtomicSwapHandler(), NodeAccountHandler(), ObligatoryPaymentHandler()
     )
 }
 
