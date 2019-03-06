@@ -1,7 +1,11 @@
 from wtforms import fields, validators
 
 from .base import ProtoForm
-from ._fields import AddressField
+
+from remme.shared.forms._fields import (
+    AddressField,
+    PublicKeyAddressField,
+)
 
 
 class TransferPayloadForm(ProtoForm):
@@ -21,5 +25,5 @@ def get_address_form(name):
     class AddressForm(ProtoForm):
         pass
 
-    setattr(AddressForm, name, AddressField())
+    setattr(AddressForm, name, PublicKeyAddressField())
     return AddressForm

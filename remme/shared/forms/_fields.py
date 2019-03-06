@@ -1,5 +1,19 @@
 from wtforms import fields, validators
 
+from remme.shared.forms._validators import TypeRequired
+
+
+class PublicKeyAddressField(fields.StringField):
+
+    validators = [
+        validators.DataRequired(message='Missed address.'),
+        TypeRequired(message='Address is not of a blockchain token type.'),
+        validators.Regexp(
+            regex='[0-9a-f]{70}',
+            message='Address is not of a blockchain token type.',
+        ),
+    ]
+
 
 class AddressField(fields.StringField):
 
