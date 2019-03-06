@@ -94,7 +94,7 @@ def parse_consensus(consensus_proto, resource):
     except (KeyError, TypeError, ValueError, DecodeError):
         pass
 
-    resource['consensus'] = message_to_dict(consensus)
+    resource['header']['consensus'] = message_to_dict(consensus)
     return resource
 
 

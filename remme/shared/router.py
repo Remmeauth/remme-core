@@ -72,12 +72,14 @@ from remme.shared.utils import (
 from remme.shared.exceptions import (
     ClientException, KeyNotFound, ValidatorNotReadyException
 )
+from remme.protos.zmq_message_pb2 import Message as ConsensusMessage
+from remme.protos.client_seal_pb2 import ClientSealRequest, ClientSealResponse
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Router:
+class BaseRouter:
 
     def __init__(self, stream):
         self._stream = stream
@@ -149,6 +151,23 @@ class Router:
                 'head': head,
                 'paging': paging
             })
+
+
+class ConsensusRouter(BaseRouter):
+    
+    async def get_seal_for_last_block(self):
+        response = await self._handle_response(
+            ConsensusMessage.CLIENT_SEAL_REQUEST,
+            ClientSealResponse,
+            ClientSealRequest(),
+        )
+        return self._wrap_response(
+            data=response['cert_votes'],
+            metadata=self._get_metadata(response)
+        )
+
+
+class ValidatorRouter(BaseRouter):
 
     async def _head_to_root(self, block_id):
         if block_id:
@@ -389,3 +408,15 @@ class Router:
             data=data,
             metadata=self._get_metadata(response)
         )
+
+
+class RouterPool:
+    def __init__(self, routers):
+        self._router_pool = set(routers)
+
+    def __getattr__(self, name):
+        for router in self._router_pool:
+            rfunc = getattr(router, name, None)
+            if rfunc:
+                return rfunc
+        raise TypeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
