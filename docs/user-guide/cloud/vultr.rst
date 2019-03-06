@@ -58,9 +58,8 @@ processor power for ``$20 per month``.
 We also recommend enabling backups to revert the server in case you occasionally do something wrong. In the additional
 feature list, tick the checkbox ``Enable Auto Backups`` to activate server backups.
 
-Then generate your personal ``SSH key`` and add it to the server. This step is not required but we highly recommend it
-for security reasons. Visit the :doc:`/user-guide/troubleshooting` section to find information about your ``SSH key``
-and instructions on how to generate it.
+Then generate your personal ``SSH key`` and add it to the server. Visit the :doc:`/user-guide/troubleshooting` section to
+find information about your ``SSH key`` and instructions on how to generate it.
 
 An example of your ``SSH key`` and how to add it to the droplet is illustrated in the image below.
 
@@ -69,7 +68,8 @@ An example of your ``SSH key`` and how to add it to the droplet is illustrated i
    :align: center
    :alt: Droplet SSH key adding
 
-Remember to click on the created ``SSH key`` to activate it. Below, specify the name of the server you wish to connect to (e.g. ``remme-core-testnet-node``) and press ``Deploy Now``.
+Remember to click on the created ``SSH key`` to activate it. Below, specify the name of the server you wish to connect
+to (e.g. ``remme-core-testnet-node``) and press ``Deploy Now``.
 
 .. image:: /img/user-guide/cloud/vultr/server-hostname-and-start.png
    :width: 100%
@@ -88,34 +88,16 @@ Step 3: login to server
 
 Open a terminal on your PC. Visit the :doc:`/user-guide/troubleshooting` section to find instructions how to do this.
 
-If you have added a ``SSH key`` you will be able to authenticate yourself with the password from the ``SSH key`` instead
-of the password from the server, as illustrated below.
+With ``SSH key`` you will be able to authenticate yourself with the password from the ``SSH key``, as illustrated below.
+Type ``root@157.230.146.230``, but instead of ``157.230.146.230``, put your server's ``IP address``.
+When you see the output line ``Enter passphrase for key ...``, enter the password from the ``SSH key``. Mind that when you
+do it the password doesn't appear – even stars or bullets shouldn’t appear as you wait to login to the account on the
+operating system. So enter and press ``Enter``.
 
 .. image:: /img/user-guide/cloud/vultr/login-to-the-server-ssh.png
    :width: 100%
    :align: center
    :alt: Droplet SSH key login
-
-If you haven't added a ``SSH key``, check the server details by clicking on it. There will be ``IP-address``, ``username``, and ``password`` which are used for login to the server.
-
-.. image:: /img/user-guide/cloud/vultr/server-details.png
-   :width: 100%
-   :align: center
-   :alt: Server details
-
-The image below illustrate how to connect to the server via its password: type ``ssh root@95.179.156.74``. Do the same,
-but instead of ``95.179.156.74``, put your ``IP address`` from the server details.
-
-Then type ``yes``, to continue the connection.
-
-When you see the output line ``root@95.179.156.74's password:``, just copy and paste the password.
-Mind that when you do it the password doesn't appear – even stars or bullets shouldn’t appear as you wait to login to the
-account on the operating system. So paste and press ``Enter``.
-
-.. image:: /img/user-guide/cloud/vultr/login-to-the-server.png
-   :width: 100%
-   :align: center
-   :alt: Login to the droplet server
 
 Step 4: start the project
 =========================

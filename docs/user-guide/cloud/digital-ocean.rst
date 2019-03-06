@@ -76,12 +76,19 @@ Create it with green button at the right-top corner of the screen.
    :align: center
    :alt: Create droplet
 
-Specify image ``Ubuntu 16.04.5 x64``, which should be regarded as an operating system, and choose the size of memory and processor power for ``$15 per month with 2GB / 2 CPUs``.
+Specify image ``Ubuntu 16.04.5 x64``, which should be regarded as an operating system.
 
-.. image:: /img/user-guide/cloud/digital-ocean/droplet-image-and-size.png
+.. image:: /img/user-guide/cloud/digital-ocean/droplet-image.png
    :width: 100%
    :align: center
-   :alt: Specify droplet image and size
+   :alt: Specify droplet image
+
+Choose ``Standard`` plan with virtual machine with the size of memory and processor power for ``$15 per month with 2GB / 2 CPUs``.
+
+.. image:: /img/user-guide/cloud/digital-ocean/droplet-size.png
+   :width: 100%
+   :align: center
+   :alt: Specify droplet size
 
 We recommend to enable backups to revert the server if you will occasionally do something wrong.
 
@@ -97,9 +104,8 @@ Check a checkbox ``Monitoring`` to enable the server to collect server performan
    :align: center
    :alt: Droplet SSH key
 
-Then generate your personal ``SSH key`` and add it to the server. This step is not required but we highly recommend it
-for security reasons. Visit the :doc:`/user-guide/troubleshooting` section to find information about your ``SSH key``
-and instructions on how to generate it.
+Then generate your personal ``SSH key`` and add it to the server. Visit the :doc:`/user-guide/troubleshooting` section to
+find information about your ``SSH key`` and instructions on how to generate it.
 
 An example of your ``SSH key`` and how to add it to the droplet is illustrated in the image below.
 
@@ -127,39 +133,16 @@ Step 4: login to droplet
 
 Open a terminal on your PC. Visit the :doc:`/user-guide/troubleshooting` section to find instructions how to do this.
 
-If you have added a ``SSH key`` you will be able to authenticate yourself with the password from the ``SSH key`` instead
-of the password from the server, as illustrated below.
+With ``SSH key`` you will be able to authenticate yourself with the password from the ``SSH key``, as illustrated below.
+Type ``root@157.230.146.230``, but instead of ``157.230.146.230``, put your server's ``IP address``.
+When you see the output line ``Enter passphrase for key ...``, enter the password from the ``SSH key``. Mind that when you
+do it the password doesn't appear – even stars or bullets shouldn’t appear as you wait to login to the account on the
+operating system. So enter and press ``Enter``.
 
 .. image:: /img/user-guide/cloud/digital-ocean/droplet-ssh-key-login.png
    :width: 100%
    :align: center
    :alt: Droplet SSH key login
-
-If you haven't added a ``SSH key``, then check inbox box to find a letter from ``Digital Ocean`` with details about your droplet.
-``IP-address``, ``username`` and ``password`` are used for login to droplet.
-
-.. image:: /img/user-guide/cloud/digital-ocean/droplet-information-e-mail.png
-   :width: 100%
-   :align: center
-   :alt: Droplet information
-
-The image below illustrate how to connect to the droplet via its password: type ``157.230.146.230``. Do the same,
-but instead of ``157.230.146.230``, put your ``IP address`` from the inbox.
-
-Then type ``yes``, to continue the connection.
-
-When you see the output line ``root@157.230.146.230's password:``, just copy and paste the password.
-Mind that when you do it the password doesn't appear – even stars or bullets shouldn’t appear as you wait to login to the
-account on the operating system. So paste and press ``Enter``.
-
-After that you will be required to change password for security reasons. At first, type current password to proof you
-are authorized to change the password, then type a new password and repeat it. We recommend that you should
-create long and strong passwords.
-
-.. image:: /img/user-guide/cloud/digital-ocean/login-to-droplet-server.png
-   :width: 100%
-   :align: center
-   :alt: Login to the droplet server
 
 Step 5: start the project
 =========================
@@ -209,7 +192,8 @@ When you see the same output as illustrated below, it means the node is ready to
    :alt: Proof core is up
 
 To check if your node has completed a correct setup, open a brand new terminal window and send a request to get node configurations.
-If you use ``Windows``, change word ``export`` to ``set`` and install (download an archive and open it) |curl_tool| to send a request the node. Remember to change ``157.230.146.230`` to your droplet ``IP address``.
+If you use ``Windows``, change word ``export`` to ``set`` and install (download an archive and open it) |curl_tool| to send a request the node.
+Remember to change ``157.230.146.230`` to your droplet ``IP address``.
 
 .. |curl_tool| raw:: html
 
