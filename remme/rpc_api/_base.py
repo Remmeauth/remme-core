@@ -37,7 +37,7 @@ from aiohttp_json_rpc.exceptions import (
     RpcError,
 )
 
-from remme.shared.router import Router
+from remme.shared.router import ValidatorRouter
 from remme.shared.exceptions import RemmeRpcError
 from remme.shared.messaging import Connection
 from remme.shared.metrics import METRICS_SENDER
@@ -49,9 +49,10 @@ LOGGER = logging.getLogger(__name__)
 
 class JsonRpc(JsonRpc):
 
-    def __init__(self, zmq_url, websocket_state_logger=False, *args, **kwargs):
+    def __init__(self, zmq_validator_url, zmq_consensus_url, websocket_state_logger=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._zmq_url = zmq_url
+        self._zmq_validator_url = zmq_validator_url
+        self._zmq_consensus_url = zmq_consensus_url
         self._accepting = True
         self._evthashes = {}
         self._subsevt = {}
@@ -96,7 +97,7 @@ class JsonRpc(JsonRpc):
     def register(self, ws, stream):
         try:
             ws.stream = stream
-            ws.stream.router = Router(stream)
+            ws.stream.router = ValidatorRouter(stream)
             yield
         finally:
             stream.close()
@@ -115,7 +116,7 @@ class JsonRpc(JsonRpc):
 
         LOGGER.debug('WS ready')
 
-        stream = Connection(self._zmq_url, loop=self.loop)
+        stream = Connection(self._zmq_validator_url, loop=self.loop)
         await stream.open()
 
         LOGGER.debug('ZMQ ready')

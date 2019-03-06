@@ -32,10 +32,11 @@ from remme.settings.helper import _make_settings_key
 from remme.shared.messaging import Connection
 from remme.settings import PRIV_KEY_FILE, PUB_KEY_FILE
 from remme.settings.default import load_toml_with_defaults
-from remme.shared.router import Router
+from remme.shared.router import RouterPool, ValidatorRouter, ConsensusRouter
 from remme.shared.exceptions import (
     ClientException,
 )
+from remme.protos.zmq_message_pb2 import Message as ConsensusMessage
 
 
 LOGGER = logging.getLogger(__name__)
@@ -48,8 +49,10 @@ class BasicClient:
 
         self.url = config['validator_rest_api_url']
         self._family_handler = family_handler() if callable(family_handler) else None
-        self._stream = Connection.get_single_connection(f'tcp://{ config["validator_ip"] }:{ config["validator_port"] }')
-        self._router = Router(self._stream)
+        self._router = RouterPool([
+            ValidatorRouter(Connection.get_single_connection(f'tcp://{ config["validator_ip"] }:{ config["validator_port"] }')),
+            ConsensusRouter(Connection.get_single_connection(f'tcp://{ config["consensus_ip"] }:{ config["consensus_port"] }', msg_pb=ConsensusMessage)),            
+        ])
 
         try:
             self._signer = self.get_signer_priv_key_from_file(PRIV_KEY_FILE)
