@@ -122,7 +122,7 @@ def test_account_handler_with_empty_proto():
         TransferPayload,
         {
             'sender_account_type': ['Not a valid choice'],
-            'address_to': ['Missed address'],
+            'address_to': ['Missed address.'],
             'value': ['Could not transfer with zero amount.'],
         }
     ) == str(error.value)

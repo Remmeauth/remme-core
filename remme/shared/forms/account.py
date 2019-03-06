@@ -1,9 +1,8 @@
 from wtforms import fields, validators
 
-from .base import ProtoForm
-from ._fields import AddressField
-
 from remme.protos.account_pb2 import TransferPayload
+from remme.shared.forms.base import ProtoForm
+from remme.shared.forms._fields import AddressField
 
 
 class TransferPayloadForm(ProtoForm):
