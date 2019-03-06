@@ -1,3 +1,17 @@
+# Copyright 2018 REMME
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ------------------------------------------------------------------------
 import logging
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
@@ -52,8 +66,12 @@ class NodeAccountHandler(BasicHandler):
                 PB_CLASS: CloseMasternodePayload,
                 VALIDATOR: CloseMasternodePayloadForm,
             },
+            NodeAccountMethod.TRANSFER_FROM_FROZEN_TO_UNFROZEN: {
+                PB_CLASS: NodeAccountInternalTransferPayload,
+                PROCESSOR: self._transfer_from_frozen_to_unfrozen,
+                VALIDATOR: NodeAccountInternalTransferPayloadForm,
+            },
         }
-
 
     def _initialize_masternode(self, context, node_account_public_key, internal_transfer_payload):
         node_account_address = self.make_address_from_data(node_account_public_key)
@@ -126,6 +144,32 @@ class NodeAccountHandler(BasicHandler):
 
         node_account.reputation.unfrozen -= internal_transfer_payload.value
         node_account.balance += internal_transfer_payload.value
+
+        return {
+            node_account_address: node_account,
+        }
+
+    def _transfer_from_frozen_to_unfrozen(self, context, node_account_public_key, internal_transfer_payload):
+        node_account_address = self.make_address_from_data(node_account_public_key)
+        node_account = get_data(context, NodeAccount, node_account_address)
+        minimum_stake = _get_setting_value(context, 'remme.settings.minimum_stake')
+
+        if node_account is None:
+            raise InvalidTransaction('Invalid context or address.')
+
+        if minimum_stake is None or not minimum_stake.isdigit():
+            raise InvalidTransaction('Wrong minimum stake address.')
+
+        minimum_stake = int(minimum_stake)
+
+        if node_account.reputation.frozen < minimum_stake:
+            raise InvalidTransaction('Frozen balance is lower than the minimum stake.')
+
+        if node_account.reputation.frozen - internal_transfer_payload.value < minimum_stake:
+            raise InvalidTransaction('Frozen balance after transfer lower than the minimum stake.')
+
+        node_account.reputation.frozen -= internal_transfer_payload.value
+        node_account.reputation.unfrozen += internal_transfer_payload.value
 
         return {
             node_account_address: node_account,

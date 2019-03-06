@@ -201,9 +201,13 @@ def test_set_lock_to_not_initialized_atomic_swap():
     assert f'Atomic swap was not initiated for identifier {SWAP_ID}!' == str(error.value)
 
 
-def test_set_lock_to_already_closed_atomic_swap():
+@pytest.mark.parametrize('swap_state', [
+    AtomicSwapInfo.CLOSED,
+    AtomicSwapInfo.EXPIRED,
+])
+def test_set_lock_to_already_closed_or_expired_atomic_swap(swap_state):
     """
-    Case: set secret lock to already closed atomic swap.
+    Case: set secret lock to already closed or expired atomic swap.
     Expect: invalid transaction error is raised with already operation with closed or expired swap error message.
     """
     atomic_swap_init_payload = AtomicSwapSetSecretLockPayload(
@@ -239,58 +243,7 @@ def test_set_lock_to_already_closed_atomic_swap():
 
     already_set_lock_swap_info = AtomicSwapInfo()
     already_set_lock_swap_info.swap_id = SWAP_ID
-    already_set_lock_swap_info.state = AtomicSwapInfo.CLOSED
-    serialized_already_set_lock_swap_info = already_set_lock_swap_info.SerializeToString()
-
-    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
-        ADDRESS_TO_STORE_SWAP_INFO_BY: serialized_already_set_lock_swap_info,
-    })
-
-    with pytest.raises(InvalidTransaction) as error:
-        AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
-
-    assert f'No operations can be done upon the swap: {SWAP_ID} as it is already closed or expired.' == str(error.value)
-
-
-def test_atomic_swap_already_expired_swap():
-    """
-    Case: set secret lock to already expired atomic swap.
-    Expect: invalid transaction error is raised with already operation with closed or expired swap error message.
-    """
-    atomic_swap_init_payload = AtomicSwapSetSecretLockPayload(
-        swap_id=SWAP_ID,
-        secret_lock=SECRET_LOCK,
-    )
-
-    transaction_payload = TransactionPayload()
-    transaction_payload.method = AtomicSwapMethod.SET_SECRET_LOCK
-    transaction_payload.data = atomic_swap_init_payload.SerializeToString()
-
-    serialized_transaction_payload = transaction_payload.SerializeToString()
-
-    transaction_header = TransactionHeader(
-        signer_public_key=BOT_PUBLIC_KEY,
-        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
-        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
-        inputs=INPUTS,
-        outputs=OUTPUTS,
-        dependencies=[],
-        payload_sha512=hash512(data=serialized_transaction_payload),
-        batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
-        nonce=time.time().hex().encode(),
-    )
-
-    serialized_header = transaction_header.SerializeToString()
-
-    transaction_request = TpProcessRequest(
-        header=transaction_header,
-        payload=serialized_transaction_payload,
-        signature=create_signer(private_key=BOT_PRIVATE_KEY).sign(serialized_header),
-    )
-
-    already_set_lock_swap_info = AtomicSwapInfo()
-    already_set_lock_swap_info.swap_id = SWAP_ID
-    already_set_lock_swap_info.state = AtomicSwapInfo.EXPIRED
+    already_set_lock_swap_info.state = swap_state
     serialized_already_set_lock_swap_info = already_set_lock_swap_info.SerializeToString()
 
     mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={

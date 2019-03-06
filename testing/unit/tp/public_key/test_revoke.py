@@ -17,7 +17,7 @@ from testing.conftest import create_signer
 from testing.mocks.stub import StubContext
 from testing.utils.client import proto_error_msg
 from .base import (
-    ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY,
+    ADDRESS_FROM_RSA_PUBLIC_KEY,
     SENDER_PUBLIC_KEY,
     SENDER_PRIVATE_KEY,
     NOT_SENDER_PUBLIC_KEY,
@@ -27,7 +27,7 @@ from .base import (
 
 
 INPUTS = OUTPUTS = [
-    ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY,
+    ADDRESS_FROM_RSA_PUBLIC_KEY,
 ]
 
 
@@ -71,7 +71,7 @@ def test_public_key_handler_revoke():
     Expect: public key storage blockchain record is changed to True.
     """
     revoke_public_key_payload = RevokePubKeyPayload(
-        address=ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY,
+        address=ADDRESS_FROM_RSA_PUBLIC_KEY,
     )
 
     transaction_payload = TransactionPayload()
@@ -99,7 +99,7 @@ def test_public_key_handler_revoke():
     serialized_existing_public_key_storage = existing_public_key_storage.SerializeToString()
 
     mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
-        ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY: serialized_existing_public_key_storage,
+        ADDRESS_FROM_RSA_PUBLIC_KEY: serialized_existing_public_key_storage,
     })
 
     expected_public_key_payload = generate_rsa_payload()
@@ -111,12 +111,12 @@ def test_public_key_handler_revoke():
     serialized_expected_public_key_storage = expected_public_key_storage.SerializeToString()
 
     expected_state = {
-        ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY: serialized_expected_public_key_storage,
+        ADDRESS_FROM_RSA_PUBLIC_KEY: serialized_expected_public_key_storage,
     }
 
     PubKeyHandler().apply(transaction=transaction_request, context=mock_context)
 
-    state_as_list = mock_context.get_state(addresses=[ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY])
+    state_as_list = mock_context.get_state(addresses=[ADDRESS_FROM_RSA_PUBLIC_KEY])
     state_as_dict = {entry.address: entry.data for entry in state_as_list}
 
     assert expected_state == state_as_dict
@@ -128,7 +128,7 @@ def test_public_key_handler_revoke_non_existent_public_key():
     Expect: invalid transaction error is raised with no certificate public key is presented in chain error message.
     """
     revoke_public_key_payload = RevokePubKeyPayload(
-        address=ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY,
+        address=ADDRESS_FROM_RSA_PUBLIC_KEY,
     )
 
     transaction_payload = TransactionPayload()
@@ -161,7 +161,7 @@ def test_public_key_handler_revoke_not_owner_public_key():
     Expect: invalid transaction error is raised with no certificate public key is presented in chain error message.
     """
     revoke_public_key_payload = RevokePubKeyPayload(
-        address=ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY,
+        address=ADDRESS_FROM_RSA_PUBLIC_KEY,
     )
 
     transaction_payload = TransactionPayload()
@@ -189,7 +189,7 @@ def test_public_key_handler_revoke_not_owner_public_key():
     serialized_existing_public_key_storage = existing_public_key_storage.SerializeToString()
 
     mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
-        ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY: serialized_existing_public_key_storage,
+        ADDRESS_FROM_RSA_PUBLIC_KEY: serialized_existing_public_key_storage,
     })
 
     with pytest.raises(InvalidTransaction) as error:
@@ -204,7 +204,7 @@ def test_public_key_handler_revoke_already_revoked():
     Expect: invalid transaction error is raised with no certificate public key is presented in chain error message.
     """
     revoke_public_key_payload = RevokePubKeyPayload(
-        address=ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY,
+        address=ADDRESS_FROM_RSA_PUBLIC_KEY,
     )
 
     transaction_payload = TransactionPayload()
@@ -232,7 +232,7 @@ def test_public_key_handler_revoke_already_revoked():
     serialized_existing_public_key_storage = existing_public_key_storage.SerializeToString()
 
     mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
-        ADDRESS_FROM_CERTIFICATE_PUBLIC_KEY: serialized_existing_public_key_storage,
+        ADDRESS_FROM_RSA_PUBLIC_KEY: serialized_existing_public_key_storage,
     })
 
     with pytest.raises(InvalidTransaction) as error:
