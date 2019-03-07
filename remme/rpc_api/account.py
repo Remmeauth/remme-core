@@ -16,7 +16,6 @@ import logging
 
 from remme.shared.forms import get_address_form
 from remme.clients.account import AccountClient
-
 from .utils import validate_params
 
 __all__ = (
