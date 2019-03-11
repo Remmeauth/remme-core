@@ -19,7 +19,8 @@ Open the application, click on ``Begin setup`` and be ready to scan the ``QR-cod
 
    <a href="https://itunes.apple.com/ru/app/google-authenticator/id388497605?mt=8" target="_blank">iOS</a>
 
-Log in to the server as you previously did during installation of the node:
+Log in to the server as you previously did during installation of the node. Remember to change ``95.179.156.74``
+to your server ``IP address``.
 
 .. code-block:: console
 
