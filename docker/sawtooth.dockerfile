@@ -11,11 +11,6 @@ RUN apt-get update && \
         python3-sawtooth-settings \
         python3-sawtooth-validator \
         sawtooth-devmode-engine-rust
-RUN apt-get install curl apt-transport-https && \
-    curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
-    echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | tee -a /etc/apt/sources.list.d/kubernetes.list && \
-    apt-get update && \
-    apt-get install -y kubectl
 COPY ./scripts/node /scripts
 RUN chmod +x /scripts/toml-to-env.py
 COPY ./blockinfo_fix.patch /blockinfo_fix.patch

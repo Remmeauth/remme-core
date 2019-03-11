@@ -2,7 +2,6 @@
 
 source /config/network-config.env
 
-
 ADDITIONAL_ARGS=""
 
 echo "Node public key $(cat /etc/sawtooth/keys/validator.pub)"
