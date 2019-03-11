@@ -46,7 +46,7 @@ services:
     network_mode: "service:validator"
     volumes:
       - validator_keys:/etc/sawtooth/keys
-    entrypoint: cargo run -- --connect tcp://127.0.0.1:5005
+    entrypoint: sh -c "RUST_BACKTRACE=1 remme-consensus --connect tcp://127.0.0.1:5005"
 
   validator-rest-api:
     container_name: remme_validator_rest_api
