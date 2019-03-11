@@ -32,6 +32,7 @@ from .atomic_swap import (
 from .identifier import (
     IdentifierForm,
     IdentifiersForm,
+    BatchIdentifierForm,
 )
 from .personal import (
     NodePKForm,

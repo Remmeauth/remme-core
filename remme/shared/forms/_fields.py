@@ -18,9 +18,7 @@ class AddressField(fields.StringField):
 class SwapIDField(fields.StringField):
 
     validators = [
-        validators.DataRequired(message='Missed swap_id'),
-        validators.Regexp('[0-9a-f]{64}',
-                          message='Incorrect atomic swap identifier.')
+        validators.Regexp('[0-9a-f]{64}', message='Given swap identifier is invalid')
     ]
 
 
@@ -30,4 +28,11 @@ class IDField(fields.StringField):
         validators.DataRequired(message='Missed id'),
         validators.Regexp('[0-9a-f]{128}',
                           message='Incorrect identifier.')
+    ]
+
+
+class BatchIdField(fields.StringField):
+
+    validators = [
+        validators.Regexp('[0-9a-f]{128}', message='Given batch identifier is invalid'),
     ]

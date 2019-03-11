@@ -1,11 +1,15 @@
 from wtforms import fields, validators
 
 from .base import ProtoForm
-from ._fields import IDField
+from ._fields import IDField, BatchIdField
 
 
 class IdentifierForm(ProtoForm):
     id = IDField()
+
+
+class BatchIdentifierForm(ProtoForm):
+    id = BatchIdField()
 
 
 class IdentifiersForm(ProtoForm):
