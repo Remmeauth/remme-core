@@ -1,13 +1,18 @@
 #!/bin/bash
 
-ADDITIONAL_ARGS=""
+echo "Node settings:"
+cat /config/network-config.env
 
-echo "Node public key $(cat /etc/sawtooth/keys/validator.pub)"
+source /config/network-config.env
+
+ADDITIONAL_ARGS=""
 
 if [ ! -f /etc/sawtooth/keys/validator.priv ]; then
     echo "validator key pair not found - creating a new one..."
     sawadm keygen
 fi
+
+echo "Node public key $(cat /etc/sawtooth/keys/validator.pub)"
 
 if [ "$REMME_START_MODE" = "genesis" ]; then
     echo "Building the genesis block..."
@@ -68,15 +73,13 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
     echo "Genesis block generated!"
 fi
 
-if [ "$REMME_START_MODE" = "run" ] && [ -s "/config/seeds-list.txt" ]; then
-    echo "Gettings the seeds list..."
-    SEEDS=$(sed ':a;N;$!ba;s/\n/,/g' /config/seeds-list.txt)
-    ADDITIONAL_ARGS="$ADDITIONAL_ARGS --seeds $SEEDS --peers $SEEDS"
+if [ ! -z "$SEEDS_LIST" ]; then
+    ADDITIONAL_ARGS="$ADDITIONAL_ARGS --peering dynamic --seeds $SEEDS_LIST"
 fi
 
 echo "Starting the validator..."
 sawtooth-validator -vv \
-    --endpoint tcp://$REMME_VALIDATOR_IP:$REMME_VALIDATOR_PORT \
+    --endpoint tcp://$REMME_VALIDATOR_IP:8800 \
     --bind component:tcp://127.0.0.1:4004 \
     --bind consensus:tcp://127.0.0.1:5005 \
     --bind network:tcp://0.0.0.0:8800 \
