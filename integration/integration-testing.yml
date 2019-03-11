@@ -100,6 +100,9 @@ spec:
       initContainers:
       - name: init
         image: remme/remme-core:latest
+        env:
+        - name: INTEGRATION_TESTING
+          value: true
         volumeMounts:
         - name: validator-keys
           mountPath: /etc/sawtooth/keys
