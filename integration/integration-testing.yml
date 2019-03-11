@@ -102,7 +102,7 @@ spec:
         image: remme/remme-core:latest
         env:
         - name: INTEGRATION_TESTING
-          value: true
+          value: "true"
         volumeMounts:
         - name: validator-keys
           mountPath: /etc/sawtooth/keys
@@ -111,7 +111,7 @@ spec:
         - name: config
           mountPath: /config
         command:
-        - sh
+        - bash
         args:
         - /project/scripts/genesis.sh
       # Run the node
@@ -147,10 +147,8 @@ spec:
           mountPath: /etc/sawtooth/keys
           readOnly: true
         command:
-        - cargo
+        - remme-consensus
         args:
-        - run
-        - --
         - --connect
         - tcp://127.0.0.1:5005
       - name: sawtooth-rest-api
