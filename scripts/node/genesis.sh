@@ -1,8 +1,8 @@
-echo "Loading configuration..."
-python3 /project/scripts/loader.py
-
-echo "Applying configuration..."
-source /config/network-config.env
+if [ -n "$INTEGRATION_TESTING" ]; then
+    echo "Loading configuration..."
+    python3 /project/scripts/loader.py
+    source /config/network-config.env
+fi
 
 echo "Start mode: $REMME_START_MODE"
 

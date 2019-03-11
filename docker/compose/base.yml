@@ -38,7 +38,7 @@ services:
       - ../../config/network-config.env
     environment:
       - REMME_START_MODE=run
-    entrypoint: sh /scripts/validator.sh
+    entrypoint: bash /scripts/validator.sh
 
   consensus:
     container_name: remme_consensus
