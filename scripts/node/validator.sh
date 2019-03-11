@@ -70,8 +70,12 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
     echo "Genesis block generated!"
 fi
 
-if [ ! -z "$SEEDS_LIST" ]; then
+if [ -n "$SEEDS_LIST" ]; then
     ADDITIONAL_ARGS="$ADDITIONAL_ARGS --peering dynamic --seeds $SEEDS_LIST"
+elif [ "$REMME_START_MODE" = "run" ] && [ -s "/config/seeds-list.txt" ]; then
+    echo "Gettings the seeds list..."
+    SEEDS=$(sed ':a;N;$!ba;s/\n/,/g' /config/seeds-list.txt)
+    ADDITIONAL_ARGS="$ADDITIONAL_ARGS --seeds $SEEDS --peers $SEEDS"
 fi
 
 echo "Starting the validator..."
