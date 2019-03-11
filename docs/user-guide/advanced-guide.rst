@@ -8,4 +8,4 @@ Advanced guide
 .. include:: /user-guide/advanced-guide/monitoring.rst
 .. include:: /user-guide/advanced-guide/domain-name.rst
 .. include:: /user-guide/advanced-guide/node-ssl-cert.rst
-
+.. include:: /user-guide/advanced-guide/backup-ssh-keys.rst

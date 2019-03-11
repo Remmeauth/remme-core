@@ -377,10 +377,40 @@ The whole interaction will look similar to the picture below.
    :align: center
    :alt: SSH-key key generation
 
-Now you need to look out your ``SSH public key``. Use the know ``cat`` command that will output a newly created ``SSH public key``.
+No SSH client
+=============
 
-.. code-block:: console
+Windows
+~~~~~~~
 
-   $ cat ~/.ssh/id_rsa
+If while connecting to the server using ``ssh root@<ip-address>`` command you get the
+``ssh is not recognized as an internal or external command...`` error message, it means you have no corresponding software
+in the operating system installed.
 
-Copy the output (``SSH public key``) and paste it where required.
+.. image:: /img/user-guide/troubleshooting/windows-no-ssh-client.png
+   :width: 100%
+   :align: center
+   :alt: No SSH client on Windows
+
+Then open the search and type ``Manage optional features`` and choose it in the best match.
+
+.. image:: /img/user-guide/troubleshooting/windows-manage-option-features.png
+   :width: 100%
+   :align: center
+   :alt: No SSH client on Windows
+
+In the opened windows click on the ``Add a feature`` button.
+
+.. image:: /img/user-guide/troubleshooting/windows-add-option-features.png
+   :width: 100%
+   :align: center
+   :alt: No SSH client on Windows
+
+Find the ``OpenSSH client`` and click on the button named ``Install``.
+
+.. image:: /img/user-guide/troubleshooting/windows-install-ssh-client.png
+   :width: 100%
+   :align: center
+   :alt: No SSH client on Windows
+
+When the installation has been finished, try to connect to the server again.
