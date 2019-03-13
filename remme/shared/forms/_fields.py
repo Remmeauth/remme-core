@@ -1,6 +1,9 @@
 from wtforms import fields, validators
 
-from remme.shared.forms._validators import AddressTypeRequired
+from remme.shared.forms._validators import (
+    AddressTypeRequired,
+    DataRequired,
+)
 
 
 class AddressField(fields.StringField):
@@ -27,7 +30,7 @@ class SwapIDField(fields.StringField):
 class IDField(fields.StringField):
 
     validators = [
-        validators.DataRequired(message='Missed id'),
-        validators.Regexp('[0-9a-f]{128}',
-                          message='Incorrect identifier.')
+        DataRequired(message='Missed id.'),
+        AddressTypeRequired(message='Given batch id is not a valid.'),
+        validators.Regexp(regex='[0-9a-f]{128}',  message='Given batch id is not a valid.')
     ]

@@ -31,7 +31,11 @@ from remme.tp.__main__ import TP_HANDLERS
 from remme.clients.account import AccountClient
 from remme.clients.pub_key import PubKeyClient
 from remme.protos.transaction_pb2 import TransactionPayload
-from remme.shared.forms import ProtoForm, IdentifierForm, IdentifiersForm
+from remme.shared.forms import (
+    IdentifierForm,
+    IdentifiersForm,
+    ProtoForm,
+)
 
 from .utils import validate_params
 
