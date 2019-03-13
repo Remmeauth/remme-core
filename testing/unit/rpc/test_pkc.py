@@ -89,7 +89,7 @@ async def test_get_public_key_info(mocker, request_):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('invalid_swap_id', ['12345', 12345, True])
+@pytest.mark.parametrize('invalid_swap_id', ['12345', 0, 12345, True])
 async def test_get_public_key_info_with_invalid_public_key_address(request_, invalid_swap_id):
     """
     Case: get public key info with invalid public key address.
@@ -106,13 +106,14 @@ async def test_get_public_key_info_with_invalid_public_key_address(request_, inv
 
 
 @pytest.mark.asyncio
-async def test_get_public_key_info_without_public_key_address(request_):
+@pytest.mark.parametrize('swap_id_is_none', ['', None])
+async def test_get_public_key_info_without_public_key_address(request_, swap_id_is_none):
     """
     Case: get public key info without public key address.
     Expect: missed address error message.
     """
     request_.params = {
-        PUBLIC_KEY_ADDRESS: None,
+        PUBLIC_KEY_ADDRESS: swap_id_is_none,
     }
 
     with pytest.raises(RpcInvalidParamsError) as error:

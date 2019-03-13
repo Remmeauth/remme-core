@@ -1,12 +1,15 @@
 from wtforms import fields, validators
 
-from remme.shared.forms._validators import AddressTypeRequired
+from remme.shared.forms._validators import (
+    AddressDataRequired,
+    AddressTypeRequired,
+)
 
 
 class AddressField(fields.StringField):
 
     validators = [
-        validators.DataRequired(message='Missed address.'),
+        AddressDataRequired(message='Missed address.'),
         AddressTypeRequired(message='Address is not of a blockchain token type.'),
         validators.Regexp(
             regex='[0-9a-f]{70}',
