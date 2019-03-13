@@ -107,18 +107,17 @@ Change ``Points to`` to the your server/instance/droplet ``IP address`` and clic
    :alt: Point A type to the IP address
 
 Wait a few minutes, as this operation takes time. Then you can ensure your domain name is linked to the server.
-First of all, send the request to the server by its ``IP-address``. Remember to change ``95.179.156.74`` to your
-server's ``IP address``.
+First of all, check if your node still works, using the following commands. Remember to
+change ``157.230.146.230`` to your server's ``IP address``.
 
 .. code-block:: console
 
-   $ export NODE_IP_ADDRESS=95.179.156.74
+   $ export NODE_IP_ADDRESS=157.230.146.230
    $ curl -X POST http://$NODE_IP_ADDRESS:8080 -H 'Content-Type: application/json' -d \
          '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python -m json.tool
 
-
-Change the value of ``NODE_IP_ADDRESS`` to your domain name with an extension (i.e. ``the-coolest-masternode.xyz``) and send the
-same request which should display a response similar to the previous one:
+Then change the value of ``NODE_IP_ADDRESS`` to your domain name with an extension (i.e. ``the-coolest-masternode.xyz``)
+and send execute the previous command again. A response should be similar to the previous one:
 
 .. code-block:: console
 

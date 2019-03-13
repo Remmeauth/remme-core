@@ -25,9 +25,9 @@ sys.path.insert(0, PYTHON_MODULE_LOCATION)
 
 # -- Project information -----------------------------------------------------
 
-project = 'REMME Core'
-copyright = '2018, REMME Core Team.'
-author = 'REMME Core Team.'
+project = 'Remme Core'
+copyright = '2019, Remme Core Team.'
+author = 'Remme Core Team.'
 
 # The short X.Y version
 version = ''
@@ -120,7 +120,7 @@ html_favicon = 'img/remme-favicon-purple-small.png'
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'REMMEdoc'
+htmlhelp_basename = 'Remme-documentation'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -147,8 +147,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'REMME.tex', 'REMME Documentation',
-     'REMME Core Team.', 'manual'),
+    (master_doc, 'Remme.tex', 'Remme Documentation',
+     'Remme core team.', 'manual'),
 ]
 
 
@@ -157,7 +157,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'remme', 'REMME Documentation',
+    (master_doc, 'remme', 'Remme Documentation',
      [author], 1)
 ]
 
@@ -168,8 +168,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'REMME', 'REMME Documentation',
-     author, 'REMME', 'One line description of project.',
+    (master_doc, 'Remme', 'Remme Documentation',
+     author, 'Remme', 'Remme Documentation.',
      'Miscellaneous'),
 ]
 
