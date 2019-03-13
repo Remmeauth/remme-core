@@ -179,6 +179,7 @@ the project that already specified in the command below.
 
    $ export REMME_CORE_RELEASE=0.7.0-alpha
    $ sudo apt-get install apt-transport-https ca-certificates curl software-properties-common make -y && \
+         echo "REMME_CORE_RELEASE=$REMME_CORE_RELEASE" >> ~/.bashrc && \
          cd /home/ && curl -L https://github.com/Remmeauth/remme-core/archive/v$REMME_CORE_RELEASE.tar.gz | sudo tar zx && \
          cd remme-core-$REMME_CORE_RELEASE && \
          sudo apt update && sudo apt upgrade -y && \
@@ -215,18 +216,14 @@ When you see the same output as illustrated below, it means the node is ready to
    :align: center
    :alt: Proof core is up
 
-To check if your node has completed a correct setup, open a brand new terminal window and send a request to get node configurations.
-If you use ``Windows``, change word ``export`` to ``set`` and install (download an archive and open it) |curl_tool| to send a request the node. Remember to change ``18.219.65.206`` to your instance ``public DNS``.
-
-.. |curl_tool| raw:: html
-
-   <a href="https://curl.haxx.se/download.html" target="_blank">tool named curl </a>
+To check if your node has completed a correct setup, use the following commands, being logged in your instance. Remember to
+change ``157.230.146.230`` to your server's ``IP address``.
 
 .. code-block:: console
 
-   $ export NODE_IP_ADDRESS=18.219.65.206
+   $ export NODE_IP_ADDRESS=157.230.146.230
    $ curl -X POST http://$NODE_IP_ADDRESS:8080 -H 'Content-Type: application/json' -d \
-         '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python -m json.tool
+         '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python3 -m json.tool
 
 The response should look similar to this:
 
