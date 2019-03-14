@@ -97,13 +97,14 @@ async def test_get_atomic_swap_info_with_invalid_regex_swap_id(request_):
 
 
 @pytest.mark.asyncio
-async def test_get_atomic_swap_info_without_swap_id(request_):
+@pytest.mark.parametrize('swap_id_is_none', ['', None])
+async def test_get_atomic_swap_info_without_swap_id(request_, swap_id_is_none):
     """
     Case: get atomic swap info without swap id.
     Expect: missed swap id error message.
     """
     request_.params = {
-        SWAP_ID: None,
+        SWAP_ID: swap_id_is_none,
     }
 
     with pytest.raises(RpcInvalidParamsError) as error:
@@ -113,7 +114,7 @@ async def test_get_atomic_swap_info_without_swap_id(request_):
 
 
 @pytest.mark.asyncio
-async def test_get_atomic_swap_with_non_existing_swap_id(mocker, request_):
+async def test_get_atomic_swap_info_with_non_existing_swap_id(mocker, request_):
     """
     Case: get atomic swap info with a non-existing swap id.
     Expect: atomic swap not found error message.

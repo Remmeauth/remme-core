@@ -12,7 +12,7 @@ from remme.shared.forms._validators import (
 class AddressField(fields.StringField):
 
     validators = [
-        validators.DataRequired(message='Missed address.'),
+        DataRequired(message='Missed address.'),
         StringTypeRequired(message='Address is not of a blockchain token type.'),
         validators.Regexp(
             regex='[0-9a-f]{70}',
