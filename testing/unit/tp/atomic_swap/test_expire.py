@@ -136,7 +136,7 @@ def test_expire_with_empty_proto():
     assert proto_error_msg(
         AtomicSwapExpirePayload,
         {
-            'swap_id': ['Missed swap_id'],
+            'swap_id': ['Missed swap_id.'],
         }
     ) == str(error.value)
 

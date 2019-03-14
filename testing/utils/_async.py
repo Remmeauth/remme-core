@@ -19,3 +19,10 @@ async def return_async_value(value):
         - https://github.com/pytest-dev/pytest-mock/issues/60
     """
     return value
+
+
+async def raise_async_error(error):
+    """
+    Asynchronous function raise error impostor.
+    """
+    raise error
