@@ -72,10 +72,10 @@ Then make the following command to finish setup:
 
 .. code-block:: console
 
-    $ echo "auth required pam_google_authenticator.so nullok" >> /etc/pam.d/sshd && \
-          sed -i '/^ChallengeResponseAuthentication/s/no/yes/' /etc/ssh/sshd_config && \
-          echo "AuthenticationMethods publickey,password publickey,keyboard-interactive" >> /etc/ssh/sshd_config && \
-          sed -i 's/@include common-auth/#@include common-auth/g' /etc/pam.d/sshd && \
+    $ echo "auth required pam_google_authenticator.so nullok" | sudo tee -a /etc/pam.d/sshd > /dev/null && \
+          sudo -i sed -i '/^ChallengeResponseAuthentication/s/no/yes/' /etc/ssh/sshd_config && \
+          echo "AuthenticationMethods publickey,password publickey,keyboard-interactive" | sudo tee -a /etc/ssh/sshd_config > /dev/null && \
+          sudo -i sed -i 's/@include common-auth/#@include common-auth/g' /etc/pam.d/sshd && \
           sudo systemctl restart sshd.service
 
 As a result, when you next log in to the server you will be prompted for a verification code from the mobile application.
