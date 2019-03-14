@@ -1,6 +1,12 @@
-from wtforms import fields, validators
+from wtforms import (
+    fields,
+    validators,
+)
 
-from remme.shared.forms._validators import StringTypeRequired
+from remme.shared.forms._validators import (
+    DataRequired,
+    StringTypeRequired,
+)
 
 
 class AddressField(fields.StringField):
@@ -18,8 +24,8 @@ class AddressField(fields.StringField):
 class SwapIDField(fields.StringField):
 
     validators = [
-        validators.DataRequired(message='Missed swap_id.'),
-        StringTypeRequired(message='Given swapId is not a valid.'),
+        DataRequired(message='Missed swap_id.'),
+        StringTypeRequired(message='Given swap_id is not a valid.'),
         validators.Regexp(
             regex='[0-9a-f]{64}',
             message='Incorrect atomic swap identifier.',

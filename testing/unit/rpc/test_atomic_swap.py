@@ -63,7 +63,7 @@ async def test_get_atomic_swap_info(mocker, request_):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('invalid_swap_id', [12345, True])
+@pytest.mark.parametrize('invalid_swap_id', [0, 12345, True])
 async def test_get_atomic_swap_info_with_invalid_swap_id(request_, invalid_swap_id):
     """
     Case: get atomic swap info with invalid swap id.
@@ -76,7 +76,7 @@ async def test_get_atomic_swap_info_with_invalid_swap_id(request_, invalid_swap_
     with pytest.raises(RpcInvalidParamsError) as error:
         await get_atomic_swap_info(request_)
 
-    assert 'Given swapId is not a valid.' == error.value.message
+    assert 'Given swap_id is not a valid.' == error.value.message
 
 
 @pytest.mark.asyncio
