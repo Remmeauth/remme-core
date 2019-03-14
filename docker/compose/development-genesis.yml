@@ -19,4 +19,4 @@ services:
   remme-genesis:
     volumes:
       - ./../../:/project/remme
-    entrypoint: sh -c "make build_protobuf && /project/remme/scripts/node/genesis.sh"
+    entrypoint: sh /project/remme/scripts/node/genesis.sh

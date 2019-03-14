@@ -18,7 +18,7 @@ version: '3.4'
 services:
   validator:
     container_name: remme_validator
-    image: remme/sawtooth:latest
+    image: hyperledger/sawtooth-validator:1.1.4
     hostname: remme.validator
     volumes:
       - validator_keys:/etc/sawtooth/keys
@@ -28,6 +28,7 @@ services:
       - ../../config/seeds-list.txt:/config/seeds-list.txt
       - ../../config/log/validator.toml:/etc/sawtooth/log_config.toml
       - ../../config/network-config.env:/config/network-config.env
+      - ../../scripts/node:/scripts
       - logs:/var/log/remme
     network_mode: bridge
     ports:
@@ -50,7 +51,7 @@ services:
 
   validator-rest-api:
     container_name: remme_validator_rest_api
-    image: remme/sawtooth:latest
+    image: hyperledger/sawtooth-rest-api:1.1.4
     network_mode: "service:validator"
     volumes:
       - ../../config/log/validator-rest-api.toml:/etc/sawtooth/rest_api_log_config.toml
@@ -59,7 +60,7 @@ services:
 
   block-info-tp:
     container_name: remme_block_info_tp
-    image: remme/sawtooth:latest
+    image: hyperledger/sawtooth-block-info-tp:1.1.4
     network_mode: "service:validator"
     volumes:
       - ../../config/log/block-info-tp.toml:/etc/sawtooth/block_info_log_config.toml
@@ -68,7 +69,7 @@ services:
 
   settings-tp:
     container_name: remme_settings_tp
-    image: remme/sawtooth:latest
+    image: hyperledger/sawtooth-settings-tp:1.1.4
     network_mode: "service:validator"
     entrypoint: settings-tp -vv -C tcp://127.0.0.1:4004
     volumes:

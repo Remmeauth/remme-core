@@ -15,12 +15,6 @@
 version: '3.4'
 
 services:
-  sawtooth:
-    build:
-      context: ..
-      dockerfile: docker/sawtooth.dockerfile
-    image: remme/sawtooth:latest
-
   remme-build:
     build:
       context: ..
