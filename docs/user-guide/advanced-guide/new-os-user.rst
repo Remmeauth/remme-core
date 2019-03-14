@@ -5,7 +5,8 @@ If you prefer to :doc:`/user-guide/cloud` then server security should be improve
 should be forbidden. If you use ``Amazon Web Services`` as a cloud service, you do not need to create a new user, it is already
 created for you and you can log in with name ``ubuntu``, not ``root``.
 
-First of all, login to the server as you previously did during installation of the node:
+First of all, login to the server as you previously did during installation of the node. Remember to change ``95.179.156.74``
+to your server ``IP address``.
 
 .. code-block:: console
 
