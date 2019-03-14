@@ -46,7 +46,7 @@ async def test_get_node_account(mocker, request_):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('invalid_address', ['12345', 12345, True])
+@pytest.mark.parametrize('invalid_address', ['12345', 0, 12345, True])
 async def test_get_node_account_with_invalid_address(request_, invalid_address):
     """
     Case: get node account data with invalid address.
@@ -63,13 +63,14 @@ async def test_get_node_account_with_invalid_address(request_, invalid_address):
 
 
 @pytest.mark.asyncio
-async def test_get_node_account_without_address(request_):
+@pytest.mark.parametrize('address_is_none', ['', None])
+async def test_get_node_account_without_address(request_, address_is_none):
     """
     Case: get node account data without address.
     Expect: missed address error message.
     """
     request_.params = {
-        NODE_ACCOUNT_ADDRESS: None,
+        NODE_ACCOUNT_ADDRESS: address_is_none,
     }
 
     with pytest.raises(RpcInvalidParamsError) as error:

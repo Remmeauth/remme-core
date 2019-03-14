@@ -32,7 +32,7 @@ async def test_get_balance(mocker, request_):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('invalid_public_key_address', ['12345', 12345, True])
+@pytest.mark.parametrize('invalid_public_key_address', ['12345', 0, 12345, True])
 async def test_get_balance_with_invalid_address(request_, invalid_public_key_address):
     """
     Case: get balance with invalid address.
@@ -49,13 +49,14 @@ async def test_get_balance_with_invalid_address(request_, invalid_public_key_add
 
 
 @pytest.mark.asyncio
-async def test_get_balance_without_address(request_):
+@pytest.mark.parametrize('address_is_none', ['', None])
+async def test_get_balance_without_address(request_, address_is_none):
     """
     Case: get balance without address.
     Expect: missed address error message.
     """
     request_.params = {
-        PUBLIC_KEY_ADDRESS: None,
+        PUBLIC_KEY_ADDRESS: address_is_none,
     }
 
     with pytest.raises(RpcInvalidParamsError) as error:
@@ -86,7 +87,7 @@ async def test_get_public_keys_list(mocker, request_):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('invalid_public_key_address', ['12345', 12345, True])
+@pytest.mark.parametrize('invalid_public_key_address', ['12345', 0, 12345, True])
 async def test_get_public_keys_list_with_invalid_address(request_, invalid_public_key_address):
     """
     Case: get public keys list with invalid address.
@@ -103,13 +104,14 @@ async def test_get_public_keys_list_with_invalid_address(request_, invalid_publi
 
 
 @pytest.mark.asyncio
-async def test_get_public_keys_list_without_address(request_):
+@pytest.mark.parametrize('address_is_none', ['', None])
+async def test_get_public_keys_list_without_address(request_, address_is_none):
     """
     Case: get public keys list without address.
     Expect: missed address error message.
     """
     request_.params = {
-        PUBLIC_KEY_ADDRESS: None,
+        PUBLIC_KEY_ADDRESS: address_is_none,
     }
 
     with pytest.raises(RpcInvalidParamsError) as error:
