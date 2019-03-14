@@ -32,7 +32,7 @@ class DataRequired(object):
     is a string type, a string containing only whitespace characters is
     considered false.
 
-    If the data is zero, WTFoms validators.DataRequired considers it like False
+    If the data is zero, WTForms validators.DataRequired considers it like False
     and response is like argument is missed. We need not missed argument error message,
     but invalid data error message. So appeared the opportunity to write сustom
     validator to solve this case.
