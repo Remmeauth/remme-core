@@ -133,11 +133,42 @@ Step 4: login to droplet
 
 Open a terminal on your PC. Visit the :doc:`/user-guide/troubleshooting` section to find instructions how to do this.
 
-With ``SSH key`` you will be able to authenticate yourself with the password from the ``SSH key``, as illustrated below.
-Type ``root@157.230.146.230``, but instead of ``157.230.146.230``, put your server's ``IP address``.
-When you see the output line ``Enter passphrase for key ...``, enter the password from the ``SSH key``. Mind that when you
-do it the password doesn't appear – even stars or bullets shouldn’t appear as you wait to login to the account on the
-operating system. So enter and press ``Enter``.
+Type the following command to login to the droplet. Remember to change ``157.230.146.230`` to your server ``IP address``.
+
+.. code-block:: console
+
+   $ ssh root@157.230.146.230
+
+Then you will see the following text, type ``yes``.
+
+.. code-block:: console
+
+   The authenticity of host '157.230.146.230 (157.230.146.230)' can't be established.
+   ECDSA key fingerprint is SHA256:uFq7qmVwA2Pb/voHO5ulxX3j0Yvb6zPY+4pDZBQSpuM.
+   Are you sure you want to continue connecting (yes/no)?
+
+After that you will be required to enter the password from the ``SSH key``. Note that when you do so, the password
+doesn't appear – even stars or bullets shouldn’t appear as you wait to login to the account on the operating system.
+Type in the password and press ``Enter``.
+
+.. code-block:: console
+
+   Warning: Permanently added '157.230.146.230' (ECDSA) to the list of known hosts.
+   Enter passphrase for key '/Users/dmytrostriletskyi/.ssh/id_rsa':
+
+When you see the following lie or similar it means you are successfully logged in:
+
+.. code-block:: console
+
+   Welcome to Ubuntu 16.04.5 LTS (GNU/Linux 4.4.0-142-generic x86_64)
+
+     * Documentation:  https://help.ubuntu.com
+     * Management:     https://landscape.canonical.com
+     * Support:        https://ubuntu.com/advantage
+
+   root@remme-core-testnet-node:~#
+
+The flow is illustrated below.
 
 .. image:: /img/user-guide/cloud/digital-ocean/droplet-ssh-key-login.png
    :width: 100%
@@ -155,6 +186,7 @@ the project that already specified in the command below.
 
    $ export REMME_CORE_RELEASE=0.7.0-alpha
    $ sudo apt-get install apt-transport-https ca-certificates curl software-properties-common make -y && \
+         echo "REMME_CORE_RELEASE=$REMME_CORE_RELEASE" >> ~/.bashrc && \
          cd /home/ && curl -L https://github.com/Remmeauth/remme-core/archive/v$REMME_CORE_RELEASE.tar.gz | sudo tar zx && \
          cd remme-core-$REMME_CORE_RELEASE && \
          sudo apt update && sudo apt upgrade -y && \
@@ -189,21 +221,16 @@ When you see the same output as illustrated below, it means the node is ready to
 .. image:: /img/user-guide/cloud/digital-ocean/proof-core-is-up.png
    :width: 100%
    :align: center
-   :alt: Proof core is up
+   :alt: Proof core works
 
-To check if your node has completed a correct setup, open a brand new terminal window and send a request to get node configurations.
-If you use ``Windows``, change word ``export`` to ``set`` and install (download an archive and open it) |curl_tool| to send a request the node.
-Remember to change ``157.230.146.230`` to your droplet ``IP address``.
-
-.. |curl_tool| raw:: html
-
-   <a href="https://curl.haxx.se/download.html" target="_blank">tool named curl </a>
+To check if your node has completed a correct setup, use the following commands, being logged in your droplet. Remember to
+change ``157.230.146.230`` to your server's ``IP address``.
 
 .. code-block:: console
 
    $ export NODE_IP_ADDRESS=157.230.146.230
    $ curl -X POST http://$NODE_IP_ADDRESS:8080 -H 'Content-Type: application/json' -d \
-         '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python -m json.tool
+         '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python3 -m json.tool
 
 The response should look similar to this:
 

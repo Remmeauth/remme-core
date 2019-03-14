@@ -51,14 +51,11 @@ Copy the command below and paste into the terminal which will create an ``SSL ce
          sudo systemctl restart nginx && \
          echo "* * * * * $USER /usr/bin/certbot renew" >> /etc/crontab
 
-To check if your node has completed a correct ``SSL certificate`` setup, open a brand new terminal window on the local machine
-and send a ``https`` request to get node configurations. Change the value of ``NODE_IP_ADDRESS`` to your domain name with
-extension (i.e. ``the-coolest-masternode.xyz``).
+To check if your node has completed a correct ``SSL certificate`` setup, use the following commands, being logged in your server.
 
 .. code-block:: console
 
-   $ export NODE_IP_ADDRESS=the-coolest-masternode.xyz
-   $ curl -X POST https://$NODE_IP_ADDRESS -H 'Content-Type: application/json' -d \
+   $ curl -X POST https://$DOMAIN -H 'Content-Type: application/json' -d \
          '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python -m json.tool
 
 The flow is illustrated below.
@@ -284,13 +281,11 @@ Then open a terminal window with the server and copy and paste the commands belo
          sed -i "s@websitenamewithdomain@$DOMAIN@" /etc/nginx/nginx.conf && \
          sudo systemctl restart nginx
 
-To check if your node has completed a correct ``SSL certificate``  setup, open a brand new terminal window and send a ``https``
-request to get node configurations. Change the value of ``NODE_IP_ADDRESS`` to your domain name with an extension (i.e. ``the-coolest-masternode.xyz``).
+To check if your node has completed a correct ``SSL certificate`` setup, use the following commands, being logged in your server.
 
 .. code-block:: console
 
-   $ export NODE_IP_ADDRESS=the-coolest-masternode.xyz
-   $ curl -X POST https://$NODE_IP_ADDRESS -H 'Content-Type: application/json' -d \
+   $ curl -X POST https://$DOMAIN -H 'Content-Type: application/json' -d \
          '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python -m json.tool
 
 The flow is illustrated below.

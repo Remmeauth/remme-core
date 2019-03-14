@@ -28,6 +28,7 @@ enter a command to grant your new user access to the server and permit root logi
    $ export USER_NAME=emma
    $ adduser $USER_NAME
    $ curl https://raw.githubusercontent.com/Remmeauth/remme-core/dev/docs/user-guide/templates/sudoers > /etc/sudoers && \
+         echo "REMME_CORE_RELEASE=$REMME_CORE_RELEASE" >> /home/$USER_NAME/.bashrc && \
          sed -i "s@username@$USER_NAME@" /etc/sudoers && \
          mkdir /home/$USER_NAME/.ssh && touch /home/$USER_NAME/.ssh/authorized_keys && cat ~/.ssh/authorized_keys > /home/$USER_NAME/.ssh/authorized_keys && \
          chmod 700 /home/$USER_NAME/.ssh && chmod 600 /home/$USER_NAME/.ssh/authorized_keys && \
