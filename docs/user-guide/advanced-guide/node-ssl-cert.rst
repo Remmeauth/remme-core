@@ -46,10 +46,10 @@ Copy the command below and paste into the terminal which will create an ``SSL ce
          sudo apt update && \
          sudo apt install certbot nginx python-certbot-nginx -y && \
          sudo certbot run --nginx -d $DOMAIN --non-interactive --agree-tos -m $EMAIL && \
-         curl https://raw.githubusercontent.com/Remmeauth/remme-core/dev/docs/user-guide/templates/letsencrypt-nginx.conf > /etc/nginx/nginx.conf && \
-         sed -i "s@websitenamewithdomain@$DOMAIN@" /etc/nginx/nginx.conf && \
+         curl https://raw.githubusercontent.com/Remmeauth/remme-core/dev/docs/user-guide/templates/letsencrypt-nginx.conf | sudo tee /etc/nginx/nginx.conf > /dev/null && \
+         sudo -i sed -i "s@websitenamewithdomain@$DOMAIN@" /etc/nginx/nginx.conf && \
          sudo systemctl restart nginx && \
-         echo "* * * * * $USER /usr/bin/certbot renew" >> /etc/crontab
+         echo "* * * * * $USER /usr/bin/certbot renew" | sudo tee -a /etc/crontab > /dev/null
 
 To check if your node has completed a correct ``SSL certificate`` setup, use the following commands, being logged in your server.
 
