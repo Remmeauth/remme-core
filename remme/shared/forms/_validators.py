@@ -1,9 +1,9 @@
 from wtforms import validators
 
 
-class AddressTypeRequired(object):
+class StringTypeRequired(object):
     """
-    Validates the address for the required type.
+    Validates the value for the required type.
 
     Args:
         message (str): error message to raise in case of a validation error.
@@ -23,7 +23,7 @@ class AddressTypeRequired(object):
             raise validators.StopValidation(message)
 
 
-class AddressDataRequired(object):
+class DataRequired(object):
     """
     Checks the field's data is 'truthy' otherwise stops the validation chain.
 
@@ -35,7 +35,7 @@ class AddressDataRequired(object):
     If the data is zero, WTFoms validators.DataRequired considers it like False
     and response is like argument is missed. We need not missed argument error message,
     but invalid data error message. So appeared the opportunity to write сustom
-    validator for that.
+    validator to solve this case.
 
     If the data is empty, also removes prior errors (such as processing errors)
     from the field.
@@ -55,10 +55,10 @@ class AddressDataRequired(object):
             return
 
         elif not field.data or isinstance(field.data, str) and not field.data.strip():
-                if self.message is None:
-                    message = field.gettext('This field is required.')
-                else:
-                    message = self.message
+            if self.message is None:
+                message = field.gettext('This field is required.')
+            else:
+                message = self.message
 
-                field.errors[:] = []
-                raise validators.StopValidation(message)
+            field.errors[:] = []
+            raise validators.StopValidation(message)
