@@ -59,12 +59,12 @@ When you see the same output as illustrated below, it means the node is ready to
 Step 2: ensure the node is working
 ==================================
 
-To check if your node did a correct set-up, open a brand new terminal window and send getting node configurations keys request.
+To check if your node has completed a correct setup, use the following commands, being in the same terminal window.
 
 .. code-block:: console
 
    $ curl -X POST http://127.0.0.1:8080 -H 'Content-Type: application/json' -d \
-         '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python -m json.tool
+         '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python3 -m json.tool
 
 The response should look as illustrated below.
 
