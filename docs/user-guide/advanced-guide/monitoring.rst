@@ -30,7 +30,7 @@ Copy the command below and paste it into the terminal.
    $ cd /home/remme-core-$REMME_CORE_RELEASE && \
          curl -L https://github.com/Remmeauth/remme-mon-stack/archive/v1.0.0.tar.gz | sudo tar zx && \
          cd remme-mon-stack-1.0.0 && \
-         docker-compose up -d
+         sudo docker-compose up -d
 
 Copy the ``IP address`` and paste it into the browser address bar. Enter ``admin`` to the ``User`` and ``Password`` fields.
 
@@ -77,4 +77,4 @@ Don't forget to change the default password to a new and secure one.
    :align: center
    :alt: Change Grafana profile password
 
-To stop monitoring, use the ``docker-compose stop`` terminal command.
+To stop monitoring, use the ``sudo docker-compose stop`` terminal command.
