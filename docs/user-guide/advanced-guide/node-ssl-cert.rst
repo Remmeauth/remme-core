@@ -41,12 +41,13 @@ Copy the command below and paste into the terminal which will create an ``SSL ce
 
 .. code-block:: console
 
-   $ sudo apt install software-properties-common -y && \
+    $ echo "DOMAIN=$DOMAIN" >> ~/.bashrc && \
+         sudo apt install software-properties-common -y && \
          sudo add-apt-repository ppa:certbot/certbot -y && \
-         sudo apt update && \
-         sudo apt install certbot nginx python-certbot-nginx -y && \
+         sudo apt update && sudo apt install certbot python-certbot-nginx -y && \
+         sudo -i sed -i "s@websitenamewithdomain@$DOMAIN@" /etc/nginx/nginx.conf && \
          sudo certbot run --nginx -d $DOMAIN --non-interactive --agree-tos -m $EMAIL && \
-         curl https://raw.githubusercontent.com/Remmeauth/remme-core/dev/docs/user-guide/templates/letsencrypt-nginx.conf | sudo tee /etc/nginx/nginx.conf > /dev/null && \
+         curl https://gist.githubusercontent.com/dmytrostriletskyi/5af21fdaba872d893f04186d8113b31f/raw/106bbb96923e0898a0bb98cff26874bfcb112b46/letsencrypt-nginx.conf | sudo tee /etc/nginx/nginx.conf > /dev/null && \
          sudo -i sed -i "s@websitenamewithdomain@$DOMAIN@" /etc/nginx/nginx.conf && \
          sudo systemctl restart nginx && \
          echo "* * * * * $USER /usr/bin/certbot renew" | sudo tee -a /etc/crontab > /dev/null
@@ -56,7 +57,7 @@ To check if your node has completed a correct ``SSL certificate`` setup, use the
 .. code-block:: console
 
    $ curl -X POST https://$DOMAIN -H 'Content-Type: application/json' -d \
-         '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python -m json.tool
+         '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python3 -m json.tool
 
 The flow is illustrated below.
 
@@ -145,7 +146,7 @@ Generate ``OpenSSL`` keys for your server with the following command:
 
 .. code-block:: console
 
-    $ openssl req -new -newkey rsa:2048 -nodes -keyout server.key -out server.csr
+    $ cd ~ && sudo openssl req -new -newkey rsa:2048 -nodes -keyout server.key -out server.csr
 
 The only one you are required to enter is a domain name with an extension (i.e. ``the-coolest-masternode.xyz``) to the
 fields named ``Common Name``. The flow is illustrated below.
@@ -227,18 +228,16 @@ you may need a bit different kind of the ``scp`` command, check |scp_on_windows|
 
 .. code-block:: console
 
-    $ scp ~/Desktop/459F5867C44CDB4551D93938E8116D3E.txt root@157.230.226.218:/
+    $ scp ~/Desktop/459F5867C44CDB4551D93938E8116D3E.txt root@157.230.226.218:~
 
-Then open a terminal window with the server and copy and paste the command below. If you use ``Windows``, change word
-``export`` to ``set`` and install (download an archive and open it) |curl_tool| to send a request to the node in father steps.
+Then open a terminal window with the server and copy and paste the command below.
 
 .. code-block:: console
 
-   $ sudo apt-get update && sudo apt-get install nginx -y && \
-         cd / && COMODO_AUTH_FILE=$(ls *.txt) && COMODO_AUTH_FILE_NAME=${COMODO_AUTH_FILE%.*} && \
-         mkdir /var/www/comodo/ && mv /$COMODO_AUTH_FILE_NAME.txt /var/www/comodo/ && \
-         curl https://raw.githubusercontent.com/Remmeauth/remme-core/dev/docs/user-guide/templates/comodo-auth-file-nginx.conf > /etc/nginx/nginx.conf && \
-         sed -i "s@comodohashfile@$COMODO_AUTH_FILE_NAME@" /etc/nginx/nginx.conf && \
+   $ cd ~ && COMODO_AUTH_FILE=$(ls *.txt) && COMODO_AUTH_FILE_NAME=${COMODO_AUTH_FILE%.*} && \
+         sudo mkdir /var/www/comodo/ && sudo mv ~/$COMODO_AUTH_FILE_NAME.txt /var/www/comodo/ && \
+         curl https://raw.githubusercontent.com/Remmeauth/remme-core/dev/docs/user-guide/templates/comodo-auth-file-nginx.conf | sudo tee /etc/nginx/nginx.conf > /dev/null && \
+         sudo -i sed -i "s@comodohashfile@$COMODO_AUTH_FILE_NAME@" /etc/nginx/nginx.conf && \
          sudo systemctl restart nginx
 
 The command above uses the ``auth file`` to verify you are the owner of the server.
@@ -265,20 +264,20 @@ Using a brand new terminal window on the local machine transfer the file to the 
 
 .. code-block:: console
 
-    $ scp ~/Desktop/210854864.zip root@157.230.226.218:/
+    $ scp ~/Desktop/210854864.zip root@157.230.226.218:~
 
 Then open a terminal window with the server and copy and paste the commands below.
 
 .. code-block:: console
 
    $ export DOMAIN=the-coolest-masternode.xyz
-   $ sudo apt-get install unzip -y && \
-         cd / && COMODO_CERT=$(ls *.zip) && cd ~ && unzip /$COMODO_CERT && \
+   $ cd ~ && sudo apt-get install unzip -y && \
+         COMODO_CERT=$(ls *.zip) && unzip $COMODO_CERT && \
          cd "CER - CRT Files" && cat ${DOMAIN%.*}_${DOMAIN##*.}.crt My_CA_Bundle.ca-bundle > ssl-bundle.crt && \
          cd .. && mv CER\ -\ CRT\ Files/ssl-bundle.crt . && \
-         mkdir /etc/comodo/ && mv server.key ssl-bundle.crt /etc/comodo/ && \
-         curl https://raw.githubusercontent.com/Remmeauth/remme-core/dev/docs/user-guide/templates/comodo-nginx.conf > /etc/nginx/nginx.conf && \
-         sed -i "s@websitenamewithdomain@$DOMAIN@" /etc/nginx/nginx.conf && \
+         sudo mkdir /etc/comodo/ && sudo mv server.key ssl-bundle.crt /etc/comodo/ && \
+         curl https://gist.githubusercontent.com/dmytrostriletskyi/eda5c884a52956fc6e553447a6264871/raw/c8d2c029dbb679f53d1a165507c78e0c20b70840/comodo-grafana-nginx.conf | sudo tee /etc/nginx/nginx.conf > /dev/null && \
+         sudo -i sed -i "s@websitenamewithdomain@$DOMAIN@" /etc/nginx/nginx.conf && \
          sudo systemctl restart nginx
 
 To check if your node has completed a correct ``SSL certificate`` setup, use the following commands, being logged in your server.
@@ -286,7 +285,7 @@ To check if your node has completed a correct ``SSL certificate`` setup, use the
 .. code-block:: console
 
    $ curl -X POST https://$DOMAIN -H 'Content-Type: application/json' -d \
-         '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python -m json.tool
+         '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python3 -m json.tool
 
 The flow is illustrated below.
 

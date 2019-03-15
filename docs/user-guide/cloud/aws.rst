@@ -244,6 +244,66 @@ The flow is illustrated below.
    :align: center
    :alt: Proof core is working
 
+Step 6: monitoring
+==================
+
+Another option to check if your node has completed a correct setup is the monitoring. While starting the node, the monitoring also
+has been installed and started. **Completing this step is required**.
+
+Monitoring is a process of tracking application performance to detect and prevent issues that could happen with your application
+on a particular server. For the monitoring, we will use ``Grafana``. |grafana| is an open source, feature-rich metrics dashboard
+and graph editor.
+
+.. |grafana| raw:: html
+
+   <a href="https://grafana.com/" target="_blank">Grafana</a>
+
+Copy your server's ``IP address``, paste it into the browser address bar. Then add ``/grafana/`` to the end of the address and press ``Enter``.
+Then you will see initial ``Grafana`` page with authentication. Enter ``admin`` to the ``User`` and ``Password`` fields.
+
+.. image:: /img/user-guide/advanced-guide/monitoring/login.png
+   :width: 100%
+   :align: center
+   :alt: Login to the Grafana
+
+After entering the initial credentials you will reach the main page. Click on ``Main Dashboard`` to open monitoring graphs for
+your node.
+
+.. image:: /img/user-guide/advanced-guide/monitoring/main-dashboard.png
+   :width: 100%
+   :align: center
+   :alt: Go to the Grafana main dashboard button
+
+Here you will find information about uptime, CPU cores and their load, memory and its load, storage and its load. Also,
+information about containers (components of the node) is presented on the right side of the page. Information
+about container includes numbers on how much CPU each uses, and so on.
+
+.. image:: /img/user-guide/advanced-guide/monitoring/dashboard.png
+   :width: 100%
+   :align: center
+   :alt: Grafana dashboard
+
+You should then personalize your your credentials. Go to the profile page.
+
+.. image:: /img/user-guide/advanced-guide/monitoring/go-to-profile.png
+   :width: 100%
+   :align: center
+   :alt: Go to the Grafana profile button
+
+Change the name, email and username. Also, the preferences can be changed to suit your user interface needs.
+
+.. image:: /img/user-guide/advanced-guide/monitoring/profile-settings.png
+   :width: 100%
+   :align: center
+   :alt: Grafana profile settings
+
+Don't forget to change the default password to a new and secure one.
+
+.. image:: /img/user-guide/advanced-guide/monitoring/change-password.png
+   :width: 100%
+   :align: center
+   :alt: Change Grafana profile password
+
 What's next?
 ============
 
