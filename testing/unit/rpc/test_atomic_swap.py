@@ -63,37 +63,22 @@ async def test_get_atomic_swap_info(mocker, request_):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('invalid_swap_id', [0, 12345, True])
+@pytest.mark.parametrize('invalid_swap_id', [
+    '12345', '133102e41346242476b15a3a7966eb5249271025fc7fb0b37ed3fdb4bcce38zz', 0, 12345, True,
+])
 async def test_get_atomic_swap_info_with_invalid_swap_id(request_, invalid_swap_id):
     """
     Case: get atomic swap info with invalid swap id.
     Expect: given swap id is not a valid error message.
     """
     request_.params = {
-        SWAP_ID: invalid_swap_id,
+        SWAP_ID: invalid_swap_id
     }
 
     with pytest.raises(RpcInvalidParamsError) as error:
         await get_atomic_swap_info(request_)
 
     assert 'Given swap_id is not a valid.' == error.value.message
-
-
-@pytest.mark.asyncio
-async def test_get_atomic_swap_info_with_invalid_regex_swap_id(request_):
-    """
-    Case: get atomic swap info with invalid regex swap id.
-    Expect: incorrect atomic swap identifier error message.
-    """
-    invalid_regex_swap_id = '12345'
-    request_.params = {
-        SWAP_ID: invalid_regex_swap_id,
-    }
-
-    with pytest.raises(RpcInvalidParamsError) as error:
-        await get_atomic_swap_info(request_)
-
-    assert 'Incorrect atomic swap identifier.' == error.value.message
 
 
 @pytest.mark.asyncio
@@ -119,7 +104,7 @@ async def test_get_atomic_swap_info_with_non_existing_swap_id(mocker, request_):
     Case: get atomic swap info with a non-existing swap id.
     Expect: atomic swap not found error message.
     """
-    invalid_swap_id = '02c172f9a27512c11e2d49fd41adbcb2151403bd1582e8cd94a5153779c2107092'
+    invalid_swap_id = '133102e41346242476b15a3a7966eb5249271025fc7fb0b37ed3fdb4bcce3806'
     request_.params = {
         SWAP_ID: invalid_swap_id,
     }
