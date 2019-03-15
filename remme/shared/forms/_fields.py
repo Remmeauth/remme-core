@@ -14,10 +14,7 @@ class AddressField(fields.StringField):
     validators = [
         DataRequired(message='Missed address.'),
         StringTypeRequired(message='Address is not of a blockchain token type.'),
-        validators.Regexp(
-            regex='[0-9a-f]{70}',
-            message='Address is not of a blockchain token type.',
-        ),
+        validators.Regexp(regex='[0-9a-f]{70}', message='Address is not of a blockchain token type.'),
     ]
 
 
@@ -26,10 +23,7 @@ class SwapIDField(fields.StringField):
     validators = [
         DataRequired(message='Missed swap_id.'),
         StringTypeRequired(message='Given swap_id is not a valid.'),
-        validators.Regexp(
-            regex='[0-9a-f]{64}',
-            message='Incorrect atomic swap identifier.',
-        )
+        validators.Regexp(regex='[0-9a-f]{64}', message='Given swap_id is not a valid.')
     ]
 
 
