@@ -232,7 +232,8 @@ Then you will see initial ``Grafana`` page with authentication. Enter ``admin`` 
    :alt: Login to the Grafana
 
 After entering the initial credentials you will reach the main page. Click on ``Main Dashboard`` to open monitoring graphs for
-your node.
+your node. ``Main Dashboard`` button, visit the :doc:`/user-guide/troubleshooting` section to
+find instructions how solve it.
 
 .. image:: /img/user-guide/advanced-guide/monitoring/main-dashboard.png
    :width: 100%

@@ -194,8 +194,8 @@ the project that already specified in the command below.
          curl https://gist.githubusercontent.com/dmytrostriletskyi/ba920936805f5516e9dcbaaf9ade9e02/raw/f1f207768868f48c03efcb0210df3c50168d220a/node-grafana-nginx.config > /etc/nginx/nginx.conf && \
          sudo curl -o /usr/local/bin/docker-compose -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" && \
          sudo chmod +x /usr/local/bin/docker-compose && \
-         curl -L https://github.com/dmytrostriletskyi/remme-mon-stack/archive/v1.2.0.tar.gz | sudo tar zx && \
-         sudo docker-compose -f remme-mon-stack-1.2.0/docker-compose.yml up -d && \
+         curl -L https://github.com/Remmeauth/remme-mon-stack/archive/v1.0.1.tar.gz | sudo tar zx && \
+         sudo docker-compose -f remme-mon-stack-1.0.1/docker-compose.yml up -d && \
          sudo make run_genesis_bg && \
          sudo systemctl restart nginx
 
@@ -276,7 +276,8 @@ Then you will see initial ``Grafana`` page with authentication. Enter ``admin`` 
    :alt: Login to the Grafana
 
 After entering the initial credentials you will reach the main page. Click on ``Main Dashboard`` to open monitoring graphs for
-your node.
+your node. If you do not see the ``Main Dashboard`` button, visit the :doc:`/user-guide/troubleshooting` section to
+find instructions how solve it.
 
 .. image:: /img/user-guide/advanced-guide/monitoring/main-dashboard.png
    :width: 100%
