@@ -146,10 +146,14 @@ the project that already specified in the command below.
          sudo apt update && sudo apt upgrade -y && \
          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - && \
          sudo apt update && \
-         sudo apt install docker.io -y && \
+         sudo apt install nginx docker.io -y && \
+         curl https://gist.githubusercontent.com/dmytrostriletskyi/ba920936805f5516e9dcbaaf9ade9e02/raw/f1f207768868f48c03efcb0210df3c50168d220a/node-grafana-nginx.config | sudo tee /etc/nginx/nginx.conf > /dev/null && \
          sudo curl -o /usr/local/bin/docker-compose -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" && \
          sudo chmod +x /usr/local/bin/docker-compose && \
-         sudo make run_genesis_bg
+         curl -L https://github.com/dmytrostriletskyi/remme-mon-stack/archive/v1.2.0.tar.gz | sudo tar zx && \
+         sudo docker-compose -f remme-mon-stack-1.2.0/docker-compose.yml up -d && \
+         sudo make run_genesis_bg && \
+         sudo systemctl restart nginx
 
 .. image:: /img/user-guide/cloud/digital-ocean/installation-command.png
    :width: 100%

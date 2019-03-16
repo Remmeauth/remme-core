@@ -97,15 +97,13 @@ We recommend to enable backups to revert the server if you will occasionally do 
    :align: center
    :alt: Enable droplet backup
 
-Check a checkbox ``Monitoring`` to enable the server to collect server performance metrics.
+Then generate your personal ``SSH key`` and add it to the server. Visit the :doc:`/user-guide/troubleshooting` section to
+find information about your ``SSH key`` and instructions on how to generate it.
 
 .. image:: /img/user-guide/cloud/digital-ocean/droplet-ssh-key.png
    :width: 100%
    :align: center
    :alt: Droplet SSH key
-
-Then generate your personal ``SSH key`` and add it to the server. Visit the :doc:`/user-guide/troubleshooting` section to
-find information about your ``SSH key`` and instructions on how to generate it.
 
 An example of your ``SSH key`` and how to add it to the droplet is illustrated in the image below.
 
@@ -326,12 +324,5 @@ need to provide a code along with your username and password.
    :align: center
    :alt: 2FA authentication
 
-3. Visit the following metrics which will be available in the droplet's menu by clicking on droplet name.
-
-.. image:: /img/user-guide/cloud/digital-ocean/droplet-monitoring.png
-   :width: 100%
-   :align: center
-   :alt: Droplet monitoring
-
-4. Visit our :doc:`/user-guide/advanced-guide` for more details on user experience.
-5. Communication with the node is available through :doc:`/apis/rpc` API, so check it out.
+2. Visit our :doc:`/user-guide/advanced-guide` for more details on user experience.
+3. Communication with the node is available through :doc:`/apis/rpc` API, so check it out.

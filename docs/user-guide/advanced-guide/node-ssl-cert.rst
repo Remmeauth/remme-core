@@ -25,7 +25,8 @@ The flow is illustrated below.
    :align: center
    :alt: SSH login to the server
 
-Then create a new environment variable with your ``domain name`` as illustrated below.
+Then create a new environment variable as illustrated below. Change ``the-coolest-masternode.xyz``
+with your ``domain name``.
 
 .. code-block:: console
 
@@ -219,8 +220,9 @@ Download ``auth file``.
    :align: center
    :alt: Download auth file
 
-And using a brand new terminal window on the local machine transfer the file to the server. If you use ``Windows``,
-you may need a bit different kind of the ``scp`` command, check |scp_on_windows| out.
+And using a brand new terminal window on the local machine transfer the authentication file to the server. If you
+use ``Windows``, you may need a bit different kind of the ``scp`` command, check |scp_on_windows| out. Remember to
+change ``459F5867C44CDB4551D93938E8116D3E`` with your file name.
 
 .. |scp_on_windows| raw:: html
 
@@ -229,6 +231,13 @@ you may need a bit different kind of the ``scp`` command, check |scp_on_windows|
 .. code-block:: console
 
     $ scp ~/Desktop/459F5867C44CDB4551D93938E8116D3E.txt root@157.230.226.218:~
+
+If you use the ``AWS``, your command should be similar to the following one. Remember to change ``MyPC.pem`` to your
+private key file and ``ec2-18-216-76-35.us-east-2.compute.amazonaws.com`` to your ``Public DNS``.
+
+.. code-block:: console
+
+   $ scp -i "MyPC.pem" ~/Desktop/FAA68D73B6534772BDAAADD9B7EFB596.txt ubuntu@ec2-18-216-76-35.us-east-2.compute.amazonaws.com:~
 
 Then open a terminal window with the server and copy and paste the command below.
 
@@ -266,11 +275,18 @@ Using a brand new terminal window on the local machine transfer the file to the 
 
     $ scp ~/Desktop/210854864.zip root@157.230.226.218:~
 
-Then open a terminal window with the server and copy and paste the commands below.
+Then open a terminal window with the server. Then create a new environment variable with your domain name as illustrated below.
+Remember to change ``the-coolest-masternode.xyz`` with your ``domain name``.
 
 .. code-block:: console
 
    $ export DOMAIN=the-coolest-masternode.xyz
+
+Copy the command below and paste into the terminal which will create an ``SSL certificate`` and order the web-server to
+serve ``https`` connections.
+
+.. code-block:: console
+
    $ cd ~ && sudo apt-get install unzip -y && \
          COMODO_CERT=$(ls *.zip) && unzip $COMODO_CERT && \
          cd "CER - CRT Files" && cat ${DOMAIN%.*}_${DOMAIN##*.}.crt My_CA_Bundle.ca-bundle > ssl-bundle.crt && \
