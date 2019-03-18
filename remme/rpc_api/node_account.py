@@ -12,29 +12,38 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ------------------------------------------------------------------------
+import json
 import logging
 
-from remme.clients.account import AccountClient
+from google.protobuf.json_format import MessageToJson
+
+from remme.clients.basic import BasicClient
+from remme.protos.node_account_pb2 import NodeAccount
 from remme.rpc_api.utils import validate_params
 from remme.shared.forms import get_address_form
 
 __all__ = (
-    'get_balance',
-    'get_public_keys_list',
+    'get_node_account',
 )
 
 logger = logging.getLogger(__name__)
 
-client = AccountClient()
 
+@validate_params(get_address_form('node_account_address'))
+async def get_node_account(request):
+    """
+    Get node account.
 
-@validate_params(get_address_form('public_key_address'))
-async def get_balance(request):
-    address = request.params['public_key_address']
-    return await client.get_balance(address)
+    Returns:
+        Node account data (balance, reputation, node_state) in json.
+    """
+    client = BasicClient()
 
+    node_address = request.params['node_account_address']
+    raw_account = await client.get_value(node_address)
 
-@validate_params(get_address_form('public_key_address'))
-async def get_public_keys_list(request):
-    address = request.params['public_key_address']
-    return await client.get_pub_keys(address)
+    node_account = NodeAccount()
+    node_account.ParseFromString(raw_account)
+
+    data = MessageToJson(message=node_account, preserving_proto_field_name=True, including_default_value_fields=True)
+    return json.loads(data)

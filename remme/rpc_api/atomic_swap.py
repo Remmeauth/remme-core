@@ -18,40 +18,39 @@ import logging
 from google.protobuf.json_format import MessageToJson
 
 from remme.clients.atomic_swap import AtomicSwapClient
-from remme.shared.forms import ProtoForm, AtomicSwapForm
+from remme.rpc_api.utils import validate_params
 from remme.shared.exceptions import KeyNotFound
-
-from .utils import validate_params
-
+from remme.shared.forms import (
+    AtomicSwapForm,
+    ProtoForm,
+)
 
 __all__ = (
     'get_atomic_swap_info',
     'get_atomic_swap_public_key',
 )
 
-
 LOGGER = logging.getLogger(__name__)
+
+client = AtomicSwapClient()
 
 
 @validate_params(AtomicSwapForm)
 async def get_atomic_swap_info(request):
-    client = AtomicSwapClient()
     swap_id = request.params['swap_id']
+
     try:
         swap_info = await client.swap_get(swap_id)
     except KeyNotFound as e:
-        raise KeyNotFound(f'Atomic swap with id "{swap_id}" not found')
-    LOGGER.info(f'Get swap info {swap_info}')
-    data = MessageToJson(
-        swap_info, preserving_proto_field_name=True,
-        including_default_value_fields=True
-    )
+        raise KeyNotFound(f'Atomic swap with id "{swap_id}" not found.')
+    LOGGER.info(f'Get swap info: {swap_info}')
+
+    data = MessageToJson(message=swap_info, preserving_proto_field_name=True, including_default_value_fields=True)
     return json.loads(data)
 
 
 @validate_params(ProtoForm)
 async def get_atomic_swap_public_key(request):
-    client = AtomicSwapClient()
     try:
         return await client.get_pub_key_encryption()
     except KeyNotFound:

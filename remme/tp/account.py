@@ -17,9 +17,16 @@ import logging
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
 from remme.protos.account_pb2 import (
-    Account, GenesisStatus, AccountMethod, GenesisPayload,
+    Account,
+    GenesisStatus,
+    AccountMethod,
+    GenesisPayload,
     TransferPayload
 )
+from remme.protos.node_account_pb2 import (
+    NodeAccount,
+)
+from remme.tp.node_account import NodeAccountHandler
 from remme.settings import (
     GENESIS_ADDRESS, ZERO_ADDRESS
 )
@@ -30,18 +37,10 @@ from .basic import (
     PB_CLASS, PROCESSOR, VALIDATOR, BasicHandler, get_data, get_multiple_data
 )
 
-
 LOGGER = logging.getLogger(__name__)
 
 FAMILY_NAME = 'account'
 FAMILY_VERSIONS = ['0.1']
-
-
-def get_account_by_address(context, address):
-    account = get_data(context, Account, address)
-    if account is None:
-        return Account()
-    return account
 
 
 class AccountHandler(BasicHandler):
@@ -97,45 +96,66 @@ class AccountHandler(BasicHandler):
         References:
             - https://github.com/Remmeauth/remme-core/blob/dev/remme/genesis/__main__.py
         """
-        address = self.make_address_from_data(public_key)
+        if transfer_payload.sender_account_type == TransferPayload.ACCOUNT:
+            address = self.make_address_from_data(public_key)
+
+        else:
+            address = NodeAccountHandler().make_address_from_data(public_key)
 
         return self._transfer_from_address(context, address, transfer_payload)
 
+    def is_address_account_type(self, address):
+        """
+        Check if address is account address type.
+        """
+        return address.startswith(self._prefix) or \
+                address.startswith(NodeAccountHandler()._prefix) or \
+                address == ZERO_ADDRESS
+
     def _transfer_from_address(self, context, address_from, transfer_payload):
+
         if not transfer_payload.value:
             raise InvalidTransaction('Could not transfer with zero amount.')
 
-        if not transfer_payload.address_to.startswith(self._prefix) \
-                and transfer_payload.address_to != ZERO_ADDRESS:
+        if not self.is_address_account_type(address=transfer_payload.address_to):
             raise InvalidTransaction('Receiver address has to be of an account type.')
 
         if address_from == transfer_payload.address_to:
             raise InvalidTransaction('Account cannot send tokens to itself.')
 
-        signer_account, receiver_account = get_multiple_data(context, [
-            (address_from, Account),
-            (transfer_payload.address_to, Account),
+        pb_classes = {
+            '000000': Account,
+            AccountHandler()._prefix: Account,
+            NodeAccountHandler()._prefix: NodeAccount,
+        }
+
+        sender_account_pb_class = pb_classes.get(address_from[:6])
+        receiver_account_pb_class = pb_classes.get(transfer_payload.address_to[:6])
+
+        sender_account, receiver_account = get_multiple_data(context, [
+            (address_from, sender_account_pb_class),
+            (transfer_payload.address_to, receiver_account_pb_class),
         ])
 
-        if signer_account is None:
-            signer_account = Account()
+        if sender_account is None:
+            sender_account = sender_account_pb_class()
 
         if receiver_account is None:
-            receiver_account = Account()
+            receiver_account = receiver_account_pb_class()
 
-        if signer_account.balance < transfer_payload.value:
+        if sender_account.balance < transfer_payload.value:
             raise InvalidTransaction(
-                f'Not enough transferable balance. Sender\'s current balance: {signer_account.balance}.',
+                f'Not enough transferable balance. Sender\'s current balance: {sender_account.balance}.',
             )
 
         receiver_account.balance += transfer_payload.value
-        signer_account.balance -= transfer_payload.value
+        sender_account.balance -= transfer_payload.value
 
         LOGGER.info(
             f'Transferred {transfer_payload.value} tokens from {address_from} to {transfer_payload.address_to}.',
         )
 
         return {
-            address_from: signer_account,
+            address_from: sender_account,
             transfer_payload.address_to: receiver_account,
         }
