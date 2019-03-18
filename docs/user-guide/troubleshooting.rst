@@ -20,28 +20,8 @@ The typical command line interface looks like this. There two separated commands
    $ export REMME_CORE_RELEASE=0.7.0-alpha
    $ sudo make run_bg
 
-Missing Grafana dashboard
-=========================
-
-If you have no button named ``Main Dashboard`` on the main ``Grafana`` page, click on the ``Home`` button
-right away from ``Grafana`` logo.
-
-.. image:: /img/user-guide/troubleshooting/grafana/home-button.png
-   :width: 100%
-   :align: center
-   :alt: Grafana home button
-
-
-
-Then click on button named ``Main Dashboard`` bottom away from the search bar.
-
-.. image:: /img/user-guide/troubleshooting/grafana/dashboard-under-search.png
-   :width: 100%
-   :align: center
-   :alt: Dashboard under search
-
-Server restart
-==============
+Server is restarted
+===================
 
 When your server is restarted (power off and power on), use the following commands to up the node and its monitoring,
 being logged into the server.

@@ -274,14 +274,19 @@ Then you will see initial ``Grafana`` page with authentication. Enter ``admin`` 
    :align: center
    :alt: Login to the Grafana
 
-After entering the initial credentials you will reach the main page. Click on ``Main Dashboard`` to open monitoring graphs for
-your node. ``Main Dashboard`` button, visit the :doc:`/user-guide/troubleshooting` section to
-find instructions how solve it.
+After entering the initial credentials you will reach the main page. Click on the ``Home`` button right away from ``Grafana`` logo.
 
-.. image:: /img/user-guide/advanced-guide/monitoring/main-dashboard.png
+.. image:: /img/user-guide/troubleshooting/grafana/home-button.png
    :width: 100%
    :align: center
-   :alt: Go to the Grafana main dashboard button
+   :alt: Grafana home button
+
+Then click on button named ``Main Dashboard`` bottom away from the search bar.
+
+.. image:: /img/user-guide/troubleshooting/grafana/dashboard-under-search.png
+   :width: 100%
+   :align: center
+   :alt: Dashboard under search
 
 Here you will find information about uptime, CPU cores and their load, memory and its load, storage and its load. Also,
 information about containers (components of the node) is presented on the right side of the page. Information
@@ -292,7 +297,7 @@ about container includes numbers on how much CPU each uses, and so on.
    :align: center
    :alt: Grafana dashboard
 
-You should then personalize your your credentials. Go to the profile page.
+You should then personalize your credentials. Go to the profile page.
 
 .. image:: /img/user-guide/advanced-guide/monitoring/go-to-profile.png
    :width: 100%
