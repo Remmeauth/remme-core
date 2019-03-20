@@ -246,3 +246,11 @@ class Singleton(type):
             cls._instances[cls] = super(Singleton, cls) \
                 .__call__(*args, **kwargs)
         return cls._instances[cls]
+
+
+def isDigit(x):
+    try:
+        float(x)
+        return True
+    except ValueError:
+        return False

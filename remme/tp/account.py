@@ -14,6 +14,7 @@
 # ------------------------------------------------------------------------
 
 import logging
+from decimal import Decimal, ROUND_UP
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
 from remme.protos.account_pb2 import (
@@ -26,12 +27,16 @@ from remme.protos.account_pb2 import (
 from remme.protos.node_account_pb2 import (
     NodeAccount,
 )
-from remme.tp.node_account import NodeAccountHandler
 from remme.settings import (
-    GENESIS_ADDRESS, ZERO_ADDRESS
+    GENESIS_ADDRESS,
+    ZERO_ADDRESS,
+    SETTINGS_TRANSACTION_FEE,
 )
+from remme.tp.node_account import NodeAccountHandler
 from remme.shared.forms import TransferPayloadForm, GenesisPayloadForm
 from remme.shared.constants import Events, EMIT_EVENT
+from remme.shared.utils import isDigit
+from remme.settings.helper import _get_setting_value
 
 from .basic import (
     PB_CLASS, PROCESSOR, VALIDATOR, BasicHandler, get_data, get_multiple_data
@@ -63,6 +68,14 @@ class AccountHandler(BasicHandler):
             }
         }
 
+    @staticmethod
+    def get_transfer_payload(address_to, value):
+        transfer = TransferPayload()
+        transfer.address_to = address_to
+        transfer.value = value
+
+        return transfer
+
     def _genesis(self, context, pub_key, genesis_payload):
         signer_key = self.make_address_from_data(pub_key)
         genesis_status = get_data(context, GenesisStatus, GENESIS_ADDRESS)
@@ -86,13 +99,22 @@ class AccountHandler(BasicHandler):
             GENESIS_ADDRESS: genesis_status
         }
 
+    def _pay_transfer_commission(self, context, address_from, transfer_payload, transaction_fee):
+
+        if ZERO_ADDRESS == address_from:
+            raise InvalidTransaction('Transactions from zero address is used only for internal purposes.')
+
+        transfer_commission = Decimal(transfer_payload.value) * Decimal(transaction_fee)
+        transfer_commission = int(transfer_commission.quantize(Decimal('1.'), rounding=ROUND_UP))
+        transfer_payload = self.get_transfer_payload(ZERO_ADDRESS, transfer_commission)
+
+        return self._transfer_from_address(context, address_from, transfer_payload)
+
     def _transfer(self, context, public_key, transfer_payload):
         """
         Make public transfer.
-
         Public transfer means additional check if address to send tokens from isn't zero address.
         Zero address is used only for internal transactions.
-
         References:
             - https://github.com/Remmeauth/remme-core/blob/dev/remme/genesis/__main__.py
         """
@@ -102,7 +124,31 @@ class AccountHandler(BasicHandler):
         else:
             address = NodeAccountHandler().make_address_from_data(public_key)
 
-        return self._transfer_from_address(context, address, transfer_payload)
+        transaction_fee = _get_setting_value(context, SETTINGS_TRANSACTION_FEE)
+
+        if transaction_fee is None or not isDigit(transaction_fee):
+            raise InvalidTransaction('Wrong transaction fee address.')
+
+        transfer_state = self._pay_transfer_commission(context, address, transfer_payload, transaction_fee)
+        sender_account = transfer_state[address]
+
+        transfer_commission = Decimal(transfer_payload.value) * Decimal(transaction_fee)
+        transfer_commission = int(transfer_commission.quantize(Decimal('1.'), rounding=ROUND_UP))
+
+        if sender_account.balance < transfer_payload.value:
+            raise InvalidTransaction(
+                f'Not enough transferable balance. Sender\'s current balance: '
+                f'{sender_account.balance + transfer_commission}.',
+            )
+
+        transfer_state.update(self._transfer_from_address(context, address, transfer_payload))
+        sender_account = transfer_state[address]
+        sender_account.balance -= transfer_commission
+
+        transfer_state.update({
+            address: sender_account,
+        })
+        return transfer_state
 
     def is_address_account_type(self, address):
         """
