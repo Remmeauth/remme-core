@@ -190,11 +190,14 @@ the project that already specified in the command below.
          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - && \
          sudo apt update && \
          sudo apt install nginx docker.io -y && \
-         curl https://gist.githubusercontent.com/dmytrostriletskyi/ba920936805f5516e9dcbaaf9ade9e02/raw/f1f207768868f48c03efcb0210df3c50168d220a/node-grafana-nginx.config | sudo tee /etc/nginx/nginx.conf > /dev/null && \
+         curl https://raw.githubusercontent.com/Remmeauth/remme-core/master/docs/user-guide/templates/node-nginx.conf | sudo tee /etc/nginx/nginx.conf > /dev/null && \
          sudo curl -o /usr/local/bin/docker-compose -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" && \
          sudo chmod +x /usr/local/bin/docker-compose && \
-         curl -L https://github.com/dmytrostriletskyi/remme-mon-stack/archive/v1.2.0.tar.gz | sudo tar zx && \
-         sudo docker-compose -f remme-mon-stack-1.2.0/docker-compose.yml up -d && \
+         curl https://gist.githubusercontent.com/dmytrostriletskyi/9f525241acfc46799c65d5f010c43b5f/raw/7e929d7bf9522ebc7fb94c62bba66225973db8ff/up-node-after-server-restart.sh | sudo tee ~/up-node-after-server-restart.sh > /dev/null && \
+         sudo chmod +x ~/./up-node-after-server-restart.sh && \
+         echo "@reboot $USER ~/./up-node-after-server-restart.sh $REMME_CORE_RELEASE" | sudo tee -a /etc/crontab > /dev/null && \
+         curl -L https://github.com/Remmeauth/remme-mon-stack/archive/v1.0.1.tar.gz | sudo tar zx && \
+         sudo docker-compose -f remme-mon-stack-1.0.1/docker-compose.yml up -d && \
          sudo make run_genesis_bg && \
          sudo systemctl restart nginx
 
