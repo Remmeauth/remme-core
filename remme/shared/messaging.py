@@ -77,16 +77,17 @@ class _Sender:
     """Manages Sending messages over a ZMQ socket.
     """
 
-    def __init__(self, socket, msg_router):
+    def __init__(self, socket, msg_router, msg_pb):
         self._msg_router = msg_router
         self._socket = socket
+        self._msg_pb = msg_pb
 
     async def send(self, message_type, message_content, timeout=None):
         correlation_id = uuid.uuid4().hex
 
         self._msg_router.expect_reply(correlation_id)
 
-        message = Message(
+        message = self._msg_pb(
             correlation_id=correlation_id,
             content=message_content,
             message_type=message_type)
@@ -115,9 +116,10 @@ class _Receiver:
     """Receives messages and forwards them to a _MessageRouter.
     """
 
-    def __init__(self, socket, msg_router):
+    def __init__(self, socket, msg_router, msg_pb):
         self._socket = socket
         self._msg_router = msg_router
+        self._msg_pb = msg_pb
 
         self._is_running = False
 
@@ -129,9 +131,11 @@ class _Receiver:
 
         while self._is_running:
             try:
+                LOGGER.debug(f'Start reading socket..')
                 zmq_msg = await self._socket.read()
+                LOGGER.debug(f'Socket read, msg: {zmq_msg}')
 
-                message = Message()
+                message = self._msg_pb()
                 message.ParseFromString(zmq_msg[-1])
 
                 await self._msg_router.route_msg(message)
@@ -237,24 +241,26 @@ class _MessageRouter:
 class Connection:
     """A connection, over which validator Message objects may be sent.
     """
-    _instance = None
+    _instances = {}
 
-    def __init__(self, url, *, loop=None):
+    def __init__(self, url, *, loop=None, msg_pb=Message):
         self._url = url
         self._loop = loop or asyncio.get_event_loop()
+        self._msg_pb = msg_pb
         self._socket = ZmqStream(loop=loop, high=None, low=None,
                                  events_backlog=100)
         self._msg_router = _MessageRouter()
-        self._receiver = _Receiver(self._socket, self._msg_router)
-        self._sender = _Sender(self._socket, self._msg_router)
+        self._receiver = _Receiver(self._socket, self._msg_router, self._msg_pb)
+        self._sender = _Sender(self._socket, self._msg_router, self._msg_pb)
 
         self._recv_task = None
+        self._msg_pb = msg_pb
 
     @classmethod
-    def get_single_connection(cls, url, *, loop=None):
-        if cls._instance is None:
-            cls._instance = cls(url, loop=loop)
-        return cls._instance
+    def get_single_connection(cls, url, *, loop=None, msg_pb=Message):
+        if url not in cls._instances:
+            cls._instances[url] = cls(url, loop=loop, msg_pb=msg_pb)
+        return cls._instances[url]
 
     @property
     def has_transport(self):
@@ -276,6 +282,7 @@ class Connection:
         tr.set_write_buffer_limits()
 
         self._recv_task = asyncio.ensure_future(self._receiver.start())
+        LOGGER.info('ZMQ ready on %s', self._url)
 
     async def send(self, message_type, message_content, timeout=None):
         """Sends a message and returns a future for the response.

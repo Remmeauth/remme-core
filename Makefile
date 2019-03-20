@@ -26,7 +26,7 @@ build_dev:
 	$(BUILD_DIR)/build.sh
 
 build_protobuf:
-	protoc -I=./protos --python_out=./remme/protos ./protos/*.proto
+	./scripts/protogen.sh
 
 clean:
 	$(BUILD_DIR)/clean.sh
