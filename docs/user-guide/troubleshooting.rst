@@ -20,6 +20,21 @@ The typical command line interface looks like this. There two separated commands
    $ export REMME_CORE_RELEASE=0.7.0-alpha
    $ sudo make run_bg
 
+Server is restarted
+===================
+
+When your server is restarted (power off and power on), use the following commands to up the node and its monitoring,
+being logged into the server.
+
+.. code-block:: console
+
+   $ cd /home/remme-core-$REMME_CORE_RELEASE && \
+         sudo docker rm $(sudo docker ps -a -q) -f && \
+         sudo docker rmi $(sudo docker images -q) -f && \
+         sudo make run_bg && \
+         sudo docker-compose -f remme-mon-stack-1.2.0/docker-compose.yml up -d && \
+         sudo systemctl restart nginx
+
 Nodes network
 =============
 
