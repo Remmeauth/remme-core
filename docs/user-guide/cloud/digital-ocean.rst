@@ -97,15 +97,13 @@ We recommend to enable backups to revert the server if you will occasionally do 
    :align: center
    :alt: Enable droplet backup
 
-Check a checkbox ``Monitoring`` to enable the server to collect server performance metrics.
+Then generate your personal ``SSH key`` and add it to the server. Visit the :doc:`/user-guide/troubleshooting` section to
+find information about your ``SSH key`` and instructions on how to generate it.
 
 .. image:: /img/user-guide/cloud/digital-ocean/droplet-ssh-key.png
    :width: 100%
    :align: center
    :alt: Droplet SSH key
-
-Then generate your personal ``SSH key`` and add it to the server. Visit the :doc:`/user-guide/troubleshooting` section to
-find information about your ``SSH key`` and instructions on how to generate it.
 
 An example of your ``SSH key`` and how to add it to the droplet is illustrated in the image below.
 
@@ -192,10 +190,14 @@ the project that already specified in the command below.
          sudo apt update && sudo apt upgrade -y && \
          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - && \
          sudo apt update && \
-         sudo apt install docker.io -y && \
+         sudo apt install nginx docker.io -y && \
+         curl https://gist.githubusercontent.com/dmytrostriletskyi/ba920936805f5516e9dcbaaf9ade9e02/raw/f1f207768868f48c03efcb0210df3c50168d220a/node-grafana-nginx.config > /etc/nginx/nginx.conf && \
          sudo curl -o /usr/local/bin/docker-compose -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" && \
          sudo chmod +x /usr/local/bin/docker-compose && \
-         sudo make run_genesis_bg
+         curl -L https://github.com/Remmeauth/remme-mon-stack/archive/v1.0.1.tar.gz | sudo tar zx && \
+         sudo docker-compose -f remme-mon-stack-1.0.1/docker-compose.yml up -d && \
+         sudo make run_genesis_bg && \
+         sudo systemctl restart nginx
 
 .. image:: /img/user-guide/cloud/digital-ocean/installation-command.png
    :width: 100%
@@ -251,6 +253,72 @@ The flow is illustrated below.
    :align: center
    :alt: Proof core is working
 
+Step 6: monitoring
+==================
+
+Another option to check if your node has completed a correct setup is the monitoring. While starting the node, the monitoring also
+has been installed and started. **Completing this step is required**.
+
+Monitoring is a process of tracking application performance to detect and prevent issues that could happen with your application
+on a particular server. For the monitoring, we will use ``Grafana``. |grafana| is an open source, feature-rich metrics dashboard
+and graph editor.
+
+.. |grafana| raw:: html
+
+   <a href="https://grafana.com/" target="_blank">Grafana</a>
+
+Copy your server's ``IP address``, paste it into the browser address bar. Then add ``/grafana/`` to the end of the address and press ``Enter``.
+Then you will see initial ``Grafana`` page with authentication. Enter ``admin`` to the ``User`` and ``Password`` fields.
+
+.. image:: /img/user-guide/advanced-guide/monitoring/login.png
+   :width: 100%
+   :align: center
+   :alt: Login to the Grafana
+
+After entering the initial credentials you will reach the main page. Click on the ``Home`` button right away from ``Grafana`` logo.
+
+.. image:: /img/user-guide/troubleshooting/grafana/home-button.png
+   :width: 100%
+   :align: center
+   :alt: Grafana home button
+
+Then click on button named ``Main Dashboard`` bottom away from the search bar.
+
+.. image:: /img/user-guide/troubleshooting/grafana/dashboard-under-search.png
+   :width: 100%
+   :align: center
+   :alt: Dashboard under search
+
+Here you will find information about uptime, CPU cores and their load, memory and its load, storage and its load. Also,
+information about containers (components of the node) is presented on the right side of the page. Information
+about container includes numbers on how much CPU each uses, and so on.
+
+.. image:: /img/user-guide/advanced-guide/monitoring/dashboard.png
+   :width: 100%
+   :align: center
+   :alt: Grafana dashboard
+
+You should then personalize your credentials. Go to the profile page.
+
+.. image:: /img/user-guide/advanced-guide/monitoring/go-to-profile.png
+   :width: 100%
+   :align: center
+   :alt: Go to the Grafana profile button
+
+Change the name, email and username. Also, the preferences can be changed to suit your user interface needs.
+
+.. image:: /img/user-guide/advanced-guide/monitoring/profile-settings.png
+   :width: 100%
+   :align: center
+   :alt: Grafana profile settings
+
+Don't forget to change the default password to a new and secure one.
+
+.. image:: /img/user-guide/advanced-guide/monitoring/change-password.png
+   :width: 100%
+   :align: center
+   :alt: Change Grafana profile password
+
 What's next?
 ============
 
@@ -262,12 +330,5 @@ need to provide a code along with your username and password.
    :align: center
    :alt: 2FA authentication
 
-3. Visit the following metrics which will be available in the droplet's menu by clicking on droplet name.
-
-.. image:: /img/user-guide/cloud/digital-ocean/droplet-monitoring.png
-   :width: 100%
-   :align: center
-   :alt: Droplet monitoring
-
-4. Visit our :doc:`/user-guide/advanced-guide` for more details on user experience.
-5. Communication with the node is available through :doc:`/apis/rpc` API, so check it out.
+2. Visit our :doc:`/user-guide/advanced-guide` for more details on user experience.
+3. Communication with the node is available through :doc:`/apis/rpc` API, so check it out.
