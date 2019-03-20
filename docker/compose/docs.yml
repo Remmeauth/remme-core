@@ -21,4 +21,4 @@ services:
     image: remme/remme-core:latest
     volumes:
       - ./../../:/project/remme
-    entrypoint: sh -c "sphinx-build -b html ./docs ./docs/html"
+    entrypoint: sh -c "make docs"
