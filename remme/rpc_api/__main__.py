@@ -25,6 +25,7 @@ import aiohttp_cors
 from remme.shared.logging_setup import setup_logging
 from remme.shared.messaging import Connection
 from remme.settings.default import load_toml_with_defaults
+from remme.protos.zmq_message_pb2 import Message as ConsensusMessage
 
 from ._base import JsonRpc
 
@@ -65,8 +66,13 @@ if __name__ == '__main__':
             expose_headers=cors_config["expose_headers"]
         ) for ao in cors_config["allow_origin"]
     })
-    zmq_url = f'tcp://{ cfg_ws["validator_ip"] }:{ cfg_ws["validator_port"] }'
-    rpc = JsonRpc(zmq_url=zmq_url, websocket_state_logger=cfg_rpc['websocket_state_logger'], loop=loop, max_workers=1)
+    zmq_validator_url = f'tcp://{ cfg_ws["validator_ip"] }:{ cfg_ws["validator_port"] }'
+    zmq_consensus_url = f'tcp://{ cfg_ws["consensus_ip"] }:{ cfg_ws["consensus_port"] }'
+    rpc = JsonRpc(zmq_validator_url=zmq_validator_url,
+                  zmq_consensus_url=zmq_consensus_url,
+                  websocket_state_logger=cfg_rpc['websocket_state_logger'],
+                  loop=loop,
+                  max_workers=1)
     rpc.load_from_modules(cfg_rpc['available_modules'])
     cors.add(app.router.add_route('GET', '/', rpc))
     cors.add(app.router.add_route('POST', '/', rpc))
@@ -74,8 +80,11 @@ if __name__ == '__main__':
     logger.info('All server parts loaded')
 
     async def start_app():
-        stream = Connection.get_single_connection(zmq_url)
-        await stream.open()
+        for connection in [
+            Connection.get_single_connection(zmq_validator_url),
+            Connection.get_single_connection(zmq_consensus_url, msg_pb=ConsensusMessage)
+        ]:
+            await connection.open()
         return app
 
     web.run_app(start_app(), host=arguments.bind, port=arguments.port)
