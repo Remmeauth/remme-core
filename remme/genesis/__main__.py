@@ -20,11 +20,13 @@ from remme.protos.account_pb2 import AccountMethod
 from remme.protos.transaction_pb2 import TransactionPayload
 
 from remme.clients.account import AccountClient
+from remme.clients.node_account import NodeAccountClient
 from remme.tp.account import AccountHandler
 from remme.settings import GENESIS_ADDRESS
 from remme.settings.default import load_toml_with_defaults
 
-OUTPUT_BATCH = '/genesis/batch/token-proposal.batch'
+TOKEN_BATCH = '/genesis/batch/token-proposal.batch'
+NODE_ACCOUNT_BATCH = '/genesis/batch/node-proposal.batch'
 
 if __name__ == '__main__':
     parameters = load_toml_with_defaults('/config/remme-genesis-config.toml')['remme']['genesis']
@@ -33,9 +35,13 @@ if __name__ == '__main__':
     parser.add_argument('--token-supply', default=parameters['token_supply'])
     args = parser.parse_args()
 
-    account_client = AccountClient()
+    na_client = NodeAccountClient()
+    with open(NODE_ACCOUNT_BATCH, 'wb') as batch_file:
+        batch_file.write(na_client.create_genesis_node_account_batch())
 
     if parameters['economy_enabled']:
+        account_client = AccountClient()
+
         zero_address = AccountHandler().make_address('0' * 64)
         target_address = AccountHandler().make_address_from_data(account_client.get_signer().get_public_key().as_hex())
 
@@ -50,6 +56,6 @@ if __name__ == '__main__':
 
         batch_list = AccountClient().make_batch_list(payload, addresses_input, addresses_output)
 
-        batch_file = open(OUTPUT_BATCH, 'wb')
+        batch_file = open(TOKEN_BATCH, 'wb')
         batch_file.write(batch_list.SerializeToString())
         batch_file.close()

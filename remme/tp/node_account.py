@@ -25,10 +25,11 @@ from remme.protos.node_account_pb2 import (
 
 from remme.shared.forms import (
     NodeAccountInternalTransferPayloadForm,
-    CloseMasternodePayloadForm
+    CloseMasternodePayloadForm,
+    NodeAccountGenesisForm
 )
 
-from remme.settings import SETTINGS_MINIMUM_STAKE
+from remme.settings import SETTINGS_MINIMUM_STAKE, SETTINGS_GENESIS_OWNERS
 
 from .basic import (
     PB_CLASS,
@@ -39,6 +40,8 @@ from .basic import (
     get_multiple_data
 )
 from remme.settings.helper import _get_setting_value
+
+
 LOGGER = logging.getLogger(__name__)
 
 FAMILY_NAME = 'node_account'
@@ -56,6 +59,11 @@ class NodeAccountHandler(BasicHandler):
                 PROCESSOR: self._transfer_from_unfrozen_to_operational,
                 VALIDATOR: NodeAccountInternalTransferPayloadForm,
             },
+            NodeAccountMethod.GENESIS_NODE: {
+                PB_CLASS: NodeAccountInternalTransferPayload,
+                PROCESSOR: self._initialize_node,
+                VALIDATOR: NodeAccountGenesisForm,
+            },
             NodeAccountMethod.INITIALIZE_MASTERNODE: {
                 PB_CLASS: NodeAccountInternalTransferPayload,
                 PROCESSOR: self._initialize_masternode,
@@ -71,6 +79,28 @@ class NodeAccountHandler(BasicHandler):
                 PROCESSOR: self._transfer_from_frozen_to_unfrozen,
                 VALIDATOR: NodeAccountInternalTransferPayloadForm,
             },
+        }
+
+    def _initialize_node(self, context, node_account_public_key, internal_transfer_payload):
+        genesis_owners = _get_setting_value(context, SETTINGS_GENESIS_OWNERS)
+        genesis_owners = genesis_owners.split(',') \
+            if genesis_owners is not None else []
+
+        if node_account_public_key not in genesis_owners:
+            raise InvalidTransaction(
+                'Node account could be created only by current node.')
+
+        node_account_address = self.make_address_from_data(node_account_public_key)
+
+        node_account = get_data(context, NodeAccount, node_account_address)
+
+        if node_account is None:
+            node_account = NodeAccount()
+        else:
+            raise InvalidTransaction('Node account already exists.')
+
+        return {
+            node_account_address: node_account,
         }
 
     def _initialize_masternode(self, context, node_account_public_key, internal_transfer_payload):

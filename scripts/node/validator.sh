@@ -58,6 +58,9 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
     echo "Economy model is enabled. Writing the batch to enable it..."
     GENESIS_BATCHES="$GENESIS_BATCHES /genesis/batch/token-proposal.batch"
 
+    echo "Writing batch for node account genesis..."
+    GENESIS_BATCHES="$GENESIS_BATCHES /genesis/batch/node-proposal.batch"
+
     echo "Writing batch injector settings..."
     sawset proposal create \
         -k /etc/sawtooth/keys/validator.priv \
