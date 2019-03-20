@@ -3,7 +3,7 @@ from sawtooth_sdk.protobuf.setting_pb2 import Setting
 from testing.mocks.stub import StubContext
 from remme.tp.node_account import NodeAccountHandler, NodeAccount
 
-from remme.settings import SETTINGS_MINIMUM_STAKE
+from remme.settings import SETTINGS_MINIMUM_STAKE, NODE_STATE_ADDRESS
 from remme.settings.helper import _make_settings_key
 
 RANDOM_NODE_PUBLIC_KEY = '039d6881f0a71d05659e1f40b443684b93c7b7c504ea23ea8949ef5216a2236940'
@@ -19,7 +19,8 @@ ADDRESS_TO_GET_MINIMUM_STAKE = _make_settings_key(SETTINGS_MINIMUM_STAKE)
 
 INPUTS = OUTPUTS = [
     NODE_ACCOUNT_ADDRESS_FROM,
-    ADDRESS_TO_GET_MINIMUM_STAKE
+    ADDRESS_TO_GET_MINIMUM_STAKE,
+    NODE_STATE_ADDRESS
 ]
 
 TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS = {

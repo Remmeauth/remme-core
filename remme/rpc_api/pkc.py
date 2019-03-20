@@ -17,7 +17,8 @@ import logging
 import time
 
 from remme.clients.pub_key import PubKeyClient
-from remme.clients.account import AccountClient
+from remme.clients.node_account import NodeAccountClient
+from remme.rpc_api.utils import validate_params
 from remme.shared.exceptions import KeyNotFound
 from remme.shared.forms import (
     get_address_form,
@@ -37,8 +38,8 @@ client = PubKeyClient()
 @validate_params(ProtoForm)
 async def get_node_config(request):
     return {
-        'node_public_key': PubKeyClient().get_public_key(),
-        'node_address': AccountClient().get_signer_address(),
+        'node_public_key': client.get_public_key(),
+        'node_address': NodeAccountClient().get_signer_address(),
     }
 
 

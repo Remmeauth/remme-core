@@ -19,6 +19,7 @@ RPC-API consists of several modules:
 * `atomic_swap` show atomic swap info
 * `state` shows entries for the current blockchain state
 * `personal` allow to work with node configurations (private keys etc.)
+* `node_account` module for working with node account permissioning
 
 
 All communications with rpc api are going through `/ POST` or `WS` connection.
@@ -82,7 +83,20 @@ JSON RPC API Reference
 *Returns*
 
 * node_public_key - the public key of a node
-* storage_public_key - the public key for storage of tokens
+* node_address - the address of a node
+
+| **get_node_account**
+
+| Get node account info
+
+*Parameters*
+
+* node_account_address - the address of a node account on REMchain
+
+*Returns*
+
+* node_state - status of account on the node
+* balance - balance of current node account
 
 | **get_batch_status**
 
