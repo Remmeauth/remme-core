@@ -20,21 +20,6 @@ The typical command line interface looks like this. There two separated commands
    $ export REMME_CORE_RELEASE=0.7.0-alpha
    $ sudo make run_bg
 
-Server is restarted
-===================
-
-When your server is restarted (power off and power on), use the following commands to up the node and its monitoring,
-being logged into the server.
-
-.. code-block:: console
-
-   $ cd /home/remme-core-$REMME_CORE_RELEASE && \
-         sudo docker rm $(sudo docker ps -a -q) -f && \
-         sudo docker rmi $(sudo docker images -q) -f && \
-         sudo make run_bg && \
-         sudo docker-compose -f remme-mon-stack-1.2.0/docker-compose.yml up -d && \
-         sudo systemctl restart nginx
-
 Nodes network
 =============
 
@@ -325,7 +310,7 @@ You should check for existing ``SSH keys`` on your local computer using the foll
 
 .. code-block:: console
 
-   $ cat ~/.ssh/id_rsa
+   $ cat ~/.ssh/id_rsa.pub
    cat: /Users/dmytrostriletskyi/.ssh/id_rsa: No such file or directory
 
 If you see ``No such file or directory.`` or a similar output it means you do not have the ``SSH keys``.
@@ -333,7 +318,7 @@ If you have gotten the following output it means you already have ``SSH keys``, 
 
 .. code-block:: console
 
-   $ cat ~/.ssh/id_rsa
+   $ cat ~/.ssh/id_rsa.pub
    ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCt0Or7UEedfyEo4wgaSVI0oHh26Bt88BNiEYwf8I1KnUYoyckGH0shmabMFFGW3MjYrpMJR6lm9L5+
    JCf5ENSzPy2w69MidC8jKYlzFeFnKqQ9rNJ/2hXHXKrs24+7wicy5Mab96HpEXbFvIilvXyGBUdqarmUElg/lHCNTCJVGfAgjPjfjO6iI8MQhkSEPzHO
    0owIRI1fHejnlNWEiL7X4Yb3Q/vQAz43ydc2fvGkSoKQJ8KuUPD56vKnbuMxB9NsDMss5KKj4q2YkO24H0Vs3xuEmHc0pcDfoAw9RPlr+3t2pzlyvGVT

@@ -48,7 +48,7 @@ Copy the command below and paste into the terminal which will create an ``SSL ce
          sudo apt update && sudo apt install certbot python-certbot-nginx -y && \
          sudo -i sed -i "s@websitenamewithdomain@$DOMAIN@" /etc/nginx/nginx.conf && \
          sudo certbot run --nginx -d $DOMAIN --non-interactive --agree-tos -m $EMAIL && \
-         curl https://gist.githubusercontent.com/dmytrostriletskyi/5af21fdaba872d893f04186d8113b31f/raw/106bbb96923e0898a0bb98cff26874bfcb112b46/letsencrypt-nginx.conf | sudo tee /etc/nginx/nginx.conf > /dev/null && \
+         curl https://raw.githubusercontent.com/Remmeauth/remme-core/master/docs/user-guide/templates/letsencrypt-nginx.conf | sudo tee /etc/nginx/nginx.conf > /dev/null && \
          sudo -i sed -i "s@websitenamewithdomain@$DOMAIN@" /etc/nginx/nginx.conf && \
          sudo systemctl restart nginx && \
          echo "* * * * * $USER /usr/bin/certbot renew" | sudo tee -a /etc/crontab > /dev/null
@@ -292,7 +292,7 @@ serve ``https`` connections.
          cd "CER - CRT Files" && cat ${DOMAIN%.*}_${DOMAIN##*.}.crt My_CA_Bundle.ca-bundle > ssl-bundle.crt && \
          cd .. && mv CER\ -\ CRT\ Files/ssl-bundle.crt . && \
          sudo mkdir /etc/comodo/ && sudo mv server.key ssl-bundle.crt /etc/comodo/ && \
-         curl https://gist.githubusercontent.com/dmytrostriletskyi/eda5c884a52956fc6e553447a6264871/raw/c8d2c029dbb679f53d1a165507c78e0c20b70840/comodo-grafana-nginx.conf | sudo tee /etc/nginx/nginx.conf > /dev/null && \
+         curl https://raw.githubusercontent.com/Remmeauth/remme-core/master/docs/user-guide/templates/comodo-nginx.conf | sudo tee /etc/nginx/nginx.conf > /dev/null && \
          sudo -i sed -i "s@websitenamewithdomain@$DOMAIN@" /etc/nginx/nginx.conf && \
          sudo systemctl restart nginx
 

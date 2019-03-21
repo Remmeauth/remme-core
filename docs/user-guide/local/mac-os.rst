@@ -26,7 +26,7 @@ the project that already specified in the command below.
    $ cd ~ && curl -OL https://github.com/Remmeauth/remme-core/archive/v$REMME_CORE_RELEASE.zip && \
          brew install gnu-sed && \
          unzip v$REMME_CORE_RELEASE.zip && rm -rf v$REMME_CORE_RELEASE.zip && cd remme-core-$REMME_CORE_RELEASE && \
-         curl https://gist.githubusercontent.com/dmytrostriletskyi/ba920936805f5516e9dcbaaf9ade9e02/raw/f1f207768868f48c03efcb0210df3c50168d220a/node-grafana-nginx.config > nginx.conf && \
+         curl https://raw.githubusercontent.com/Remmeauth/remme-core/master/docs/user-guide/templates/node-nginx.conf > nginx.conf && \
          curl -OL https://github.com/Remmeauth/remme-mon-stack/archive/v1.0.1.zip && \
          unzip v1.0.1.zip && rm -rf v1.0.1.zip && \
          gsed -i '/GF_SERVER_ROOT_URL/d' remme-mon-stack-1.0.1/docker-compose.yml && \
