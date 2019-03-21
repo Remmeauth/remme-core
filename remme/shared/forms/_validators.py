@@ -62,3 +62,31 @@ class DataRequired(object):
 
             field.errors[:] = []
             raise validators.StopValidation(message)
+
+
+class Optional(object):
+    """
+    Allows empty input and stops the validation chain from continuing.
+
+    If input is empty, also removes prior errors (such as processing errors)
+    from the field.
+
+    Args:
+        message (str): error message to raise in case of a validation error.
+        strip_whitespace: if True (the default) also stop the validation
+        chain on input which consists of only whitespace.
+    """
+
+    field_flags = ('optional',)
+
+    def __init__(self, message=None, strip_whitespace=True):
+        self.message = message
+        if strip_whitespace:
+            self.string_check = lambda s: s.strip()
+        else:
+            self.string_check = lambda s: s
+
+    def __call__(self, form, field):
+        if not field.raw_data or isinstance(field.raw_data[0], str) and not self.string_check(field.raw_data[0]):
+            field.errors[:] = []
+            raise validators.StopValidation(self.message)
