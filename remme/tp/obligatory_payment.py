@@ -26,13 +26,14 @@ from remme.protos.obligatory_payment_pb2 import (
 )
 
 from remme.protos.node_account_pb2 import (
-    NodeAccount
+    NodeAccount,
+    NodeState,
 )
 from remme.settings import (
-    CONSENSUS_ALLOWED_VALIDATORS,
     SETTINGS_OBLIGATORY_PAYMENT,
-    SETTINGS_COMMITTEE_SIZE,
+    NODE_STATE_ADDRESS,
 )
+from remme.tp.node_account import NodeAccountHandler
 
 from remme.shared.forms import (
     ObligatoryPaymentPayloadForm,
@@ -98,30 +99,25 @@ class ObligatoryPaymentHandler(BasicHandler):
         }
 
     def _pay_obligatory_payment(self, context, node_account_public_key, obligatory_payment_payload):
-        node_account_address = self.make_address_from_data(node_account_public_key)
+        node_account_address = NodeAccountHandler().make_address_from_data(node_account_public_key)
         node_account = get_data(context, NodeAccount, node_account_address)
-
         if node_account is None:
             raise InvalidTransaction('Invalid context or address.')
 
-        committee_pub_keys, obligatory_payment, committee_size = get_obligatory_payment_parameters(context)
+        committee_addresses, obligatory_payment, committee_size = get_obligatory_payment_parameters(context)
 
         address_to_node_account_dict = {
             node_account_address: node_account,
         }
-        committee_pub_keys.remove(node_account_public_key)  # committee to charge obligatory payment
-        for pub_key in committee_pub_keys:
-
-            address = self.make_address_from_data(pub_key)
+        committee_addresses.remove(node_account_address)  # committee to charge obligatory payment
+        
+        for address in committee_addresses:
             committee_node_account = get_data(context, NodeAccount, address)
-
             if committee_node_account is None:
                 raise InvalidTransaction('Invalid context or address.')
-
             withdraw_obligatory_payment(committee_node_account, obligatory_payment)
-
             address_to_node_account_dict[address] = committee_node_account
 
-        node_account.reputation.unfrozen += (committee_size-1)*obligatory_payment
+        node_account.reputation.unfrozen += (committee_size - 1) * obligatory_payment
 
         return address_to_node_account_dict
