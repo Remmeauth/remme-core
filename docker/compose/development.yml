@@ -19,9 +19,9 @@ services:
   remme-tp:
     volumes:
       - ./../../:/project/remme
-    entrypoint: sh -c "make build_protobuf && python3 -m remme.tp"
+    entrypoint: sh -c "./scripts/protogen.sh && python3 -m remme.tp"
 
   remme-rpc-api:
     volumes:
       - ./../../:/project/remme
-    entrypoint: sh -c "make build_protobuf && python3 -m remme.rpc_api"
+    entrypoint: sh -c "./scripts/protogen.sh && python3 -m remme.rpc_api"

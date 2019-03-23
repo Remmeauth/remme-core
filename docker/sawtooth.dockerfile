@@ -8,9 +8,7 @@ RUN apt-get update && \
     apt-get install -y python3-sawtooth-block-info \
         python3-sawtooth-cli \
         python3-sawtooth-rest-api \
-        python3-sawtooth-settings \
-        python3-sawtooth-validator \
-        sawtooth-devmode-engine-rust
+        python3-sawtooth-settings
 COPY ./scripts/node /scripts
 RUN chmod +x /scripts/toml-to-env.py
 COPY ./blockinfo_fix.patch /blockinfo_fix.patch
