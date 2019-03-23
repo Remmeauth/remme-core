@@ -68,23 +68,18 @@ def withdraw_obligatory_payment(node_account, obligatory_payment):
         raise InvalidTransaction("Malformed committee. A node doesn't have enough tokens to pay obligatory payment.")
 
 def get_obligatory_payment_parameters(context):
-    committee_pub_keys = _get_setting_value(context, CONSENSUS_ALLOWED_VALIDATORS)
-    if committee_pub_keys is None or type(committee_pub_keys) != str:
-        raise InvalidTransaction('remme.consensus.allowed_validators is malformed. Should be list of public keys.')
-    committee_pub_keys = committee_pub_keys.split(';')
-
+    node_state = get_data(context, NodeState, NODE_STATE_ADDRESS)
+    committee_pub_keys = node_state.master_nodes
+    committee_size = len(committee_pub_keys)
+    if committee_size == 0:
+        raise InvalidTransaction('Committee size should be a positive integer.')
     obligatory_payment = _get_setting_value(context, SETTINGS_OBLIGATORY_PAYMENT)
-    if obligatory_payment is None and not obligatory_payment.isdigit():
-        raise InvalidTransaction('remme.settings.obligatory_payment is malformed. Should be positive integer.')
-    obligatory_payment = int(obligatory_payment)
-
-    committee_size = _get_setting_value(context, SETTINGS_COMMITTEE_SIZE)
-    if committee_size is None and not committee_size.isdigit():
-        raise InvalidTransaction('remme.settings.committe_size is malformed. Should be positive integer.')
-    committee_size = int(committee_size)
-
-    if len(committee_pub_keys) != committee_size:
-        raise InvalidTransaction('Malformed committee.')
+    try:
+        obligatory_payment = int(obligatory_payment)
+    except e:
+        raise InvalidTransaction('Obligatory payment amount should be a positive integer.')
+    if obligatory_payment == 0:
+        raise InvalidTransaction('Obligatory payment amount should be a positive integer.')
 
     return committee_pub_keys, obligatory_payment, committee_size
 
