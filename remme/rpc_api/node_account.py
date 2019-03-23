@@ -15,11 +15,10 @@
 import json
 import logging
 
-from google.protobuf.json_format import MessageToJson
-
-from remme.clients.basic import BasicClient
+from remme.clients.node_account import NodeAccountClient
 from remme.protos.node_account_pb2 import NodeAccount
 from remme.rpc_api.utils import validate_params
+from remme.shared.utils import message_to_dict
 from remme.shared.forms import get_address_form
 
 __all__ = (
@@ -37,13 +36,9 @@ async def get_node_account(request):
     Returns:
         Node account data (balance, reputation, node_state) in json.
     """
-    client = BasicClient()
+    client = NodeAccountClient()
 
     node_address = request.params['node_account_address']
-    raw_account = await client.get_value(node_address)
+    account = await client.get_account(node_address)
 
-    node_account = NodeAccount()
-    node_account.ParseFromString(raw_account)
-
-    data = MessageToJson(message=node_account, preserving_proto_field_name=True, including_default_value_fields=True)
-    return json.loads(data)
+    return message_to_dict(account)

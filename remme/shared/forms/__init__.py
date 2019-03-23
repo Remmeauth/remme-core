@@ -19,7 +19,8 @@ from .account import (
 )
 from .node_account import (
     NodeAccountInternalTransferPayloadForm,
-    CloseMasternodePayloadForm
+    CloseMasternodePayloadForm,
+    NodeAccountGenesisForm,
 )
 from .atomic_swap import (
     AtomicSwapInitPayloadForm,

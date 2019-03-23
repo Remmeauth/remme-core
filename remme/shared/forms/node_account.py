@@ -9,6 +9,10 @@ class NodeAccountInternalTransferPayloadForm(ProtoForm):
     ])
 
 
+class NodeAccountGenesisForm(ProtoForm):
+    value = fields.IntegerField()
+
+
 class CloseMasternodePayloadForm(ProtoForm):
     pass
 
