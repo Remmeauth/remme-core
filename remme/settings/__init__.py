@@ -10,8 +10,6 @@ SETTINGS_SWAP_COMMISSION = 'remme.settings.swap_comission'
 SETTINGS_MINIMUM_STAKE = 'remme.settings.minimum_stake'
 SETTINGS_GENESIS_OWNERS = 'remme.settings.genesis_owners'
 SETTINGS_OBLIGATORY_PAYMENT = 'remme.settings.obligatory_payment'
-SETTINGS_COMMITTEE_SIZE = 'remme.settings.committee_size'
-CONSENSUS_ALLOWED_VALIDATORS = 'remme.consensus.allowed_validators'
 
 ZMQ_CONNECTION_TIMEOUT = 30
 # Number of seconds to wait for state operations to succeed
