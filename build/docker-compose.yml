@@ -15,6 +15,12 @@
 version: '3.4'
 
 services:
+  sawtooth-validator-build:
+    build:
+      context: ..
+      dockerfile: docker/sawtooth-validator.dockerfile
+    image: remme/sawtooth-validator:latest
+
   sawtooth:
     build:
       context: ..

@@ -1,5 +1,14 @@
 # Build and run scripts manual
 
+## Before building
+
+Before going any further you have to build our custom `sawtooth-validator`
+image. To build it:
+
+* Download this branch: https://github.com/Remmeauth/sawtooth-core/tree/1-1
+* Build it with the command
+  `docker-compose -f docker-compose-installed.yaml build validator`
+
 ## Makefile targets
 
 * `build` rebuilds all Docker images from scratch. Provides lighter images.

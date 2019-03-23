@@ -18,7 +18,7 @@ version: '3.4'
 services:
   validator:
     container_name: remme_validator
-    image: remme/sawtooth:latest
+    image: remme/sawtooth-validator:latest
     hostname: remme.validator
     volumes:
       - validator_keys:/etc/sawtooth/keys
