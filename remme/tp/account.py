@@ -110,7 +110,7 @@ class AccountHandler(BasicHandler):
         """
         return address.startswith(self._prefix) or \
                 address.startswith(NodeAccountHandler()._prefix) or \
-                address == ZERO_ADDRESS
+                address in (ZERO_ADDRESS,)
 
     def _transfer_from_address(self, context, address_from, transfer_payload):
 
