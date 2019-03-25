@@ -21,13 +21,15 @@ from remme.protos.node_account_pb2 import (
     NodeState,
     NodeAccountMethod,
     NodeAccountInternalTransferPayload,
-    CloseMasternodePayload
+    CloseMasternodePayload,
+    SetBetPayload,
 )
 
 from remme.shared.forms import (
     NodeAccountInternalTransferPayloadForm,
     CloseMasternodePayloadForm,
-    NodeAccountGenesisForm
+    NodeAccountGenesisForm,
+    SetBetPayloadForm,
 )
 
 from remme.settings import (
@@ -80,6 +82,11 @@ class NodeAccountHandler(BasicHandler):
                 PB_CLASS: NodeAccountInternalTransferPayload,
                 PROCESSOR: self._transfer_from_frozen_to_unfrozen,
                 VALIDATOR: NodeAccountInternalTransferPayloadForm,
+            },
+            NodeAccountMethod.SET_BET: {
+                PB_CLASS: SetBetPayload,
+                PROCESSOR: self._set_bet,
+                VALIDATOR: SetBetPayloadForm,
             },
         }
 
@@ -226,6 +233,27 @@ class NodeAccountHandler(BasicHandler):
 
         node_account.reputation.frozen -= internal_transfer_payload.value
         node_account.reputation.unfrozen += internal_transfer_payload.value
+
+        return {
+            node_account_address: node_account,
+        }
+
+    def _set_bet(self, context, node_account_public_key, pb_payload):
+        node_account_address = self.make_address_from_data(node_account_public_key)
+
+        node_account = get_data(context, NodeAccount, node_account_address)
+
+        if node_account is None:
+            raise InvalidTransaction('Invalid context or address.')
+
+        bet_name = pb_payload.WhichOneof('bet')
+        bet_payload = getattr(pb_payload, str(bet_name))
+
+        try:
+            setattr(node_account, bet_name, bet_payload)
+        except AttributeError as e:
+            LOGGER.exception(e)
+            raise InvalidTransaction('Failed to update bet config.')
 
         return {
             node_account_address: node_account,

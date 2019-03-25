@@ -21,6 +21,7 @@ from .node_account import (
     NodeAccountInternalTransferPayloadForm,
     CloseMasternodePayloadForm,
     NodeAccountGenesisForm,
+    SetBetPayloadForm,
 )
 from .atomic_swap import (
     AtomicSwapInitPayloadForm,
