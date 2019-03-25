@@ -261,10 +261,10 @@ The flow is illustrated below.
 Step 6: monitoring
 ==================
 
-Another option to check if your node has completed a correct setup is the monitoring. While starting the node, the monitoring also
-has been installed and started. **Completing this step is required**.
+Another option to check if your node has completed a correct setup is through monitoring. While starting the node, the monitoring
+has also been installed and started. **Completing this step is required**.
 
-Monitoring is a process of tracking application performance to detect and prevent issues that could happen with your application
+Monitoring is a process of tracking application performance to detect and prevent issues that could occur with your application
 on a particular server. For the monitoring, we will use ``Grafana``. |grafana| is an open source, feature-rich metrics dashboard
 and graph editor.
 
@@ -273,21 +273,21 @@ and graph editor.
    <a href="https://grafana.com/" target="_blank">Grafana</a>
 
 Copy your server's ``IP address``, paste it into the browser address bar. Then add ``/grafana/`` to the end of the address and press ``Enter``.
-Then you will see initial ``Grafana`` page with authentication. Enter ``admin`` to the ``User`` and ``Password`` fields.
+Then you will see the initial ``Grafana`` page with authentication. Enter ``admin`` to the ``User`` and ``Password`` fields.
 
 .. image:: /img/user-guide/advanced-guide/monitoring/login.png
    :width: 100%
    :align: center
    :alt: Login to the Grafana
 
-After entering the initial credentials you will reach the main page. Click on the ``Home`` button right away from ``Grafana`` logo.
+After entering the initial credentials you will reach the main page. Click on the ``Home`` button right away beside the ``Grafana`` logo.
 
 .. image:: /img/user-guide/troubleshooting/grafana/home-button.png
    :width: 100%
    :align: center
    :alt: Grafana home button
 
-Then click on button named ``Main Dashboard`` bottom away from the search bar.
+Then click on the button named ``Main Dashboard`` from the drop down search bar.
 
 .. image:: /img/user-guide/troubleshooting/grafana/dashboard-under-search.png
    :width: 100%
@@ -296,7 +296,7 @@ Then click on button named ``Main Dashboard`` bottom away from the search bar.
 
 Here you will find information about uptime, CPU cores and their load, memory and its load, storage and its load. Also,
 information about containers (components of the node) is presented on the right side of the page. Information
-about container includes numbers on how much CPU each uses, and so on.
+about containers includes numbers on how much CPU each uses, and so on.
 
 .. image:: /img/user-guide/advanced-guide/monitoring/dashboard.png
    :width: 100%

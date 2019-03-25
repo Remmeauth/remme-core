@@ -218,7 +218,7 @@ If you see ``The system cannot find the path specified.`` or a similar output it
 If you haven't gotten any output it means you already have ``SSH keys``, in which case go to the text that describes
 how to get your ``SSH keys``.
 
-To create ``SSH keys``, use the following terminal command. Remember to change ``your-email@example.com`` with your e-mail.
+To create ``SSH keys``, use the following terminal command. Remember to change ``your-email@example.com`` with your email.
 
 .. code-block:: console
 
@@ -327,7 +327,7 @@ If you have gotten the following output it means you already have ``SSH keys``, 
    /tbt3chmjIlYfm6TDfWTeQhCA2gXsjrx9Fi8zrwzk1WEFLT+nRigL/2Lh+ruB9E6Rg5E4cpj1NCxJ/gGlLlLRFYkJwLtrAZhat+AWqmAtdXWYvCVSw6K
    u9o7K2gcE9RlQrg6HS6KSUON1w== dmytro.striletskyi@gmail.com
 
-To create ``SSH keys``, use the following terminal command. Remember to change ``your-email@example.com`` to your e-mail.
+To create ``SSH keys``, use the following terminal command. Remember to change ``your-email@example.com`` to your email.
 
 .. code-block:: console
 
@@ -340,7 +340,7 @@ You will then see the following text — just press ``Enter``.
    Generation public/private rsa key pair.
    Enter file in which to save to key (/Users/dmytrostriletskyi/.ssh/id_rsa):
 
-Then you will be required to create the password for your ``SSH keys``. Mind that when you do it the password
+Then you will be required to create the password for your ``SSH keys``. Mind that when you do this the password
 doesn't appear – even stars or bullets shouldn’t appear as you wait to log in to the account on the operating system.
 Type in the password and press ``Enter``.
 
@@ -385,14 +385,14 @@ Windows
 
 If while connecting to the server using ``ssh root@<ip-address>`` command you get the
 ``ssh is not recognized as an internal or external command...`` error message, it means you have no corresponding software
-in the operating system installed.
+installed in the operating system.
 
 .. image:: /img/user-guide/troubleshooting/windows-no-ssh-client.png
    :width: 100%
    :align: center
    :alt: No SSH client on Windows
 
-Then open the search and type ``Manage optional features`` and choose it in the best match.
+Then open the search and type ``Manage optional features`` and choose it as the best match.
 
 .. image:: /img/user-guide/troubleshooting/windows-manage-option-features.png
    :width: 100%
