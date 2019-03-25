@@ -52,6 +52,8 @@ You will then be redirected to ``AWS management console``. Press ``Launch a virt
    :align: center
    :alt: Choose account plan
 
+.. _LaunchAWSInstance:
+
 Step 2: launch instance
 =======================
 

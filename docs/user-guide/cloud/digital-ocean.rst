@@ -76,7 +76,7 @@ Create it with green button at the right-top corner of the screen.
    :align: center
    :alt: Create droplet
 
-Specify image ``Ubuntu 16.04.5 x64``, which should be regarded as an operating system.
+Specify image ``Ubuntu 16.04.6 x64``, which should be regarded as an operating system.
 
 .. image:: /img/user-guide/cloud/digital-ocean/droplet-image.png
    :width: 100%
@@ -125,6 +125,8 @@ Wait for your droplet to be ready as illustrated in the image below.
    :width: 100%
    :align: center
    :alt: Droplet is ready
+
+.. _LoginToTheDigitalOceanDroplet:
 
 Step 4: login to droplet
 ========================

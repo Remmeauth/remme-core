@@ -8,6 +8,8 @@ providers (:doc:`/user-guide/cloud`).
 Amazon Web Services
 -------------------
 
+.. _CreateAWSSnapshot:
+
 Create a snapshot
 ~~~~~~~~~~~~~~~~~
 
@@ -65,6 +67,8 @@ enter ``snapshot id`` to the corresponding field. Create a tag named ``Name`` wi
    :width: 100%
    :align: center
    :alt:
+
+.. _ApplyAWSSnapshot:
 
 Apply a snapshot
 ~~~~~~~~~~~~~~~~

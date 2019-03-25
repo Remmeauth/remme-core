@@ -83,6 +83,8 @@ Wait for your server to be ready as illustrated on the image below.
    :align: center
    :alt: Server is ready
 
+.. _LoginToTheVultrServer:
+
 Step 3: login to server
 =======================
 Open a terminal on your PC. Visit the :doc:`/user-guide/troubleshooting` section to find instructions how to do this.

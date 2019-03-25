@@ -414,3 +414,89 @@ Find the ``OpenSSH client`` and click on the button named ``Install``.
    :alt: No SSH client on Windows
 
 When the installation has been finished, try to connect to the server again.
+
+Rebuild server
+==============
+
+Rebuilding a server allows you to keep the operational system (image), ``SSH keys`` and ``IP-address``. The rest everything
+such as folders with node source code will be gone. So you don't need to create a server from scratch, just rebuild it.
+When you will connect to the rebuilt server first time, you get a ``SSH key`` warning.
+
+To avoid it, use the following terminal command on ``Ubuntu & Mac OS``:
+
+.. code-block:: console
+
+   $ rm ~/.ssh/known_hosts
+
+On ``Windows`` use the following one:
+
+.. code-block:: console
+
+   $ del %userprofile%\.ssh\known_hosts
+
+Amazon Web Services
+~~~~~~~~~~~~~~~~~~~
+
+On the ``AWS`` is no way to rebuild your instance when you already created it. But you can create an image from the instance
+you have created for the future rebuilds. Consider image as a clone of the instance on a particular stage (before node
+installation, after node installation, etc.).
+
+Create a brand new instance using the following reference — :ref:`LaunchAWSInstance`. Follow the guides on how to create
+and apply a snapshot of the instance — :ref:`CreateAWSSnapshot`, :ref:`ApplyAWSSnapshot`. But instead of making a snapshot
+of the instance with the installed node, make a snapshot of the newly created instance. So you will have the image of
+the clear instance.
+
+Digital Ocean
+~~~~~~~~~~~~~
+
+Open the page that shows all your droplets. Find out the droplet that hosts your node (it could be named ``remme-core-testnet-node``).
+Press the burger menu icon and choose the ``Destroy`` option.
+
+.. image:: /img/user-guide/troubleshooting/rebuild-server/digital-ocean/destroy-droplet-button.png
+   :width: 100%
+   :align: center
+   :alt: Destroy a droplet button
+
+After, go bottom of the page to the ``Rebuild Droplet`` section. Choose image ``Ubuntu 16.04.6 x64``.
+
+.. image:: /img/user-guide/troubleshooting/rebuild-server/digital-ocean/choose-image.png
+   :width: 100%
+   :align: center
+   :alt: Choose an image for the droplet
+
+Press ``Rebuild`` button.
+
+.. image:: /img/user-guide/troubleshooting/rebuild-server/digital-ocean/rebuild-button.png
+   :width: 100%
+   :align: center
+   :alt: Rebuild a droplet
+
+After pressing a rebuild button you will get the pop-up to confirm the rebuild.
+
+.. image:: /img/user-guide/troubleshooting/rebuild-server/digital-ocean/confirm-rebuild-droplet.png
+   :width: 100%
+   :align: center
+   :alt: Confirm rebuild a droplet
+
+Now you can start from :ref:`LoginToTheDigitalOceanDroplet`.
+
+Vultr
+~~~~~
+
+Open the page that shows all your server. Find out the server that hosts your node (it could be named ``remme-core-testnet-node``).
+Press the burger menu icon and choose the ``Server Reinstall`` option.
+
+.. image:: /img/user-guide/troubleshooting/rebuild-server/vultr/reinstall-server-button.png
+   :width: 100%
+   :align: center
+   :alt: Destroy a server button
+
+After, you will get the pop-up to confirm the reinstallation. Check the checkbox ``Yes, reinstall this server`` and press
+``Reinstall Server``.
+
+.. image:: /img/user-guide/troubleshooting/rebuild-server/vultr/confirm-reinstall-server.png
+   :width: 100%
+   :align: center
+   :alt: Confirm reinstall a server
+
+Now you can start from :ref:`LoginToTheVultrServer`.
