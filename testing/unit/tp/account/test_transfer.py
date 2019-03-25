@@ -35,6 +35,7 @@ TOKENS_AMOUNT_TO_SEND = 1000
 
 ACCOUNT_FROM_BALANCE = NODE_ACCOUNT_FROM_BALANCE = 10000
 ACCOUNT_TO_BALANCE = NODE_ACCOUNT_TO_BALANCE = 1000
+MAX_UINT64 = 2**64-1
 
 ACCOUNT_ADDRESS_FROM = '112007d71fa7e120c60fb392a64fd69de891a60c667d9ea9e5d9d9d617263be6c20202'
 ACCOUNT_ADDRESS_TO = '1120071db7c02f5731d06df194dc95465e9b277c19e905ce642664a9a0d504a3909e31'
@@ -321,6 +322,56 @@ def test_account_transfer_from_address():
 
     assert state_as_dict.get(ACCOUNT_ADDRESS_FROM, Account()).balance == expected_account_from_balance
     assert state_as_dict.get(ACCOUNT_ADDRESS_TO, Account()).balance == expected_account_to_balance
+
+
+def test_account_transfer_integer_overflow():
+    """
+    Case: transfer tokens from address to address such that on receiver address will be more then max uint64 tokens.
+    Expect: exception ValueError is raised.
+    """
+    account_from_balance = 1
+    tokens_amount_to_send = 1
+    account_to_balance = MAX_UINT64
+    expected_account_from_balance = account_from_balance - tokens_amount_to_send
+    expected_account_to_balance = account_to_balance + tokens_amount_to_send
+
+    transfer_payload = TransferPayload()
+    transfer_payload.address_to = ACCOUNT_ADDRESS_TO
+    transfer_payload.value = tokens_amount_to_send
+
+    transaction_payload = TransactionPayload()
+    transaction_payload.method = AccountMethod.TRANSFER
+    transaction_payload.data = transfer_payload.SerializeToString()
+
+    serialized_transaction_payload = transaction_payload.SerializeToString()
+
+    transaction_header = TransactionHeader(
+        signer_public_key=ACCOUNT_FROM_PUBLIC_KEY,
+        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
+        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
+        inputs=INPUTS,
+        outputs=OUTPUTS,
+        dependencies=[],
+        payload_sha512=hash512(data=serialized_transaction_payload),
+        batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
+        nonce=time.time().hex().encode(),
+    )
+
+    serialized_header = transaction_header.SerializeToString()
+
+    transaction_request = TpProcessRequest(
+        header=transaction_header,
+        payload=serialized_transaction_payload,
+        signature=create_signer(private_key=ACCOUNT_FROM_PRIVATE_KEY).sign(serialized_header),
+    )
+
+    mock_context = create_context(account_from_balance=account_from_balance, account_to_balance=account_to_balance)
+
+
+    with pytest.raises(ValueError) as error:
+        AccountHandler().apply(transaction=transaction_request, context=mock_context)
+
+    assert str(error.value).startswith('Value out of range')
 
 
 def test_account_transfer_from_address_zero_amount():

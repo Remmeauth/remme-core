@@ -30,6 +30,7 @@ from .shared import (
     INPUTS,
     OUTPUTS,
     TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS,
+    MAX_UINT64,
     create_context,
 )
 
@@ -91,6 +92,53 @@ def test_transfer_from_unfrozen_to_operational():
 
     assert node_account.balance == operational + tokens_to_transfer
     assert node_account.reputation.unfrozen == unfrozen - tokens_to_transfer
+
+
+def test_transfer_from_unfrozen_to_operational_integer_overflow():
+    """
+    Case: transfer from unfrozen to operational such that it will cause integer overflow.
+    Expect: integer overflow exception is raised.
+    """
+    unfrozen = 1
+    operational = MAX_UINT64
+    tokens_to_transfer = 1
+
+    internal_transfer_payload = NodeAccountInternalTransferPayload()
+    internal_transfer_payload.value = tokens_to_transfer
+
+    transaction_payload = TransactionPayload()
+    transaction_payload.method = NodeAccountMethod.TRANSFER_FROM_UNFROZEN_TO_OPERATIONAL
+    transaction_payload.data = internal_transfer_payload.SerializeToString()
+
+    serialized_transaction_payload = transaction_payload.SerializeToString()
+
+    transaction_header = TransactionHeader(
+        signer_public_key=RANDOM_NODE_PUBLIC_KEY,
+        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
+        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
+        inputs=INPUTS,
+        outputs=OUTPUTS,
+        dependencies=[],
+        payload_sha512=hash512(data=serialized_transaction_payload),
+        batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
+        nonce=time.time().hex().encode(),
+    )
+
+    serialized_header = transaction_header.SerializeToString()
+
+    transaction_request = TpProcessRequest(
+        header=transaction_header,
+        payload=serialized_transaction_payload,
+        signature=create_signer(private_key=NODE_ACCOUNT_FROM_PRIVATE_KEY).sign(serialized_header),
+    )
+
+    mock_context = create_context(account_from_balance=operational, node_state=NodeAccount.OPENED,
+                                  unfrozen=unfrozen)
+
+    with pytest.raises(ValueError) as error:
+        NodeAccountHandler().apply(transaction=transaction_request, context=mock_context)
+
+    assert str(error.value).startswith('Value out of range')
 
 
 def test_transfer_invalid_amount_from_unfrozen_to_operational():

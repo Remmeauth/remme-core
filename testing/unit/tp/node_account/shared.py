@@ -27,6 +27,8 @@ TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS = {
     'family_version': NodeAccountHandler().family_versions[0],
 }
 
+MAX_UINT64 = 2**64-1
+
 
 def create_context(account_from_balance, node_state=NodeAccount.NEW, frozen=0, unfrozen=0):
     """
