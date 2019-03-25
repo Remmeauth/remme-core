@@ -1,10 +1,15 @@
-from wtforms import fields
+from wtforms import validators
+from wtforms.fields import IntegerField
 
 from remme.shared.forms.base import ProtoForm
-from remme.shared.forms._validators import Optional
+from remme.shared.forms._validators import IntegerTypeRequired
 
 
-class IntegersForm(ProtoForm):
+class IntegerForm(ProtoForm):
 
-    start = fields.IntegerField(validators=[Optional(message='Incorrect parameter identifier.')])
-    limit = fields.IntegerField(validators=[Optional(message='Incorrect parameter identifier.')])
+    start = IntegerField('Start', validators=[
+        IntegerTypeRequired(message='Incorrect parameter identifier.'), validators.optional(),
+    ])
+    limit = IntegerField('Limit', validators=[
+        IntegerTypeRequired(message='Incorrect parameter identifier.'), validators.optional(),
+    ])

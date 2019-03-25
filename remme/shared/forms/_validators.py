@@ -1,9 +1,13 @@
 from wtforms import validators
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class StringTypeRequired(object):
     """
-    Validates the value for the required type.
+    Validates the value for the required string type.
 
     Args:
         message (str): error message to raise in case of a validation error.
@@ -14,6 +18,32 @@ class StringTypeRequired(object):
     def __call__(self, form, field):
 
         if not isinstance(field.data, str):
+            if self.message is None:
+                message = field.gettext('This field is required.')
+            else:
+                message = self.message
+
+            field.errors[:] = []
+            raise validators.StopValidation(message)
+
+
+class IntegerTypeRequired(object):
+    """
+    Validates the value for the required integer type.
+
+    Args:
+        message (str): error message to raise in case of a validation error.
+    """
+    def __init__(self, message=None):
+        self.message = message
+
+    def __call__(self, form, field):
+
+        if field.data is None:
+            return
+
+        if not isinstance(field.data, int) or field.data is True:
+
             if self.message is None:
                 message = field.gettext('This field is required.')
             else:
@@ -62,31 +92,3 @@ class DataRequired(object):
 
             field.errors[:] = []
             raise validators.StopValidation(message)
-
-
-class Optional(object):
-    """
-    Allows empty input and stops the validation chain from continuing.
-
-    If input is empty, also removes prior errors (such as processing errors)
-    from the field.
-
-    Args:
-        message (str): error message to raise in case of a validation error.
-        strip_whitespace: if True (the default) also stop the validation
-        chain on input which consists of only whitespace.
-    """
-
-    field_flags = ('optional',)
-
-    def __init__(self, message=None, strip_whitespace=True):
-        self.message = message
-        if strip_whitespace:
-            self.string_check = lambda s: s.strip()
-        else:
-            self.string_check = lambda s: s
-
-    def __call__(self, form, field):
-        if not field.raw_data or isinstance(field.raw_data[0], str) and not self.string_check(field.raw_data[0]):
-            field.errors[:] = []
-            raise validators.StopValidation(self.message)
