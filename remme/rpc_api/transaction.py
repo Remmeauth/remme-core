@@ -214,7 +214,7 @@ async def fetch_batch(request):
     try:
         return await client.fetch_batch(id)
     except KeyNotFound:
-        raise KeyNotFound(f'Batch with id "{id}" not found')
+        raise KeyNotFound(f'Batch with batch id `{id}` not found.')
 
 
 @validate_params(IdentifierForm)
