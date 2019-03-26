@@ -31,6 +31,7 @@ aiozmq = "0.7.1"
 WTForms = "2.2.1"
 Werkzeug = "0.14.1"
 influxdb = "5.2.1"
+marshmallow = "2.18.0"
 
 [tool.poetry.dev-dependencies]
 asynctest = "0.12.2"
