@@ -1,7 +1,11 @@
 import pytest
 from aiohttp_json_rpc.exceptions import RpcInvalidParamsError
 
-from remme.rpc_api.block_info import fetch_block
+from remme.rpc_api.block_info import (
+    fetch_block,
+    get_blocks,
+    list_blocks,
+)
 from remme.shared.exceptions import KeyNotFound
 from testing.utils._async import (
     raise_async_error,
@@ -150,5 +154,130 @@ async def test_fetch_block_with_non_existing_block_id(mocker, request_):
 
     with pytest.raises(KeyNotFound) as error:
         await fetch_block(request_)
+
+    assert expected_error_message == error.value.message
+
+
+@pytest.mark.asyncio
+async def test_fetch_block_with_wrong_key(request_):
+    """
+    Case: fetch block with wrong key.
+    Expect: wrong params keys error message.
+    """
+    block_id = '92fa987b4f163b43d9f85641bb8ccf018022d3a9e2445e3c721e0b3cdfa83c42' \
+               '65a21c74be9f6a732f75fcab1832637fa98816cd7fb43e42b9f609ffae1136fd'
+    request_.params = {
+        'address': block_id,
+    }
+
+    expected_error_message = "Wrong params keys: ['address']"
+
+    with pytest.raises(RpcInvalidParamsError) as error:
+        await list_blocks(request_)
+
+    assert expected_error_message == error.value.message
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('valid_params', [1, None])
+async def test_get_blocks_with_valid_params(mocker, request_, valid_params):
+    """
+    Case: get blocks with parameter start.
+    Expect: list of blocks.
+    """
+    request_.params = {
+        'start': valid_params,
+    }
+
+    expected_result = [
+        {
+            'block_number': 1,
+            'timestamp': 1553529639,
+            'previous_header_signature': 0000000000000000,
+            'signer_public_key': '02c172f9a27512c11e2d49fd41adbcb2151403bd1582e8cd94a5153779c2107092',
+            'header_signature': '0d355e7612d8bac6bc24a9d92d1b80c20c09aa0b155341774429386cdb2817a6'
+                                '2d59694077f0df78b9b7222a500d267395900f06ee65a1198f76e3eb15949cdd'
+        }
+    ]
+
+    mock_get_value = mocker.patch('remme.clients.block_info.BlockInfoClient.get_blocks_info')
+    mock_get_value.return_value = return_async_value(expected_result)
+
+    result = await get_blocks(request_)
+
+    assert expected_result == result
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('invalid_params', ['12345', True])
+async def test_get_blocks_with_invalid_params(request_, invalid_params):
+    """
+    Case: get blocks with invalid parameter start and limit.
+    Expect: incorrect parameter identifier error message.
+    """
+    request_.params = {
+        'start': invalid_params,
+        'limit': invalid_params,
+    }
+
+    with pytest.raises(RpcInvalidParamsError) as error:
+        await get_blocks(request_)
+
+    assert 'Incorrect parameter identifier.' == error.value.message
+
+
+@pytest.mark.asyncio
+async def test_get_blocks_with_non_exists_params_count(mocker, request_):
+    """
+    Case: get blocks with invalid parameter start.
+    Expect: block not found error message.
+    """
+    request_.params = {
+        'start': 123232456789098765456,
+    }
+
+    expected_error_message = 'Blocks not found.'
+
+    mock_get_blocks_info = mocker.patch('remme.clients.block_info.BlockInfoClient.get_blocks_info')
+    mock_get_blocks_info.return_value = raise_async_error(KeyNotFound(expected_error_message))
+
+    with pytest.raises(KeyNotFound) as error:
+        await get_blocks(request_)
+
+    assert expected_error_message == error.value.message
+
+
+@pytest.mark.asyncio
+async def test_get_blocks_with_wrong_key(request_):
+    """
+    Case: get blocks with wrong key.
+    Expect: wrong params keys error message.
+    """
+    request_.params = {
+        'address': '1',
+    }
+
+    expected_error_message = "Wrong params keys: ['address']"
+
+    with pytest.raises(RpcInvalidParamsError) as error:
+        await get_blocks(request_)
+
+    assert expected_error_message == error.value.message
+
+
+@pytest.mark.asyncio
+async def test_list_blocks_with_wrong_key(request_):
+    """
+    Case: get list blocks with wrong key.
+    Expect: wrong params keys error message.
+    """
+    request_.params = {
+        'address': '11200759ba9b0d7ff93a3a8f6eb8e25fb5802d7caa8fad3d8bc19112b82f802a0cf9e7',
+    }
+
+    expected_error_message = "Wrong params keys: ['address']"
+
+    with pytest.raises(RpcInvalidParamsError) as error:
+        await list_blocks(request_)
 
     assert expected_error_message == error.value.message

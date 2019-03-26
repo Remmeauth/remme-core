@@ -36,10 +36,10 @@ class IDField(fields.StringField):
     ]
 
 
-def get_identifier_field(message):
+class BlockIDField(fields.StringField):
 
-    return fields.StringField(validators=[
+    validators = [
         DataRequired(message='Missed id.'),
-        StringTypeRequired(message=message),
-        validators.Regexp(regex='[0-9a-f]{128}', message=message)
-    ])
+        StringTypeRequired(message='Given block id is not a valid.'),
+        validators.Regexp(regex='[0-9a-f]{128}', message='Given block id is not a valid.')
+    ]
