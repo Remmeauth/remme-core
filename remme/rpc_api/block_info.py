@@ -17,7 +17,10 @@ import logging
 from remme.clients.block_info import BlockInfoClient
 from remme.rpc_api.utils import validate_params
 from remme.shared.exceptions import KeyNotFound
-from remme.shared.forms import ProtoForm, IdentifierForm
+from remme.shared.forms import (
+    IdentifierForm,
+    ProtoForm,
+)
 from remme.shared.forms.block_info import IntegerForm
 
 __all__ = (

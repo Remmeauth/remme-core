@@ -60,7 +60,7 @@ async def test_get_blocks_with_invalid_params(request_, invalid_params):
 @pytest.mark.asyncio
 async def test_get_blocks_with_non_exists_params_count(mocker, request_):
     """
-    Case: get blocks with invalid parameter start and limit.
+    Case: get blocks with invalid parameter start.
     Expect: block not found error message.
     """
     request_.params = {
@@ -73,6 +73,25 @@ async def test_get_blocks_with_non_exists_params_count(mocker, request_):
     mock_get_blocks_info.return_value = raise_async_error(KeyNotFound(expected_error_message))
 
     with pytest.raises(KeyNotFound) as error:
+        await get_blocks(request_)
+
+    assert expected_error_message == error.value.message
+
+
+@pytest.mark.asyncio
+async def test_list_blocks_with_wrong_key_address(request_):
+    """
+    Case: get blocks with wrong key address.
+    Expect: wrong params keys error message.
+    """
+    block = '1'
+    request_.params = {
+        'address': block,
+    }
+
+    expected_error_message = "Wrong params keys: ['address']"
+
+    with pytest.raises(RpcInvalidParamsError) as error:
         await get_blocks(request_)
 
     assert expected_error_message == error.value.message

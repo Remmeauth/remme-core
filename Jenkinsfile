@@ -1,9 +1,16 @@
 pipeline {
-  agent any
+  agent {
+    label 'remme-tests-worker'
+  }
+  options {
+    timestamps()
+  }
   stages {
     stage('Test') {
       steps {
-        sh 'make test'
+        ansiColor('xterm') {
+            sh 'make test'
+        }
       }
     }
   }
