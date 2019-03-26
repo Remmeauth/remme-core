@@ -34,3 +34,12 @@ class IDField(fields.StringField):
         StringTypeRequired(message='Given batch id is not a valid.'),
         validators.Regexp(regex='[0-9a-f]{128}',  message='Given batch id is not a valid.')
     ]
+
+
+def get_identifier_field(message):
+
+    return fields.StringField(validators=[
+        DataRequired(message='Missed id.'),
+        StringTypeRequired(message=message),
+        validators.Regexp(regex='[0-9a-f]{128}', message=message)
+    ])
