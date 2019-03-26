@@ -1,7 +1,16 @@
-from wtforms import fields, validators
+from wtforms import (
+    fields,
+    validators,
+)
+from remme.shared.forms.base import ProtoForm
+from remme.shared.forms._fields import (
+    BlockIDField,
+    IDField,
+)
 
-from .base import ProtoForm
-from ._fields import IDField
+
+class BlockIdentifierForm(ProtoForm):
+    id = BlockIDField()
 
 
 class IdentifierForm(ProtoForm):

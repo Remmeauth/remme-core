@@ -17,10 +17,8 @@ import logging
 from remme.clients.block_info import BlockInfoClient
 from remme.rpc_api.utils import validate_params
 from remme.shared.exceptions import KeyNotFound
-from remme.shared.forms import (
-    IdentifierForm,
-    ProtoForm,
-)
+from remme.shared.forms import ProtoForm
+from remme.shared.forms.identifier import BlockIdentifierForm
 from remme.shared.forms.block_info import IntegerForm
 
 __all__ = (
@@ -67,10 +65,10 @@ async def list_blocks(request):
     return await block_info_client.list_blocks(ids, start, limit, head, reverse)
 
 
-@validate_params(IdentifierForm)
+@validate_params(BlockIdentifierForm)
 async def fetch_block(request):
-    id = request.params['id']
+    block_id = request.params['id']
     try:
-        return await block_info_client.fetch_block(id)
+        return await block_info_client.fetch_block(block_id)
     except KeyNotFound:
-        raise KeyNotFound(f'Block with id "{id}" not found')
+        raise KeyNotFound(f'Block with id `{block_id}` not found.')
