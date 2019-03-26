@@ -1,9 +1,13 @@
 from wtforms import validators
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class StringTypeRequired(object):
     """
-    Validates the value for the required type.
+    Validates the value for the required string type.
 
     Args:
         message (str): error message to raise in case of a validation error.
@@ -14,6 +18,32 @@ class StringTypeRequired(object):
     def __call__(self, form, field):
 
         if not isinstance(field.data, str):
+            if self.message is None:
+                message = field.gettext('This field is required.')
+            else:
+                message = self.message
+
+            field.errors[:] = []
+            raise validators.StopValidation(message)
+
+
+class IntegerTypeRequired(object):
+    """
+    Validates the value for the required integer type.
+
+    Args:
+        message (str): error message to raise in case of a validation error.
+    """
+    def __init__(self, message=None):
+        self.message = message
+
+    def __call__(self, form, field):
+
+        if field.data is None:
+            return
+
+        if not isinstance(field.data, int) or isinstance(field.data, bool):
+
             if self.message is None:
                 message = field.gettext('This field is required.')
             else:

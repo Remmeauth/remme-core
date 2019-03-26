@@ -21,6 +21,7 @@ from remme.shared.forms import (
     IdentifierForm,
     ProtoForm,
 )
+from remme.shared.forms.block_info import IntegerForm
 
 __all__ = (
     'get_block_number',
@@ -44,7 +45,7 @@ async def get_block_number(request):
         return 0
 
 
-@validate_params(ProtoForm, ignore_fields=('start', 'limit'))
+@validate_params(IntegerForm)
 async def get_blocks(request):
     start = request.params.get('start', 0)
     limit = request.params.get('limit', 0)
@@ -52,7 +53,7 @@ async def get_blocks(request):
     try:
         return await block_info_client.get_blocks_info(start, limit)
     except KeyNotFound:
-        raise KeyNotFound('Blocks not found')
+        raise KeyNotFound('Blocks not found.')
 
 
 @validate_params(ProtoForm, ignore_fields=('start', 'limit', 'head', 'reverse'))
