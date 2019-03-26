@@ -67,6 +67,9 @@ The flow is illustrated below.
    :align: center
    :alt: Proof node works over HTTPS
 
+For now, you can reach your monitoring page with the following address — ``https://the-coolest-masternode.xyz/grafana/``,
+changing ``the-coolest-masternode.xyz`` to your domain name and extension.
+
 Comodo
 ------
 
@@ -313,3 +316,6 @@ The flow is illustrated below.
 .. |curl_tool| raw:: html
 
    <a href="https://curl.haxx.se/download.html" target="_blank">tool named curl </a>
+
+For now, you can reach your monitoring page with the following address — ``https://the-coolest-masternode.xyz/grafana/``,
+changing ``the-coolest-masternode.xyz`` to your domain name and extension.

@@ -141,6 +141,8 @@ and ``IPv4 Public IP``, which you will need for subsequent steps.
    :align: center
    :alt: Instances dashboard
 
+.. _LoginToTheAwsInstance:
+
 Step 4: login to instance
 =========================
 
@@ -281,14 +283,14 @@ Then you will see the initial ``Grafana`` page with authentication. Enter ``admi
 
 After entering the initial credentials you will reach the main page. Click on the ``Home`` button right away beside the ``Grafana`` logo.
 
-.. image:: /img/user-guide/troubleshooting/grafana/home-button.png
+.. image:: /img/user-guide/advanced-guide/monitoring/home-button.png
    :width: 100%
    :align: center
    :alt: Grafana home button
 
 Then click on the button named ``Main Dashboard`` from the drop down search bar.
 
-.. image:: /img/user-guide/troubleshooting/grafana/dashboard-under-search.png
+.. image:: /img/user-guide/advanced-guide/monitoring/dashboard-under-search.png
    :width: 100%
    :align: center
    :alt: Dashboard under search

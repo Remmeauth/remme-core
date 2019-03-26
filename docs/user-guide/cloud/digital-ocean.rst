@@ -97,8 +97,8 @@ We recommend to enable backups to revert the server if you will occasionally do 
    :align: center
    :alt: Enable droplet backup
 
-Then generate your personal ``SSH key`` and add it to the server. Visit the :doc:`/user-guide/troubleshooting` section to
-find information about your ``SSH key`` and instructions on how to generate it.
+Then generate your personal ``SSH key`` and add it to the server. Visit the :ref:`SshKeysThroubleshooting` troubleshooting
+section to find instructions how to generate it.
 
 .. image:: /img/user-guide/cloud/digital-ocean/droplet-ssh-key.png
    :width: 100%
@@ -131,7 +131,7 @@ Wait for your droplet to be ready as illustrated in the image below.
 Step 4: login to droplet
 ========================
 
-Open a terminal on your PC. Visit the :doc:`/user-guide/troubleshooting` section to find instructions how to do this.
+Open a terminal on your PC. Visit the :ref:`OpenTerminalThroubleshooting` troubleshooting section to find instructions how to do this.
 
 Type the following command to login to the droplet. Remember to change ``157.230.146.230`` to your server ``IP address``.
 
@@ -282,14 +282,14 @@ Then you will see the initial ``Grafana`` page with authentication. Enter ``admi
 
 After entering the initial credentials you will reach the main page. Click on the ``Home`` button right away beside the ``Grafana`` logo.
 
-.. image:: /img/user-guide/troubleshooting/grafana/home-button.png
+.. image:: /img/user-guide/advanced-guide/monitoring/home-button.png
    :width: 100%
    :align: center
    :alt: Grafana home button
 
 Then click on the button named ``Main Dashboard`` from the drop down search bar.
 
-.. image:: /img/user-guide/troubleshooting/grafana/dashboard-under-search.png
+.. image:: /img/user-guide/advanced-guide/monitoring/dashboard-under-search.png
    :width: 100%
    :align: center
    :alt: Dashboard under search

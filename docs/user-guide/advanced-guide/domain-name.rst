@@ -131,3 +131,6 @@ The flow is illustrated below.
    :width: 100%
    :align: center
    :alt: Proof domain name works
+
+For now, you can reach your monitoring page with the following address — ``http://the-coolest-masternode.xyz/grafana/``,
+changing ``the-coolest-masternode.xyz`` to your domain name and extension.
