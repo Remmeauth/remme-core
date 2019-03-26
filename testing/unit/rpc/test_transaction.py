@@ -1,7 +1,10 @@
 import pytest
 from aiohttp_json_rpc.exceptions import RpcInvalidParamsError
 
-from remme.rpc_api.transaction import get_batch_status
+from remme.rpc_api.transaction import (
+    get_batch_status,
+    list_batches
+)
 from testing.utils._async import return_async_value
 
 BATCH_ID = 'id'
@@ -61,3 +64,107 @@ async def test_get_batch_status_without_batch_id(request_, batch_id_is_none):
         await get_batch_status(request_)
 
     assert 'Missed id.' == error.value.message
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('ids', [[1], [None], ['123']])
+async def test_list_batches_with_invalid_ids(request_, ids):
+    """
+    Case: list batches with invalid ids.
+    Expect: exception with invalid identifier message is raised.
+    """
+    request_.params = {
+        'ids': ids,
+    }
+
+    with pytest.raises(RpcInvalidParamsError) as error:
+        await list_batches(request_)
+
+    assert 'Incorrect identifier.' == error.value.message or 'Missed ids' == error.value.message
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('start', [1, '1', None])
+async def test_list_batches_with_invalid_start(request_, start):
+    """
+    Case: list batches with invalid start field.
+    Expect: exception with resource not found message is raised.
+    """
+    request_.params = {
+        'ids': ['9326f7cc285099feb39ac40058e4cdc29fa816452cee3d70dee5e7386ff61f40571e87bb1197755c246517c368d1aa89b37d4ddf52dc2d499a80f5b23ebb947f'],
+        'start': start,
+        'limit': 1,
+        'head': '9326f7cc285099feb39ac40058e4cdc29fa816452cee3d70dee5e7386ff61f40571e87bb1197755c246517c368d1aa89b37d4ddf52dc2d499a80f5b23ebb947f',
+        'reverse': True
+    }
+
+    with pytest.raises(RpcInvalidParamsError) as error:
+        await list_batches(request_)
+
+    if start is not None:
+        assert 'Given batch id is not a valid.' == error.value.message
+    else:
+        assert 'Missed id.' == error.value.message
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('limit', [-1, None,])
+async def test_list_batches_with_invalid_limit(request_, limit):
+    """
+    Case: list batches with invalid limit field.
+    Expect: exception with invalid limit is raised.
+    """
+    request_.params = {
+        'ids': ['9326f7cc285099feb39ac40058e4cdc29fa816452cee3d70dee5e7386ff61f40571e87bb1197755c246517c368d1aa89b37d4ddf52dc2d499a80f5b23ebb947f'],
+        'start': '9326f7cc285099feb39ac40058e4cdc29fa816452cee3d70dee5e7386ff61f40571e87bb1197755c246517c368d1aa89b37d4ddf52dc2d499a80f5b23ebb947f',
+        'limit': limit,
+        'head': '9326f7cc285099feb39ac40058e4cdc29fa816452cee3d70dee5e7386ff61f40571e87bb1197755c246517c368d1aa89b37d4ddf52dc2d499a80f5b23ebb947f',
+        'reverse': True
+    }
+
+    with pytest.raises(Exception) as error:
+        await list_batches(request_)
+
+    assert 'Invalid limit field.' == error.value.message
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('head', [1, '1', None])
+async def test_list_batches_with_invalid_head(request_, head):
+    """
+    Case: list batches with invalid start field.
+    Expect: exception with resource not found message is raised.
+    """
+    request_.params = {
+        'ids': ['9326f7cc285099feb39ac40058e4cdc29fa816452cee3d70dee5e7386ff61f40571e87bb1197755c246517c368d1aa89b37d4ddf52dc2d499a80f5b23ebb947f'],
+        'start': '9326f7cc285099feb39ac40058e4cdc29fa816452cee3d70dee5e7386ff61f40571e87bb1197755c246517c368d1aa89b37d4ddf52dc2d499a80f5b23ebb947f',
+        'limit': 1,
+        'head': head,
+        'reverse': True
+    }
+
+    with pytest.raises(RpcInvalidParamsError) as error:
+        await list_batches(request_)
+
+    if head is not None:
+        assert 'Given batch id is not a valid.' == error.value.message
+    else:
+        assert 'Missed id.' == error.value.message
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('reverse', [None])
+async def test_list_batches_with_invalid_reverse(request_, reverse):
+    """
+    Case: list batches with invalid reverse field.
+    Expect: exception invalid reverse field message is raised.
+    """
+    request_.params = {
+        'ids': ['9326f7cc285099feb39ac40058e4cdc29fa816452cee3d70dee5e7386ff61f40571e87bb1197755c246517c368d1aa89b37d4ddf52dc2d499a80f5b23ebb947f'],
+        'start': '9326f7cc285099feb39ac40058e4cdc29fa816452cee3d70dee5e7386ff61f40571e87bb1197755c246517c368d1aa89b37d4ddf52dc2d499a80f5b23ebb947f',
+        'limit': 1,
+        'head': '9326f7cc285099feb39ac40058e4cdc29fa816452cee3d70dee5e7386ff61f40571e87bb1197755c246517c368d1aa89b37d4ddf52dc2d499a80f5b23ebb947f',
+        'reverse': reverse
+    }
+
+    with pytest.raises(RpcInvalidParamsError) as error:
+        await list_batches(request_)
+
+    assert 'Invalid reverse field.' == error.value.message
