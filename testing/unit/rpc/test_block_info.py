@@ -1,7 +1,10 @@
 import pytest
 from aiohttp_json_rpc.exceptions import RpcInvalidParamsError
 
-from remme.rpc_api.block_info import get_blocks
+from remme.rpc_api.block_info import (
+    get_blocks,
+    list_blocks,
+)
 from remme.shared.exceptions import KeyNotFound
 from testing.utils._async import (
     raise_async_error,
@@ -13,7 +16,7 @@ from testing.utils._async import (
 @pytest.mark.parametrize('valid_params', [1, None])
 async def test_get_blocks_with_valid_params(mocker, request_, valid_params):
     """
-    Case: get blocks with valid parameter start.
+    Case: get blocks with parameter start.
     Expect: list of blocks.
     """
     request_.params = {
@@ -79,19 +82,36 @@ async def test_get_blocks_with_non_exists_params_count(mocker, request_):
 
 
 @pytest.mark.asyncio
-async def test_list_blocks_with_wrong_key_address(request_):
+async def test_get_blocks_with_wrong_key_address(request_):
     """
     Case: get blocks with wrong key address.
     Expect: wrong params keys error message.
     """
-    block = '1'
     request_.params = {
-        'address': block,
+        'address': '1',
     }
 
     expected_error_message = "Wrong params keys: ['address']"
 
     with pytest.raises(RpcInvalidParamsError) as error:
         await get_blocks(request_)
+
+    assert expected_error_message == error.value.message
+
+
+@pytest.mark.asyncio
+async def test_list_blocks_with_wrong_key_address(request_):
+    """
+    Case: get list blocks with wrong key address.
+    Expect: wrong params keys error message.
+    """
+    request_.params = {
+        'address': '11200759ba9b0d7ff93a3a8f6eb8e25fb5802d7caa8fad3d8bc19112b82f802a0cf9e7',
+    }
+
+    expected_error_message = "Wrong params keys: ['address']"
+
+    with pytest.raises(RpcInvalidParamsError) as error:
+        await list_blocks(request_)
 
     assert expected_error_message == error.value.message

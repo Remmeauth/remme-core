@@ -56,7 +56,7 @@ async def get_blocks(request):
         raise KeyNotFound('Blocks not found.')
 
 
-@validate_params(ProtoForm, ignore_fields=('address', 'start', 'limit', 'head', 'reverse'))
+@validate_params(ProtoForm, ignore_fields=('start', 'limit', 'head', 'reverse'))
 async def list_blocks(request):
     ids = request.params.get('ids')
     start = request.params.get('start')

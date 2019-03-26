@@ -42,7 +42,7 @@ class IntegerTypeRequired(object):
         if field.data is None:
             return
 
-        if not isinstance(field.data, int) or field.data is True:
+        if not isinstance(field.data, int) or isinstance(field.data, bool):
 
             if self.message is None:
                 message = field.gettext('This field is required.')
