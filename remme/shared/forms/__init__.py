@@ -33,6 +33,9 @@ from .identifier import (
     IdentifierForm,
     IdentifiersForm,
 )
+from .batches import (
+    ListBatchesForm
+)
 from .personal import (
     NodePKForm,
 )
