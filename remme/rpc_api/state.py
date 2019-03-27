@@ -19,6 +19,7 @@ from remme.rpc_api.utils import validate_params
 from remme.shared.exceptions import KeyNotFound
 from remme.shared.forms import get_address_form
 
+
 __all__ = (
     'list_state',
     'fetch_state',
@@ -48,4 +49,4 @@ async def fetch_state(request):
     try:
         return await client.fetch_state(address, head)
     except KeyNotFound:
-        raise KeyNotFound(f'Block with id "{id}" not found')
+        raise KeyNotFound(f'Block for address `{address}` not found.')
