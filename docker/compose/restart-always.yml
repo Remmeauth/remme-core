@@ -19,7 +19,7 @@ services:
   validator:
     restart: always
 
-  consensus-devmode:
+  consensus:
     restart: always
 
   validator-rest-api:

@@ -20,7 +20,7 @@ services:
     logging:
       driver: none
 
-  consensus-devmode:
+  consensus:
     logging:
       driver: none
 
