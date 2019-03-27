@@ -15,11 +15,12 @@
 import logging
 
 from remme.clients.block_info import BasicClient
+from remme.rpc_api.utils import validate_params
 from remme.shared.exceptions import KeyNotFound
-from remme.shared.forms import ProtoForm, get_address_form
-
-from .utils import validate_params
-
+from remme.shared.forms import (
+    get_address_form,
+    ProtoForm,
+)
 
 __all__ = (
     'list_state',
@@ -28,10 +29,11 @@ __all__ = (
 
 logger = logging.getLogger(__name__)
 
+client = BasicClient()
+
 
 @validate_params(ProtoForm, ignore_fields=('address', 'start', 'limit', 'head', 'reverse'))
 async def list_state(request):
-    client = BasicClient()
     address = request.params.get('address')
     start = request.params.get('start')
     limit = request.params.get('limit')
@@ -46,8 +48,7 @@ async def fetch_state(request):
     address = request.params['address']
     head = request.params.get('head')
 
-    client = BasicClient()
     try:
         return await client.fetch_state(address, head)
     except KeyNotFound:
-        raise KeyNotFound(f'Block with id "{id}" not found')
+        raise KeyNotFound(f'Block for address `{address}` not found.')
