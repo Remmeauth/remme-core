@@ -42,7 +42,7 @@ class BlockInfoClient(BasicClient):
             try:
                 bi = await self.get_block_info(i)
             except KeyNotFound:
-                continue
+                raise KeyNotFound
             else:
                 blocks.append(self.interpret_block_info(bi))
 
