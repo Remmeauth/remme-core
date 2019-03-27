@@ -208,21 +208,21 @@ async def list_batches(request):
 
 @validate_params(IdentifierForm)
 async def fetch_batch(request):
-    id = request.params['id']
+    batch_id = request.params['id']
 
     client = AccountClient()
     try:
-        return await client.fetch_batch(id)
+        return await client.fetch_batch(batch_id)
     except KeyNotFound:
-        raise KeyNotFound(f'Batch with batch id `{id}` not found.')
+        raise KeyNotFound(f'Batch with batch id `{batch_id}` not found.')
 
 
 @validate_params(IdentifierForm)
 async def get_batch_status(request):
-    id = request.params['id']
+    batch_id = request.params['id']
 
     client = AccountClient()
-    return await client.get_batch_status(id)
+    return await client.get_batch_status(batch_id)
 
 
 @validate_params(ProtoForm, ignore_fields=('ids', 'start', 'limit', 'head', 'reverse', 'family_name'))

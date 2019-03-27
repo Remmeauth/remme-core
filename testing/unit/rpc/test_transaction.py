@@ -11,8 +11,6 @@ from testing.utils._async import (
     return_async_value,
 )
 
-BATCH_ID = 'id'
-
 
 @pytest.mark.asyncio
 async def test_get_batch_status(mocker, request_,):
@@ -37,7 +35,7 @@ async def test_get_batch_status(mocker, request_,):
     mock_list_statuses.return_value = return_async_value(list_statuses)
 
     request_.params = {
-        BATCH_ID: batch_id,
+        'id': batch_id,
     }
 
     result = await get_batch_status(request_)
@@ -54,7 +52,7 @@ async def test_get_batch_status_with_invalid_batch_id(request_, invalid_batch_id
     Expect: given batch id is not a valid error message.
     """
     request_.params = {
-        BATCH_ID: invalid_batch_id,
+        'id': invalid_batch_id,
     }
 
     with pytest.raises(RpcInvalidParamsError) as error:
@@ -68,10 +66,10 @@ async def test_get_batch_status_with_invalid_batch_id(request_, invalid_batch_id
 async def test_get_batch_status_without_batch_id(request_, batch_id_is_none):
     """
     Case: get batch status without address.
-    Expect: missed ids error message.
+    Expect: missed id error message.
     """
     request_.params = {
-        BATCH_ID: batch_id_is_none,
+        'id': batch_id_is_none,
     }
 
     with pytest.raises(RpcInvalidParamsError) as error:
@@ -135,7 +133,7 @@ async def test_fetch_batch(mocker, request_,):
     mock_fetch_batch.return_value = return_async_value(expected_result)
 
     request_.params = {
-        BATCH_ID: batch_id,
+        'id': batch_id,
     }
 
     result = await fetch_batch(request_)
@@ -151,7 +149,7 @@ async def test_fetch_batch_with_invalid_batch_id(request_, invalid_batch_id):
     Expect: given batch id is not a valid error message.
     """
     request_.params = {
-        BATCH_ID: invalid_batch_id,
+        'id': invalid_batch_id,
     }
 
     with pytest.raises(RpcInvalidParamsError) as error:
@@ -165,10 +163,10 @@ async def test_fetch_batch_with_invalid_batch_id(request_, invalid_batch_id):
 async def test_fetch_batch_without_batch_id(request_, batch_id_is_none):
     """
     Case: fetch batch without batch id.
-    Expect: missed ids error message.
+    Expect: missed id error message.
     """
     request_.params = {
-        BATCH_ID: batch_id_is_none,
+        'id': batch_id_is_none,
     }
 
     with pytest.raises(RpcInvalidParamsError) as error:
@@ -186,7 +184,7 @@ async def test_fetch_batch_with_non_existing_batch_id(mocker, request_):
     invalid_batch_id = '5b3261a62694198d7eb034484abc06dfe997eca0f29f5f1019ba4d460e8b0977' \
                        '3cf52f8235ab89c273da3725dd3c212c955734332777e02725e78333aba7f1f1'
     request_.params = {
-        BATCH_ID: invalid_batch_id,
+        'id': invalid_batch_id,
     }
 
     expected_error_message = f'Batch with batch id `{invalid_batch_id}` not found.'
