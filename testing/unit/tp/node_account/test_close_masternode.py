@@ -15,9 +15,8 @@ from sawtooth_sdk.protobuf.transaction_pb2 import (
 from remme.protos.node_account_pb2 import (
     NodeAccountMethod,
     NodeAccount,
-    CloseMasternodePayload,
 )
-from remme.protos.transaction_pb2 import TransactionPayload
+from remme.protos.transaction_pb2 import TransactionPayload, EmptyPayload
 from remme.shared.utils import hash512
 from remme.tp.node_account import NodeAccountHandler
 from testing.conftest import create_signer
@@ -42,7 +41,7 @@ def test_close_masternode():
     Case: close masternode.
     Expect: masternode is closed, all reputation tokens are transferred to operational account.
     """
-    close_masternode_payload = CloseMasternodePayload()
+    close_masternode_payload = EmptyPayload()
 
     transaction_payload = TransactionPayload()
     transaction_payload.method = NodeAccountMethod.CLOSE_MASTERNODE
@@ -98,7 +97,7 @@ def test_close_new_masternode():
     Case: close not opened masternode.
     Expect: invalid transaction exception is raised with masternode is not opened or has been closed error message.
     """
-    close_masternode_payload = CloseMasternodePayload()
+    close_masternode_payload = EmptyPayload()
 
     transaction_payload = TransactionPayload()
     transaction_payload.method = NodeAccountMethod.CLOSE_MASTERNODE
@@ -140,7 +139,7 @@ def test_close_closed_masternode():
     Case: close closed masternode.
     Expect: invalid transaction exception is raised with masternode is not opened or has been closed error message.
     """
-    close_masternode_payload = CloseMasternodePayload()
+    close_masternode_payload = EmptyPayload()
 
     transaction_payload = TransactionPayload()
     transaction_payload.method = NodeAccountMethod.CLOSE_MASTERNODE

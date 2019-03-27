@@ -30,8 +30,6 @@ from remme.settings.helper import _get_setting_value, _make_settings_key
 
 from remme.shared.utils import web3_hash
 from remme.clients.account import AccountClient
-from remme.clients.block_info import BlockInfoClient, CONFIG_ADDRESS
-from remme.protos.block_info_pb2 import BlockInfo, BlockInfoConfig
 
 from remme.shared.constants import Events, EMIT_EVENT
 from remme.shared.forms import (
@@ -119,24 +117,6 @@ class AtomicSwapHandler(BasicHandler):
     def get_datetime_from_timestamp(timestamp):
         return datetime.datetime.fromtimestamp(timestamp)
 
-    @staticmethod
-    def _get_latest_block_info(context):
-        block_info_config = get_data(context, BlockInfoConfig, CONFIG_ADDRESS)
-
-        if not block_info_config:
-            raise InvalidTransaction('Block config not found.')
-
-        LOGGER.debug(f'Current latest block number: {block_info_config.latest_block + 1}')
-
-        block_info = get_data(context, BlockInfo, BlockInfoClient.create_block_address(block_info_config.latest_block))
-
-        if not block_info:
-            raise InvalidTransaction(f'Block {block_info_config.latest_block + 1} not found.')
-
-        LOGGER.debug(f'Block with number successfully loaded: {block_info.block_num + 1}')
-
-        return block_info
-
     def _swap_init(self, context, signer_pubkey, swap_init_payload):
         """
         if SecretLockOptionalBob is provided, Bob uses _swap_init to respond to requested swap
@@ -148,7 +128,7 @@ class AtomicSwapHandler(BasicHandler):
         if swap_information:
             raise InvalidTransaction('Atomic swap ID has already been taken, please use a different one.')
 
-        block_info = self._get_latest_block_info(context)
+        block_info = self.get_latest_block_info(context)
         block_time = block_info.timestamp
 
         swap_information = AtomicSwapInfo()
@@ -283,7 +263,7 @@ class AtomicSwapHandler(BasicHandler):
         if signer_address != swap_information.sender_address:
             raise InvalidTransaction('Signer is not the one who opened the swap.')
 
-        block = self._get_latest_block_info(context)
+        block = self.get_latest_block_info(context)
         block_time = self.get_datetime_from_timestamp(block.timestamp)
         created_at = self.get_datetime_from_timestamp(swap_information.created_at)
 

@@ -13,10 +13,6 @@ class NodeAccountGenesisForm(ProtoForm):
     value = fields.IntegerField()
 
 
-class CloseMasternodePayloadForm(ProtoForm):
-    pass
-
-
 class SetBetPayloadForm(ProtoForm):
     fixed_amount = fields.IntegerField(validators=[
         validators.DataRequired()

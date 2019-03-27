@@ -16,10 +16,22 @@ import logging
 
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
-from remme.protos.consensus_account_pb2 import ConsensusAccount
-from remme.settings import SETTINGS_GENESIS_OWNERS
+from remme.protos.transaction_pb2 import EmptyPayload
+from remme.protos.account_pb2 import Account
+from remme.protos.node_account_pb2 import NodeAccount
+from remme.protos.consensus_account_pb2 import (
+    ConsensusAccount,
+    ConsensusAccountMethod,
+)
+from remme.settings import (
+    SETTINGS_BLOCKCHAIN_TAX,
+    SETTINGS_MIN_SHARE,
+    SETTINGS_COMMITTEE_SIZE,
+    SETTINGS_MINIMUM_STAKE,
+)
 from remme.settings.helper import _get_setting_value
 from remme.shared.utils import hash512
+from remme.shared.forms import ProtoForm
 from .basic import (
     PB_CLASS,
     PROCESSOR,
@@ -28,6 +40,8 @@ from .basic import (
     get_data,
     get_multiple_data
 )
+from .account import AccountHandler
+from .node_account import NodeAccountHandler
 
 
 LOGGER = logging.getLogger(__name__)
@@ -44,4 +58,107 @@ class ConsensusAccountHandler(BasicHandler):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
 
     def get_state_processor(self):
-        return {}
+        return {
+            ConsensusAccountMethod.SEND_REWARD: {
+                PB_CLASS: EmptyPayload,
+                PROCESSOR: self._send_reward,
+                VALIDATOR: ProtoForm,
+            },
+        }
+
+    def _send_reward(self, context, public_key, pb_payload):
+        block = self.get_latest_block_info(context)
+
+        signer_node_address = NodeAccountHandler().make_address_from_data(block.signer_public_key)
+        node_account, consensus_account = get_multiple_data(context, [
+            (signer_node_address, NodeAccount),
+            (self.CONSENSUS_ADDRESS, ConsensusAccount),
+        ])
+
+        if not node_account:
+            raise InvalidTransaction('Node account not found.')
+
+        if not consensus_account:
+            raise InvalidTransaction('Consensus account not found.')
+
+        genesis_node_address = AccountHandler().make_address_from_data(consensus_account.public_key)
+        genesis_account = get_data(context, Account, genesis_node_address)
+
+        if not genesis_account:
+            raise InvalidTransaction('Genesis node account not found.')
+
+        try:
+            bet = consensus_account.bets.pop(signer_node_address)
+        except KeyError:
+            raise InvalidTransaction('Bet for address not found.')
+        else:
+            obligatory_payments = consensus_account.obligatory_payments
+            block_cost = consensus_account.block_cost
+
+        min_stake, initial_stake, max_share, min_share = self._get_share_data(context)
+
+        reputational = node_account.reputation.unfrozen + node_account.reputation.frozen
+
+        reward = obligatory_payments + block_cost + bet
+
+        state = {
+            signer_node_address: node_account,
+            self.CONSENSUS_ADDRESS: consensus_account,
+        }
+
+        if initial_stake <= reputational < min_stake * initial_stake:
+            share = self._calculate_share(max_share, min_share, initial_stake,
+                                          min_stake, reputational)
+            calc = int(share * reward)
+            node_account.reputation.unfrozen += calc
+            node_account.reputation.frozen += int(reward - calc)
+        elif reputational >= min_stake * initial_stake:
+            calc = int(max_share * reward)
+            node_account.reputation.unfrozen += calc
+            genesis_account.balance += int(reward - calc)
+
+            state[genesis_node_address] = genesis_account
+        else:
+            calc = int(max_share * reward)
+            node_account.reputation.frozen += calc
+            genesis_account.balance += int(reward - calc)
+
+            state[genesis_node_address] = genesis_account
+
+        consensus_account.obligatory_payments = 0
+        consensus_account.block_cost = 0
+
+        return state
+
+    @staticmethod
+    def _get_share_data(context):
+        min_stake = _get_setting_value(context, SETTINGS_MINIMUM_STAKE)
+        if min_stake is None or not min_stake.isdigit():
+            raise InvalidTransaction(f'{SETTINGS_MINIMUM_STAKE} is malformed. Should be not negative integer.')
+        min_stake = int(min_stake)
+
+        initial_stake = _get_setting_value(context, SETTINGS_COMMITTEE_SIZE)
+        if initial_stake is None or not initial_stake.isdigit():
+            raise InvalidTransaction(f'{SETTINGS_COMMITTEE_SIZE} is malformed. Should be not negative integer.')
+        initial_stake = int(initial_stake)
+
+        ledger_tax = _get_setting_value(context, SETTINGS_BLOCKCHAIN_TAX)
+        if ledger_tax is None:
+            raise InvalidTransaction(f'{SETTINGS_BLOCKCHAIN_TAX} is malformed. Not set.')
+        ledger_tax = float(ledger_tax)
+
+        min_share = _get_setting_value(context, SETTINGS_MIN_SHARE)
+        if min_share is None:
+            raise InvalidTransaction(f'{SETTINGS_MIN_SHARE} is malformed. Not set.')
+        min_share = float(min_share)
+
+        max_share = 1 - ledger_tax
+
+        return min_stake, initial_stake, max_share, min_share
+
+    @staticmethod
+    def _calculate_share(max_share, min_share, initial_stake, min_stake, reputational):
+        return (
+            ((max_share - min_share) / ((initial_stake - 1) * min_stake)) *
+            (reputational - min_stake)
+        ) + min_share
