@@ -76,7 +76,7 @@ Create it with green button at the right-top corner of the screen.
    :align: center
    :alt: Create droplet
 
-Specify image ``Ubuntu 16.04.5 x64``, which should be regarded as an operating system.
+Specify image ``Ubuntu 16.04.6 x64``, which should be regarded as an operating system.
 
 .. image:: /img/user-guide/cloud/digital-ocean/droplet-image.png
    :width: 100%
@@ -97,8 +97,8 @@ We recommend to enable backups to revert the server if you will occasionally do 
    :align: center
    :alt: Enable droplet backup
 
-Then generate your personal ``SSH key`` and add it to the server. Visit the :doc:`/user-guide/troubleshooting` section to
-find information about your ``SSH key`` and instructions on how to generate it.
+Then generate your personal ``SSH key`` and add it to the server. Visit the :ref:`SshKeysThroubleshooting` troubleshooting
+section to find instructions how to generate it.
 
 .. image:: /img/user-guide/cloud/digital-ocean/droplet-ssh-key.png
    :width: 100%
@@ -126,10 +126,12 @@ Wait for your droplet to be ready as illustrated in the image below.
    :align: center
    :alt: Droplet is ready
 
+.. _LoginToTheDigitalOceanDroplet:
+
 Step 4: login to droplet
 ========================
 
-Open a terminal on your PC. Visit the :doc:`/user-guide/troubleshooting` section to find instructions how to do this.
+Open a terminal on your PC. Visit the :ref:`OpenTerminalThroubleshooting` troubleshooting section to find instructions how to do this.
 
 Type the following command to login to the droplet. Remember to change ``157.230.146.230`` to your server ``IP address``.
 
@@ -259,10 +261,10 @@ The flow is illustrated below.
 Step 6: monitoring
 ==================
 
-Another option to check if your node has completed a correct setup is the monitoring. While starting the node, the monitoring also
-has been installed and started. **Completing this step is required**.
+Another option to check if your node has completed a correct setup is through monitoring. While starting the node, the monitoring
+has also been installed and started. **Completing this step is required**.
 
-Monitoring is a process of tracking application performance to detect and prevent issues that could happen with your application
+Monitoring is a process of tracking application performance to detect and prevent issues that could occur with your application
 on a particular server. For the monitoring, we will use ``Grafana``. |grafana| is an open source, feature-rich metrics dashboard
 and graph editor.
 
@@ -271,30 +273,30 @@ and graph editor.
    <a href="https://grafana.com/" target="_blank">Grafana</a>
 
 Copy your server's ``IP address``, paste it into the browser address bar. Then add ``/grafana/`` to the end of the address and press ``Enter``.
-Then you will see initial ``Grafana`` page with authentication. Enter ``admin`` to the ``User`` and ``Password`` fields.
+Then you will see the initial ``Grafana`` page with authentication. Enter ``admin`` to the ``User`` and ``Password`` fields.
 
 .. image:: /img/user-guide/advanced-guide/monitoring/login.png
    :width: 100%
    :align: center
    :alt: Login to the Grafana
 
-After entering the initial credentials you will reach the main page. Click on the ``Home`` button right away from ``Grafana`` logo.
+After entering the initial credentials you will reach the main page. Click on the ``Home`` button right away beside the ``Grafana`` logo.
 
-.. image:: /img/user-guide/troubleshooting/grafana/home-button.png
+.. image:: /img/user-guide/advanced-guide/monitoring/home-button.png
    :width: 100%
    :align: center
    :alt: Grafana home button
 
-Then click on button named ``Main Dashboard`` bottom away from the search bar.
+Then click on the button named ``Main Dashboard`` from the drop down search bar.
 
-.. image:: /img/user-guide/troubleshooting/grafana/dashboard-under-search.png
+.. image:: /img/user-guide/advanced-guide/monitoring/dashboard-under-search.png
    :width: 100%
    :align: center
    :alt: Dashboard under search
 
 Here you will find information about uptime, CPU cores and their load, memory and its load, storage and its load. Also,
 information about containers (components of the node) is presented on the right side of the page. Information
-about container includes numbers on how much CPU each uses, and so on.
+about containers includes numbers on how much CPU each uses, and so on.
 
 .. image:: /img/user-guide/advanced-guide/monitoring/dashboard.png
    :width: 100%
