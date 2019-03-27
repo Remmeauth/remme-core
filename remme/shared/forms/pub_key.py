@@ -52,7 +52,7 @@ class NewPublicKeyPayloadForm(ProtoForm):
                     if not self._errors:
                         is_valid = True
                     break
-            
+
         return is_valid
 
 
