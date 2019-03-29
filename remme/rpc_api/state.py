@@ -16,9 +16,13 @@ import logging
 
 from remme.clients.block_info import BasicClient
 from remme.rpc_api.utils import validate_params
-from remme.shared.exceptions import KeyNotFound
+from remme.shared.exceptions import (
+    ClientException,
+    CountInvalid,
+    KeyNotFound,
+)
 from remme.shared.forms import get_address_form
-
+from remme.shared.forms.state import ListStateForm
 
 __all__ = (
     'list_state',
@@ -30,7 +34,7 @@ logger = logging.getLogger(__name__)
 client = BasicClient()
 
 
-@validate_params(get_address_form('address'), ignore_fields=('start', 'limit', 'head', 'reverse'))
+@validate_params(ListStateForm)
 async def list_state(request):
     address = request.params.get('address')
     start = request.params.get('start')
@@ -38,7 +42,12 @@ async def list_state(request):
     head = request.params.get('head')
     reverse = request.params.get('reverse')
 
-    return await client.list_state(address, start, limit, head, reverse)
+    try:
+        return await client.list_state(address, start, limit, head, reverse)
+    except (KeyNotFound, ClientException):
+        raise KeyNotFound('Block not found.')
+    except CountInvalid:
+        raise CountInvalid('Invalid limit count.')
 
 
 @validate_params(get_address_form('address'), ignore_fields=('head',))
