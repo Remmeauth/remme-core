@@ -16,7 +16,8 @@ import logging
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
 from remme.protos.transaction_pb2 import EmptyPayload
-
+from remme.protos.consensus_account_pb2 import ConsensusAccount
+from remme.protos.account_pb2 import Account
 from remme.protos.node_account_pb2 import (
     NodeAccount,
     NodeState,
@@ -30,11 +31,17 @@ from remme.shared.forms import (
     ProtoForm,
     NodeAccountGenesisForm,
     SetBetPayloadForm,
+    ProtoForm,
 )
 
 from remme.settings import (
-    SETTINGS_MINIMUM_STAKE, SETTINGS_GENESIS_OWNERS, NODE_STATE_ADDRESS)
+    SETTINGS_MINIMUM_STAKE,
+    SETTINGS_GENESIS_OWNERS,
+    NODE_STATE_ADDRESS,
+    ZERO_ADDRESS,
+)
 
+from remme.settings.helper import _get_setting_value
 from .basic import (
     PB_CLASS,
     PROCESSOR,
@@ -43,7 +50,6 @@ from .basic import (
     get_data,
     get_multiple_data
 )
-from remme.settings.helper import _get_setting_value
 
 
 LOGGER = logging.getLogger(__name__)
@@ -87,6 +93,11 @@ class NodeAccountHandler(BasicHandler):
                 PB_CLASS: SetBetPayload,
                 PROCESSOR: self._set_bet,
                 VALIDATOR: SetBetPayloadForm,
+            },
+            NodeAccountMethod.DO_BET: {
+                PB_CLASS: EmptyPayload,
+                PROCESSOR: self._do_bet,
+                VALIDATOR: ProtoForm,
             },
         }
 
@@ -250,4 +261,41 @@ class NodeAccountHandler(BasicHandler):
 
         return {
             node_account_address: node_account,
+        }
+
+    def _do_bet(self, context, public_key, pb_payload):
+        from .consensus_account import ConsensusAccountHandler
+
+        signer_node_address = self.make_address_from_data(public_key)
+        node_account, consensus_account, zero_account = get_multiple_data(context, [
+            (signer_node_address, NodeAccount),
+            (ConsensusAccountHandler.CONSENSUS_ADDRESS, ConsensusAccount),
+            (ZERO_ADDRESS, Account),
+        ])
+
+        if not node_account:
+            raise InvalidTransaction('Node account not found.')
+
+        if not consensus_account:
+            raise InvalidTransaction('Consensus account not found.')
+
+        if not zero_account:
+            raise InvalidTransaction('Zero account not found.')
+
+        # TODO: Uncomment in the future
+        # block_cost = consensus_account.block_cost
+        block_cost = zero_account.balance
+
+        bet = 0
+        if node_account.min:
+            bet = block_cost
+        elif node_account.fixed_amount:
+            bet = node_account.fixed_amount * block_cost
+        elif node_account.max:
+            bet = 9 * block_cost
+
+        consensus_account.bets[signer_node_address] = bet
+
+        return {
+            ConsensusAccountHandler.CONSENSUS_ADDRESS: consensus_account,
         }
