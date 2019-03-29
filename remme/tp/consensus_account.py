@@ -74,16 +74,6 @@ class ConsensusAccountHandler(BasicHandler):
         }
 
     def _genesis(self, context, public_key, pb_payload):
-        genesis_owners = _get_setting_value(context, SETTINGS_GENESIS_OWNERS)
-        genesis_owners = genesis_owners.split(',') \
-            if genesis_owners is not None else []
-
-        if public_key not in genesis_owners:
-            raise InvalidTransaction(
-                'Consensus account could be created only '
-                'if it have owners permission.'
-            )
-
         consensus_address = self.CONSENSUS_ADDRESS
 
         consensus_account = get_data(context, ConsensusAccount, consensus_address)
@@ -92,6 +82,8 @@ class ConsensusAccountHandler(BasicHandler):
             consensus_account = ConsensusAccount()
         else:
             raise InvalidTransaction('Consensus account already exists.')
+
+        consensus_account.public_key = public_key
 
         LOGGER.info(f"Consensus account \"{consensus_address}\" created")
 
