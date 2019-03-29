@@ -30,7 +30,8 @@ from .atomic_swap import (
     AtomicSwapForm,
 )
 from .identifier import (
-    IdentifierForm,
+    BatchIdentifierForm,
+    TransactionIdentifierForm,
     IdentifiersForm,
 )
 from .personal import (
