@@ -23,6 +23,7 @@ from remme.tp.atomic_swap import AtomicSwapHandler
 from remme.tp.pub_key import PubKeyHandler
 from remme.tp.account import AccountHandler
 from remme.tp.node_account import NodeAccountHandler
+from remme.tp.obligatory_payment import ObligatoryPaymentHandler
 from remme.tp.consensus_account import ConsensusAccountHandler
 from remme.shared.logging_setup import setup_logging
 from remme.settings.default import load_toml_with_defaults
@@ -30,12 +31,13 @@ from remme.settings.default import load_toml_with_defaults
 
 TP_HANDLERS = {
     handler._family_name: handler
-    for handler in
-        (AccountHandler(),
+    for handler in (
+        AccountHandler(),
         PubKeyHandler(),
         AtomicSwapHandler(),
         NodeAccountHandler(),
         ConsensusAccountHandler(),
+        ObligatoryPaymentHandler(),
     )
 }
 

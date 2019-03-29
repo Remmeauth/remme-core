@@ -25,6 +25,8 @@ from sawtooth_sdk.protobuf.transaction_pb2 import TransactionHeader
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.shared.utils import hash512, Singleton, message_to_dict
 from remme.shared.metrics import METRICS_SENDER
+from remme.clients.block_info import BlockInfoClient, CONFIG_ADDRESS
+from remme.protos.block_info_pb2 import BlockInfo, BlockInfoConfig
 
 from .context import CacheContextService
 
@@ -185,3 +187,21 @@ class BasicHandler(metaclass=Singleton):
     def make_address_from_data(self, data):
         appendix = hash512(data)[:64]
         return self.make_address(appendix)
+
+    @staticmethod
+    def get_latest_block_info(context):
+        block_info_config = get_data(context, BlockInfoConfig, CONFIG_ADDRESS)
+
+        if not block_info_config:
+            raise InvalidTransaction('Block config not found.')
+
+        LOGGER.debug(f'Current latest block number: {block_info_config.latest_block + 1}')
+
+        block_info = get_data(context, BlockInfo, BlockInfoClient.create_block_address(block_info_config.latest_block))
+
+        if not block_info:
+            raise InvalidTransaction(f'Block {block_info_config.latest_block + 1} not found.')
+
+        LOGGER.debug(f'Block with number successfully loaded: {block_info.block_num + 1}')
+
+        return block_info

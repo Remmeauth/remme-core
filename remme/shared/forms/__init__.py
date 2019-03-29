@@ -19,9 +19,11 @@ from .account import (
 )
 from .node_account import (
     NodeAccountInternalTransferPayloadForm,
-    CloseMasternodePayloadForm,
     NodeAccountGenesisForm,
     SetBetPayloadForm,
+)
+from .obligatory_payment import (
+    ObligatoryPaymentPayloadForm
 )
 from .atomic_swap import (
     AtomicSwapInitPayloadForm,
