@@ -39,6 +39,7 @@ from remme.shared.forms import (
 )
 
 from .utils import validate_params
+import sys
 
 
 __all__ = (
@@ -204,45 +205,49 @@ async def list_batches(request):
     head = request.params.get('head')
     reverse = request.params.get('reverse')
 
-    for identifier in ids:
+    if ids is not None:
+        for identifier in ids:
+            try:
+                return await client.fetch_batch(identifier)
+            except Exception:
+                raise KeyNotFound(f'Resource not found.')
+
+    if start is not None:
         try:
-            return await client.fetch_batch(identifier)
-        except KeyNotFound:
-            raise KeyNotFound(f'Incorrect identifier.')
+            return await client.fetch_batch(start)
+        except Exception:
+            raise KeyNotFound(f'Resource not found.')
 
-    try:
-        return await client.fetch_batch(start)
-    except KeyNotFound:
-        raise KeyNotFound(f'Resource not found.')
+    if limit is not None:
+        if limit > sys.maxsize:
+            raise ValueError(f'Invalid limit count.')
 
-    if limit > sys.maxsize:
-        raise ValueError(f'Invalid limit count.')
-
-    try:
-        return await client.fetch_batch(head)
-    except KeyNotFound:
-        raise KeyNotFound(f'Resource not found.')
+    if head is not None:
+        try:
+            return await client.fetch_batch(head)
+        except Exception:
+            raise KeyNotFound(f'Resource not found.')
 
     return await client.list_batches(ids, start, limit, head, reverse)
 
 
 @validate_params(IdentifierForm)
 async def fetch_batch(request):
-    id = request.params['id']
+    batch_id = request.params['id']
 
     client = AccountClient()
     try:
-        return await client.fetch_batch(id)
+        return await client.fetch_batch(batch_id)
     except KeyNotFound:
-        raise KeyNotFound(f'Batch with id "{id}" not found')
+        raise KeyNotFound(f'Batch with batch id `{batch_id}` not found.')
 
 
 @validate_params(IdentifierForm)
 async def get_batch_status(request):
-    id = request.params['id']
+    batch_id = request.params['id']
 
     client = AccountClient()
-    return await client.get_batch_status(id)
+    return await client.get_batch_status(batch_id)
 
 
 @validate_params(ProtoForm, ignore_fields=('ids', 'start', 'limit', 'head', 'reverse', 'family_name'))

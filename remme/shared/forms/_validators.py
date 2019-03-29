@@ -51,7 +51,7 @@ class IntegerTypeRequired(object):
 
 class BooleanTypeRequired(object):
     """
-    Validates the value for the required integer type.
+    Validates the value for the required boolean type.
 
     Args:
         message (str): error message to raise in case of a validation error.
@@ -64,7 +64,7 @@ class BooleanTypeRequired(object):
         if field.data is None:
             return
 
-        if not isinstance(field.data, int) or isinstance(field.data, bool):
+        if not isinstance(field.data, bool):
 
             if self.message is None:
                 message = field.gettext('This field is required.')
@@ -114,3 +114,19 @@ class DataRequired(object):
 
             field.errors[:] = []
             raise validators.StopValidation(message)
+
+
+class NotRequired(object):
+    """
+    If the data is None then stops further validation.
+    """
+
+    field_flags = ('required',)
+
+    def __init__(self, message=None):
+        self.message = message
+
+    def __call__(self, form, field):
+
+        if field.data is None:
+            raise validators.StopValidation()
