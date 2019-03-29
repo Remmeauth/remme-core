@@ -45,8 +45,10 @@ services:
     image: remme/remme-consensus:latest
     network_mode: "service:validator"
     volumes:
+      - ../../config/log/consensus.toml:/config/log_config.toml
       - validator_keys:/etc/sawtooth/keys
       - consensus_seal:/seal
+      - logs:/var/log/remme
     entrypoint: sh -c "RUST_BACKTRACE=1 remme-consensus --connect tcp://127.0.0.1:5005"
 
   validator-rest-api:
@@ -118,6 +120,6 @@ services:
 volumes:
   validator_keys:
   chain_data:
+  consensus_seal:
   logs:
   metrics:
-  consensus_seal:

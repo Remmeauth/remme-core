@@ -1,0 +1,16 @@
+[appenders.stdout]
+kind = "console"
+encoder = { pattern = "[{d(%Y-%m-%d %H:%M:%S.%3f)} {l: <8} {M}] {m}{n}" }
+
+[appenders.files]
+kind = "rolling_file"
+encoder = { pattern = "[{d(%Y-%m-%d %H:%M:%S.%3f)} {l: <8} {M}] {m}{n}" }
+path = "/var/log/remme/consensus.log"
+  [appenders.files.policy]
+  kind = "compound"
+  trigger = { kind = "size", limit = "50 mb" }
+  roller = { kind = "fixed_window", base = 1, count = 20, pattern = "/var/log/remme/consensus.log.{}" }
+
+[root]
+level = "debug"
+appenders = ["stdout", "files"]

@@ -91,14 +91,6 @@ class NodeAccountHandler(BasicHandler):
         }
 
     def _initialize_node(self, context, node_account_public_key, internal_transfer_payload):
-        genesis_owners = _get_setting_value(context, SETTINGS_GENESIS_OWNERS)
-        genesis_owners = genesis_owners.split(',') \
-            if genesis_owners is not None else []
-
-        if node_account_public_key not in genesis_owners:
-            raise InvalidTransaction(
-                'Node account could be created only by current node.')
-
         node_account_address = self.make_address_from_data(node_account_public_key)
 
         node_account = get_data(context, NodeAccount, node_account_address)

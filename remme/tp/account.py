@@ -138,13 +138,9 @@ class AccountHandler(BasicHandler):
         ])
 
         if sender_account is None:
-            if sender_account_pb_class is NodeAccount:
-                raise InvalidTransaction(f'Node account "{address_from}" does not exist')
             sender_account = sender_account_pb_class()
 
         if receiver_account is None:
-            if receiver_account_pb_class is NodeAccount:
-                raise InvalidTransaction(f'Node account "{transfer_payload.address_to}" does not exist')
             receiver_account = receiver_account_pb_class()
 
         if sender_account.balance < transfer_payload.value:
