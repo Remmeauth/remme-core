@@ -68,6 +68,8 @@ class ConsensusAccountHandler(BasicHandler):
         }
 
     def _send_reward(self, context, public_key, pb_payload):
+        LOGGER.info("Sending rewards...")
+
         block = self.get_latest_block_info(context)
 
         signer_node_address = NodeAccountHandler().make_address_from_data(block.signer_public_key)
@@ -84,7 +86,7 @@ class ConsensusAccountHandler(BasicHandler):
             raise InvalidTransaction('Consensus account not found.')
 
         if not zero_account:
-            raise InvalidTransaction('Zero account not found.')
+            zero_account = Account()
 
         genesis_node_address = AccountHandler().make_address_from_data(consensus_account.public_key)
         genesis_account = get_data(context, Account, genesis_node_address)
@@ -123,18 +125,23 @@ class ConsensusAccountHandler(BasicHandler):
             calc = int(share * reward)
             node_account.reputation.unfrozen += calc
             node_account.reputation.frozen += int(reward - calc)
+            LOGGER.info(f"Payng rewards. Unfrozen: {calc}; frozen: {int(reward - calc)}")
         elif reputational >= min_stake * initial_stake:
             calc = int(max_share * reward)
             node_account.reputation.unfrozen += calc
             genesis_account.balance += int(reward - calc)
 
             state[genesis_node_address] = genesis_account
+
+            LOGGER.info(f"Payng rewards. Unfrozen: {calc}, REMME: {int(reward - calc)}")
         else:
             calc = int(max_share * reward)
             node_account.reputation.frozen += calc
             genesis_account.balance += int(reward - calc)
 
             state[genesis_node_address] = genesis_account
+
+            LOGGER.info(f"Payng rewards. Unfrozen: {calc}, REMME: {int(reward - calc)}")
 
         consensus_account.obligatory_payments = 0
 

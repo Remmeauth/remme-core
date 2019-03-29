@@ -120,4 +120,6 @@ class ObligatoryPaymentHandler(BasicHandler):
 
         node_account.reputation.unfrozen += (committee_size - 1) * obligatory_payment
 
+        LOGGER.info(f"Obligatory payment total: {(committee_size - 1) * obligatory_payment}")
+
         return address_to_node_account_dict

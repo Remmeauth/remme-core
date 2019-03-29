@@ -1,8 +1,5 @@
 #!/bin/bash
 
-docker pull remmetechnical/sawtooth-validator-intermediate:latest
-docker tag remmetechnical/sawtooth-validator-intermediate:latest sawtooth-validator:latest
-
 COMPOSE_FILES="-f ./build/docker-compose.yml"
 
 while getopts ":r" opt; do
