@@ -21,6 +21,7 @@ from remme.protos.transaction_pb2 import TransactionPayload
 
 from remme.clients.account import AccountClient
 from remme.clients.node_account import NodeAccountClient
+from remme.clients.consensus_account import ConsensusAccountClient
 from remme.tp.account import AccountHandler
 from remme.settings import GENESIS_ADDRESS
 from remme.settings.default import load_toml_with_defaults
@@ -34,8 +35,8 @@ if __name__ == '__main__':
     parser.add_argument('--token-supply', default=parameters['token_supply'])
     args = parser.parse_args()
 
-    na_client = NodeAccountClient()
-    na_client.generate_genesis_batches()
+    for client in [NodeAccountClient(), ConsensusAccountClient()]:
+        client.generate_genesis_batches()
 
     if parameters['economy_enabled']:
         account_client = AccountClient()

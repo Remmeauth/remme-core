@@ -46,6 +46,7 @@ services:
     network_mode: "service:validator"
     volumes:
       - validator_keys:/etc/sawtooth/keys
+      - consensus_seal:/seal
     entrypoint: sh -c "RUST_BACKTRACE=1 remme-consensus --connect tcp://127.0.0.1:5005"
 
   validator-rest-api:
@@ -119,3 +120,4 @@ volumes:
   chain_data:
   logs:
   metrics:
+  consensus_seal:

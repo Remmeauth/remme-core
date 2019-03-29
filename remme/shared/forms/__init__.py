@@ -19,7 +19,6 @@ from .account import (
 )
 from .node_account import (
     NodeAccountInternalTransferPayloadForm,
-    CloseMasternodePayloadForm,
     NodeAccountGenesisForm,
     SetBetPayloadForm,
 )

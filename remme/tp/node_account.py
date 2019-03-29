@@ -15,19 +15,19 @@
 import logging
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
+from remme.protos.transaction_pb2 import EmptyPayload
 
 from remme.protos.node_account_pb2 import (
     NodeAccount,
     NodeState,
     NodeAccountMethod,
     NodeAccountInternalTransferPayload,
-    CloseMasternodePayload,
     SetBetPayload,
 )
 
 from remme.shared.forms import (
     NodeAccountInternalTransferPayloadForm,
-    CloseMasternodePayloadForm,
+    ProtoForm,
     NodeAccountGenesisForm,
     SetBetPayloadForm,
 )
@@ -75,8 +75,8 @@ class NodeAccountHandler(BasicHandler):
             },
             NodeAccountMethod.CLOSE_MASTERNODE: {
                 PROCESSOR: self._close_masternode,
-                PB_CLASS: CloseMasternodePayload,
-                VALIDATOR: CloseMasternodePayloadForm,
+                PB_CLASS: EmptyPayload,
+                VALIDATOR: ProtoForm,
             },
             NodeAccountMethod.TRANSFER_FROM_FROZEN_TO_UNFROZEN: {
                 PB_CLASS: NodeAccountInternalTransferPayload,
@@ -105,7 +105,8 @@ class NodeAccountHandler(BasicHandler):
 
         if node_account is None:
             node_account = NodeAccount(
-                balance=internal_transfer_payload.value
+                balance=internal_transfer_payload.value,
+                min=True,
             )
         else:
             raise InvalidTransaction('Node account already exists.')

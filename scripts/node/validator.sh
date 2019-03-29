@@ -51,6 +51,7 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
         remme.settings.blockchain_tax=0.1 \
         remme.settings.minimum_stake=250000 \
         remme.settings.minimum_bet=10000 \
+        remme.settings.min_share=0.45 \
         -o settings_config.batch
 
     GENESIS_BATCHES="$GENESIS_BATCHES settings_config.batch"
@@ -64,11 +65,14 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
     echo "Writing batch for node 2 master node convertion genesis..."
     GENESIS_BATCHES="$GENESIS_BATCHES /genesis/batch/n2mn-proposal.batch"
 
+    echo "Writing batch for consensus account genesis..."
+    GENESIS_BATCHES="$GENESIS_BATCHES /genesis/batch/consensus-proposal.batch"
+
     echo "Writing batch injector settings..."
     sawset proposal create \
         -k /etc/sawtooth/keys/validator.priv \
         "sawtooth.validator.batch_injectors=remme_batches" \
-        "sawtooth.validator.block_validation_rules=NofX:1,block_info;XatY:block_info,0;local:0;NofX:1,obligatory_payment;XatY:obligatory_payment,1;local:0;" \
+        "sawtooth.validator.block_validation_rules=NofX:1,block_info;XatY:block_info,0;local:0;NofX:1,obligatory_payment;XatY:obligatory_payment,2;local:0;NofX:1,consensus_account;XatY:consensus_account,1;local:0;" \
         -o block_info_config.batch
 
     GENESIS_BATCHES="$GENESIS_BATCHES block_info_config.batch"
