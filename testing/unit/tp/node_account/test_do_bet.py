@@ -79,6 +79,7 @@ def test_do_bet_min():
     state_as_list = mock_context.get_state(addresses=[
         ConsensusAccountHandler.CONSENSUS_ADDRESS,
         ZERO_ADDRESS,
+        NODE_ACCOUNT_ADDRESS_FROM,
     ])
 
     state_as_dict = {entry.address: entry.data for entry in state_as_list}
@@ -88,6 +89,11 @@ def test_do_bet_min():
 
     zero_acc = Account()
     zero_acc.ParseFromString(state_as_dict[ZERO_ADDRESS])
+
+    node_acc = NodeAccount()
+    node_acc.ParseFromString(state_as_dict[NODE_ACCOUNT_ADDRESS_FROM])
+
+    assert node_acc.balance == OPERATIONAL_BALANCE - BLOCK_COST
 
     assert NODE_ACCOUNT_ADDRESS_FROM in consensus_acc.bets
     assert consensus_acc.bets[NODE_ACCOUNT_ADDRESS_FROM] == BLOCK_COST
@@ -134,6 +140,7 @@ def test_do_bet_max():
     state_as_list = mock_context.get_state(addresses=[
         ConsensusAccountHandler.CONSENSUS_ADDRESS,
         ZERO_ADDRESS,
+        NODE_ACCOUNT_ADDRESS_FROM,
     ])
 
     state_as_dict = {entry.address: entry.data for entry in state_as_list}
@@ -143,6 +150,11 @@ def test_do_bet_max():
 
     consensus_acc = ConsensusAccount()
     consensus_acc.ParseFromString(state_as_dict[ConsensusAccountHandler.CONSENSUS_ADDRESS])
+
+    node_acc = NodeAccount()
+    node_acc.ParseFromString(state_as_dict[NODE_ACCOUNT_ADDRESS_FROM])
+
+    assert node_acc.balance == OPERATIONAL_BALANCE - 9 * BLOCK_COST
 
     assert NODE_ACCOUNT_ADDRESS_FROM in consensus_acc.bets
     assert consensus_acc.bets[NODE_ACCOUNT_ADDRESS_FROM] == 9 * BLOCK_COST
@@ -191,6 +203,7 @@ def test_do_bet_fixed_amount():
     state_as_list = mock_context.get_state(addresses=[
         ConsensusAccountHandler.CONSENSUS_ADDRESS,
         ZERO_ADDRESS,
+        NODE_ACCOUNT_ADDRESS_FROM,
     ])
 
     state_as_dict = {entry.address: entry.data for entry in state_as_list}
@@ -200,6 +213,11 @@ def test_do_bet_fixed_amount():
 
     zero_acc = Account()
     zero_acc.ParseFromString(state_as_dict[ZERO_ADDRESS])
+
+    node_acc = NodeAccount()
+    node_acc.ParseFromString(state_as_dict[NODE_ACCOUNT_ADDRESS_FROM])
+
+    assert node_acc.balance == OPERATIONAL_BALANCE - FIXED_AMOUNT * BLOCK_COST
 
     assert NODE_ACCOUNT_ADDRESS_FROM in consensus_acc.bets
     assert consensus_acc.bets[NODE_ACCOUNT_ADDRESS_FROM] == FIXED_AMOUNT * BLOCK_COST
