@@ -12,6 +12,7 @@ from remme.settings import (
     SETTINGS_COMMITTEE_SIZE,
     SETTINGS_BLOCKCHAIN_TAX,
     SETTINGS_MIN_SHARE,
+    ZERO_ADDRESS,
 )
 from remme.settings.helper import _make_settings_key
 from remme.protos.block_info_pb2 import BlockInfo, BlockInfoConfig
@@ -57,6 +58,7 @@ INPUTS = OUTPUTS = [
     BLOCK_INFO_ADDRESS,
     ConsensusAccountHandler.CONSENSUS_ADDRESS,
     GENESIS_ACCOUNT_ADDRESS,
+    ZERO_ADDRESS,
 ]
 
 TRANSACTION_REQUEST_CONSENSUS_ACCOUNT_HANDLER_PARAMS = {
@@ -104,7 +106,8 @@ def create_context(account_from_balance=0, bet_value=BET_VALUE, node_state=NodeA
     consensus_account = ConsensusAccount()
     consensus_account.public_key = RANDOM_NODE_PUBLIC_KEY
     consensus_account.obligatory_payments = obligatory_payments
-    consensus_account.block_cost = block_cost
+    # TODO: Undo in the future
+    # consensus_account.block_cost = block_cost
     consensus_account.bets[NODE_ACCOUNT_SIGNER_ADDRESS] = bet_value
     serialized_consensus_account = consensus_account.SerializeToString()
 
@@ -118,6 +121,7 @@ def create_context(account_from_balance=0, bet_value=BET_VALUE, node_state=NodeA
         BLOCK_INFO_ADDRESS: SERIALIZED_BLOCK_INFO,
         ConsensusAccountHandler.CONSENSUS_ADDRESS: serialized_consensus_account,
         GENESIS_ACCOUNT_ADDRESS: Account(balance=0).SerializeToString(),
+        ZERO_ADDRESS: Account(balance=block_cost).SerializeToString(),
     }
 
     return StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state=initial_state)

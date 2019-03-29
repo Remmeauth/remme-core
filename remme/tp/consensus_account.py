@@ -28,6 +28,7 @@ from remme.settings import (
     SETTINGS_MIN_SHARE,
     SETTINGS_COMMITTEE_SIZE,
     SETTINGS_MINIMUM_STAKE,
+    ZERO_ADDRESS,
 )
 from remme.settings.helper import _get_setting_value
 from remme.shared.utils import hash512
@@ -70,9 +71,10 @@ class ConsensusAccountHandler(BasicHandler):
         block = self.get_latest_block_info(context)
 
         signer_node_address = NodeAccountHandler().make_address_from_data(block.signer_public_key)
-        node_account, consensus_account = get_multiple_data(context, [
+        node_account, consensus_account, zero_account = get_multiple_data(context, [
             (signer_node_address, NodeAccount),
             (self.CONSENSUS_ADDRESS, ConsensusAccount),
+            (ZERO_ADDRESS, Account),
         ])
 
         if not node_account:
@@ -80,6 +82,9 @@ class ConsensusAccountHandler(BasicHandler):
 
         if not consensus_account:
             raise InvalidTransaction('Consensus account not found.')
+
+        if not zero_account:
+            raise InvalidTransaction('Zero account not found.')
 
         genesis_node_address = AccountHandler().make_address_from_data(consensus_account.public_key)
         genesis_account = get_data(context, Account, genesis_node_address)
@@ -93,7 +98,11 @@ class ConsensusAccountHandler(BasicHandler):
             raise InvalidTransaction('Bet for address not found.')
         else:
             obligatory_payments = consensus_account.obligatory_payments
-            block_cost = consensus_account.block_cost
+
+            # TODO: Take from here in the future
+            # block_cost = consensus_account.block_cost
+            block_cost = zero_account.balance
+
 
         min_stake, initial_stake, max_share, min_share = self._get_share_data(context)
 
@@ -104,6 +113,8 @@ class ConsensusAccountHandler(BasicHandler):
         state = {
             signer_node_address: node_account,
             self.CONSENSUS_ADDRESS: consensus_account,
+            # TODO: Remove int he future
+            ZERO_ADDRESS: zero_account,
         }
 
         if initial_stake <= reputational < min_stake * initial_stake:
@@ -126,7 +137,10 @@ class ConsensusAccountHandler(BasicHandler):
             state[genesis_node_address] = genesis_account
 
         consensus_account.obligatory_payments = 0
-        consensus_account.block_cost = 0
+
+        # TODO: Use this for withdraw
+        # consensus_account.block_cost = 0
+        zero_account.balance = 0
 
         return state
 

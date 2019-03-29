@@ -74,6 +74,7 @@ def test_send_reward_less_condition():
         NODE_ACCOUNT_SIGNER_ADDRESS,
         ConsensusAccountHandler.CONSENSUS_ADDRESS,
         GENESIS_ACCOUNT_ADDRESS,
+        ZERO_ADDRESS,
     ])
     state_as_dict = {entry.address: entry.data for entry in state_as_list}
 
@@ -86,10 +87,15 @@ def test_send_reward_less_condition():
     consensus_acc = ConsensusAccount()
     consensus_acc.ParseFromString(state_as_dict[ConsensusAccountHandler.CONSENSUS_ADDRESS])
 
+    zero_acc = Account()
+    zero_acc.ParseFromString(state_as_dict[ZERO_ADDRESS])
+
+    assert zero_acc.balance == 0
+
     assert node_acc.reputation.frozen == REP
     assert genesis_acc.balance == REV_REP
 
-    assert consensus_acc.block_cost == 0
+    # assert consensus_acc.block_cost == 0
     assert consensus_acc.obligatory_payments == 0
     assert NODE_ACCOUNT_SIGNER_ADDRESS not in consensus_acc.bets
 
@@ -151,6 +157,7 @@ def test_send_reward_middle_condition():
         NODE_ACCOUNT_SIGNER_ADDRESS,
         ConsensusAccountHandler.CONSENSUS_ADDRESS,
         GENESIS_ACCOUNT_ADDRESS,
+        ZERO_ADDRESS,
     ])
     state_as_dict = {entry.address: entry.data for entry in state_as_list}
 
@@ -163,10 +170,15 @@ def test_send_reward_middle_condition():
     consensus_acc = ConsensusAccount()
     consensus_acc.ParseFromString(state_as_dict[ConsensusAccountHandler.CONSENSUS_ADDRESS])
 
+    zero_acc = Account()
+    zero_acc.ParseFromString(state_as_dict[ZERO_ADDRESS])
+
+    assert zero_acc.balance == 0
+
     assert node_acc.reputation.unfrozen == REP + UNFROZEN
     assert node_acc.reputation.frozen == REV_REP + FROZEN
 
-    assert consensus_acc.block_cost == 0
+    # assert consensus_acc.block_cost == 0
     assert consensus_acc.obligatory_payments == 0
     assert NODE_ACCOUNT_SIGNER_ADDRESS not in consensus_acc.bets
 
@@ -228,6 +240,7 @@ def test_send_reward_upper_condition():
         NODE_ACCOUNT_SIGNER_ADDRESS,
         ConsensusAccountHandler.CONSENSUS_ADDRESS,
         GENESIS_ACCOUNT_ADDRESS,
+        ZERO_ADDRESS,
     ])
     state_as_dict = {entry.address: entry.data for entry in state_as_list}
 
@@ -240,9 +253,14 @@ def test_send_reward_upper_condition():
     consensus_acc = ConsensusAccount()
     consensus_acc.ParseFromString(state_as_dict[ConsensusAccountHandler.CONSENSUS_ADDRESS])
 
+    zero_acc = Account()
+    zero_acc.ParseFromString(state_as_dict[ZERO_ADDRESS])
+
+    assert zero_acc.balance == 0
+
     assert node_acc.reputation.unfrozen == REP + UNFROZEN
     assert genesis_acc.balance == REV_REP
 
-    assert consensus_acc.block_cost == 0
+    # assert consensus_acc.block_cost == 0
     assert consensus_acc.obligatory_payments == 0
     assert NODE_ACCOUNT_SIGNER_ADDRESS not in consensus_acc.bets
