@@ -51,7 +51,7 @@ class BasicClient:
         self._family_handler = family_handler() if callable(family_handler) else None
         self._router = RouterPool([
             ValidatorRouter(Connection.get_single_connection(f'tcp://{ config["validator_ip"] }:{ config["validator_port"] }')),
-            ConsensusRouter(Connection.get_single_connection(f'tcp://{ config["consensus_ip"] }:{ config["consensus_port"] }', msg_pb=ConsensusMessage)),            
+            ConsensusRouter(Connection.get_single_connection(f'tcp://{ config["consensus_ip"] }:{ config["consensus_port"] }', msg_pb=ConsensusMessage)),
         ])
 
         try:
@@ -219,6 +219,11 @@ class BasicClient:
 
         return await self.submit_batches(batch_list.batches)
 
+    def generate_genesis_batches(self):
+        """Methods for generating genesis batches
+        """
+        raise NotImplementedError
+
     def _sign_batch_list(self, signer, transactions):
         transaction_signatures = [t.header_signature for t in transactions]
 
@@ -234,3 +239,7 @@ class BasicClient:
             transactions=transactions,
             header_signature=signature)
         return BatchList(batches=[batch])
+
+    def _write_batch_to_file(self, fname, payload, addresses_input, addresses_output):
+        with open(fname, 'wb') as batch_file:
+            batch_file.write(self.make_batch_list(payload, addresses_input, addresses_output).SerializeToString())

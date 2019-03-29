@@ -81,7 +81,3 @@ class NodeAccountClient(BasicClient):
                                          payload,
                                          addresses_input,
                                          addresses_output)
-
-    def _write_batch_to_file(self, fname, payload, addresses_input, addresses_output):
-        with open(fname, 'wb') as batch_file:
-            batch_file.write(self.make_batch_list(payload, addresses_input, addresses_output).SerializeToString())

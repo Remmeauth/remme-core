@@ -28,6 +28,7 @@ from remme.settings import (
     SETTINGS_MIN_SHARE,
     SETTINGS_COMMITTEE_SIZE,
     SETTINGS_MINIMUM_STAKE,
+    SETTINGS_GENESIS_OWNERS,
     ZERO_ADDRESS,
 )
 from remme.settings.helper import _get_setting_value
@@ -60,11 +61,42 @@ class ConsensusAccountHandler(BasicHandler):
 
     def get_state_processor(self):
         return {
+            ConsensusAccountMethod.GENESIS: {
+                PB_CLASS: EmptyPayload,
+                PROCESSOR: self._genesis,
+                VALIDATOR: ProtoForm,
+            },
             ConsensusAccountMethod.SEND_REWARD: {
                 PB_CLASS: EmptyPayload,
                 PROCESSOR: self._send_reward,
                 VALIDATOR: ProtoForm,
             },
+        }
+
+    def _genesis(self, context, public_key, pb_payload):
+        genesis_owners = _get_setting_value(context, SETTINGS_GENESIS_OWNERS)
+        genesis_owners = genesis_owners.split(',') \
+            if genesis_owners is not None else []
+
+        if public_key not in genesis_owners:
+            raise InvalidTransaction(
+                'Consensus account could be created only '
+                'if it have owners permission.'
+            )
+
+        consensus_address = self.CONSENSUS_ADDRESS
+
+        consensus_account = get_data(context, ConsensusAccount, consensus_address)
+
+        if consensus_account is None:
+            consensus_account = ConsensusAccount()
+        else:
+            raise InvalidTransaction('Consensus account already exists.')
+
+        LOGGER.info(f"Consensus account \"{consensus_address}\" created")
+
+        return {
+            consensus_address: consensus_account,
         }
 
     def _send_reward(self, context, public_key, pb_payload):
