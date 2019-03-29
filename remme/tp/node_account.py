@@ -266,6 +266,14 @@ class NodeAccountHandler(BasicHandler):
     def _do_bet(self, context, public_key, pb_payload):
         from .consensus_account import ConsensusAccountHandler
 
+        genesis_owners = _get_setting_value(context, SETTINGS_GENESIS_OWNERS)
+        genesis_owners = genesis_owners.split(',') \
+            if genesis_owners is not None else []
+
+        # NOTE: Dirty hack for test
+        if public_key in genesis_owners:
+            return {}
+
         signer_node_address = self.make_address_from_data(public_key)
         node_account, consensus_account, zero_account = get_multiple_data(context, [
             (signer_node_address, NodeAccount),
@@ -280,7 +288,7 @@ class NodeAccountHandler(BasicHandler):
             raise InvalidTransaction('Consensus account not found.')
 
         if not zero_account:
-            raise InvalidTransaction('Zero account not found.')
+            zero_account = Account()
 
         # TODO: Uncomment in the future
         # block_cost = consensus_account.block_cost
@@ -295,7 +303,9 @@ class NodeAccountHandler(BasicHandler):
             bet = 9 * block_cost
 
         consensus_account.bets[signer_node_address] = bet
+        node_account.balance -= bet
 
         return {
             ConsensusAccountHandler.CONSENSUS_ADDRESS: consensus_account,
+            signer_node_address: node_account,
         }
