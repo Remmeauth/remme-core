@@ -4,7 +4,6 @@ from wtforms import validators
 class StringTypeRequired(object):
     """
     Validates the value for the required string type.
-
     Args:
         message (str): error message to raise in case of a validation error.
     """
@@ -26,7 +25,6 @@ class StringTypeRequired(object):
 class IntegerTypeRequired(object):
     """
     Validates the value for the required integer type.
-
     Args:
         message (str): error message to raise in case of a validation error.
     """
@@ -52,20 +50,16 @@ class IntegerTypeRequired(object):
 class DataRequired(object):
     """
     Checks the field's data is 'truthy' otherwise stops the validation chain.
-
     This validator checks that the ``data`` attribute on the field is a 'true'
     value (effectively, it does ``if field.data``.) Furthermore, if the data
     is a string type, a string containing only whitespace characters is
     considered false.
-
     If the data is zero, WTForms validators.DataRequired considers it like False
     and response is like argument is missed. We need not missed argument error message,
     but invalid data error message. So appeared the opportunity to write сustom
     validator to solve this case.
-
     If the data is empty, also removes prior errors (such as processing errors)
     from the field.
-
     Args:
         message (str): error message to raise in case of a validation error.
     """
