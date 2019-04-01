@@ -94,11 +94,6 @@ class NodeAccountHandler(BasicHandler):
                 PROCESSOR: self._set_bet,
                 VALIDATOR: SetBetPayloadForm,
             },
-            NodeAccountMethod.DO_BET: {
-                PB_CLASS: EmptyPayload,
-                PROCESSOR: self._do_bet,
-                VALIDATOR: ProtoForm,
-            },
         }
 
     def _initialize_node(self, context, node_account_public_key, internal_transfer_payload):
@@ -261,51 +256,4 @@ class NodeAccountHandler(BasicHandler):
 
         return {
             node_account_address: node_account,
-        }
-
-    def _do_bet(self, context, public_key, pb_payload):
-        from .consensus_account import ConsensusAccountHandler
-
-        genesis_owners = _get_setting_value(context, SETTINGS_GENESIS_OWNERS)
-        genesis_owners = genesis_owners.split(',') \
-            if genesis_owners is not None else []
-
-        # NOTE: Dirty hack for test
-        if public_key in genesis_owners:
-            return {}
-
-        signer_node_address = self.make_address_from_data(public_key)
-        node_account, consensus_account, zero_account = get_multiple_data(context, [
-            (signer_node_address, NodeAccount),
-            (ConsensusAccountHandler.CONSENSUS_ADDRESS, ConsensusAccount),
-            (ZERO_ADDRESS, Account),
-        ])
-
-        if not node_account:
-            raise InvalidTransaction('Node account not found.')
-
-        if not consensus_account:
-            raise InvalidTransaction('Consensus account not found.')
-
-        if not zero_account:
-            zero_account = Account()
-
-        # TODO: Uncomment in the future
-        # block_cost = consensus_account.block_cost
-        block_cost = zero_account.balance
-
-        bet = 0
-        if node_account.min:
-            bet = block_cost
-        elif node_account.fixed_amount:
-            bet = node_account.fixed_amount * block_cost
-        elif node_account.max:
-            bet = 9 * block_cost
-
-        consensus_account.bets[signer_node_address] = bet
-        node_account.balance -= bet
-
-        return {
-            ConsensusAccountHandler.CONSENSUS_ADDRESS: consensus_account,
-            signer_node_address: node_account,
         }

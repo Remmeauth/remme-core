@@ -15,7 +15,7 @@ from remme.protos.node_account_pb2 import (
 )
 from remme.protos.transaction_pb2 import TransactionPayload, EmptyPayload
 from remme.shared.utils import hash512
-from remme.tp.node_account import NodeAccountHandler
+from remme.tp.internal import InternalHandler
 from remme.tp.consensus_account import ConsensusAccountHandler, ConsensusAccount
 from testing.utils.client import proto_error_msg
 from testing.conftest import create_signer
@@ -26,7 +26,6 @@ from .shared import (
     NODE_ACCOUNT_FROM_PRIVATE_KEY,
     INPUTS,
     OUTPUTS,
-    TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS,
     create_context,
     BLOCK_COST,
     ZERO_ADDRESS,
@@ -36,6 +35,11 @@ from .shared import (
 FROZEN_BALANCE = 300000
 UNFROZEN_BALANCE = 10000
 OPERATIONAL_BALANCE = 5000
+
+TRANSACTION_REQUEST_INTERNAL_HANDLER_PARAMS = {
+    'family_name': InternalHandler().family_name,
+    'family_version': InternalHandler().family_versions[0],
+}
 
 
 def test_do_bet_min():
@@ -53,8 +57,8 @@ def test_do_bet_min():
 
     transaction_header = TransactionHeader(
         signer_public_key=RANDOM_NODE_PUBLIC_KEY,
-        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
-        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
+        family_name=TRANSACTION_REQUEST_INTERNAL_HANDLER_PARAMS.get('family_name'),
+        family_version=TRANSACTION_REQUEST_INTERNAL_HANDLER_PARAMS.get('family_version'),
         inputs=INPUTS,
         outputs=OUTPUTS,
         dependencies=[],
@@ -74,7 +78,7 @@ def test_do_bet_min():
     mock_context = create_context(account_from_balance=OPERATIONAL_BALANCE, node_state=NodeAccount.OPENED,
                                   frozen=FROZEN_BALANCE, unfrozen=UNFROZEN_BALANCE, min=True)
 
-    NodeAccountHandler().apply(transaction=transaction_request, context=mock_context)
+    InternalHandler().apply(transaction=transaction_request, context=mock_context)
 
     state_as_list = mock_context.get_state(addresses=[
         ConsensusAccountHandler.CONSENSUS_ADDRESS,
@@ -114,8 +118,8 @@ def test_do_bet_max():
 
     transaction_header = TransactionHeader(
         signer_public_key=RANDOM_NODE_PUBLIC_KEY,
-        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
-        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
+        family_name=TRANSACTION_REQUEST_INTERNAL_HANDLER_PARAMS.get('family_name'),
+        family_version=TRANSACTION_REQUEST_INTERNAL_HANDLER_PARAMS.get('family_version'),
         inputs=INPUTS,
         outputs=OUTPUTS,
         dependencies=[],
@@ -135,7 +139,7 @@ def test_do_bet_max():
     mock_context = create_context(account_from_balance=OPERATIONAL_BALANCE, node_state=NodeAccount.OPENED,
                                   frozen=FROZEN_BALANCE, unfrozen=UNFROZEN_BALANCE, max=True)
 
-    NodeAccountHandler().apply(transaction=transaction_request, context=mock_context)
+    InternalHandler().apply(transaction=transaction_request, context=mock_context)
 
     state_as_list = mock_context.get_state(addresses=[
         ConsensusAccountHandler.CONSENSUS_ADDRESS,
@@ -175,8 +179,8 @@ def test_do_bet_fixed_amount():
 
     transaction_header = TransactionHeader(
         signer_public_key=RANDOM_NODE_PUBLIC_KEY,
-        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
-        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
+        family_name=TRANSACTION_REQUEST_INTERNAL_HANDLER_PARAMS.get('family_name'),
+        family_version=TRANSACTION_REQUEST_INTERNAL_HANDLER_PARAMS.get('family_version'),
         inputs=INPUTS,
         outputs=OUTPUTS,
         dependencies=[],
@@ -198,7 +202,7 @@ def test_do_bet_fixed_amount():
     mock_context = create_context(account_from_balance=OPERATIONAL_BALANCE, node_state=NodeAccount.OPENED,
                                   frozen=FROZEN_BALANCE, unfrozen=UNFROZEN_BALANCE, fixed_amount=FIXED_AMOUNT)
 
-    NodeAccountHandler().apply(transaction=transaction_request, context=mock_context)
+    InternalHandler().apply(transaction=transaction_request, context=mock_context)
 
     state_as_list = mock_context.get_state(addresses=[
         ConsensusAccountHandler.CONSENSUS_ADDRESS,

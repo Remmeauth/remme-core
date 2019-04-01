@@ -25,6 +25,7 @@ from remme.tp.account import AccountHandler
 from remme.tp.node_account import NodeAccountHandler
 from remme.tp.obligatory_payment import ObligatoryPaymentHandler
 from remme.tp.consensus_account import ConsensusAccountHandler
+from remme.tp.internal import InternalHandler
 from remme.shared.logging_setup import setup_logging
 from remme.settings.default import load_toml_with_defaults
 
@@ -38,6 +39,7 @@ TP_HANDLERS = {
         NodeAccountHandler(),
         ConsensusAccountHandler(),
         ObligatoryPaymentHandler(),
+        InternalHandler(),
     )
 }
 
