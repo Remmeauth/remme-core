@@ -81,6 +81,7 @@ class BetHandler(BasicHandler):
 
         # NOTE: Dirty hack for test
         if public_key in genesis_owners:
+            LOGGER.info("Genesis node, skipping bet")
             return {}
 
         signer_node_address = NodeAccountHandler().make_address_from_data(public_key)
@@ -113,6 +114,8 @@ class BetHandler(BasicHandler):
 
         consensus_account.bets[signer_node_address] = bet
         node_account.balance -= bet
+
+        LOGGER.info(f"Doing bet of size {bet}")
 
         return {
             ConsensusAccountHandler.CONSENSUS_ADDRESS: consensus_account,
