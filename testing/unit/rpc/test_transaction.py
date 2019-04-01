@@ -182,13 +182,13 @@ async def test_fetch_batch_with_non_existing_batch_id(mocker, request_):
     Case: fetch batch with a non-existing batch id.
     Expect: batch not found error message.
     """
-    invalid_batch_id = '5b3261a62694198d7eb034484abc06dfe997eca0f29f5f1019ba4d460e8b0977' \
-                       '3cf52f8235ab89c273da3725dd3c212c955734332777e02725e78333aba7f1f1'
+    non_existing_batch_id = '5b3261a62694198d7eb034484abc06dfe997eca0f29f5f1019ba4d460e8b0977' \
+                            '3cf52f8235ab89c273da3725dd3c212c955734332777e02725e78333aba7f1f1'
     request_.params = {
-        'id': invalid_batch_id,
+        'id': non_existing_batch_id,
     }
 
-    expected_error_message = f'Batch with batch id `{invalid_batch_id}` not found.'
+    expected_error_message = f'Batch with batch id `{non_existing_batch_id}` not found.'
 
     mock_fetch_batch = mocker.patch('remme.shared.router.Router.fetch_batch')
     mock_fetch_batch.return_value = raise_async_error(KeyNotFound(expected_error_message))
@@ -289,13 +289,13 @@ async def test_fetch_transaction_with_non_existing_id(mocker, request_):
     Case: fetch transaction with a non-existing id.
     Expect: transaction not found error message.
     """
-    invalid_transaction_id = '5b3261a62694198d7eb034484abc06dfe997eca0f29f5f1019ba4d460e8b0977' \
-                             '3cf52f8235ab89c273da3725dd3c212c955734332777e02725e78333aba7f1f1'
+    non_existing_transaction_id = '5b3261a62694198d7eb034484abc06dfe997eca0f29f5f1019ba4d460e8b0977' \
+                                  '3cf52f8235ab89c273da3725dd3c212c955734332777e02725e78333aba7f1f1'
     request_.params = {
-        'id': invalid_transaction_id,
+        'id': non_existing_transaction_id,
     }
 
-    expected_error_message = f'Transaction with id "{invalid_transaction_id}" not found'
+    expected_error_message = f'Transaction with id "{non_existing_transaction_id}" not found'
 
     mock_fetch_transaction = mocker.patch('remme.shared.router.Router.fetch_transaction')
     mock_fetch_transaction.return_value = raise_async_error(KeyNotFound(expected_error_message))
