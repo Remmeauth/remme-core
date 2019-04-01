@@ -54,11 +54,11 @@ from .basic import (
 
 LOGGER = logging.getLogger(__name__)
 
-FAMILY_NAME = 'internal'
+FAMILY_NAME = 'bet'
 FAMILY_VERSIONS = ['0.1']
 
 
-class InternalHandler(BasicHandler):
+class BetHandler(BasicHandler):
     def __init__(self):
         super().__init__(FAMILY_NAME, FAMILY_VERSIONS)
 

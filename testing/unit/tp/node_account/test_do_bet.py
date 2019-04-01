@@ -15,7 +15,7 @@ from remme.protos.node_account_pb2 import (
 )
 from remme.protos.transaction_pb2 import TransactionPayload, EmptyPayload
 from remme.shared.utils import hash512
-from remme.tp.internal import InternalHandler
+from remme.tp.bet import BetHandler
 from remme.tp.consensus_account import ConsensusAccountHandler, ConsensusAccount
 from testing.utils.client import proto_error_msg
 from testing.conftest import create_signer
@@ -37,8 +37,8 @@ UNFROZEN_BALANCE = 10000
 OPERATIONAL_BALANCE = 5000
 
 TRANSACTION_REQUEST_INTERNAL_HANDLER_PARAMS = {
-    'family_name': InternalHandler().family_name,
-    'family_version': InternalHandler().family_versions[0],
+    'family_name': BetHandler().family_name,
+    'family_version': BetHandler().family_versions[0],
 }
 
 
@@ -78,7 +78,7 @@ def test_do_bet_min():
     mock_context = create_context(account_from_balance=OPERATIONAL_BALANCE, node_state=NodeAccount.OPENED,
                                   frozen=FROZEN_BALANCE, unfrozen=UNFROZEN_BALANCE, min=True)
 
-    InternalHandler().apply(transaction=transaction_request, context=mock_context)
+    BetHandler().apply(transaction=transaction_request, context=mock_context)
 
     state_as_list = mock_context.get_state(addresses=[
         ConsensusAccountHandler.CONSENSUS_ADDRESS,
@@ -139,7 +139,7 @@ def test_do_bet_max():
     mock_context = create_context(account_from_balance=OPERATIONAL_BALANCE, node_state=NodeAccount.OPENED,
                                   frozen=FROZEN_BALANCE, unfrozen=UNFROZEN_BALANCE, max=True)
 
-    InternalHandler().apply(transaction=transaction_request, context=mock_context)
+    BetHandler().apply(transaction=transaction_request, context=mock_context)
 
     state_as_list = mock_context.get_state(addresses=[
         ConsensusAccountHandler.CONSENSUS_ADDRESS,
@@ -202,7 +202,7 @@ def test_do_bet_fixed_amount():
     mock_context = create_context(account_from_balance=OPERATIONAL_BALANCE, node_state=NodeAccount.OPENED,
                                   frozen=FROZEN_BALANCE, unfrozen=UNFROZEN_BALANCE, fixed_amount=FIXED_AMOUNT)
 
-    InternalHandler().apply(transaction=transaction_request, context=mock_context)
+    BetHandler().apply(transaction=transaction_request, context=mock_context)
 
     state_as_list = mock_context.get_state(addresses=[
         ConsensusAccountHandler.CONSENSUS_ADDRESS,
