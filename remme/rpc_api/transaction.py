@@ -36,6 +36,7 @@ from remme.shared.forms import (
     IdentifiersForm,
     ProtoForm,
 )
+from remme.shared.utils import real_to_client_amount
 
 from .utils import validate_params
 
@@ -72,7 +73,7 @@ async def send_tokens(request):
             error_code=-32050,
             message='Could not transfer with zero amount'
         )
-    if signer_account.balance < amount:
+    if real_to_client_amount(signer_account.balance) < amount:
         raise RpcGenericServerDefinedError(
             error_code=-32050,
             message='Not enough transferable balance of sender'

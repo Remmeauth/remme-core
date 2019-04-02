@@ -14,11 +14,12 @@
 # ------------------------------------------------------------------------
 import json
 import logging
+from decimal import Decimal
 
 from remme.clients.node_account import NodeAccountClient
 from remme.protos.node_account_pb2 import NodeAccount
 from remme.rpc_api.utils import validate_params
-from remme.shared.utils import message_to_dict
+from remme.shared.utils import message_to_dict, real_to_client_amount
 from remme.shared.forms import get_address_form
 
 __all__ = (
@@ -41,4 +42,6 @@ async def get_node_account(request):
     node_address = request.params['node_account_address']
     account = await client.get_account(node_address)
 
-    return message_to_dict(account)
+    data = message_to_dict(account)
+    data['balance'] = str(real_to_client_amount(Decimal(data['balance'])))
+    return data
