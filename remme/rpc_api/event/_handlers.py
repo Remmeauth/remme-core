@@ -19,6 +19,7 @@ import json
 import abc
 import hashlib
 import re
+from decimal import Decimal
 
 from aiohttp_json_rpc.exceptions import RpcInvalidParamsError
 from sawtooth_sdk.protobuf.client_event_pb2 import ClientEventsSubscribeRequest
@@ -28,6 +29,7 @@ from sawtooth_sdk.protobuf.validator_pb2 import Message
 from remme.clients.block_info import BlockInfoClient
 from remme.shared.exceptions import ClientException
 from remme.shared.constants import Events
+from remme.shared.utils import real_to_client_amount
 
 LOGGER = logging.getLogger(__name__)
 
@@ -247,11 +249,11 @@ class TransferEventHandler(BaseEventHandler):
             return {
                 'from': {
                     'address': sender['address'],
-                    'balance': float(sender['balance'])
+                    'balance': float(real_to_client_amount(sender['balance']))
                 },
                 'to': {
                     'address': receiver['address'],
-                    'balance': float(receiver['balance'])
+                    'balance': float(real_to_client_amount(receiver['balance']))
                 },
             }
 
@@ -301,6 +303,8 @@ class AtomicSwapEventHandler(BaseEventHandler):
         if id_ and id_ != swap_info['swap_id']:
             return
         del swap_info['type']
+
+        swap_info['amount'] = str(real_to_client_amount(Decimal(swap_info['amount'])))
         return swap_info
 
     def parse_evt(self, evt):
