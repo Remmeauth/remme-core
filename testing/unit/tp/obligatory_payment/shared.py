@@ -1,6 +1,9 @@
 from sawtooth_sdk.protobuf.setting_pb2 import Setting
 
-from remme.protos.node_account_pb2 import NodeAccount
+from remme.protos.node_account_pb2 import (
+    NodeAccount,
+    NodeState,
+)
 from remme.tp.obligatory_payment import ObligatoryPaymentHandler
 from testing.mocks.stub import StubContext
 
@@ -8,12 +11,16 @@ from remme.settings import (
     CONSENSUS_ALLOWED_VALIDATORS,
     SETTINGS_OBLIGATORY_PAYMENT,
     SETTINGS_COMMITTEE_SIZE,
+    NODE_STATE_ADDRESS,
 )
 
 from remme.settings.helper import _make_settings_key
+from remme.shared.utils import client_to_real_amount
 
 COMMITTEE_SIZE = 10
 OBLIGATORY_PAYMENT = 1
+
+NODE_ACCOUNT_ADDRESS_FROM = '116829d71fa7e120c60fb392a64fd69de891a60c667d9ea9e5d9d9d617263be6c20202'
 
 BLOCK_WINNER_PUBLIC_KEY = '039d6881f0a71d05659e1f40b443684b93c7b7c504ea23ea8949ef5216a2236940'
 COMMITTEE_PUBLIC_KEYS = []
@@ -36,12 +43,13 @@ ADDRESS_TO_GET_OBLIGATORY_PAYMENT = _make_settings_key(SETTINGS_OBLIGATORY_PAYME
 ADDRESS_TO_GET_COMMITTEE_SIZE = _make_settings_key(SETTINGS_COMMITTEE_SIZE)
 
 INPUTS = OUTPUTS = [
+    NODE_ACCOUNT_ADDRESS_FROM,
     ADDRESS_TO_GET_ALLOWED_VALIDATORS,
     ADDRESS_TO_GET_OBLIGATORY_PAYMENT,
     ADDRESS_TO_GET_COMMITTEE_SIZE,
+    NODE_STATE_ADDRESS,
 ]
 INPUTS.extend(COMMITTEE_ADDRESSES)
-OUTPUTS.extend(COMMITTEE_ADDRESSES)
 
 TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS = {
     'family_name': ObligatoryPaymentHandler().family_name,
@@ -62,11 +70,10 @@ def create_context(operational_balance, frozen_balance, unfrozen_balance, allowe
     serialized_node_accounts = []
     for i in range(0, COMMITTEE_SIZE):
         node_account = NodeAccount()
-
-        node_account.balance = operational_balance
+        node_account.balance = client_to_real_amount(operational_balance)
         node_account.node_state = NodeAccount.OPENED
-        node_account.reputation.frozen = frozen_balance
-        node_account.reputation.unfrozen = unfrozen_balance
+        node_account.reputation.frozen = client_to_real_amount(frozen_balance)
+        node_account.reputation.unfrozen = client_to_real_amount(unfrozen_balance)
         serialized_node_account = node_account.SerializeToString()
 
         serialized_node_accounts.append(serialized_node_account)
@@ -79,10 +86,21 @@ def create_context(operational_balance, frozen_balance, unfrozen_balance, allowe
     obligatory_payment_settings.entries.add(key=SETTINGS_COMMITTEE_SIZE, value=str(COMMITTEE_SIZE))
     serialized_obligatory_payment_setting = obligatory_payment_settings.SerializeToString()
 
+    node_account = NodeAccount()
+    serialized_account_from_balance = node_account.SerializeToString()
+
+    node_state = NodeState()
+    for i in range(0, COMMITTEE_SIZE):
+        node_state.master_nodes.append(COMMITTEE_ADDRESSES[i])
+
+    serialized_node_state = node_state.SerializeToString()
+
     initial_state = {
         ADDRESS_TO_GET_ALLOWED_VALIDATORS: serialized_obligatory_payment_setting,
         ADDRESS_TO_GET_OBLIGATORY_PAYMENT: serialized_obligatory_payment_setting,
         ADDRESS_TO_GET_COMMITTEE_SIZE: serialized_obligatory_payment_setting,
+        NODE_ACCOUNT_ADDRESS_FROM: serialized_account_from_balance,
+        NODE_STATE_ADDRESS: serialized_node_state,
     }
 
     for i in range(0, COMMITTEE_SIZE):

@@ -47,7 +47,7 @@ from .basic import (
     get_data,
     get_multiple_data
 )
-from remme.shared.utils import hash512
+from remme.shared.utils import hash512, client_to_real_amount
 from remme.settings.helper import _get_setting_value
 LOGGER = logging.getLogger(__name__)
 
@@ -68,6 +68,7 @@ def withdraw_obligatory_payment(node_account, obligatory_payment):
     else:
         raise InvalidTransaction("Malformed committee. A node doesn't have enough tokens to pay obligatory payment.")
 
+
 def get_obligatory_payment_parameters(context):
     node_state = get_data(context, NodeState, NODE_STATE_ADDRESS)
     committee_pub_keys = node_state.master_nodes
@@ -76,7 +77,7 @@ def get_obligatory_payment_parameters(context):
         raise InvalidTransaction('Committee size should be a positive integer.')
     obligatory_payment = _get_setting_value(context, SETTINGS_OBLIGATORY_PAYMENT)
     try:
-        obligatory_payment = int(obligatory_payment)
+        obligatory_payment = client_to_real_amount(int(obligatory_payment))
     except e:
         raise InvalidTransaction('Obligatory payment amount should be a positive integer.')
     if obligatory_payment == 0:
@@ -109,8 +110,11 @@ class ObligatoryPaymentHandler(BasicHandler):
         address_to_node_account_dict = {
             node_account_address: node_account,
         }
-        committee_addresses.remove(node_account_address)  # committee to charge obligatory payment
-        
+        try:
+            committee_addresses.remove(node_account_address)  # committee to charge obligatory payment
+        except ValueError:
+            pass
+
         for address in committee_addresses:
             committee_node_account = get_data(context, NodeAccount, address)
             if committee_node_account is None:
@@ -118,7 +122,7 @@ class ObligatoryPaymentHandler(BasicHandler):
             withdraw_obligatory_payment(committee_node_account, obligatory_payment)
             address_to_node_account_dict[address] = committee_node_account
 
-        node_account.reputation.unfrozen += (committee_size - 1) * obligatory_payment
+        node_account.reputation.unfrozen += client_to_real_amount((committee_size - 1) * obligatory_payment)
 
         LOGGER.info(f"Obligatory payment total: {(committee_size - 1) * obligatory_payment}")
 
