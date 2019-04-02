@@ -18,7 +18,7 @@ from remme.protos.node_account_pb2 import (
     NodeAccount,
 )
 from remme.protos.transaction_pb2 import TransactionPayload
-from remme.shared.utils import hash512
+from remme.shared.utils import hash512, client_to_real_amount
 from remme.tp.node_account import NodeAccountHandler
 from testing.conftest import create_signer
 from testing.utils.client import proto_error_msg
@@ -88,9 +88,9 @@ def test_init_masternode():
 
     node_account = state_as_dict.get(NODE_ACCOUNT_ADDRESS_FROM, NodeAccount())
 
-    assert node_account.balance == operational
-    assert node_account.reputation.frozen == MINIMUM_STAKE
-    assert node_account.reputation.unfrozen == initial_stake - MINIMUM_STAKE - operational
+    assert node_account.balance == client_to_real_amount(operational)
+    assert node_account.reputation.frozen == client_to_real_amount(MINIMUM_STAKE)
+    assert node_account.reputation.unfrozen == client_to_real_amount(initial_stake - MINIMUM_STAKE - operational)
     assert node_account.node_state == NodeAccount.OPENED
 
 

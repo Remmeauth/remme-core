@@ -21,7 +21,7 @@ from remme.protos.node_account_pb2 import (
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.settings import SETTINGS_MINIMUM_STAKE
 from remme.settings.helper import _make_settings_key
-from remme.shared.utils import hash512
+from remme.shared.utils import hash512, client_to_real_amount
 from remme.tp.node_account import NodeAccountHandler
 from testing.conftest import create_signer
 from testing.mocks.stub import StubContext
@@ -62,8 +62,8 @@ def create_context(account_from_frozen_balance, account_to_unfrozen_balance, min
     """
     node_account = NodeAccount()
 
-    node_account.reputation.frozen = account_from_frozen_balance
-    node_account.reputation.unfrozen = account_to_unfrozen_balance
+    node_account.reputation.frozen = client_to_real_amount(account_from_frozen_balance)
+    node_account.reputation.unfrozen = client_to_real_amount(account_to_unfrozen_balance)
     serialized_account_balance = node_account.SerializeToString()
 
     minimum_stake_setting = Setting()
@@ -175,8 +175,8 @@ def test_transfer_from_frozen_to_unfrozen():
 
     node_account_reputation = state_as_dict.get(NODE_ACCOUNT_ADDRESS_FROM, NodeAccount()).reputation
 
-    assert node_account_reputation.frozen == FROZEN - transfer_value
-    assert node_account_reputation.unfrozen == UNFROZEN + transfer_value
+    assert node_account_reputation.frozen == client_to_real_amount(FROZEN - transfer_value)
+    assert node_account_reputation.unfrozen == client_to_real_amount(UNFROZEN + transfer_value)
 
 
 def test_transfer_from_frozen_to_unfrozen_low_frozen_balance():
@@ -217,7 +217,8 @@ def test_transfer_from_frozen_to_unfrozen_low_frozen_balance():
         signature=create_signer(private_key=NODE_ACCOUNT_FROM_PRIVATE_KEY).sign(serialized_header),
     )
 
-    mock_context = create_context(account_from_frozen_balance=frozen_value, account_to_unfrozen_balance=UNFROZEN)
+    mock_context = create_context(account_from_frozen_balance=frozen_value,
+                                  account_to_unfrozen_balance=UNFROZEN)
 
     with pytest.raises(InvalidTransaction) as error:
         NodeAccountHandler().apply(transaction=transaction_request, context=mock_context)

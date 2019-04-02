@@ -14,7 +14,7 @@ from remme.protos.node_account_pb2 import (
     NodeAccount,
 )
 from remme.protos.transaction_pb2 import TransactionPayload, EmptyPayload
-from remme.shared.utils import hash512
+from remme.shared.utils import hash512, client_to_real_amount
 from remme.tp.bet import BetHandler
 from remme.tp.consensus_account import ConsensusAccountHandler, ConsensusAccount
 from testing.utils.client import proto_error_msg
@@ -97,10 +97,10 @@ def test_do_bet_min():
     node_acc = NodeAccount()
     node_acc.ParseFromString(state_as_dict[NODE_ACCOUNT_ADDRESS_FROM])
 
-    assert node_acc.balance == OPERATIONAL_BALANCE - BLOCK_COST
+    assert node_acc.balance == client_to_real_amount(OPERATIONAL_BALANCE - BLOCK_COST)
 
     assert NODE_ACCOUNT_ADDRESS_FROM in consensus_acc.bets
-    assert consensus_acc.bets[NODE_ACCOUNT_ADDRESS_FROM] == BLOCK_COST
+    assert consensus_acc.bets[NODE_ACCOUNT_ADDRESS_FROM] == client_to_real_amount(BLOCK_COST)
 
 
 def test_do_bet_max():
@@ -158,10 +158,10 @@ def test_do_bet_max():
     node_acc = NodeAccount()
     node_acc.ParseFromString(state_as_dict[NODE_ACCOUNT_ADDRESS_FROM])
 
-    assert node_acc.balance == OPERATIONAL_BALANCE - 9 * BLOCK_COST
+    assert node_acc.balance == client_to_real_amount(OPERATIONAL_BALANCE - 9 * BLOCK_COST)
 
     assert NODE_ACCOUNT_ADDRESS_FROM in consensus_acc.bets
-    assert consensus_acc.bets[NODE_ACCOUNT_ADDRESS_FROM] == 9 * BLOCK_COST
+    assert consensus_acc.bets[NODE_ACCOUNT_ADDRESS_FROM] == client_to_real_amount(9 * BLOCK_COST)
 
 
 def test_do_bet_fixed_amount():
@@ -221,7 +221,7 @@ def test_do_bet_fixed_amount():
     node_acc = NodeAccount()
     node_acc.ParseFromString(state_as_dict[NODE_ACCOUNT_ADDRESS_FROM])
 
-    assert node_acc.balance == OPERATIONAL_BALANCE - FIXED_AMOUNT * BLOCK_COST
+    assert node_acc.balance == client_to_real_amount(OPERATIONAL_BALANCE - FIXED_AMOUNT * BLOCK_COST)
 
     assert NODE_ACCOUNT_ADDRESS_FROM in consensus_acc.bets
-    assert consensus_acc.bets[NODE_ACCOUNT_ADDRESS_FROM] == FIXED_AMOUNT * BLOCK_COST
+    assert consensus_acc.bets[NODE_ACCOUNT_ADDRESS_FROM] == client_to_real_amount(FIXED_AMOUNT * BLOCK_COST)

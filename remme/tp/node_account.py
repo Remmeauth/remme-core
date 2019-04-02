@@ -42,6 +42,7 @@ from remme.settings import (
 )
 
 from remme.settings.helper import _get_setting_value
+from remme.shared.utils import client_to_real_amount
 from .basic import (
     PB_CLASS,
     PROCESSOR,
@@ -103,7 +104,7 @@ class NodeAccountHandler(BasicHandler):
 
         if node_account is None:
             node_account = NodeAccount(
-                balance=internal_transfer_payload.value,
+                balance=client_to_real_amount(internal_transfer_payload.value),
                 min=True,
             )
         else:
@@ -129,22 +130,24 @@ class NodeAccountHandler(BasicHandler):
         if node_account.node_state != NodeAccount.NEW:
             raise InvalidTransaction('Masternode is already opened or closed.')
 
-        if node_account.balance < internal_transfer_payload.value:
+        amount = client_to_real_amount(internal_transfer_payload.value)
+
+        if node_account.balance < amount:
             raise InvalidTransaction('Insufficient amount of tokens on operational account.')
 
         minimum_stake = _get_setting_value(context, SETTINGS_MINIMUM_STAKE)
         if minimum_stake is None or not minimum_stake.isdigit():
-            raise InvalidTransaction('remme.settings.minimum_stake is malformed. Should be not negative integer.')
-        minimum_stake = int(minimum_stake)
+            raise InvalidTransaction(f'{SETTINGS_MINIMUM_STAKE} is malformed. Should be not negative integer.')
+        minimum_stake = client_to_real_amount(int(minimum_stake))
 
-        if internal_transfer_payload.value < minimum_stake:
+        if amount < minimum_stake:
             raise InvalidTransaction('Initial stake is too low.')
 
         node_account.node_state = NodeAccount.OPENED
 
-        node_account.balance -= internal_transfer_payload.value
+        node_account.balance -= amount
 
-        unfrozen_part = internal_transfer_payload.value - minimum_stake
+        unfrozen_part = amount - minimum_stake
         node_account.reputation.frozen += minimum_stake
         node_account.reputation.unfrozen += unfrozen_part
 
@@ -200,11 +203,13 @@ class NodeAccountHandler(BasicHandler):
         if node_account is None:
             raise InvalidTransaction('Invalid context or address.')
 
-        if node_account.reputation.unfrozen < internal_transfer_payload.value:
+        amount = client_to_real_amount(internal_transfer_payload.value)
+
+        if node_account.reputation.unfrozen < amount:
             raise InvalidTransaction('Insufficient amount of tokens on unfrozen account.')
 
-        node_account.reputation.unfrozen -= internal_transfer_payload.value
-        node_account.balance += internal_transfer_payload.value
+        node_account.reputation.unfrozen -= amount
+        node_account.balance += amount
 
         return {
             node_account_address: node_account,
@@ -222,16 +227,18 @@ class NodeAccountHandler(BasicHandler):
         if minimum_stake is None or not minimum_stake.isdigit():
             raise InvalidTransaction('Wrong minimum stake address.')
 
-        minimum_stake = int(minimum_stake)
+        minimum_stake = client_to_real_amount(int(minimum_stake))
+
+        amount = client_to_real_amount(internal_transfer_payload.value)
 
         if node_account.reputation.frozen < minimum_stake:
             raise InvalidTransaction('Frozen balance is lower than the minimum stake.')
 
-        if node_account.reputation.frozen - internal_transfer_payload.value < minimum_stake:
+        if node_account.reputation.frozen - amount < minimum_stake:
             raise InvalidTransaction('Frozen balance after transfer lower than the minimum stake.')
 
-        node_account.reputation.frozen -= internal_transfer_payload.value
-        node_account.reputation.unfrozen += internal_transfer_payload.value
+        node_account.reputation.frozen -= amount
+        node_account.reputation.unfrozen += amount
 
         return {
             node_account_address: node_account,

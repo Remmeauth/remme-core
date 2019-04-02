@@ -33,6 +33,7 @@ from remme.shared.forms import (
     SetBetPayloadForm,
     ProtoForm,
 )
+from remme.shared.utils import client_to_real_amount
 
 from remme.settings import (
     SETTINGS_MINIMUM_STAKE,
