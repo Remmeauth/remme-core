@@ -21,6 +21,7 @@ from remme.protos.pub_key_pb2 import (
 )
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.settings import ZERO_ADDRESS
+from remme.shared.utils import client_to_real_amount
 from remme.tp.pub_key import (
     PUB_KEY_STORE_PRICE,
     PubKeyHandler,
@@ -160,7 +161,7 @@ def test_store_public_key_for_other(address_from_public_key, new_public_key_payl
     )
 
     payer_account = Account()
-    payer_account.balance = PAYER_INITIAL_BALANCE
+    payer_account.balance = client_to_real_amount(PAYER_INITIAL_BALANCE)
     serialized_payer_account = payer_account.SerializeToString()
 
     owner_account = Account()
@@ -184,7 +185,7 @@ def test_store_public_key_for_other(address_from_public_key, new_public_key_payl
     expected_serialized_public_key_storage = expected_public_key_storage.SerializeToString()
 
     expected_payer_account = Account()
-    expected_payer_account.balance = PAYER_INITIAL_BALANCE - PUB_KEY_STORE_PRICE
+    expected_payer_account.balance = client_to_real_amount(PAYER_INITIAL_BALANCE - PUB_KEY_STORE_PRICE)
     serialized_expected_payer_account = expected_payer_account.SerializeToString()
 
     expected_owner_account = Account()
@@ -193,7 +194,7 @@ def test_store_public_key_for_other(address_from_public_key, new_public_key_payl
     serialized_expected_owner_account = expected_owner_account.SerializeToString()
 
     expected_zero_account = Account()
-    expected_zero_account.balance = 0 + PUB_KEY_STORE_PRICE
+    expected_zero_account.balance = client_to_real_amount(0 + PUB_KEY_STORE_PRICE)
     expected_serialized_zero_account = expected_zero_account.SerializeToString()
 
     expected_state = {
@@ -250,7 +251,7 @@ def test_store_rsa_public_key_no_owner_account():
     )
 
     payer_account = Account()
-    payer_account.balance = PAYER_INITIAL_BALANCE
+    payer_account.balance = client_to_real_amount(PAYER_INITIAL_BALANCE)
     serialized_payer_account = payer_account.SerializeToString()
 
     zero_account = Account()
@@ -269,7 +270,7 @@ def test_store_rsa_public_key_no_owner_account():
     expected_serialized_public_key_storage = expected_public_key_storage.SerializeToString()
 
     expected_payer_account = Account()
-    expected_payer_account.balance = PAYER_INITIAL_BALANCE - PUB_KEY_STORE_PRICE
+    expected_payer_account.balance = client_to_real_amount(PAYER_INITIAL_BALANCE - PUB_KEY_STORE_PRICE)
     serialized_expected_payer_account = expected_payer_account.SerializeToString()
 
     expected_owner_account = Account()
@@ -277,7 +278,7 @@ def test_store_rsa_public_key_no_owner_account():
     serialized_expected_owner_account = expected_owner_account.SerializeToString()
 
     expected_zero_account = Account()
-    expected_zero_account.balance = 0 + PUB_KEY_STORE_PRICE
+    expected_zero_account.balance = client_to_real_amount(0 + PUB_KEY_STORE_PRICE)
     expected_serialized_zero_account = expected_zero_account.SerializeToString()
 
     expected_state = {
@@ -692,7 +693,7 @@ def test_store_public_key_for_other_economy_is_not_enabled():
     )
 
     payer_account = Account()
-    payer_account.balance = PAYER_INITIAL_BALANCE
+    payer_account.balance = client_to_real_amount(PAYER_INITIAL_BALANCE)
     serialized_payer_account = payer_account.SerializeToString()
 
     owner_account = Account()
@@ -721,7 +722,7 @@ def test_store_public_key_for_other_economy_is_not_enabled():
     expected_serialized_public_key_storage = expected_public_key_storage.SerializeToString()
 
     expected_payer_account = Account()
-    expected_payer_account.balance = PAYER_INITIAL_BALANCE
+    expected_payer_account.balance = client_to_real_amount(PAYER_INITIAL_BALANCE)
     serialized_expected_payer_account = expected_payer_account.SerializeToString()
 
     expected_owner_account = Account()

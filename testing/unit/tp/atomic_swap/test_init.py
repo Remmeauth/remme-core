@@ -28,7 +28,7 @@ from remme.protos.atomic_swap_pb2 import (
 )
 from remme.protos.block_info_pb2 import BlockInfo, BlockInfoConfig
 from remme.protos.transaction_pb2 import TransactionPayload
-from remme.shared.utils import hash512
+from remme.shared.utils import hash512, client_to_real_amount
 from remme.settings import (
     SETTINGS_KEY_ZERO_ADDRESS_OWNERS,
     SETTINGS_SWAP_COMMISSION,
@@ -200,7 +200,7 @@ def test_atomic_swap_init():
     )
 
     bot_account = Account()
-    bot_account.balance = 5000
+    bot_account.balance = client_to_real_amount(5000)
     serialized_bot_account = bot_account.SerializeToString()
 
     zero_account = Account()
@@ -227,7 +227,7 @@ def test_atomic_swap_init():
     swap_info = AtomicSwapInfo()
     swap_info.swap_id = SWAP_ID
     swap_info.state = AtomicSwapInfo.OPENED
-    swap_info.amount = TOKENS_AMOUNT_TO_SWAP
+    swap_info.amount = client_to_real_amount(TOKENS_AMOUNT_TO_SWAP)
     swap_info.created_at = CURRENT_TIMESTAMP
     swap_info.email_address_encrypted_optional = ALICE_EMAIL_ADDRESS_ENCRYPTED_BY_INITIATOR
     swap_info.sender_address = BOT_ADDRESS
@@ -237,11 +237,11 @@ def test_atomic_swap_init():
     serialized_swap_info = swap_info.SerializeToString()
 
     expected_bot_account = Account()
-    expected_bot_account.balance = 5000 - TOKENS_AMOUNT_TO_SWAP - SWAP_COMMISSION_AMOUNT
+    expected_bot_account.balance = client_to_real_amount(5000 - TOKENS_AMOUNT_TO_SWAP - SWAP_COMMISSION_AMOUNT)
     serialized_expected_bot_account = expected_bot_account.SerializeToString()
 
     expected_zero_account = Account()
-    expected_zero_account.balance = SWAP_COMMISSION_AMOUNT
+    expected_zero_account.balance = client_to_real_amount(SWAP_COMMISSION_AMOUNT)
     serialized_expected_zero_account = expected_zero_account.SerializeToString()
 
     expected_state = {
@@ -305,7 +305,7 @@ def test_atomic_swap_init_already_taken_id():
     swap_info = AtomicSwapInfo()
     swap_info.swap_id = SWAP_ID
     swap_info.state = AtomicSwapInfo.OPENED
-    swap_info.amount = TOKENS_AMOUNT_TO_SWAP
+    swap_info.amount = client_to_real_amount(TOKENS_AMOUNT_TO_SWAP)
     swap_info.created_at = CURRENT_TIMESTAMP
     swap_info.email_address_encrypted_optional = ALICE_EMAIL_ADDRESS_ENCRYPTED_BY_INITIATOR
     swap_info.sender_address = BOT_ADDRESS
@@ -594,7 +594,7 @@ def test_atomic_swap_init_swap_no_account_in_state():
     with pytest.raises(InvalidTransaction) as error:
         AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
 
-    total_amount = TOKENS_AMOUNT_TO_SWAP + SWAP_COMMISSION_AMOUNT
+    total_amount = client_to_real_amount(TOKENS_AMOUNT_TO_SWAP + SWAP_COMMISSION_AMOUNT)
 
     assert f'Not enough balance to perform the transaction in the amount (with a commission) {total_amount}.' \
            == str(error.value)
@@ -660,7 +660,7 @@ def test_atomic_swap_init_swap_not_enough_balance():
     with pytest.raises(InvalidTransaction) as error:
         AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
 
-    total_amount = TOKENS_AMOUNT_TO_SWAP + SWAP_COMMISSION_AMOUNT
+    total_amount = client_to_real_amount(TOKENS_AMOUNT_TO_SWAP + SWAP_COMMISSION_AMOUNT)
 
     assert f'Not enough balance to perform the transaction in the amount (with a commission) {total_amount}.' \
            == str(error.value)

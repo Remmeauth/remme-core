@@ -20,7 +20,7 @@ from remme.protos.atomic_swap_pb2 import (
     AtomicSwapMethod,
 )
 from remme.protos.transaction_pb2 import TransactionPayload
-from remme.shared.utils import hash512
+from remme.shared.utils import hash512, client_to_real_amount
 from remme.tp.atomic_swap import AtomicSwapHandler
 from remme.tp.basic import BasicHandler
 

@@ -21,7 +21,7 @@ from remme.protos.node_account_pb2 import (
     NodeAccount,
 )
 from remme.protos.transaction_pb2 import TransactionPayload
-from remme.shared.utils import hash512
+from remme.shared.utils import hash512, client_to_real_amount
 from remme.tp.account import AccountHandler
 from testing.conftest import create_signer
 from testing.mocks.stub import StubContext
@@ -65,10 +65,10 @@ def create_context(account_from_balance, account_to_balance):
     """
     account_protobuf = Account()
 
-    account_protobuf.balance = account_from_balance
+    account_protobuf.balance = client_to_real_amount(account_from_balance)
     serialized_account_from_balance = account_protobuf.SerializeToString()
 
-    account_protobuf.balance = account_to_balance
+    account_protobuf.balance = client_to_real_amount(account_to_balance)
     serialized_account_to_balance = account_protobuf.SerializeToString()
 
     initial_state = {
@@ -133,8 +133,8 @@ def test_account_handler_apply():
     Case: send transaction request, to send tokens to address, to the account handler.
     Expect: addresses data, stored in state, are changed according to transfer amount.
     """
-    expected_account_from_balance = ACCOUNT_FROM_BALANCE - TOKENS_AMOUNT_TO_SEND
-    expected_account_to_balance = ACCOUNT_TO_BALANCE + TOKENS_AMOUNT_TO_SEND
+    expected_account_from_balance = client_to_real_amount(ACCOUNT_FROM_BALANCE - TOKENS_AMOUNT_TO_SEND)
+    expected_account_to_balance = client_to_real_amount(ACCOUNT_TO_BALANCE + TOKENS_AMOUNT_TO_SEND)
 
     account_protobuf = Account()
 
@@ -272,8 +272,8 @@ def test_account_transfer_from_address():
     Case: transfer tokens from address to address.
     Expect: account's balances, stored in state, are changed according to transfer amount.
     """
-    expected_account_from_balance = ACCOUNT_FROM_BALANCE - TOKENS_AMOUNT_TO_SEND
-    expected_account_to_balance = ACCOUNT_TO_BALANCE + TOKENS_AMOUNT_TO_SEND
+    expected_account_from_balance = client_to_real_amount(ACCOUNT_FROM_BALANCE - TOKENS_AMOUNT_TO_SEND)
+    expected_account_to_balance = client_to_real_amount(ACCOUNT_TO_BALANCE + TOKENS_AMOUNT_TO_SEND)
 
     transfer_payload = TransferPayload()
     transfer_payload.address_to = ACCOUNT_ADDRESS_TO
@@ -570,11 +570,11 @@ def test_node_account_transfer():
     ]
 
     node_account_from = NodeAccount()
-    node_account_from.balance = NODE_ACCOUNT_FROM_BALANCE - TOKENS_AMOUNT_TO_SEND
+    node_account_from.balance = client_to_real_amount(NODE_ACCOUNT_FROM_BALANCE - TOKENS_AMOUNT_TO_SEND)
     expected_serialized_node_account_from_balance = node_account_from.SerializeToString()
 
     node_account_to = NodeAccount()
-    node_account_to.balance = NODE_ACCOUNT_TO_BALANCE + TOKENS_AMOUNT_TO_SEND
+    node_account_to.balance = client_to_real_amount(NODE_ACCOUNT_TO_BALANCE + TOKENS_AMOUNT_TO_SEND)
     expected_serialized_node_account_to_balance = node_account_to.SerializeToString()
 
     expected_state = {
@@ -614,11 +614,11 @@ def test_node_account_transfer():
     )
 
     node_account_from = NodeAccount()
-    node_account_from.balance = NODE_ACCOUNT_FROM_BALANCE
+    node_account_from.balance = client_to_real_amount(NODE_ACCOUNT_FROM_BALANCE)
     serialized_node_account_from_balance = node_account_from.SerializeToString()
 
     node_account_to = NodeAccount()
-    node_account_to.balance = NODE_ACCOUNT_TO_BALANCE
+    node_account_to.balance = client_to_real_amount(NODE_ACCOUNT_TO_BALANCE)
     serialized_node_account_to_balance = node_account_to.SerializeToString()
 
     initial_state = {

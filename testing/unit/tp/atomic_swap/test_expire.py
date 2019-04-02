@@ -31,7 +31,7 @@ from remme.clients.block_info import (
 from remme.protos.account_pb2 import Account
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.settings.helper import _make_settings_key
-from remme.shared.utils import hash512, web3_hash
+from remme.shared.utils import hash512, web3_hash, client_to_real_amount
 from remme.tp.atomic_swap import AtomicSwapHandler
 from remme.tp.basic import BasicHandler
 
@@ -177,7 +177,7 @@ def test_expire_atomic_swap():
     )
 
     bot_account = Account()
-    bot_account.balance = 4700
+    bot_account.balance = client_to_real_amount(4700)
     serialized_bot_account = bot_account.SerializeToString()
 
     genesis_members_setting = Setting()
@@ -187,7 +187,7 @@ def test_expire_atomic_swap():
     existing_swap_info = AtomicSwapInfo()
     existing_swap_info.swap_id = SWAP_ID
     existing_swap_info.state = AtomicSwapInfo.OPENED
-    existing_swap_info.amount = TOKENS_AMOUNT_TO_SWAP
+    existing_swap_info.amount = client_to_real_amount(TOKENS_AMOUNT_TO_SWAP)
     existing_swap_info.created_at = CURRENT_TIMESTAMP // 2
     existing_swap_info.sender_address = BOT_ADDRESS
     existing_swap_info.receiver_address = ALICE_ADDRESS
@@ -203,13 +203,13 @@ def test_expire_atomic_swap():
     })
 
     expected_bot_account = Account()
-    expected_bot_account.balance = 4700 + TOKENS_AMOUNT_TO_SWAP
+    expected_bot_account.balance = client_to_real_amount(4700 + TOKENS_AMOUNT_TO_SWAP)
     serialized_expected_bot_account = expected_bot_account.SerializeToString()
 
     expected_swap_info = AtomicSwapInfo()
     expected_swap_info.swap_id = SWAP_ID
     expected_swap_info.state = AtomicSwapInfo.EXPIRED
-    expected_swap_info.amount = TOKENS_AMOUNT_TO_SWAP
+    expected_swap_info.amount = client_to_real_amount(TOKENS_AMOUNT_TO_SWAP)
     expected_swap_info.created_at = CURRENT_TIMESTAMP // 2
     expected_swap_info.sender_address = BOT_ADDRESS
     expected_swap_info.receiver_address = ALICE_ADDRESS
