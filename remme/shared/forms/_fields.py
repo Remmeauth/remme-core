@@ -27,7 +27,7 @@ class SwapIDField(fields.StringField):
     ]
 
 
-class IDField(fields.StringField):
+class BatchIDField(fields.StringField):
 
     validators = [
         DataRequired(message='Missed id.'),
@@ -42,4 +42,13 @@ class BlockIDField(fields.StringField):
         DataRequired(message='Missed id.'),
         StringTypeRequired(message='Given block id is not a valid.'),
         validators.Regexp(regex='[0-9a-f]{128}', message='Given block id is not a valid.')
+    ]
+
+
+class TransactionIDField(fields.StringField):
+
+    validators = [
+        DataRequired(message='Missed id.'),
+        StringTypeRequired(message='Given transaction id is not a valid.'),
+        validators.Regexp(regex='[0-9a-f]{128}',  message='Given transaction id is not a valid.')
     ]
