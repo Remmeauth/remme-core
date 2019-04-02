@@ -25,7 +25,11 @@ from sawtooth_sdk.protobuf.transaction_pb2 import (
     Transaction, TransactionHeader
 )
 
-from remme.shared.exceptions import KeyNotFound
+from remme.shared.exceptions import (
+    ClientException,
+    CountInvalid,
+    KeyNotFound,
+)
 from remme.tp.basic import PB_CLASS, VALIDATOR
 from remme.tp.__main__ import TP_HANDLERS
 from remme.clients.account import AccountClient
@@ -36,6 +40,7 @@ from remme.shared.forms import (
     IdentifiersForm,
     ProtoForm,
 )
+from remme.shared.forms.transaction import ListTransactionsForm
 
 from .utils import validate_params
 
@@ -54,6 +59,8 @@ __all__ = (
 
 logger = logging.getLogger(__name__)
 
+account_client = AccountClient()
+
 
 @validate_params(ProtoForm)
 async def send_tokens(request):
@@ -65,20 +72,23 @@ async def send_tokens(request):
         public_key_to = request.params['public_key_to']
     except KeyError:
         raise RpcInvalidParamsError(message='Missed public_key_to')
-    client = AccountClient()
-    signer_account = await client.get_account(client.get_signer_address())
+
+    signer_account = await account_client.get_account(account_client.get_signer_address())
+
     if not amount:
         raise RpcGenericServerDefinedError(
             error_code=-32050,
             message='Could not transfer with zero amount'
         )
+
     if signer_account.balance < amount:
         raise RpcGenericServerDefinedError(
             error_code=-32050,
             message='Not enough transferable balance of sender'
         )
-    address_to = client.make_address_from_data(public_key_to)
-    result = await client.transfer(address_to, amount)
+
+    address_to = account_client.make_address_from_data(public_key_to)
+    result = await account_client.transfer(address_to, amount)
     return result['data']
 
 
@@ -187,32 +197,29 @@ async def send_raw_transaction(request):
 async def list_receipts(request):
     ids = request.params['ids']
 
-    client = AccountClient()
     try:
-        return await client.list_receipts(ids)
+        return await account_client.list_receipts(ids)
     except KeyNotFound:
         raise KeyNotFound(f'Transactions with ids "{ids}" not found')
 
 
 @validate_params(ProtoForm, ignore_fields=('ids', 'start', 'limit', 'head', 'reverse'))
 async def list_batches(request):
-    client = AccountClient()
     ids = request.params.get('ids')
     start = request.params.get('start')
     limit = request.params.get('limit')
     head = request.params.get('head')
     reverse = request.params.get('reverse')
 
-    return await client.list_batches(ids, start, limit, head, reverse)
+    return await account_client.list_batches(ids, start, limit, head, reverse)
 
 
 @validate_params(IdentifierForm)
 async def fetch_batch(request):
     batch_id = request.params['id']
 
-    client = AccountClient()
     try:
-        return await client.fetch_batch(batch_id)
+        return await account_client.fetch_batch(batch_id)
     except KeyNotFound:
         raise KeyNotFound(f'Batch with batch id `{batch_id}` not found.')
 
@@ -221,13 +228,11 @@ async def fetch_batch(request):
 async def get_batch_status(request):
     batch_id = request.params['id']
 
-    client = AccountClient()
-    return await client.get_batch_status(batch_id)
+    return await account_client.get_batch_status(batch_id)
 
 
-@validate_params(ProtoForm, ignore_fields=('ids', 'start', 'limit', 'head', 'reverse', 'family_name'))
+@validate_params(ListTransactionsForm, ignore_fields='family_name')
 async def list_transactions(request):
-    client = AccountClient()
     ids = request.params.get('ids')
     start = request.params.get('start')
     limit = request.params.get('limit')
@@ -235,14 +240,19 @@ async def list_transactions(request):
     reverse = request.params.get('reverse')
     family_name = request.params.get('family_name')
 
-    return await client.list_transactions(ids, start, limit, head, reverse, family_name)
+    try:
+        return await account_client.list_transactions(ids, start, limit, head, reverse, family_name)
+    except (KeyNotFound, ClientException):
+        raise KeyNotFound('List of transactions not found.')
+    except CountInvalid:
+        raise CountInvalid('Invalid limit count.')
 
 
 @validate_params(IdentifierForm)
 async def fetch_transaction(request):
     id = request.params['id']
-    client = AccountClient()
+
     try:
-        return await client.fetch_transaction(id)
+        return await account_client.fetch_transaction(id)
     except KeyNotFound:
         raise KeyNotFound(f'Transaction with id "{id}" not found')

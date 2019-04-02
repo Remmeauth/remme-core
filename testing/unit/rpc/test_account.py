@@ -7,8 +7,6 @@ from remme.rpc_api.account import (
 )
 from testing.utils._async import return_async_value
 
-PUBLIC_KEY_ADDRESS = 'public_key_address'
-
 
 @pytest.mark.asyncio
 async def test_get_balance(mocker, request_):
@@ -23,7 +21,7 @@ async def test_get_balance(mocker, request_):
     mock_get_block_info.return_value = return_async_value(expected_result)
 
     request_.params = {
-        PUBLIC_KEY_ADDRESS: public_key_address,
+        'public_key_address': public_key_address,
     }
 
     result = await get_balance(request_)
@@ -39,7 +37,7 @@ async def test_get_balance_with_invalid_address(request_, invalid_public_key_add
     Expect: address is not of a blockchain token type error message.
     """
     request_.params = {
-        PUBLIC_KEY_ADDRESS: invalid_public_key_address,
+        'public_key_address': invalid_public_key_address,
     }
 
     with pytest.raises(RpcInvalidParamsError) as error:
@@ -56,7 +54,7 @@ async def test_get_balance_without_address(request_, address_is_none):
     Expect: missed address error message.
     """
     request_.params = {
-        PUBLIC_KEY_ADDRESS: address_is_none,
+        'public_key_address': address_is_none,
     }
 
     with pytest.raises(RpcInvalidParamsError) as error:
@@ -78,7 +76,7 @@ async def test_get_public_keys_list(mocker, request_):
     mock_get_block_info.return_value = return_async_value(expected_result)
 
     request_.params = {
-        PUBLIC_KEY_ADDRESS: public_key_address,
+        'public_key_address': public_key_address,
     }
 
     result = await get_public_keys_list(request_)
@@ -94,7 +92,7 @@ async def test_get_public_keys_list_with_invalid_address(request_, invalid_publi
     Expect: address is not of a blockchain token type error message.
     """
     request_.params = {
-        PUBLIC_KEY_ADDRESS: invalid_public_key_address,
+        'public_key_address': invalid_public_key_address,
     }
 
     with pytest.raises(RpcInvalidParamsError) as error:
@@ -111,7 +109,7 @@ async def test_get_public_keys_list_without_address(request_, address_is_none):
     Expect: missed address error message.
     """
     request_.params = {
-        PUBLIC_KEY_ADDRESS: address_is_none,
+        'public_key_address': address_is_none,
     }
 
     with pytest.raises(RpcInvalidParamsError) as error:
