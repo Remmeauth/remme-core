@@ -7,6 +7,7 @@ from remme.tp.consensus_account import ConsensusAccount, ConsensusAccountHandler
 from remme.tp.node_account import NodeAccount
 from remme.tp.account import Account
 
+from remme.shared.utils import client_to_real_amount
 from remme.settings import (
     SETTINGS_MINIMUM_STAKE,
     SETTINGS_COMMITTEE_SIZE,
@@ -84,10 +85,10 @@ def create_context(account_from_balance=0, bet_value=BET_VALUE, node_state=NodeA
     """
     node_account = NodeAccount()
 
-    node_account.balance = account_from_balance
+    node_account.balance = client_to_real_amount(account_from_balance)
     node_account.node_state = node_state
-    node_account.reputation.frozen = frozen
-    node_account.reputation.unfrozen = unfrozen
+    node_account.reputation.frozen = client_to_real_amount(frozen)
+    node_account.reputation.unfrozen = client_to_real_amount(unfrozen)
 
     serialized_node_account = node_account.SerializeToString()
 
@@ -105,10 +106,10 @@ def create_context(account_from_balance=0, bet_value=BET_VALUE, node_state=NodeA
 
     consensus_account = ConsensusAccount()
     consensus_account.public_key = RANDOM_NODE_PUBLIC_KEY
-    consensus_account.obligatory_payments = obligatory_payments
+    consensus_account.obligatory_payments = client_to_real_amount(obligatory_payments)
     # TODO: Undo in the future
     # consensus_account.block_cost = block_cost
-    consensus_account.bets[NODE_ACCOUNT_SIGNER_ADDRESS] = bet_value
+    consensus_account.bets[NODE_ACCOUNT_SIGNER_ADDRESS] = client_to_real_amount(bet_value)
     serialized_consensus_account = consensus_account.SerializeToString()
 
     initial_state = {
@@ -121,7 +122,7 @@ def create_context(account_from_balance=0, bet_value=BET_VALUE, node_state=NodeA
         BLOCK_INFO_ADDRESS: SERIALIZED_BLOCK_INFO,
         ConsensusAccountHandler.CONSENSUS_ADDRESS: serialized_consensus_account,
         GENESIS_ACCOUNT_ADDRESS: Account(balance=0).SerializeToString(),
-        ZERO_ADDRESS: Account(balance=block_cost).SerializeToString(),
+        ZERO_ADDRESS: Account(balance=client_to_real_amount(block_cost)).SerializeToString(),
     }
 
     return StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state=initial_state)
