@@ -72,7 +72,7 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
     sawset proposal create \
         -k /etc/sawtooth/keys/validator.priv \
         "sawtooth.validator.batch_injectors=remme_batches" \
-        "sawtooth.validator.block_validation_rules=NofX:1,block_info;XatY:block_info,0;local:0;NofX:1,obligatory_payment;XatY:obligatory_payment,2;local:0;NofX:1,consensus_account;XatY:consensus_account,1;local:0;" \
+        "sawtooth.validator.block_validation_rules=NofX:1,block_info;XatY:block_info,0;local:0;NofX:1,consensus_account;XatY:consensus_account,1;local:0;NofX:1,obligatory_payment;XatY:obligatory_payment,2;local:0;NofX:1,bet;XatY:bet,3;local:0" \
         -o block_info_config.batch
 
     GENESIS_BATCHES="$GENESIS_BATCHES block_info_config.batch"

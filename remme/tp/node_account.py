@@ -16,7 +16,8 @@ import logging
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
 from remme.protos.transaction_pb2 import EmptyPayload
-
+from remme.protos.consensus_account_pb2 import ConsensusAccount
+from remme.protos.account_pb2 import Account
 from remme.protos.node_account_pb2 import (
     NodeAccount,
     NodeState,
@@ -30,11 +31,17 @@ from remme.shared.forms import (
     ProtoForm,
     NodeAccountGenesisForm,
     SetBetPayloadForm,
+    ProtoForm,
 )
 
 from remme.settings import (
-    SETTINGS_MINIMUM_STAKE, SETTINGS_GENESIS_OWNERS, NODE_STATE_ADDRESS)
+    SETTINGS_MINIMUM_STAKE,
+    SETTINGS_GENESIS_OWNERS,
+    NODE_STATE_ADDRESS,
+    ZERO_ADDRESS,
+)
 
+from remme.settings.helper import _get_setting_value
 from .basic import (
     PB_CLASS,
     PROCESSOR,
@@ -43,7 +50,6 @@ from .basic import (
     get_data,
     get_multiple_data
 )
-from remme.settings.helper import _get_setting_value
 
 
 LOGGER = logging.getLogger(__name__)
