@@ -698,7 +698,7 @@ async def test_list_transactions_with_wrong_key(request_):
 
 
 @pytest.mark.asyncio
-async def test_get_list_receipts(mocker, request_,):
+async def test_get_list_receipts(mocker, request_):
     """
     Case: get list receipts by transaction ids.
     Expect: particular receipts data.
@@ -775,7 +775,7 @@ async def test_get_list_receipts(mocker, request_,):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('invalid_transaction_ids', (['12345', 0, 12345, True]))
-async def test_get_list_receipts_with_invalid_id(request_, invalid_transaction_ids):
+async def test_get_list_receipts_with_invalid_ids(request_, invalid_transaction_ids):
     """
     Case: get list receipts with invalid ids.
     Expect: given incorrect identifier error message.
@@ -827,20 +827,20 @@ async def test_get_list_receipts_with_wrong_key(request_):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('invalid_transaction_ids', [None])
-async def test_get_list_receipts_without_ids(request_, invalid_transaction_ids):
+@pytest.mark.parametrize('list_of_transaction_ids_is_empty', ([None, '']))
+async def test_get_list_receipts_without_ids(request_, list_of_transaction_ids_is_empty):
     """
     Case: get list receipts without ids.
     Expect: missed id error message.
     """
     request_.params = {
-        'ids': invalid_transaction_ids,
+        'ids': list_of_transaction_ids_is_empty,
     }
 
     with pytest.raises(RpcInvalidParamsError) as error:
         await list_receipts(request_)
 
-    assert 'Missed id.' == error.value.message
+    assert 'Missed list of identifiers.' == error.value.message
 
 
 @pytest.mark.asyncio

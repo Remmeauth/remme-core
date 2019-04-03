@@ -68,12 +68,12 @@ class ListReceiptsForm(ProtoForm):
     ids = fields.StringField()
 
     if isinstance(ids, list):
-        ids = fields.FieldList(ids, min_entries=1)
+        ids = fields.FieldList(fields.StringField(), min_entries=1)
 
     @staticmethod
     def validate_ids(form, field):
-        if field.data is None:
-            raise validators.StopValidation('Missed id.')
+        if field.data == '' or field.data is None:
+            raise validators.StopValidation('Missed list of identifiers.')
 
         if not isinstance(field.data, list):
             raise validators.StopValidation('Incorrect identifier.')
