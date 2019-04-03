@@ -44,4 +44,6 @@ async def get_node_account(request):
 
     data = message_to_dict(account)
     data['balance'] = str(real_to_client_amount(Decimal(data['balance'])))
+    if 'fixed_amount' in data:
+        data['fixed_amount'] = str(real_to_client_amount(Decimal(data['fixed_amount'])))
     return data

@@ -255,6 +255,9 @@ class NodeAccountHandler(BasicHandler):
         bet_name = pb_payload.WhichOneof('bet')
         bet_payload = getattr(pb_payload, str(bet_name))
 
+        if bet_name == 'fixed_amount':
+            bet_payload = client_to_real_amount(bet_payload)
+
         try:
             setattr(node_account, bet_name, int(bet_payload))
         except AttributeError as e:

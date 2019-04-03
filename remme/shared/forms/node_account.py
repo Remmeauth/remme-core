@@ -14,7 +14,7 @@ class NodeAccountGenesisForm(ProtoForm):
 
 
 class SetBetPayloadForm(ProtoForm):
-    fixed_amount = fields.IntegerField(validators=[
+    fixed_amount = fields.FloatField(validators=[
         validators.DataRequired()
     ])
     min = fields.BooleanField(validators=[

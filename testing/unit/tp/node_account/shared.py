@@ -58,7 +58,7 @@ def create_context(account_from_balance, node_state=NodeAccount.NEW, frozen=0, u
     node_account.reputation.frozen = client_to_real_amount(frozen)
     node_account.reputation.unfrozen = client_to_real_amount(unfrozen)
     if fixed_amount:
-        node_account.fixed_amount = fixed_amount
+        node_account.fixed_amount = client_to_real_amount(fixed_amount)
     elif min:
         node_account.min = min
     elif max:
