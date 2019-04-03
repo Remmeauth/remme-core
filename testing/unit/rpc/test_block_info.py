@@ -141,13 +141,13 @@ async def test_fetch_block_with_non_existing_block_id(mocker, request_):
     Case: fetch block with a non-existing block id.
     Expect: block with id not found error message.
     """
-    invalid_block_id = '9d2dc2ab673d028bc1dd8b5be8d2d885e4383a827cd0261f58334252bf807c08' \
-                       '113207eabbd12d0786d6bba5378a791129f9c520c17597b5504d4b547ef57491'
+    non_existing_block_id = '9d2dc2ab673d028bc1dd8b5be8d2d885e4383a827cd0261f58334252bf807c08' \
+                            '113207eabbd12d0786d6bba5378a791129f9c520c17597b5504d4b547ef57491'
     request_.params = {
-        'id': invalid_block_id,
+        'id': non_existing_block_id,
     }
 
-    expected_error_message = f'Block with id `{invalid_block_id}` not found.'
+    expected_error_message = f'Block with id `{non_existing_block_id}` not found.'
 
     mock_fetch_block = mocker.patch('remme.shared.router.Router.fetch_block')
     mock_fetch_block.return_value = raise_async_error(KeyNotFound(expected_error_message))
@@ -200,8 +200,8 @@ async def test_get_blocks_with_valid_params(mocker, request_, valid_params):
         }
     ]
 
-    mock_get_value = mocker.patch('remme.clients.block_info.BlockInfoClient.get_blocks_info')
-    mock_get_value.return_value = return_async_value(expected_result)
+    mock_get_blocks_info = mocker.patch('remme.clients.block_info.BlockInfoClient.get_blocks_info')
+    mock_get_blocks_info.return_value = return_async_value(expected_result)
 
     result = await get_blocks(request_)
 

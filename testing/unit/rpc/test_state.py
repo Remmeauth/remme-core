@@ -383,7 +383,7 @@ async def test_list_state_with_reverse(mocker, request_):
 async def test_list_state_with_invalid_reverse(request_, invalid_reverse):
     """
     Case: list state with invalid parameter reverse.
-    Expect: given block id is not a valid error message.
+    Expect: incorrect reverse identifier error message.
     """
     request_.params = {
         'reverse': invalid_reverse,

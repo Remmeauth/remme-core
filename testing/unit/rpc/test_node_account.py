@@ -5,8 +5,6 @@ from remme.protos.node_account_pb2 import NodeAccount
 from remme.rpc_api.node_account import get_node_account
 from testing.utils._async import return_async_value
 
-NODE_ACCOUNT_ADDRESS = 'node_account_address'
-
 
 @pytest.mark.asyncio
 async def test_get_node_account(mocker, request_):
@@ -28,7 +26,7 @@ async def test_get_node_account(mocker, request_):
     node_account_address = 'eeecb926d7a378a639a68c096ffb0bc065a692c9a4d71dd032eed8c26227ca9602adc5'
 
     request_.params = {
-        NODE_ACCOUNT_ADDRESS: node_account_address,
+        'node_account_address': node_account_address,
     }
 
     result = await get_node_account(request_)
@@ -53,7 +51,7 @@ async def test_get_node_account_with_invalid_address(request_, invalid_address):
     Expect: address is not of a blockchain token type error message.
     """
     request_.params = {
-        NODE_ACCOUNT_ADDRESS: invalid_address,
+        'node_account_address': invalid_address,
     }
 
     with pytest.raises(RpcInvalidParamsError) as error:
@@ -70,7 +68,7 @@ async def test_get_node_account_without_address(request_, address_is_none):
     Expect: missed address error message.
     """
     request_.params = {
-        NODE_ACCOUNT_ADDRESS: address_is_none,
+        'node_account_address': address_is_none,
     }
 
     with pytest.raises(RpcInvalidParamsError) as error:
