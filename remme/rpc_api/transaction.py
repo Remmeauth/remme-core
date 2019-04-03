@@ -38,10 +38,10 @@ from remme.protos.transaction_pb2 import TransactionPayload
 from remme.shared.forms import (
     BatchIdentifierForm,
     TransactionIdentifierForm,
-    IdentifiersForm,
     ProtoForm,
+    ListTransactionsForm,
+    ListReceiptsForm,
 )
-from remme.shared.forms.transaction import ListTransactionsForm
 
 from .utils import validate_params
 
@@ -194,14 +194,14 @@ async def send_raw_transaction(request):
     return response['data']
 
 
-@validate_params(IdentifiersForm)
+@validate_params(ListReceiptsForm)
 async def list_receipts(request):
     ids = request.params['ids']
 
     try:
         return await account_client.list_receipts(ids)
     except KeyNotFound:
-        raise KeyNotFound(f'Transactions with ids "{ids}" not found')
+        raise KeyNotFound(f'Transactions with ids "{ids}" not found.')
 
 
 @validate_params(ProtoForm, ignore_fields=('ids', 'start', 'limit', 'head', 'reverse'))

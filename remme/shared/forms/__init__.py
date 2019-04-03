@@ -32,8 +32,11 @@ from .atomic_swap import (
 from .identifier import (
     BatchIdentifierForm,
     TransactionIdentifierForm,
-    IdentifiersForm,
 )
 from .personal import (
     NodePKForm,
+)
+from .transaction import (
+    ListReceiptsForm,
+    ListTransactionsForm,
 )
