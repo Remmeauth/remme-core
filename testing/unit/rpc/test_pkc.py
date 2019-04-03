@@ -16,8 +16,6 @@ from testing.utils._async import (
     return_async_value,
 )
 
-PUBLIC_KEY_ADDRESS = 'public_key_address'
-
 ENTITY_HASH = '3409ab9912c4bbb900648f327f62a5d8a45ff5dc52f437aad44b75b5c4f7a95b' \
               'cac6b7163ffbaa22bbf87dcb77805940e80fab785d95685e68b4f9e8f559a7ea'
 
@@ -68,7 +66,7 @@ async def test_get_public_key_info(mocker, request_):
     public_key_address = 'a23be1d1b2a99bbe819b4dbfad693eabda84137bb99138da8b8f8c0d578ce8dc8f7ef9'
 
     request_.params = {
-        PUBLIC_KEY_ADDRESS: public_key_address,
+        'public_key_address': public_key_address,
     }
 
     expected_result = {
@@ -96,7 +94,7 @@ async def test_get_public_key_info_with_invalid_public_key_address(request_, inv
     Expect: address is not of a blockchain token type error message.
     """
     request_.params = {
-        PUBLIC_KEY_ADDRESS: invalid_swap_id,
+        'public_key_address': invalid_swap_id,
     }
 
     with pytest.raises(RpcInvalidParamsError) as error:
@@ -113,7 +111,7 @@ async def test_get_public_key_info_without_public_key_address(request_, swap_id_
     Expect: missed address error message.
     """
     request_.params = {
-        PUBLIC_KEY_ADDRESS: swap_id_is_none,
+        'public_key_address': swap_id_is_none,
     }
 
     with pytest.raises(RpcInvalidParamsError) as error:
@@ -123,20 +121,20 @@ async def test_get_public_key_info_without_public_key_address(request_, swap_id_
 
 
 @pytest.mark.asyncio
-async def test_get_atomic_swap_with_non_existing_public_key_address(mocker, request_):
+async def test_get_public_key_info_with_non_existing_public_key_address(mocker, request_):
     """
     Case: get public key info with a non-existing public key address.
     Expect: public key info not found error message.
     """
-    invalid_public_key_address = 'a23be1ca4f8631a860451537aad71d1fcf2e5ec62854b5f8838c20d4b6990b0a1c9cdc'
+    non_existing_public_key_address = 'a23be1ca4f8631a860451537aad71d1fcf2e5ec62854b5f8838c20d4b6990b0a1c9cdc'
     request_.params = {
-        PUBLIC_KEY_ADDRESS: invalid_public_key_address,
+        'public_key_address': non_existing_public_key_address,
     }
 
-    expected_error_message = 'Public key info not found'
+    expected_error_message = 'Public key info not found.'
 
-    mock_swap_get = mocker.patch('remme.clients.pub_key.PubKeyClient.get_status')
-    mock_swap_get.return_value = raise_async_error(KeyNotFound(expected_error_message))
+    mock_get_status = mocker.patch('remme.clients.pub_key.PubKeyClient.get_status')
+    mock_get_status.return_value = raise_async_error(KeyNotFound(expected_error_message))
 
     with pytest.raises(KeyNotFound) as error:
         await get_public_key_info(request_)

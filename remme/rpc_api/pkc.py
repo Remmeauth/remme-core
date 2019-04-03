@@ -73,4 +73,4 @@ async def get_public_key_info(request):
         }
 
     except KeyNotFound:
-        raise KeyNotFound('Public key info not found')
+        raise KeyNotFound('Public key info not found.')

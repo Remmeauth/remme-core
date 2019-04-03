@@ -6,35 +6,30 @@ from ._validators import (
     NotRequired,
 )
 from .base import ProtoForm
-
+import re
 
 class ListBatchesForm(ProtoForm):
 
-    def __init__(self, formdata=None, obj=None, prefix='', data=None,
-                 meta=None, **kwargs):
-        self._wrong_fields = set()
-        ignore_fields = kwargs.pop('ignore_fields', None)
-        if ignore_fields is None:
-            ignore_fields = []
-        self._ignore_fields = ignore_fields
+    ids = fields.StringField()
 
-        ids = kwargs.get('ids', None)
+    if isinstance(ids, list):
+        ids = fields.FieldList(fields.StringField(), min_entries=0)
 
-        if ids is None:
-            pass
-        elif type(ids) != list:
+    @staticmethod
+    def validate_ids(form, field):
+        if field.data is None:
+            return
+
+        if not isinstance(field.data, list):
             raise validators.StopValidation('Invalid id.')
-        elif len(ids) == 0:
-            raise validators.StopValidation('Missed ids.')
 
-        super().__init__(formdata, obj, prefix, data, meta, **kwargs)
+        for data in field.data:
 
-    ids = fields.FieldList(
-        fields.StringField(validators=[
-            NotRequired(),
-            StringTypeRequired(message='Invalid id.'),
-            validators.Regexp('[0-9a-f]{128}', message='Invalid id.'),
-        ]), min_entries=0)
+            if not isinstance(data, str):
+                raise validators.StopValidation('Invalid id.')
+
+            if re.match(r'^[0-9a-f]{128}$', data) is None:
+                raise validators.StopValidation('Invalid id.')
 
     start = fields.StringField(validators=[
         NotRequired(),

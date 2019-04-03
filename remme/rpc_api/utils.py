@@ -34,10 +34,7 @@ def validate_params(form_class, ignore_fields=None):
         @functools.wraps(func)
         async def wrapper(request, *args, **kwargs):
             logger.debug(f'Req params: {request.params}')
-            try:
-                form = form_class(ignore_fields=ignore_fields, **request.params)
-            except Exception as e:
-                raise RpcInvalidParamsError(message=str(e))
+            form = form_class(ignore_fields=ignore_fields, **request.params)
             if not form.validate():
                 try:
                     message = _get_first_error(
