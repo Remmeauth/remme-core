@@ -1,0 +1,15 @@
+version: '3.4'
+
+services:
+  validator:
+    ports:
+      - '0.0.0.0:${REMME_ADMIN_PORT:-80}:3333'
+  remme-admin-panel:
+    container_name: remme_admin_panel
+    image: remmetechnical/remme-admin-panel:latest
+    network_mode: "service:validator"
+    environment:
+      - ADMIN_PASSWORD=admin
+    volumes:
+      - validator_keys:/etc/sawtooth/keys
+    entrypoint: node ./backend/dist/index.js

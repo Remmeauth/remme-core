@@ -43,8 +43,14 @@ run_genesis_bg:
 run:
 	$(RUN_SCRIPT) -u
 
+run_user:
+	$(RUN_SCRIPT) -u -m -p
+
 run_bg:
 	$(RUN_SCRIPT) -u -b
+
+run_bg_user:
+	$(RUN_SCRIPT) -u -b -m -p
 
 start_no_genesis:
 	make stop && make build_dev && DEV=1 make run
@@ -56,7 +62,7 @@ startd:
 	make stop && make build_dev && DEV=1 make run_genesis_bg
 
 stop:
-	$(RUN_SCRIPT) -g -d
+	$(RUN_SCRIPT) -g -d -m -p
 
 build_docs: build_dev
 	docker-compose -f ./docker/compose/docs.yml up --abort-on-container-exit

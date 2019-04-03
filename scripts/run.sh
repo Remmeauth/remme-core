@@ -4,6 +4,8 @@ GENESIS_MODE=0
 OPERATION_SPECIFIED=0
 OPERATION=u
 BG_MODE=0
+MONITORING_MODE=0
+PANEL_MODE=0
 
 source ./config/network-config.env
 
@@ -25,7 +27,7 @@ function check_op {
     OPERATION_SPECIFIED=1
 }
 
-while getopts ":gudbl" opt; do
+while getopts ":gudblmp" opt; do
     case $opt in
         g)
             GENESIS_MODE=1
@@ -40,6 +42,12 @@ while getopts ":gudbl" opt; do
             ;;
         b)
             BG_MODE=1
+            ;;
+        m)
+            MONITORING_MODE=1
+            ;;
+        p)
+            PANEL_MODE=1
             ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
@@ -56,6 +64,14 @@ if [ $GENESIS_MODE -eq 1 ]; then
     if [ ${DEV:-0} -eq 1 ]; then
         COMPOSE_FILES="$COMPOSE_FILES -f $COMPOSE_DIR/development-genesis.yml"
     fi
+fi
+
+if [ $MONITORING_MODE -eq 1 ]; then
+    COMPOSE_FILES="$COMPOSE_FILES -f $COMPOSE_DIR/mon.yml"
+fi
+
+if [ $PANEL_MODE -eq 1 ]; then
+    COMPOSE_FILES="$COMPOSE_FILES -f $COMPOSE_DIR/admin.yml"
 fi
 
 if [ ${DEV:-0} -eq 1 ]; then
