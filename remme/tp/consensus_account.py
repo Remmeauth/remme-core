@@ -150,7 +150,9 @@ class ConsensusAccountHandler(BasicHandler):
             calc = client_to_real_amount(share * reward)
             node_account.reputation.unfrozen += calc
             node_account.reputation.frozen += client_to_real_amount(reward) - calc
-            LOGGER.info(f"Payng rewards. Unfrozen: {calc}; frozen: {client_to_real_amount(reward) - calc}")
+            LOGGER.info(f"Payng rewards. Unfrozen: {calc}; frozen: {client_to_real_amount(reward) - calc}; "
+                        f"signer: {signer_node_address}; reward: {client_to_real_amount(reward)}; "
+                        f"unfrozen share: {share}; frozen share: {1 - share}")
         elif reputational >= min_stake * initial_stake:
             calc = client_to_real_amount(max_share * reward)
             node_account.reputation.unfrozen += calc
@@ -158,7 +160,9 @@ class ConsensusAccountHandler(BasicHandler):
 
             state[genesis_node_address] = genesis_account
 
-            LOGGER.info(f"Payng rewards. Unfrozen: {calc}, REMME: {client_to_real_amount(reward) - calc}")
+            LOGGER.info(f"Payng rewards. Unfrozen: {calc}, REMME: {client_to_real_amount(reward) - calc}; "
+                        f"signer: {signer_node_address}; reward: {client_to_real_amount(reward)}; "
+                        f"unfrozen share: {max_share}")
         else:
             calc = client_to_real_amount(max_share * reward)
             node_account.reputation.frozen += calc
@@ -166,7 +170,9 @@ class ConsensusAccountHandler(BasicHandler):
 
             state[genesis_node_address] = genesis_account
 
-            LOGGER.info(f"Payng rewards. Frozen: {calc}, REMME: {client_to_real_amount(reward) - calc}")
+            LOGGER.info(f"Payng rewards. Frozen: {calc}, REMME: {client_to_real_amount(reward) - calc}; "
+                        f"signer: {signer_node_address}; reward: {client_to_real_amount(reward)}; "
+                        f"frozen share: {max_share}")
 
         consensus_account.obligatory_payments = 0
 
