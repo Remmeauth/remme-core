@@ -29,6 +29,7 @@ from sawtooth_sdk.protobuf.block_pb2 import BlockHeader
 from sawtooth_sdk.protobuf.transaction_pb2 import TransactionHeader
 
 from remme.shared import exceptions as errors
+from remme.shared.exceptions import CountInvalid
 
 
 LOGGER = logging.getLogger(__name__)
@@ -174,10 +175,12 @@ def get_sorting_message(reverse, key):
 def make_paging_message(controls):
     """Turns a raw paging controls dict into Protobuf ClientPagingControls.
     """
-
-    return client_list_control_pb2.ClientPagingControls(
-        start=controls.get('start', None),
-        limit=controls.get('limit', None))
+    try:
+        return client_list_control_pb2.ClientPagingControls(
+            start=controls.get('start', None),
+            limit=controls.get('limit', None))
+    except ValueError:
+        raise CountInvalid()
 
 
 def get_paging_controls(start, limit):

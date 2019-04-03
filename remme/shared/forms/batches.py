@@ -6,7 +6,6 @@ from ._validators import (
     NotRequired,
 )
 from .base import ProtoForm
-from ._fields import IDField
 
 
 class ListBatchesForm(ProtoForm):
@@ -31,13 +30,13 @@ class ListBatchesForm(ProtoForm):
         super().__init__(formdata, obj, prefix, data, meta, **kwargs)
 
     ids = fields.FieldList(
-        IDField(validators=[
+        fields.StringField(validators=[
             NotRequired(),
             StringTypeRequired(message='Invalid id.'),
             validators.Regexp('[0-9a-f]{128}', message='Invalid id.'),
         ]), min_entries=0)
 
-    start = IDField(validators=[
+    start = fields.StringField(validators=[
         NotRequired(),
         StringTypeRequired(message='Invalid id.'),
         validators.Regexp(regex='[0-9a-f]{128}',  message='Invalid id.')
@@ -48,7 +47,7 @@ class ListBatchesForm(ProtoForm):
                                             validators.NumberRange(min=1, message='Invalid limit count.')],
                                 )
 
-    head = IDField(validators=[
+    head = fields.StringField(validators=[
         NotRequired(),
         StringTypeRequired(message='Invalid id.'),
         validators.Regexp(regex='[0-9a-f]{128}',  message='Invalid id.')

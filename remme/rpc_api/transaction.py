@@ -32,7 +32,8 @@ from remme.clients.account import AccountClient
 from remme.clients.pub_key import PubKeyClient
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.shared.forms import (
-    IdentifierForm,
+    BatchIdentifierForm,
+    TransactionIdentifierForm,
     IdentifiersForm,
     ProtoForm,
     ListBatchesForm
@@ -231,7 +232,7 @@ async def list_batches(request):
     return await client.list_batches(ids, start, limit, head, reverse)
 
 
-@validate_params(IdentifierForm)
+@validate_params(BatchIdentifierForm)
 async def fetch_batch(request):
     batch_id = request.params['id']
 
@@ -242,7 +243,7 @@ async def fetch_batch(request):
         raise KeyNotFound(f'Batch with batch id `{batch_id}` not found.')
 
 
-@validate_params(IdentifierForm)
+@validate_params(BatchIdentifierForm)
 async def get_batch_status(request):
     batch_id = request.params['id']
 
@@ -263,7 +264,7 @@ async def list_transactions(request):
     return await client.list_transactions(ids, start, limit, head, reverse, family_name)
 
 
-@validate_params(IdentifierForm)
+@validate_params(TransactionIdentifierForm)
 async def fetch_transaction(request):
     id = request.params['id']
     client = AccountClient()
