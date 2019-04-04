@@ -6,6 +6,7 @@ from remme.rpc_api.transaction import (
     fetch_batch,
     fetch_transaction,
     list_transactions,
+    list_receipts,
 )
 from remme.shared.exceptions import KeyNotFound
 from testing.utils._async import (
@@ -692,5 +693,174 @@ async def test_list_transactions_with_wrong_key(request_):
 
     with pytest.raises(RpcInvalidParamsError) as error:
         await list_transactions(request_)
+
+    assert expected_error_message == error.value.message
+
+
+@pytest.mark.asyncio
+async def test_get_list_receipts(mocker, request_):
+    """
+    Case: get list receipts by transaction ids.
+    Expect: particular receipts data.
+    """
+    transaction_ids = ['9a2bf9a6ce2a66a3276554cf2f5b3f08a239ea4b0a80d66c3ede4f5104ea9f77'
+                       '3aad96731f19ad7f6a787c0399f63822975aa94345cbdf4973af1ed97f47f3f8',
+                       '8d8cb28c58f7785621b51d220b6a1d39fe5829266495d28eaf0362dc85d7e91c'
+                       '205c1c4634604443dc566c56e1a4c0cf2eb122ac42cb482ef1436694634240c5']
+
+    expected_result = {
+        "data": [
+            {
+                "state_changes": [
+                    {
+                        "address": "000000a87cb5eafdcca6a8f82af32160bc53119b8878ad4d2117f2e3b0c44298fc1c14",
+                        "value": "ClgKKXNhd3Rvb3RoLnZhbGlkYXRvci5ibG9ja192YWxpZGF0aW9uX3J1bGVz"
+                                 "EitOb2ZYOjEsYmxvY2tfaW5mbztYYXRZOmJsb2NrX2luZm8sMDtsb2NhbDow",
+                        "type": "SET"
+                    }
+                ],
+                "events": [
+                    {
+                        "event_type": "settings/update",
+                        "attributes": [
+                            {
+                                "key": "updated",
+                                "value": "sawtooth.validator.block_validation_rules"
+                            }
+                        ]
+                    }
+                ],
+                "id": "9a2bf9a6ce2a66a3276554cf2f5b3f08a239ea4b0a80d66c3ede4f5104ea9f77"
+                      "3aad96731f19ad7f6a787c0399f63822975aa94345cbdf4973af1ed97f47f3f8",
+                "data": []
+            },
+            {
+                "state_changes": [
+                    {
+                        "address": "000000a87cb5eafdcca6a8f82af32160bc5311783bdad381ea57b4e3b0c44298fc1c14",
+                        "value": "CjAKInNhd3Rvb3RoLnZhbGlkYXRvci5iYXRjaF9pbmplY3RvcnMSCmJsb2NrX2luZm8=",
+                        "type": "SET"
+                    }
+                ],
+                "events": [
+                    {
+                        "event_type": "settings/update",
+                        "attributes": [
+                            {
+                                "key": "updated",
+                                "value": "sawtooth.validator.batch_injectors"
+                            }
+                        ]
+                    }
+                ],
+                "id": "8d8cb28c58f7785621b51d220b6a1d39fe5829266495d28eaf0362dc85d7e91c"
+                      "205c1c4634604443dc566c56e1a4c0cf2eb122ac42cb482ef1436694634240c5",
+                "data": []
+            }
+        ]
+
+    }
+
+    mock_get_list_receipts = mocker.patch('remme.shared.router.Router.list_receipts')
+    mock_get_list_receipts.return_value = return_async_value(expected_result)
+
+    request_.params = {
+        'ids': transaction_ids,
+    }
+
+    result = await list_receipts(request_)
+
+    assert expected_result == result
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('invalid_transaction_ids', (['12345', 0, 12345, True]))
+async def test_get_list_receipts_with_invalid_ids(request_, invalid_transaction_ids):
+    """
+    Case: get list receipts with invalid ids.
+    Expect: given incorrect identifier error message.
+    """
+    request_.params = {
+        'ids': invalid_transaction_ids,
+    }
+
+    with pytest.raises(RpcInvalidParamsError) as error:
+        await list_receipts(request_)
+
+    assert 'Incorrect identifier.' == error.value.message
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('invalid_transaction_ids', (['12345'], [0, ], ['12345', 12345], [True, False]))
+async def test_get_list_receipts_with_invalid_list_ids(request_, invalid_transaction_ids):
+    """
+    Case: get list receipts with invalid ids.
+    Expect: given incorrect identifier error message.
+    """
+    request_.params = {
+        'ids': invalid_transaction_ids,
+    }
+
+    with pytest.raises(RpcInvalidParamsError) as error:
+        await list_receipts(request_)
+
+    assert 'Incorrect identifier.' == error.value.message
+
+
+@pytest.mark.asyncio
+async def test_get_list_receipts_with_wrong_key(request_):
+    """
+    Case: list receipts with wrong key.
+    Expect: wrong params keys error message.
+    """
+    request_.params = {
+        'id': 'd7da05756926c426bed6cd773f04d96c66be91efe2c973f8d19afb639791f05b'
+              '4f3641d0ec53bfa5f86a49d77acc7d0f463ce35d4b0c1a4cf0721d55c55b8150',
+    }
+
+    expected_error_message = "Wrong params keys: ['id']"
+
+    with pytest.raises(RpcInvalidParamsError) as error:
+        await list_receipts(request_)
+
+    assert expected_error_message == error.value.message
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('list_of_transaction_ids_is_empty', ([None, '']))
+async def test_get_list_receipts_without_ids(request_, list_of_transaction_ids_is_empty):
+    """
+    Case: get list receipts without ids.
+    Expect: missed id error message.
+    """
+    request_.params = {
+        'ids': list_of_transaction_ids_is_empty,
+    }
+
+    with pytest.raises(RpcInvalidParamsError) as error:
+        await list_receipts(request_)
+
+    assert 'Missed list of identifiers.' == error.value.message
+
+
+@pytest.mark.asyncio
+async def test_get_list_receipts_with_non_existing_ids(mocker, request_):
+    """
+    Case: list receipts with a non-existing transaction ids.
+    Expect: transaction not found error message.
+    """
+    non_existing_transaction_id = ['5b3261a62694198d7eb034484abc06dfe997eca0f29f5f1019ba4d460e8b0977'
+                                   '3cf52f8235ab89c273da3725dd3c212c955734332777e02725e78333aba7f1f1']
+    request_.params = {
+        'ids': non_existing_transaction_id,
+    }
+
+    expected_error_message = f'Transactions with ids "{non_existing_transaction_id}" not found.'
+
+    mock_get_list_receipts = mocker.patch('remme.shared.router.Router.list_receipts')
+    mock_get_list_receipts.return_value = raise_async_error(KeyNotFound(expected_error_message))
+
+    with pytest.raises(KeyNotFound) as error:
+        await list_receipts(request_)
 
     assert expected_error_message == error.value.message
