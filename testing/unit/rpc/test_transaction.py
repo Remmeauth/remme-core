@@ -367,7 +367,7 @@ async def test_list_transactions_with_ids(mocker, request_):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('invalid_ids', (['12345'], [0, ], ['12345', 12345], [True, False]))
+@pytest.mark.parametrize('invalid_ids', (0, 1, ['12345'], [0, ], ['12345', 12345], [True, False]))
 async def test_list_transactions_with_invalid_ids(request_, invalid_ids):
     """
     Case: list transactions with invalid parameter ids.
@@ -607,7 +607,8 @@ async def test_list_transactions_with_invalid_head(request_, invalid_head):
 
 
 @pytest.mark.asyncio
-async def test_list_transactions_with_reverse(mocker, request_):
+@pytest.mark.parametrize('valid_reverse', ['false', '', None])
+async def test_list_transactions_with_reverse(mocker, request_, valid_reverse):
     """
     Case: get list transactions by reverse.
     Expect: list of transactions is fetched.
@@ -653,7 +654,7 @@ async def test_list_transactions_with_reverse(mocker, request_):
     mock_list_transactions.return_value = return_async_value(expected_result)
 
     request_.params = {
-        'reverse': 'false',
+        'reverse': valid_reverse,
     }
 
     result = await list_transactions(request_)
@@ -662,7 +663,7 @@ async def test_list_transactions_with_reverse(mocker, request_):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('invalid_reverse', ['12345', 0, 12345, True])
+@pytest.mark.parametrize('invalid_reverse', ['12345', 0, 12345, 'true', True])
 async def test_list_transactions_with_invalid_reverse(request_, invalid_reverse):
     """
     Case: list transactions with invalid parameter reverse.

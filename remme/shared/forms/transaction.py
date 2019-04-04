@@ -10,7 +10,11 @@ from remme.shared.forms.base import ProtoForm
 
 class ListTransactionsForm(ProtoForm):
 
-    ids = fields.FieldList(unbound_field=fields.StringField())
+    ids = fields.StringField()
+
+    if isinstance(ids, list):
+        ids = fields.FieldList(unbound_field=fields.StringField(), min_entries=1)
+
     start = fields.StringField()
     limit = fields.IntegerField()
     head = fields.StringField()
@@ -19,6 +23,9 @@ class ListTransactionsForm(ProtoForm):
     def validate_ids(form, field):
         if field.data is None:
             return
+
+        if not isinstance(field.data, list):
+            raise validators.StopValidation('Header signature is not of a blockchain token type.')
 
         for data in field.data:
 

@@ -337,7 +337,8 @@ async def test_list_state_with_invalid_head(request_, invalid_head):
 
 
 @pytest.mark.asyncio
-async def test_list_state_with_reverse(mocker, request_):
+@pytest.mark.parametrize('valid_reverse', ['false', '', None])
+async def test_list_state_with_reverse(mocker, request_, valid_reverse):
     """
     Case: get list state by reverse.
     Expect: data for the current state is fetched.
@@ -370,7 +371,7 @@ async def test_list_state_with_reverse(mocker, request_):
     mock_list_state.return_value = return_async_value(expected_result)
 
     request_.params = {
-        'reverse': 'false',
+        'reverse': valid_reverse,
     }
 
     result = await list_state(request_)
@@ -379,7 +380,7 @@ async def test_list_state_with_reverse(mocker, request_):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('invalid_reverse', ['12345', 0, 12345, True])
+@pytest.mark.parametrize('invalid_reverse', ['12345', 0, 12345, 'true', True])
 async def test_list_state_with_invalid_reverse(request_, invalid_reverse):
     """
     Case: list state with invalid parameter reverse.
