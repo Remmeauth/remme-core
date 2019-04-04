@@ -54,7 +54,7 @@ class ListStateForm(ProtoForm):
             raise validators.StopValidation('Given block id is not a valid.')
 
     def validate_reverse(form, field):
-        if field.data is None:
+        if not field.data and not isinstance(field.data, int):
             return
 
         if field.data != 'false':
