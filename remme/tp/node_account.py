@@ -69,7 +69,7 @@ class NodeAccountHandler(BasicHandler):
                 PROCESSOR: self._transfer_from_unfrozen_to_operational,
                 VALIDATOR: NodeAccountInternalTransferPayloadForm,
             },
-            NodeAccountMethod.GENESIS_NODE: {
+            NodeAccountMethod.INITIALIZE_NODE: {
                 PB_CLASS: NodeAccountInternalTransferPayload,
                 PROCESSOR: self._initialize_node,
                 VALIDATOR: NodeAccountGenesisForm,
@@ -249,7 +249,7 @@ class NodeAccountHandler(BasicHandler):
         bet_payload = getattr(pb_payload, str(bet_name))
 
         try:
-            setattr(node_account, bet_name, bet_payload)
+            setattr(node_account, bet_name, int(bet_payload))
         except AttributeError as e:
             LOGGER.exception(e)
             raise InvalidTransaction('Failed to update bet config.')

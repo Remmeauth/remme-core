@@ -138,9 +138,13 @@ class AccountHandler(BasicHandler):
         ])
 
         if sender_account is None:
+            if sender_account_pb_class is NodeAccount:
+                raise InvalidTransaction('Node account could not be created in transfer.')
             sender_account = sender_account_pb_class()
 
         if receiver_account is None:
+            if receiver_account_pb_class is NodeAccount:
+                raise InvalidTransaction('Node account could not be created in transfer.')
             receiver_account = receiver_account_pb_class()
 
         if sender_account.balance < transfer_payload.value:
