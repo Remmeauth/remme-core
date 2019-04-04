@@ -38,14 +38,13 @@ from remme.protos.transaction_pb2 import TransactionPayload
 from remme.shared.forms import (
     BatchIdentifierForm,
     TransactionIdentifierForm,
-    IdentifiersForm,
     ProtoForm,
-    ListBatchesForm
+    ListBatchesForm,
+    ListTransactionsForm,
+    ListReceiptsForm,
 )
-from remme.shared.forms.transaction import ListTransactionsForm
 
 from .utils import validate_params
-import sys
 
 
 __all__ = (
@@ -196,14 +195,14 @@ async def send_raw_transaction(request):
     return response['data']
 
 
-@validate_params(IdentifiersForm)
+@validate_params(ListReceiptsForm)
 async def list_receipts(request):
     ids = request.params['ids']
 
     try:
         return await account_client.list_receipts(ids)
     except KeyNotFound:
-        raise KeyNotFound(f'Transactions with ids "{ids}" not found')
+        raise KeyNotFound(f'Transactions with ids "{ids}" not found.')
 
 
 @validate_params(ListBatchesForm)
@@ -217,7 +216,7 @@ async def list_batches(request):
     try:
         return await account_client.list_batches(ids, start, limit, head, reverse)
     except (KeyNotFound, ClientException):
-        raise KeyNotFound(f'Resource not found.')
+        raise KeyNotFound(f'List of batches not found.')
     except CountInvalid:
         raise CountInvalid(f'Invalid limit count.')
 

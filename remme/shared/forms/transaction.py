@@ -61,3 +61,27 @@ class ListTransactionsForm(ProtoForm):
 
         if field.data != 'false':
             raise validators.StopValidation('Incorrect reverse identifier.')
+
+
+class ListReceiptsForm(ProtoForm):
+
+    ids = fields.StringField()
+
+    if isinstance(ids, list):
+        ids = fields.FieldList(fields.StringField(), min_entries=1)
+
+    @staticmethod
+    def validate_ids(form, field):
+        if field.data == '' or field.data is None:
+            raise validators.StopValidation('Missed list of identifiers.')
+
+        if not isinstance(field.data, list):
+            raise validators.StopValidation('Incorrect identifier.')
+
+        for data in field.data:
+
+            if not isinstance(data, str):
+                raise validators.StopValidation('Incorrect identifier.')
+
+            if re.match(r'^[0-9a-f]{128}$', data) is None:
+                raise validators.StopValidation('Incorrect identifier.')

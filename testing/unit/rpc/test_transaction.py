@@ -7,6 +7,7 @@ from remme.rpc_api.transaction import (
     list_batches,
     fetch_transaction,
     list_transactions,
+    list_receipts,
 )
 from remme.shared.exceptions import KeyNotFound
 from testing.utils._async import (
@@ -202,14 +203,14 @@ async def test_fetch_batch_with_non_existing_batch_id(mocker, request_):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('ids', [[1], ['123'], 123, True, 'e'])
-async def test_list_batches_with_invalid_ids(request_, ids):
+@pytest.mark.parametrize('invalid_ids', [[1], ['123'], 123, True, 'e'])
+async def test_list_batches_with_invalid_ids(request_, invalid_ids):
     """
     Case: list batches with invalid ids.
     Expect: exception with invalid id message is raised.
     """
     request_.params = {
-        'ids': ids,
+        'ids': invalid_ids,
     }
 
     with pytest.raises(RpcInvalidParamsError) as error:
@@ -219,14 +220,14 @@ async def test_list_batches_with_invalid_ids(request_, ids):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('start', [1, '1', True])
-async def test_list_batches_with_invalid_start(request_, start):
+@pytest.mark.parametrize('invalid_start', [1, '1', True])
+async def test_list_batches_with_invalid_start(request_, invalid_start):
     """
     Case: list batches with invalid start field.
     Expect: exception with invalid id message is raised.
     """
     request_.params = {
-        'start': start,
+        'start': invalid_start,
     }
 
     with pytest.raises(RpcInvalidParamsError) as error:
@@ -235,14 +236,14 @@ async def test_list_batches_with_invalid_start(request_, start):
     assert 'Invalid id.' == error.value.message
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('limit', [-1, '1', True])
-async def test_list_batches_with_invalid_limit(request_, limit):
+@pytest.mark.parametrize('invalid_limit', [-1, '1', True])
+async def test_list_batches_with_invalid_limit(request_, invalid_limit):
     """
     Case: list batches with invalid limit field.
     Expect: exception with invalid limit count message is raised.
     """
     request_.params = {
-        'limit': limit,
+        'limit': invalid_limit,
     }
 
     with pytest.raises(RpcInvalidParamsError) as error:
@@ -251,14 +252,14 @@ async def test_list_batches_with_invalid_limit(request_, limit):
     assert 'Invalid limit count.' == error.value.message
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('head', [1, '1', True])
-async def test_list_batches_with_invalid_head(request_, head):
+@pytest.mark.parametrize('invalid_head', [1, '1', True])
+async def test_list_batches_with_invalid_head(request_, invalid_head):
     """
     Case: list batches with invalid start field.
     Expect: exception with invalid id message is raised.
     """
     request_.params = {
-        'head': head,
+        'head': invalid_head,
     }
 
     with pytest.raises(RpcInvalidParamsError) as error:
@@ -268,14 +269,14 @@ async def test_list_batches_with_invalid_head(request_, head):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('reverse', [1, '1', [1]])
-async def test_list_batches_with_invalid_reverse(request_, reverse):
+@pytest.mark.parametrize('invalid_reverse', [1, '1', [1]])
+async def test_list_batches_with_invalid_reverse(request_, invalid_reverse):
     """
     Case: list batches with invalid reverse field.
     Expect: exception invalid identifier message is raised.
     """
     request_.params = {
-        'reverse': reverse
+        'reverse': invalid_reverse
     }
 
     with pytest.raises(RpcInvalidParamsError) as error:
@@ -284,36 +285,36 @@ async def test_list_batches_with_invalid_reverse(request_, reverse):
     assert 'Incorrect identifier.' == error.value.message
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('start', ['a'*128])
-async def test_list_batches_with_unexisting_start(request_, start):
+@pytest.mark.parametrize('non_existing_start', ['a'*128])
+async def test_list_batches_with_non_existing_start(request_, non_existing_start):
     """
-    Case: list batches with unexisting start.
+    Case: list batches with non existing start.
     Expect: exception with resource not found message is raised.
     """
     request_.params = {
-        'start': start,
+        'start': non_existing_start,
     }
 
     with pytest.raises(KeyNotFound) as error:
         await list_batches(request_)
 
-    assert 'Resource not found.' == error.value.message
+    assert 'List of batches not found.' == error.value.message
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('ids', [['a'*128]])
-async def test_list_batches_with_unexisting_ids(request_, ids):
+@pytest.mark.parametrize('non_existing_ids', [['a'*128]])
+async def test_list_batches_with_non_existing_ids(request_, non_existing_ids):
     """
-    Case: list batches with unexisting ids.
+    Case: list batches with non existing ids.
     Expect: exception with resource not found message is raised.
     """
     request_.params = {
-        'ids': ids,
+        'ids': non_existing_ids,
     }
 
     with pytest.raises(KeyNotFound) as error:
         await list_batches(request_)
 
-    assert 'Resource not found.' == error.value.message
+    assert 'List of batches not found.' == error.value.message
 
 @pytest.mark.asyncio
 async def test_list_batches_with_valid_params(mocker, request_,):
@@ -358,8 +359,8 @@ async def test_list_batches_with_valid_params(mocker, request_,):
         }
     }
 
-    mock_fetch_transaction = mocker.patch('remme.shared.router.Router.list_batches')
-    mock_fetch_transaction.return_value = return_async_value(expected_result)
+    mock_list_batches = mocker.patch('remme.shared.router.Router.list_batches')
+    mock_list_batches.return_value = return_async_value(expected_result)
 
     request_.params = {
         'start': start,
@@ -865,5 +866,174 @@ async def test_list_transactions_with_wrong_key(request_):
 
     with pytest.raises(RpcInvalidParamsError) as error:
         await list_transactions(request_)
+
+    assert expected_error_message == error.value.message
+
+
+@pytest.mark.asyncio
+async def test_get_list_receipts(mocker, request_):
+    """
+    Case: get list receipts by transaction ids.
+    Expect: particular receipts data.
+    """
+    transaction_ids = ['9a2bf9a6ce2a66a3276554cf2f5b3f08a239ea4b0a80d66c3ede4f5104ea9f77'
+                       '3aad96731f19ad7f6a787c0399f63822975aa94345cbdf4973af1ed97f47f3f8',
+                       '8d8cb28c58f7785621b51d220b6a1d39fe5829266495d28eaf0362dc85d7e91c'
+                       '205c1c4634604443dc566c56e1a4c0cf2eb122ac42cb482ef1436694634240c5']
+
+    expected_result = {
+        "data": [
+            {
+                "state_changes": [
+                    {
+                        "address": "000000a87cb5eafdcca6a8f82af32160bc53119b8878ad4d2117f2e3b0c44298fc1c14",
+                        "value": "ClgKKXNhd3Rvb3RoLnZhbGlkYXRvci5ibG9ja192YWxpZGF0aW9uX3J1bGVz"
+                                 "EitOb2ZYOjEsYmxvY2tfaW5mbztYYXRZOmJsb2NrX2luZm8sMDtsb2NhbDow",
+                        "type": "SET"
+                    }
+                ],
+                "events": [
+                    {
+                        "event_type": "settings/update",
+                        "attributes": [
+                            {
+                                "key": "updated",
+                                "value": "sawtooth.validator.block_validation_rules"
+                            }
+                        ]
+                    }
+                ],
+                "id": "9a2bf9a6ce2a66a3276554cf2f5b3f08a239ea4b0a80d66c3ede4f5104ea9f77"
+                      "3aad96731f19ad7f6a787c0399f63822975aa94345cbdf4973af1ed97f47f3f8",
+                "data": []
+            },
+            {
+                "state_changes": [
+                    {
+                        "address": "000000a87cb5eafdcca6a8f82af32160bc5311783bdad381ea57b4e3b0c44298fc1c14",
+                        "value": "CjAKInNhd3Rvb3RoLnZhbGlkYXRvci5iYXRjaF9pbmplY3RvcnMSCmJsb2NrX2luZm8=",
+                        "type": "SET"
+                    }
+                ],
+                "events": [
+                    {
+                        "event_type": "settings/update",
+                        "attributes": [
+                            {
+                                "key": "updated",
+                                "value": "sawtooth.validator.batch_injectors"
+                            }
+                        ]
+                    }
+                ],
+                "id": "8d8cb28c58f7785621b51d220b6a1d39fe5829266495d28eaf0362dc85d7e91c"
+                      "205c1c4634604443dc566c56e1a4c0cf2eb122ac42cb482ef1436694634240c5",
+                "data": []
+            }
+        ]
+
+    }
+
+    mock_get_list_receipts = mocker.patch('remme.shared.router.Router.list_receipts')
+    mock_get_list_receipts.return_value = return_async_value(expected_result)
+
+    request_.params = {
+        'ids': transaction_ids,
+    }
+
+    result = await list_receipts(request_)
+
+    assert expected_result == result
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('invalid_transaction_ids', (['12345', 0, 12345, True]))
+async def test_get_list_receipts_with_invalid_ids(request_, invalid_transaction_ids):
+    """
+    Case: get list receipts with invalid ids.
+    Expect: given incorrect identifier error message.
+    """
+    request_.params = {
+        'ids': invalid_transaction_ids,
+    }
+
+    with pytest.raises(RpcInvalidParamsError) as error:
+        await list_receipts(request_)
+
+    assert 'Incorrect identifier.' == error.value.message
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('invalid_transaction_ids', (['12345'], [0, ], ['12345', 12345], [True, False]))
+async def test_get_list_receipts_with_invalid_list_ids(request_, invalid_transaction_ids):
+    """
+    Case: get list receipts with invalid ids.
+    Expect: given incorrect identifier error message.
+    """
+    request_.params = {
+        'ids': invalid_transaction_ids,
+    }
+
+    with pytest.raises(RpcInvalidParamsError) as error:
+        await list_receipts(request_)
+
+    assert 'Incorrect identifier.' == error.value.message
+
+
+@pytest.mark.asyncio
+async def test_get_list_receipts_with_wrong_key(request_):
+    """
+    Case: list receipts with wrong key.
+    Expect: wrong params keys error message.
+    """
+    request_.params = {
+        'id': 'd7da05756926c426bed6cd773f04d96c66be91efe2c973f8d19afb639791f05b'
+              '4f3641d0ec53bfa5f86a49d77acc7d0f463ce35d4b0c1a4cf0721d55c55b8150',
+    }
+
+    expected_error_message = "Wrong params keys: ['id']"
+
+    with pytest.raises(RpcInvalidParamsError) as error:
+        await list_receipts(request_)
+
+    assert expected_error_message == error.value.message
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('list_of_transaction_ids_is_empty', ([None, '']))
+async def test_get_list_receipts_without_ids(request_, list_of_transaction_ids_is_empty):
+    """
+    Case: get list receipts without ids.
+    Expect: missed id error message.
+    """
+    request_.params = {
+        'ids': list_of_transaction_ids_is_empty,
+    }
+
+    with pytest.raises(RpcInvalidParamsError) as error:
+        await list_receipts(request_)
+
+    assert 'Missed list of identifiers.' == error.value.message
+
+
+@pytest.mark.asyncio
+async def test_get_list_receipts_with_non_existing_ids(mocker, request_):
+    """
+    Case: list receipts with a non-existing transaction ids.
+    Expect: transaction not found error message.
+    """
+    non_existing_transaction_id = ['5b3261a62694198d7eb034484abc06dfe997eca0f29f5f1019ba4d460e8b0977'
+                                   '3cf52f8235ab89c273da3725dd3c212c955734332777e02725e78333aba7f1f1']
+    request_.params = {
+        'ids': non_existing_transaction_id,
+    }
+
+    expected_error_message = f'Transactions with ids "{non_existing_transaction_id}" not found.'
+
+    mock_get_list_receipts = mocker.patch('remme.shared.router.Router.list_receipts')
+    mock_get_list_receipts.return_value = raise_async_error(KeyNotFound(expected_error_message))
+
+    with pytest.raises(KeyNotFound) as error:
+        await list_receipts(request_)
 
     assert expected_error_message == error.value.message

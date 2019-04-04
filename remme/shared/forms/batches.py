@@ -2,11 +2,11 @@ from wtforms import fields, validators
 from ._validators import (
     StringTypeRequired,
     IntegerTypeRequired,
-    BooleanTypeRequired,
     NotRequired,
 )
 from .base import ProtoForm
 import re
+
 
 class ListBatchesForm(ProtoForm):
 
@@ -48,7 +48,13 @@ class ListBatchesForm(ProtoForm):
         validators.Regexp(regex='[0-9a-f]{128}',  message='Invalid id.')
     ])
 
-    reverse = fields.IntegerField(validators=[
-        NotRequired(),
-        BooleanTypeRequired(message='Incorrect identifier.')
-    ])
+    reverse = fields.StringField()
+
+    def validate_reverse(form, field):
+        if not field.data:
+            return
+
+        list_of_valid_reverse = ['false', 'true']
+
+        if field.data not in list_of_valid_reverse:
+            raise validators.StopValidation('Incorrect identifier.')
