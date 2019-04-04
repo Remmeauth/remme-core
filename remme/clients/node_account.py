@@ -57,7 +57,7 @@ class NodeAccountClient(BasicClient):
         addresses_output = addresses_input
 
         payload = TransactionPayload()
-        payload.method = NodeAccountMethod.GENESIS_NODE
+        payload.method = NodeAccountMethod.INITIALIZE_NODE
         payload.data = self.get_internal_transfer_payload(250000).SerializeToString()
 
         return self._write_batch_to_file(self.NODE_ACCOUNT_GENESIS_BATCH,
