@@ -4,7 +4,7 @@ encoder = { pattern = "[{d(%Y-%m-%d %H:%M:%S.%3f)} {l: <8} {M}] {m}{n}" }
 
 [appenders.files]
 kind = "rolling_file"
-encoder = { pattern = "[{d(%Y-%m-%d %H:%M:%S.%3f)} {l: <8} {M}] {m}{n}" }
+encoder = { pattern = "[{d(%H:%M:%S.%3f)} [{T}] {M} {l}] {m}{n}" }
 path = "/var/log/remme/consensus.log"
   [appenders.files.policy]
   kind = "compound"
