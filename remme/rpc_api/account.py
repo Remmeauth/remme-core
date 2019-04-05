@@ -31,7 +31,8 @@ client = AccountClient()
 @validate_params(get_address_form('public_key_address'))
 async def get_balance(request):
     address = request.params['public_key_address']
-    return await client.get_balance(address)
+    balance = await client.get_balance(address)
+    return float(balance)
 
 
 @validate_params(get_address_form('public_key_address'))
