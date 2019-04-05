@@ -13,6 +13,8 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 import logging
+from decimal import ROUND_HALF_UP
+
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
 from remme.protos.transaction_pb2 import EmptyPayload
@@ -33,6 +35,7 @@ from remme.shared.forms import (
     SetBetPayloadForm,
     ProtoForm,
 )
+from remme.shared.utils import client_to_real_amount, real_to_client_amount
 
 from remme.settings import (
     SETTINGS_MINIMUM_STAKE,
@@ -108,7 +111,8 @@ class BetHandler(BasicHandler):
         if node_account.min:
             bet = block_cost
         elif node_account.fixed_amount:
-            bet = node_account.fixed_amount * block_cost
+            bet = int(real_to_client_amount(node_account.fixed_amount * block_cost)
+                      .to_integral_value(rounding=ROUND_HALF_UP))
         elif node_account.max:
             bet = 9 * block_cost
 

@@ -28,7 +28,7 @@ from remme.settings import SETTINGS_SWAP_COMMISSION, ZERO_ADDRESS
 from remme.settings.helper import _get_setting_value, _make_settings_key
 
 
-from remme.shared.utils import web3_hash
+from remme.shared.utils import web3_hash, client_to_real_amount
 from remme.clients.account import AccountClient
 
 from remme.shared.constants import Events, EMIT_EVENT
@@ -134,7 +134,7 @@ class AtomicSwapHandler(BasicHandler):
         swap_information = AtomicSwapInfo()
         swap_information.swap_id = swap_init_payload.swap_id
         swap_information.state = AtomicSwapInfo.OPENED
-        swap_information.amount = swap_init_payload.amount
+        swap_information.amount = client_to_real_amount(swap_init_payload.amount)
         swap_information.created_at = block_time
         swap_information.secret_lock = swap_init_payload.secret_lock_by_solicitor
         swap_information.email_address_encrypted_optional = swap_init_payload.email_address_encrypted_by_initiator
@@ -147,7 +147,7 @@ class AtomicSwapHandler(BasicHandler):
         if commission_amount < 0:
             raise InvalidTransaction('Wrong commission address.')
 
-        swap_total_amount = swap_information.amount + commission_amount
+        swap_total_amount = swap_information.amount + client_to_real_amount(commission_amount)
 
         account = get_data(context, Account, swap_information.sender_address)
 

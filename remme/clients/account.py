@@ -17,6 +17,7 @@ from remme.protos.account_pb2 import AccountMethod, GenesisPayload, TransferPayl
 from remme.clients.basic import BasicClient
 from remme.tp.account import AccountHandler
 from remme.shared.exceptions import KeyNotFound
+from remme.shared.utils import real_to_client_amount
 from remme.settings.helper import _make_settings_key
 from remme.settings import SETTINGS_KEY_ZERO_ADDRESS_OWNERS
 
@@ -43,13 +44,6 @@ class AccountClient(BasicClient):
 
         return genesis
 
-    @classmethod
-    def get_account_model(self, balance):
-        account = Account()
-        account.balance = int(balance)
-
-        return account
-
     def transfer(self, address_to, value):
         addresses_input = [address_to, self.get_user_address()]
         addresses_output = addresses_input
@@ -73,6 +67,7 @@ class AccountClient(BasicClient):
     async def get_balance(self, address):
         try:
             account = await self.get_account(address)
-            return account.balance
+            balance = account.balance
         except KeyNotFound:
-            return 0
+            balance = 0
+        return real_to_client_amount(balance)

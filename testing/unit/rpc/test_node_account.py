@@ -3,6 +3,7 @@ from aiohttp_json_rpc.exceptions import RpcInvalidParamsError
 
 from remme.protos.node_account_pb2 import NodeAccount
 from remme.rpc_api.node_account import get_node_account
+from remme.shared.utils import client_to_real_amount, real_to_client_amount
 from testing.utils._async import return_async_value
 
 NODE_ACCOUNT_ADDRESS = 'node_account_address'
@@ -15,10 +16,10 @@ async def test_get_node_account(mocker, request_):
     Expect: dictionary with node account data.
     """
     node_account = NodeAccount()
-    node_account.balance = 100
+    node_account.balance = client_to_real_amount(100)
     node_account.node_state = node_account.NodeState.Value('NEW')
-    node_account.reputation.frozen = 10
-    node_account.reputation.unfrozen = 10
+    node_account.reputation.frozen = client_to_real_amount(10)
+    node_account.reputation.unfrozen = client_to_real_amount(10)
 
     serialize = node_account.SerializeToString()
 
@@ -34,7 +35,7 @@ async def test_get_node_account(mocker, request_):
     result = await get_node_account(request_)
 
     expected_result = {
-        'balance': str(node_account.balance),
+        'balance': str(real_to_client_amount(node_account.balance)),
         'reputation': {
             'frozen': str(node_account.reputation.frozen),
             'unfrozen': str(node_account.reputation.unfrozen),

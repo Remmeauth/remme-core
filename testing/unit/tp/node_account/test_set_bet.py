@@ -90,7 +90,7 @@ def test_bet_configuration_set_fixed_amount():
 
     assert node_account.max is False
     assert node_account.min is False
-    assert node_account.fixed_amount is 1
+    assert node_account.fixed_amount == 10000
 
 
 def test_bet_configuration_set_max():

@@ -14,12 +14,14 @@
 # ------------------------------------------------------------------------
 import json
 import logging
+from decimal import Decimal
 
 from google.protobuf.json_format import MessageToJson
 
 from remme.clients.atomic_swap import AtomicSwapClient
 from remme.rpc_api.utils import validate_params
 from remme.shared.exceptions import KeyNotFound
+from remme.shared.utils import message_to_dict, real_to_client_amount
 from remme.shared.forms import (
     AtomicSwapForm,
     ProtoForm,
@@ -45,8 +47,9 @@ async def get_atomic_swap_info(request):
         raise KeyNotFound(f'Atomic swap with id "{swap_id}" not found.')
     LOGGER.info(f'Get swap info: {swap_info}')
 
-    data = MessageToJson(message=swap_info, preserving_proto_field_name=True, including_default_value_fields=True)
-    return json.loads(data)
+    data = message_to_dict(swap_info)
+    data['amount'] = str(real_to_client_amount(Decimal(data['amount'])))
+    return data
 
 
 @validate_params(ProtoForm)

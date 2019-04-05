@@ -18,6 +18,7 @@ import hashlib
 import base64
 import codecs
 import re
+from decimal import Decimal, ROUND_HALF_UP
 
 import sha3
 from google.protobuf.json_format import MessageToDict
@@ -28,11 +29,23 @@ from sawtooth_sdk.protobuf.batch_pb2 import BatchHeader
 from sawtooth_sdk.protobuf.block_pb2 import BlockHeader
 from sawtooth_sdk.protobuf.transaction_pb2 import TransactionHeader
 
+from remme.settings import DIVISIBILITY_FACTOR
 from remme.shared import exceptions as errors
 from remme.protos.consensus_messages_pb2 import ConsensusSeal
 
 
 LOGGER = logging.getLogger(__name__)
+
+
+def client_to_real_amount(value, factor=DIVISIBILITY_FACTOR):
+    dvalue = Decimal(value * 10 ** factor)
+    return int(dvalue.to_integral_value(rounding=ROUND_HALF_UP))
+
+
+def real_to_client_amount(value, factor=DIVISIBILITY_FACTOR):
+    dvalue = Decimal(value / 10 ** factor)
+    multi_factor = '0' * (factor)
+    return dvalue.quantize(Decimal(f'1.{multi_factor}'), rounding=ROUND_HALF_UP)
 
 
 def generate_random_key():

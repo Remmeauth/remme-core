@@ -23,7 +23,7 @@ from remme.protos.atomic_swap_pb2 import (
 from remme.protos.account_pb2 import Account
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.settings.helper import _make_settings_key
-from remme.shared.utils import hash512, web3_hash
+from remme.shared.utils import hash512, web3_hash, client_to_real_amount
 from remme.tp.atomic_swap import AtomicSwapHandler
 from remme.tp.basic import BasicHandler
 
@@ -158,7 +158,7 @@ def test_close_atomic_swap():
 
     existing_swap_info_to_close = AtomicSwapInfo()
     existing_swap_info_to_close.swap_id = SWAP_ID
-    existing_swap_info_to_close.amount = 200
+    existing_swap_info_to_close.amount = client_to_real_amount(200)
     existing_swap_info_to_close.state = AtomicSwapInfo.APPROVED
     existing_swap_info_to_close.secret_lock = SECRET_LOCK
     existing_swap_info_to_close.is_initiator = True
@@ -177,12 +177,12 @@ def test_close_atomic_swap():
     })
 
     expected_alice_account = Account()
-    expected_alice_account.balance = TOKENS_AMOUNT_TO_SWAP
+    expected_alice_account.balance = client_to_real_amount(TOKENS_AMOUNT_TO_SWAP)
     serialized_expected_alice_account = expected_alice_account.SerializeToString()
 
     expected_closed_swap_info = AtomicSwapInfo()
     expected_closed_swap_info.swap_id = SWAP_ID
-    expected_closed_swap_info.amount = 200
+    expected_closed_swap_info.amount = client_to_real_amount(200)
     expected_closed_swap_info.state = AtomicSwapInfo.CLOSED
     expected_closed_swap_info.secret_lock = SECRET_LOCK
     expected_closed_swap_info.secret_key = SECRET_KEY

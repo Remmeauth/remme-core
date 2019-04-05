@@ -21,7 +21,7 @@ from remme.protos.atomic_swap_pb2 import (
     AtomicSwapMethod,
 )
 from remme.protos.transaction_pb2 import TransactionPayload
-from remme.shared.utils import hash512, web3_hash
+from remme.shared.utils import hash512, web3_hash, client_to_real_amount
 from remme.tp.atomic_swap import AtomicSwapHandler
 from remme.tp.basic import BasicHandler
 
@@ -301,7 +301,7 @@ def test_approve_atomic_swap_by_bot():
     swap_info = AtomicSwapInfo()
     swap_info.swap_id = SWAP_ID
     swap_info.state = AtomicSwapInfo.OPENED
-    swap_info.amount = TOKENS_AMOUNT_TO_SWAP
+    swap_info.amount = client_to_real_amount(TOKENS_AMOUNT_TO_SWAP)
     swap_info.created_at = CURRENT_TIMESTAMP
     swap_info.sender_address = ALICE_ADDRESS
     swap_info.receiver_address = BOT_ADDRESS
@@ -357,7 +357,7 @@ def test_approve_atomic_swap_without_secret_lock():
     swap_info = AtomicSwapInfo()
     swap_info.swap_id = SWAP_ID
     swap_info.state = AtomicSwapInfo.OPENED
-    swap_info.amount = TOKENS_AMOUNT_TO_SWAP
+    swap_info.amount = client_to_real_amount(TOKENS_AMOUNT_TO_SWAP)
     swap_info.created_at = CURRENT_TIMESTAMP
     swap_info.sender_address = BOT_ADDRESS
     swap_info.receiver_address = ALICE_ADDRESS
@@ -412,7 +412,7 @@ def test_approve_atomic_swap_without_secret_lock_state():
     swap_info = AtomicSwapInfo()
     swap_info.swap_id = SWAP_ID
     swap_info.state = AtomicSwapInfo.OPENED
-    swap_info.amount = TOKENS_AMOUNT_TO_SWAP
+    swap_info.amount = client_to_real_amount(TOKENS_AMOUNT_TO_SWAP)
     swap_info.created_at = CURRENT_TIMESTAMP
     swap_info.sender_address = BOT_ADDRESS
     swap_info.secret_lock = SECRET_LOCK

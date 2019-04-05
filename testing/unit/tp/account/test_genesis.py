@@ -20,7 +20,7 @@ from remme.protos.account_pb2 import (
     TransferPayload,
 )
 from remme.protos.transaction_pb2 import TransactionPayload
-from remme.shared.utils import hash512
+from remme.shared.utils import hash512, client_to_real_amount
 from remme.tp.account import AccountHandler
 from testing.conftest import create_signer
 from testing.mocks.stub import StubContext
@@ -95,7 +95,7 @@ def test_account_handler_genesis_apply():
     Expect:
     """
     account = Account()
-    account.balance = TOKENS_AMOUNT_TO_SUPPLY
+    account.balance = client_to_real_amount(TOKENS_AMOUNT_TO_SUPPLY)
     expected_serialized_account_to_balance = account.SerializeToString()
 
     genesis_payload = GenesisPayload()

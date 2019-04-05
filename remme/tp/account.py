@@ -32,6 +32,7 @@ from remme.settings import (
 )
 from remme.shared.forms import TransferPayloadForm, GenesisPayloadForm
 from remme.shared.constants import Events, EMIT_EVENT
+from remme.shared.utils import client_to_real_amount
 
 from .basic import (
     PB_CLASS, PROCESSOR, VALIDATOR, BasicHandler, get_data, get_multiple_data
@@ -75,7 +76,7 @@ class AccountHandler(BasicHandler):
             raise InvalidTransaction('Genesis is already initialized.')
 
         account = Account()
-        account.balance = genesis_payload.total_supply
+        account.balance = client_to_real_amount(genesis_payload.total_supply)
 
         LOGGER.info(
             f'Genesis transaction is generated. Issued {genesis_payload.total_supply} tokens to address {signer_key}',
@@ -113,8 +114,9 @@ class AccountHandler(BasicHandler):
                 address in (ZERO_ADDRESS,)
 
     def _transfer_from_address(self, context, address_from, transfer_payload):
+        amount = client_to_real_amount(transfer_payload.value)
 
-        if not transfer_payload.value:
+        if not amount:
             raise InvalidTransaction('Could not transfer with zero amount.')
 
         if not self.is_address_account_type(address=transfer_payload.address_to):
@@ -147,16 +149,16 @@ class AccountHandler(BasicHandler):
                 raise InvalidTransaction('Node account could not be created in transfer.')
             receiver_account = receiver_account_pb_class()
 
-        if sender_account.balance < transfer_payload.value:
+        if sender_account.balance < amount:
             raise InvalidTransaction(
                 f'Not enough transferable balance. Sender\'s current balance: {sender_account.balance}.',
             )
 
-        receiver_account.balance += transfer_payload.value
-        sender_account.balance -= transfer_payload.value
+        receiver_account.balance += amount
+        sender_account.balance -= amount
 
         LOGGER.info(
-            f'Transferred {transfer_payload.value} tokens from {address_from} to {transfer_payload.address_to}.',
+            f'Transferred {amount} tokens from {address_from} to {transfer_payload.address_to}.',
         )
 
         return {

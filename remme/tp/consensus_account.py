@@ -13,6 +13,7 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 import logging
+from decimal import Decimal
 
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
@@ -32,7 +33,7 @@ from remme.settings import (
     ZERO_ADDRESS,
 )
 from remme.settings.helper import _get_setting_value
-from remme.shared.utils import hash512
+from remme.shared.utils import hash512, client_to_real_amount, real_to_client_amount
 from remme.shared.forms import ProtoForm
 from .basic import (
     PB_CLASS,
@@ -132,9 +133,9 @@ class ConsensusAccountHandler(BasicHandler):
 
         min_stake, initial_stake, max_share, min_share = self._get_share_data(context)
 
-        reputational = node_account.reputation.unfrozen + node_account.reputation.frozen
+        reputational = real_to_client_amount(node_account.reputation.unfrozen + node_account.reputation.frozen)
 
-        reward = obligatory_payments + block_cost + bet
+        reward = real_to_client_amount(obligatory_payments + block_cost + bet)
 
         state = {
             signer_node_address: node_account,
@@ -146,26 +147,32 @@ class ConsensusAccountHandler(BasicHandler):
         if initial_stake <= reputational < min_stake * initial_stake:
             share = self._calculate_share(max_share, min_share, initial_stake,
                                           min_stake, reputational)
-            calc = int(share * reward)
+            calc = client_to_real_amount(share * reward)
             node_account.reputation.unfrozen += calc
-            node_account.reputation.frozen += int(reward - calc)
-            LOGGER.info(f"Payng rewards. Unfrozen: {calc}; frozen: {int(reward - calc)}")
+            node_account.reputation.frozen += client_to_real_amount(reward) - calc
+            LOGGER.info(f"Payng rewards. Unfrozen: {calc}; frozen: {client_to_real_amount(reward) - calc}; "
+                        f"signer: {signer_node_address}; reward: {client_to_real_amount(reward)}; "
+                        f"unfrozen share: {share}; frozen share: {1 - share}")
         elif reputational >= min_stake * initial_stake:
-            calc = int(max_share * reward)
+            calc = client_to_real_amount(max_share * reward)
             node_account.reputation.unfrozen += calc
-            genesis_account.balance += int(reward - calc)
+            genesis_account.balance += client_to_real_amount(reward) - calc
 
             state[genesis_node_address] = genesis_account
 
-            LOGGER.info(f"Payng rewards. Unfrozen: {calc}, REMME: {int(reward - calc)}")
+            LOGGER.info(f"Payng rewards. Unfrozen: {calc}, REMME: {client_to_real_amount(reward) - calc}; "
+                        f"signer: {signer_node_address}; reward: {client_to_real_amount(reward)}; "
+                        f"unfrozen share: {max_share}")
         else:
-            calc = int(max_share * reward)
+            calc = client_to_real_amount(max_share * reward)
             node_account.reputation.frozen += calc
-            genesis_account.balance += int(reward - calc)
+            genesis_account.balance += client_to_real_amount(reward) - calc
 
             state[genesis_node_address] = genesis_account
 
-            LOGGER.info(f"Payng rewards. Unfrozen: {calc}, REMME: {int(reward - calc)}")
+            LOGGER.info(f"Payng rewards. Frozen: {calc}, REMME: {client_to_real_amount(reward) - calc}; "
+                        f"signer: {signer_node_address}; reward: {client_to_real_amount(reward)}; "
+                        f"frozen share: {max_share}")
 
         consensus_account.obligatory_payments = 0
 
@@ -180,30 +187,30 @@ class ConsensusAccountHandler(BasicHandler):
         min_stake = _get_setting_value(context, SETTINGS_MINIMUM_STAKE)
         if min_stake is None or not min_stake.isdigit():
             raise InvalidTransaction(f'{SETTINGS_MINIMUM_STAKE} is malformed. Should be not negative integer.')
-        min_stake = int(min_stake)
+        min_stake = Decimal(min_stake)
 
         initial_stake = _get_setting_value(context, SETTINGS_COMMITTEE_SIZE)
         if initial_stake is None or not initial_stake.isdigit():
             raise InvalidTransaction(f'{SETTINGS_COMMITTEE_SIZE} is malformed. Should be not negative integer.')
-        initial_stake = int(initial_stake)
+        initial_stake = Decimal(initial_stake)
 
         ledger_tax = _get_setting_value(context, SETTINGS_BLOCKCHAIN_TAX)
         if ledger_tax is None:
             raise InvalidTransaction(f'{SETTINGS_BLOCKCHAIN_TAX} is malformed. Not set.')
-        ledger_tax = float(ledger_tax)
+        ledger_tax = Decimal(ledger_tax)
 
         min_share = _get_setting_value(context, SETTINGS_MIN_SHARE)
         if min_share is None:
             raise InvalidTransaction(f'{SETTINGS_MIN_SHARE} is malformed. Not set.')
-        min_share = float(min_share)
+        min_share = Decimal(min_share)
 
-        max_share = 1 - ledger_tax
+        max_share = Decimal(1 - ledger_tax)
 
         return min_stake, initial_stake, max_share, min_share
 
     @staticmethod
     def _calculate_share(max_share, min_share, initial_stake, min_stake, reputational):
-        return (
+        return Decimal((
             ((max_share - min_share) / ((initial_stake - 1) * min_stake)) *
             (reputational - min_stake)
-        ) + min_share
+        ) + min_share)

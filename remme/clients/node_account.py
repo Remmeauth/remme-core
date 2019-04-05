@@ -22,6 +22,7 @@ from remme.protos.transaction_pb2 import TransactionPayload
 from remme.settings.helper import _make_settings_key
 from remme.settings import (
     SETTINGS_GENESIS_OWNERS, SETTINGS_MINIMUM_STAKE, NODE_STATE_ADDRESS)
+from remme.shared.utils import real_to_client_amount
 
 
 class NodeAccountClient(BasicClient):

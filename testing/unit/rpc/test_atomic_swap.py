@@ -5,6 +5,7 @@ from datetime import datetime
 from remme.protos.atomic_swap_pb2 import AtomicSwapInfo
 from remme.rpc_api.atomic_swap import get_atomic_swap_info
 from remme.shared.exceptions import KeyNotFound
+from remme.shared.utils import client_to_real_amount, real_to_client_amount
 from testing.utils._async import (
     raise_async_error,
     return_async_value,
@@ -24,7 +25,7 @@ async def test_get_atomic_swap_info(mocker, request_):
     atomic_swap_info.sender_address = '112007be95c8bb240396446ec359d0d7f04d257b72aeb4ab1ecfe50cf36e400a96ab9c'
     atomic_swap_info.sender_address_non_local = '0xe6ca0e7c974f06471759e9a05d18b538c5ced11e'
     atomic_swap_info.receiver_address = '112007484def48e1c6b77cf784aeabcac51222e48ae14f3821697f4040247ba01558b1'
-    atomic_swap_info.amount = 10
+    atomic_swap_info.amount = client_to_real_amount(10)
     atomic_swap_info.email_address_encrypted_optional = ''
     atomic_swap_info.swap_id = '133102e41346242476b15a3a7966eb5249271025fc7fb0b37ed3fdb4bcce3806'
     atomic_swap_info.secret_key = ''
@@ -46,7 +47,7 @@ async def test_get_atomic_swap_info(mocker, request_):
     result = await get_atomic_swap_info(request_)
 
     expected_result = {
-        'amount': str(atomic_swap_info.amount),
+        'amount': str(real_to_client_amount(atomic_swap_info.amount)),
         'created_at': atomic_swap_info.created_at,
         'email_address_encrypted_optional': str(atomic_swap_info.email_address_encrypted_optional),
         'is_initiator': atomic_swap_info.is_initiator,

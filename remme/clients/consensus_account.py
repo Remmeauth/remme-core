@@ -23,6 +23,7 @@ from remme.tp.consensus_account import ConsensusAccountHandler
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.settings.helper import _make_settings_key
 from remme.settings import SETTINGS_GENESIS_OWNERS
+from remme.shared.utils import real_to_client_amount
 
 
 class ConsensusAccountClient(BasicClient):

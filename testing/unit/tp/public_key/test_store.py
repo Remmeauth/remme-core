@@ -15,6 +15,7 @@ from remme.protos.pub_key_pb2 import (
     NewPubKeyPayload,
 )
 from remme.protos.transaction_pb2 import TransactionPayload
+from remme.shared.utils import client_to_real_amount
 from remme.settings import ZERO_ADDRESS
 from remme.tp.pub_key import (
     PUB_KEY_STORE_PRICE,
@@ -125,7 +126,7 @@ def test_public_key_handler_store(address_from_public_key, new_public_key_payloa
     )
 
     sender_account = Account()
-    sender_account.balance = SENDER_INITIAL_BALANCE
+    sender_account.balance = client_to_real_amount(SENDER_INITIAL_BALANCE)
     sender_account.pub_keys.append(RANDOM_ALREADY_STORED_SENDER_PUBLIC_KEY)
     serialized_sender_account = sender_account.SerializeToString()
 
@@ -145,13 +146,13 @@ def test_public_key_handler_store(address_from_public_key, new_public_key_payloa
     expected_serialized_public_key_storage = expected_public_key_storage.SerializeToString()
 
     expected_sender_account = Account()
-    expected_sender_account.balance = SENDER_INITIAL_BALANCE - PUB_KEY_STORE_PRICE
+    expected_sender_account.balance = client_to_real_amount(SENDER_INITIAL_BALANCE - PUB_KEY_STORE_PRICE)
     expected_sender_account.pub_keys.append(RANDOM_ALREADY_STORED_SENDER_PUBLIC_KEY)
     expected_sender_account.pub_keys.append(address_from_public_key)
     expected_serialized_sender_account = expected_sender_account.SerializeToString()
 
     expected_zero_account = Account()
-    expected_zero_account.balance = 0 + PUB_KEY_STORE_PRICE
+    expected_zero_account.balance = client_to_real_amount(0 + PUB_KEY_STORE_PRICE)
     expected_serialized_zero_account = expected_zero_account.SerializeToString()
 
     expected_state = {

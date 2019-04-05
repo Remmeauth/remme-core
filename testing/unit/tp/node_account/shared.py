@@ -8,6 +8,8 @@ from remme.tp.consensus_account import ConsensusAccountHandler, ConsensusAccount
 from remme.settings import SETTINGS_MINIMUM_STAKE, NODE_STATE_ADDRESS, ZERO_ADDRESS, SETTINGS_GENESIS_OWNERS
 from remme.settings.helper import _make_settings_key
 
+from remme.shared.utils import client_to_real_amount
+
 RANDOM_NODE_PUBLIC_KEY = '039d6881f0a71d05659e1f40b443684b93c7b7c504ea23ea8949ef5216a2236940'
 
 MINIMUM_STAKE = 250000
@@ -38,7 +40,8 @@ BLOCK_COST = 100
 
 
 def create_context(account_from_balance, node_state=NodeAccount.NEW, frozen=0, unfrozen=0,
-                   fixed_amount=0, min=False, max=False, block_cost=BLOCK_COST):
+                   fixed_amount=0, min=False, max=False, block_cost=BLOCK_COST,
+                   min_stake=MINIMUM_STAKE):
     """
     Create stub context with initial data.
 
@@ -50,12 +53,12 @@ def create_context(account_from_balance, node_state=NodeAccount.NEW, frozen=0, u
     """
     node_account = NodeAccount()
 
-    node_account.balance = account_from_balance
+    node_account.balance = client_to_real_amount(account_from_balance)
     node_account.node_state = node_state
-    node_account.reputation.frozen = frozen
-    node_account.reputation.unfrozen = unfrozen
+    node_account.reputation.frozen = client_to_real_amount(frozen)
+    node_account.reputation.unfrozen = client_to_real_amount(unfrozen)
     if fixed_amount:
-        node_account.fixed_amount = fixed_amount
+        node_account.fixed_amount = client_to_real_amount(fixed_amount)
     elif min:
         node_account.min = min
     elif max:
@@ -66,7 +69,7 @@ def create_context(account_from_balance, node_state=NodeAccount.NEW, frozen=0, u
     serialized_account_from_balance = node_account.SerializeToString()
 
     swap_commission_setting = Setting()
-    swap_commission_setting.entries.add(key=SETTINGS_MINIMUM_STAKE, value=str(250000))
+    swap_commission_setting.entries.add(key=SETTINGS_MINIMUM_STAKE, value=str(min_stake))
     serialized_swap_commission_setting = swap_commission_setting.SerializeToString()
 
     genesis_owners_setting = Setting()
@@ -82,7 +85,7 @@ def create_context(account_from_balance, node_state=NodeAccount.NEW, frozen=0, u
         NODE_ACCOUNT_ADDRESS_FROM: serialized_account_from_balance,
         ADDRESS_TO_GET_MINIMUM_STAKE: serialized_swap_commission_setting,
         ConsensusAccountHandler.CONSENSUS_ADDRESS: serialized_consensus_account,
-        ZERO_ADDRESS: Account(balance=block_cost).SerializeToString(),
+        ZERO_ADDRESS: Account(balance=client_to_real_amount(block_cost)).SerializeToString(),
         ADDRESS_GENESIS_OWNERS: serialized_genesis_owners_setting,
     }
 
