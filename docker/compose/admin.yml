@@ -4,9 +4,10 @@ services:
   validator:
     ports:
       - '0.0.0.0:80:3333'
+
   remme-admin-panel:
     container_name: remme_admin_panel
-    image: remmetechnical/remme-admin-panel:latest
+    image: remme/remme-admin-panel:latest
     network_mode: "service:validator"
     env_file:
       - ../../config/admin.env

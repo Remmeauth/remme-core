@@ -17,7 +17,7 @@ grafana_api() {
   local cmd
 
   cmd="curl -L -s --fail -H \"Accept: application/json\" -H \"Content-Type: application/json\" -X ${verb} -k ${GRAFANA_URL}${url}"
-  [[ -n "${params}" ]] && cmd="${cmd} -d \"${params}\""
+  [[ -n "${params}" ]] && cmd="${cmd} -d '${params}'"
   [[ -n "${bodyfile}" ]] && cmd="${cmd} --data @${bodyfile}"
   echo "Running ${cmd}"
   eval ${cmd} || return 1
@@ -48,21 +48,21 @@ install_datasources() {
 }
 
 edit_org() {
-
-  local org
-
-  for org in ${ORG_PATH}/*.json
-  do
-    if [[ -f "${org}" ]]; then
-      echo "Installing org ${org}"
-      if grafana_api PUT /api/org "" "${org}"; then
-        echo "installed ok"
-      else
-        echo "install failed"
-      fi
+    if grafana_api PUT /api/org "" "${ORG_PATH}/org.json"; then
+	echo "installed ok"
+    else
+	echo "install failed"
     fi
-  done
-
+    if grafana_api POST /api/user/stars/dashboard/1 "" ""; then
+	echo "installed ok"
+    else
+	echo "install failed"
+    fi
+    if grafana_api PUT /api/user/preferences "" "${ORG_PATH}/default.json"; then
+	echo "installed ok"
+    else
+	echo "install failed"
+    fi
 }
 
 install_dashboards() {
