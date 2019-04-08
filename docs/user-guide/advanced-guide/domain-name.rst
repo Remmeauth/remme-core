@@ -132,5 +132,5 @@ The flow is illustrated below.
    :align: center
    :alt: Proof domain name works
 
-For now, you can reach your monitoring page with the following address — ``http://the-coolest-masternode.xyz/grafana/``,
+For now, you can reach your admin panel with the following address — ``http://the-coolest-masternode.xyz/login``,
 changing ``the-coolest-masternode.xyz`` to your domain name and extension.

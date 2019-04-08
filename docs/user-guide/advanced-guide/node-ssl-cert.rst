@@ -317,5 +317,5 @@ The flow is illustrated below.
 
    <a href="https://curl.haxx.se/download.html" target="_blank">tool named curl </a>
 
-For now, you can reach your monitoring page with the following address — ``https://the-coolest-masternode.xyz/grafana/``,
+For now, you can reach your admin panel with the following address — ``https://the-coolest-masternode.xyz/login``,
 changing ``the-coolest-masternode.xyz`` to your domain name and extension.
