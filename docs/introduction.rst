@@ -48,7 +48,7 @@ You could discuss your integration concept in the `technical community in Gitter
 Public testnet nodes list
 =========================
 
-To simplify the interaction with the ``REMchain`` we providie a common ``RPC`` and ``WebSocket``
+To simplify the interaction with the ``REMchain`` we provide a common ``RPC`` and ``WebSocket``
 architecture and formatting. There are several endpoints provided for managing the node and reading its state.
 
 Here the nodes available for communication:

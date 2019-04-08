@@ -184,25 +184,21 @@ the project that already specified in the command below.
 
 .. code-block:: console
 
-   $ export REMME_CORE_RELEASE=0.7.0-alpha
+   $ export REMME_CORE_RELEASE=0.8.0-alpha
    $ sudo apt-get install apt-transport-https ca-certificates curl software-properties-common make -y && \
          echo "REMME_CORE_RELEASE=$REMME_CORE_RELEASE" >> ~/.bashrc && \
          cd /home/ && curl -L https://github.com/Remmeauth/remme-core/archive/v$REMME_CORE_RELEASE.tar.gz | sudo tar zx && \
          cd remme-core-$REMME_CORE_RELEASE && \
          sudo apt update && sudo apt upgrade -y && \
          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - && \
-         sudo apt update && \
-         sudo apt install nginx docker.io -y && \
-         curl https://raw.githubusercontent.com/Remmeauth/remme-core/master/docs/user-guide/templates/node-nginx.conf > /etc/nginx/nginx.conf && \
+         sudo apt update && sudo apt install docker.io -y && \
          sudo curl -o /usr/local/bin/docker-compose -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" && \
          sudo chmod +x /usr/local/bin/docker-compose && \
-         curl https://gist.githubusercontent.com/dmytrostriletskyi/9f525241acfc46799c65d5f010c43b5f/raw/7e929d7bf9522ebc7fb94c62bba66225973db8ff/up-node-after-server-restart.sh > ~/up-node-after-server-restart.sh && \
+         curl https://gist.githubusercontent.com/dmytrostriletskyi/9f525241acfc46799c65d5f010c43b5f/raw/3147860240613e7e2eab5e288d48a975934a260a/up-node-after-server-restart.sh > ~/up-node-after-server-restart.sh && \
          chmod +x ~/up-node-after-server-restart.sh && \
          echo "@reboot $USER ~/./up-node-after-server-restart.sh $REMME_CORE_RELEASE" >> /etc/crontab && \
-         curl -L https://github.com/Remmeauth/remme-mon-stack/archive/v1.0.1.tar.gz | sudo tar zx && \
-         sudo docker-compose -f remme-mon-stack-1.0.1/docker-compose.yml up -d && \
-         sudo make run_genesis_bg && \
-         sudo systemctl restart nginx
+         curl https://gist.githubusercontent.com/dmytrostriletskyi/48f2877d77570facffdea395521e8bd8/raw/9334bfb5cc18b4e143311fead9bd2447a0ae6d24/seeds-list.txt > config/seeds-list.txt && \
+         sudo make run_bg_user
 
 .. image:: /img/user-guide/cloud/digital-ocean/installation-command.png
    :width: 100%
@@ -244,10 +240,11 @@ The response should look similar to this:
 .. code-block:: console
 
    {
-       "id": "11",
        "jsonrpc": "2.0",
+       "id": "11",
        "result": {
-           "node_public_key": "028e7e9b060d7c407e428676299ced9afef4ce782995294d8ea01fd0f08cec9765"
+           "node_public_key": "02b844a10124aae7713e18d80b1a7ae70fcbe73931dd933c821b354f872907f7f3",
+           "node_address": "116829caa6f35dddfd62d067607426407c95bf8dbc37fa55bcf734366df2e97cac660b"
        }
    }
 
@@ -258,41 +255,52 @@ The flow is illustrated below.
    :align: center
    :alt: Proof core is working
 
-Step 6: monitoring
+Step 6: admin panel
+===================
+
+While starting the node, the admin panel has also been installed and started. Log into the admin panel. Copy your server's
+``IP address``, paste it into the browser address bar. Then add ``/login`` to the end of the address and press ``Enter``.
+Then you will see the initial admin panel page with authentication. Enter ``remme`` to the password fields.
+
+.. image:: /img/user-guide/admin-panel/login-page.png
+   :width: 100%
+   :align: center
+   :alt: Admin panel login page
+
+With the admin panel you can do the following operations:
+
+1. Monitor balances and credentials of the node.
+2. Transfer tokens from the node account to other accounts.
+3. Become a masternode, close your masternode and so on.
+
+.. image:: /img/user-guide/admin-panel/home-page.png
+   :width: 100%
+   :align: center
+   :alt: Admin panel home page
+
+Step 7: monitoring
 ==================
 
 Another option to check if your node has completed a correct setup is through monitoring. While starting the node, the monitoring
 has also been installed and started. **Completing this step is required**.
 
 Monitoring is a process of tracking application performance to detect and prevent issues that could occur with your application
-on a particular server. For the monitoring, we will use ``Grafana``. |grafana| is an open source, feature-rich metrics dashboard
+on a particular server. For the monitoring, we will use ``Grafana``. It is an open source, feature-rich metrics dashboard
 and graph editor.
 
-.. |grafana| raw:: html
+Being in the admin panel, click on the ``Monitoring`` tab.
 
-   <a href="https://grafana.com/" target="_blank">Grafana</a>
+.. image:: /img/user-guide/admin-panel/monitoring-tool.png
+   :width: 100%
+   :align: center
+   :alt: Admin panel monitoring tab
 
-Copy your server's ``IP address``, paste it into the browser address bar. Then add ``/grafana/`` to the end of the address and press ``Enter``.
-Then you will see the initial ``Grafana`` page with authentication. Enter ``admin`` to the ``User`` and ``Password`` fields.
+Then you will see the initial ``Grafana`` page with authentication. Enter ``remme`` to the ``User`` and ``Password`` fields.
 
 .. image:: /img/user-guide/advanced-guide/monitoring/login.png
    :width: 100%
    :align: center
    :alt: Login to the Grafana
-
-After entering the initial credentials you will reach the main page. Click on the ``Home`` button right away beside the ``Grafana`` logo.
-
-.. image:: /img/user-guide/advanced-guide/monitoring/home-button.png
-   :width: 100%
-   :align: center
-   :alt: Grafana home button
-
-Then click on the button named ``Main Dashboard`` from the drop down search bar.
-
-.. image:: /img/user-guide/advanced-guide/monitoring/dashboard-under-search.png
-   :width: 100%
-   :align: center
-   :alt: Dashboard under search
 
 Here you will find information about uptime, CPU cores and their load, memory and its load, storage and its load. Also,
 information about containers (components of the node) is presented on the right side of the page. Information

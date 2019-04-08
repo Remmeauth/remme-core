@@ -4,8 +4,8 @@ Types of node running
 Use the following commands to manage your node:
 
 1. ``make stop`` to stop the running node.
-2. ``make run`` to start a node not in the background mode.
-3. ``make run_bg`` to start a node in the background mode.
+2. ``make run_user`` to start a node not in the background mode.
+3. ``make run_bg_user`` to start a node in the background mode.
 
 Background mode means that after executing a command you won't get any output (node's log) in the terminal and when you
 exit from the server, the node will continue working. If you do not run the node in the background mode, when you exit
