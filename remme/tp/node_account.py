@@ -163,6 +163,13 @@ class NodeAccountHandler(BasicHandler):
         }
 
     def _close_masternode(self, context, node_account_public_key, payload):
+        genesis_owners = _get_setting_value(context, SETTINGS_GENESIS_OWNERS)
+        genesis_owners = genesis_owners.split(',') \
+            if genesis_owners is not None else []
+
+        if node_account_public_key in genesis_owners:
+            raise InvalidTransaction("Cannot close genesis node.")
+
         node_account_address = self.make_address_from_data(node_account_public_key)
 
         node_account, node_state = get_multiple_data(context, [

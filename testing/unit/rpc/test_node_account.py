@@ -37,8 +37,8 @@ async def test_get_node_account(mocker, request_):
     expected_result = {
         'balance': str(real_to_client_amount(node_account.balance)),
         'reputation': {
-            'frozen': str(node_account.reputation.frozen),
-            'unfrozen': str(node_account.reputation.unfrozen),
+            'frozen': str(real_to_client_amount(node_account.reputation.frozen)),
+            'unfrozen': str(real_to_client_amount(node_account.reputation.unfrozen)),
         },
         'node_state': 'NEW',
     }
