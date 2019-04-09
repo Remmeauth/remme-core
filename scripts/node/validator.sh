@@ -26,9 +26,28 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
     sawset genesis -k /etc/sawtooth/keys/validator.priv
     GENESIS_BATCHES="config-genesis.batch"
 
+    echo "Generating permissioning settings..."
+    sawset proposal create \
+        -k /etc/sawtooth/keys/validator.priv \
+        sawtooth.identity.allowed_keys="$(cat /etc/sawtooth/keys/validator.pub)" \
+        -o permissioning_setup.batch
+    GENESIS_BATCHES="$GENESIS_BATCHES permissioning_setup.batch"
+
+    sawtooth identity policy create \
+        -k /etc/sawtooth/keys/validator.priv \
+        node_account_permissions_policy "PERMIT_KEY $(cat /etc/sawtooth/keys/validator.pub)" \
+        -o node_account_permissions_policy.batch
+    GENESIS_BATCHES="$GENESIS_BATCHES node_account_permissions_policy.batch"
+
+    sawtooth identity role create \
+        -k /etc/sawtooth/keys/validator.priv \
+        transactor.transaction_signer.node_account node_account_permissions_policy \
+        -o node_account_permissions_role.batch
+    GENESIS_BATCHES="$GENESIS_BATCHES node_account_permissions_role.batch"
+
     echo "REMME consensus is set to use. Writing consensus specific settings..."
     sawset proposal create \
-    -k /etc/sawtooth/keys/validator.priv \
+        -k /etc/sawtooth/keys/validator.priv \
         remme.consensus.voters_number=1 \
         remme.consensus.timing=10 \
         remme.consensus.allowed_validators="$(cat /etc/sawtooth/keys/validator.pub)" \
