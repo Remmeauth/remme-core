@@ -6,7 +6,7 @@ manually to execute different operations such as an ``Atomic Swap``. Being logge
 
 .. code-block:: console
 
-   $ cat /var/lib/docker/volumes/remme_validator_keys/_data/validator.priv
+   $ sudo cat /var/lib/docker/volumes/remme_validator_keys/_data/validator.priv
 
 Then the last command will show you the private key and you can copy it. The result is illustrated below.
 
