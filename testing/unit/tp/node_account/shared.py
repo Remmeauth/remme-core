@@ -41,7 +41,7 @@ BLOCK_COST = 100
 
 def create_context(account_from_balance, node_state=NodeAccount.NEW, frozen=0, unfrozen=0,
                    fixed_amount=0, min=False, max=False, block_cost=BLOCK_COST,
-                   min_stake=MINIMUM_STAKE):
+                   min_stake=MINIMUM_STAKE, genesis_nodes=''):
     """
     Create stub context with initial data.
 
@@ -73,7 +73,7 @@ def create_context(account_from_balance, node_state=NodeAccount.NEW, frozen=0, u
     serialized_swap_commission_setting = swap_commission_setting.SerializeToString()
 
     genesis_owners_setting = Setting()
-    genesis_owners_setting.entries.add(key=SETTINGS_GENESIS_OWNERS, value='')
+    genesis_owners_setting.entries.add(key=SETTINGS_GENESIS_OWNERS, value=genesis_nodes)
     serialized_genesis_owners_setting = genesis_owners_setting.SerializeToString()
 
     consensus_account = ConsensusAccount()

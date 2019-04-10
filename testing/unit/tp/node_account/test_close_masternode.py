@@ -174,3 +174,44 @@ def test_close_closed_masternode():
         NodeAccountHandler().apply(transaction=transaction_request, context=mock_context)
 
     assert 'Masternode is not opened or has been closed.' == str(error.value)
+
+def test_forbid_closing_genesis_node():
+    """
+    Case: try to close the genesis node
+    Expect: Should not be able to do this
+    """
+    close_masternode_payload = EmptyPayload()
+
+    transaction_payload = TransactionPayload()
+    transaction_payload.method = NodeAccountMethod.CLOSE_MASTERNODE
+    transaction_payload.data = close_masternode_payload.SerializeToString()
+
+    serialized_transaction_payload = transaction_payload.SerializeToString()
+
+    transaction_header = TransactionHeader(
+        signer_public_key=RANDOM_NODE_PUBLIC_KEY,
+        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
+        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
+        inputs=INPUTS,
+        outputs=OUTPUTS,
+        dependencies=[],
+        payload_sha512=hash512(data=serialized_transaction_payload),
+        batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
+        nonce=time.time().hex().encode(),
+    )
+
+    serialized_header = transaction_header.SerializeToString()
+
+    transaction_request = TpProcessRequest(
+        header=transaction_header,
+        payload=serialized_transaction_payload,
+        signature=create_signer(private_key=NODE_ACCOUNT_FROM_PRIVATE_KEY).sign(serialized_header),
+    )
+
+    mock_context = create_context(account_from_balance=OPERATIONAL_BALANCE, node_state=NodeAccount.OPENED,
+                                  frozen=FROZEN_BALANCE, unfrozen=UNFROZEN_BALANCE, genesis_nodes=RANDOM_NODE_PUBLIC_KEY)
+
+    with pytest.raises(InvalidTransaction) as error:
+        NodeAccountHandler().apply(transaction=transaction_request, context=mock_context)
+
+    assert 'Cannot close genesis node.' == str(error.value)
