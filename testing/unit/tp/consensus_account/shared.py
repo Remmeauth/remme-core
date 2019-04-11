@@ -10,7 +10,7 @@ from remme.tp.account import Account
 from remme.shared.utils import client_to_real_amount
 from remme.settings import (
     SETTINGS_MINIMUM_STAKE,
-    SETTINGS_COMMITTEE_SIZE,
+    SETTINGS_UNFREEZE_BONUS,
     SETTINGS_BLOCKCHAIN_TAX,
     SETTINGS_MIN_SHARE,
     ZERO_ADDRESS,
@@ -31,7 +31,7 @@ NODE_ACCOUNT_SIGNER_ADDRESS = '116829d71fa7e120c60fb392a64fd69de891a60c667d9ea9e
 NODE_ACCOUNT_SIGNER_PRIVATE_KEY = '1cb15ecfe1b3dc02df0003ac396037f85b98cf9f99b0beae000dc5e9e8b6dab4'
 
 MINIMUM_STAKE_ADDRESS = _make_settings_key(SETTINGS_MINIMUM_STAKE)
-COMMITTEE_SIZE_ADDRESS = _make_settings_key(SETTINGS_COMMITTEE_SIZE)
+UNFREEZE_BONUS_ADDRESS = _make_settings_key(SETTINGS_UNFREEZE_BONUS)
 BLOCKCHAIN_TAX_ADDRESS = _make_settings_key(SETTINGS_BLOCKCHAIN_TAX)
 MIN_SHARE_ADDRESS = _make_settings_key(SETTINGS_MIN_SHARE)
 
@@ -46,13 +46,14 @@ SERIALIZED_BLOCK_INFO_CONFIG = block_info_config.SerializeToString()
 
 block_info = BlockInfo()
 block_info.timestamp = CURRENT_TIMESTAMP
+block_info.block_num = 1000
 block_info.signer_public_key = RANDOM_NODE_PUBLIC_KEY
 SERIALIZED_BLOCK_INFO = block_info.SerializeToString()
 
 INPUTS = OUTPUTS = [
     NODE_ACCOUNT_SIGNER_ADDRESS,
     MINIMUM_STAKE_ADDRESS,
-    COMMITTEE_SIZE_ADDRESS,
+    UNFREEZE_BONUS_ADDRESS,
     BLOCKCHAIN_TAX_ADDRESS,
     MIN_SHARE_ADDRESS,
     BLOCK_INFO_CONFIG_ADDRESS,
@@ -96,7 +97,7 @@ def create_context(account_from_balance=0, bet_value=BET_VALUE, node_state=NodeA
     min_stake_setting.entries.add(key=SETTINGS_MINIMUM_STAKE, value=str(250000))
 
     com_size_setting = Setting()
-    com_size_setting.entries.add(key=SETTINGS_COMMITTEE_SIZE, value=str(10))
+    com_size_setting.entries.add(key=SETTINGS_UNFREEZE_BONUS, value=str(10))
 
     bc_tax_setting = Setting()
     bc_tax_setting.entries.add(key=SETTINGS_BLOCKCHAIN_TAX, value=str(0.1))
@@ -115,7 +116,7 @@ def create_context(account_from_balance=0, bet_value=BET_VALUE, node_state=NodeA
     initial_state = {
         NODE_ACCOUNT_SIGNER_ADDRESS: serialized_node_account,
         MINIMUM_STAKE_ADDRESS: min_stake_setting.SerializeToString(),
-        COMMITTEE_SIZE_ADDRESS: com_size_setting.SerializeToString(),
+        UNFREEZE_BONUS_ADDRESS: com_size_setting.SerializeToString(),
         BLOCKCHAIN_TAX_ADDRESS: bc_tax_setting.SerializeToString(),
         MIN_SHARE_ADDRESS: min_share_setting.SerializeToString(),
         BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_BLOCK_INFO_CONFIG,

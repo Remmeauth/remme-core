@@ -42,9 +42,9 @@ def client_to_real_amount(value, factor=DIVISIBILITY_FACTOR):
     return int(dvalue.to_integral_value(rounding=ROUND_HALF_UP))
 
 
-def real_to_client_amount(value, factor=DIVISIBILITY_FACTOR):
+def real_to_client_amount(value, factor=DIVISIBILITY_FACTOR, rounding=DIVISIBILITY_FACTOR):
     dvalue = Decimal(value / 10 ** factor)
-    multi_factor = '0' * (factor)
+    multi_factor = '0' * (rounding)
     return dvalue.quantize(Decimal(f'1.{multi_factor}'), rounding=ROUND_HALF_UP)
 
 
