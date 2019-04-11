@@ -78,6 +78,12 @@ services:
       - ../../config/log/settings-tp.toml:/etc/sawtooth/settings_log_config.toml
       - logs:/var/log/remme
 
+  identity-tp:
+    container_name: remme_identity_tp
+    image: hyperledger/sawtooth-identity-tp:latest
+    network_mode: "service:validator"
+    entrypoint: identity-tp -vv -C tcp://127.0.0.1:4004
+
   remme-tp:
     container_name: remme_tp
     image: remme/remme-core:latest
