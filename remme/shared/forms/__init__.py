@@ -37,6 +37,3 @@ from .identifier import (
     IdentifierForm,
     IdentifiersForm,
 )
-from .personal import (
-    NodePKForm,
-)
