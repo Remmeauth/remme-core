@@ -7,6 +7,8 @@ from wtforms import (
 
 from remme.shared.forms.base import ProtoForm
 
+FAMILY_NAMES = ['account', 'node_account', 'pub_key', 'AtomicSwap']
+
 
 class ListTransactionsForm(ProtoForm):
 
@@ -19,6 +21,7 @@ class ListTransactionsForm(ProtoForm):
     limit = fields.IntegerField()
     head = fields.StringField()
     reverse = fields.StringField()
+    family_name = fields.StringField()
 
     def validate_ids(form, field):
         if field.data is None:
@@ -68,6 +71,13 @@ class ListTransactionsForm(ProtoForm):
 
         if field.data != 'false':
             raise validators.StopValidation('Incorrect reverse identifier.')
+
+    def validate_family_name(form, field):
+        if field.data is None:
+            return
+
+        if field.data not in FAMILY_NAMES:
+            raise validators.StopValidation('Incorrect family name.')
 
 
 class ListReceiptsForm(ProtoForm):

@@ -680,6 +680,75 @@ async def test_list_transactions_with_invalid_reverse(request_, invalid_reverse)
 
 
 @pytest.mark.asyncio
+async def test_list_transactions_with_family_name(mocker, request_):
+    """
+    Case: get list transactions by family name.
+    Expect: list of transactions is fetched.
+    """
+    expected_result = {
+        'head': '05befa5e16a3ba4d208a3491e10422c84c93894b2905e49b56c4bf9a7d1f8ca3'
+                '681a62083c3599139dc2dbd441af9eee8aa87690ad7352907ab3a3d38831e49d',
+        'paging': {
+            'limit': None,
+            'start': None,
+            'next': ''
+        },
+        'data': [
+            {
+                'header': {
+                    'batcher_public_key': '02c172f9a27512c11e2d49fd41adbcb2151403bd1582e8cd94a5153779c2107092',
+                    'family_name': 'account',
+                    'family_version': '0.1',
+                    'inputs': [
+                        '0000000000000000000000000000000000000000000000000000000000000000000001'
+                    ],
+                    'nonce': '0x1.72c1f170de0f2p+30',
+                    'outputs': [
+                        '0000000000000000000000000000000000000000000000000000000000000000000001',
+                        '112007be95c8bb240396446ec359d0d7f04d257b72aeb4ab1ecfe50cf36e400a96ab9c'
+                    ],
+                    'payload_sha512': '5bc11b6e912e3d16f90b49e4ef08661f827b8855c9d87deb5bad497a99107b36'
+                                      '774b77015cbe9e4c0a8d4763746c1b93e704f5a32d2d4f1c7fdddf5808013961',
+                    'signer_public_key': '02c172f9a27512c11e2d49fd41adbcb2151403bd1582e8cd94a5153779c2107092',
+                    'dependencies': []
+                },
+                'header_signature': '64d852c226067facb60278125e752f6329eafa88abca1e340e29dd26be43462d'
+                                    '15b7e9bef8958a0481f7a93712495970b684c59db126720a88f46199ed273283',
+                'payload': 'CAESBwiAoJSljR0='
+            }
+        ]
+    }
+
+    mock_list_transactions = mocker.patch('remme.shared.router.Router.list_transactions')
+    mock_list_transactions.return_value = return_async_value(expected_result)
+
+    request_.params = {
+        'family_name': 'account',
+    }
+
+    result = await list_transactions(request_)
+
+    assert expected_result == result
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('invalid_family_name', ['12345', 0, 12345, 'true', True])
+async def test_list_transactions_with_invalid_family_name(request_, invalid_family_name):
+    """
+    Case: list transactions with invalid parameter family_name.
+    Expect: incorrect family name error message.
+    """
+    request_.params = {
+        'family_name': invalid_family_name,
+    }
+
+    with pytest.raises(RpcInvalidParamsError) as error:
+        await list_transactions(request_)
+
+    assert 'Incorrect family name.' == error.value.message
+
+
+@pytest.mark.asyncio
 async def test_list_transactions_with_wrong_key(request_):
     """
     Case: list transactions with wrong key.
