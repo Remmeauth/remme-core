@@ -1,7 +1,9 @@
+import time
+
 import pytest
 from aiohttp_json_rpc.exceptions import RpcInvalidParamsError
 
-from remme.protos.node_account_pb2 import NodeAccount
+from remme.protos.node_account_pb2 import NodeAccount, ShareInfo
 from remme.rpc_api.node_account import get_node_account
 from remme.shared.utils import client_to_real_amount, real_to_client_amount
 from testing.utils._async import return_async_value
@@ -15,11 +17,23 @@ async def test_get_node_account(mocker, request_):
     Case: get node account data.
     Expect: dictionary with node account data.
     """
+    now = int(time.time())
+
     node_account = NodeAccount()
     node_account.balance = client_to_real_amount(100)
     node_account.node_state = node_account.NodeState.Value('NEW')
     node_account.reputation.frozen = client_to_real_amount(10)
     node_account.reputation.unfrozen = client_to_real_amount(10)
+    node_account.last_defrost_timestamp = now
+    node_account.shares.extend([
+        ShareInfo(
+            block_num=1,
+            block_timestamp=now,
+            frozen_share=2000,
+            reward=10_000,
+            defrost_months=11,
+        )
+    ])
 
     serialize = node_account.SerializeToString()
 
@@ -41,6 +55,14 @@ async def test_get_node_account(mocker, request_):
             'unfrozen': str(real_to_client_amount(node_account.reputation.unfrozen)),
         },
         'node_state': 'NEW',
+        'last_defrost_timestamp': str(now),
+        'shares': [{
+            'block_num': '1',
+            'block_timestamp': str(now),
+            'frozen_share': '2000',
+            'reward': '10000',
+            'defrost_months': 11,
+        }]
     }
 
     assert expected_result == result

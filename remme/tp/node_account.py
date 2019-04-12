@@ -13,6 +13,9 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 import logging
+from datetime import datetime
+from decimal import Decimal
+
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
 from remme.protos.transaction_pb2 import EmptyPayload
@@ -39,10 +42,12 @@ from remme.settings import (
     SETTINGS_GENESIS_OWNERS,
     NODE_STATE_ADDRESS,
     ZERO_ADDRESS,
+    SETTINGS_BLOCKCHAIN_TAX,
+    MAX_DEFROST_MONTH,
 )
 
 from remme.settings.helper import _get_setting_value
-from remme.shared.utils import client_to_real_amount
+from remme.shared.utils import client_to_real_amount, real_to_client_amount
 from .basic import (
     PB_CLASS,
     PROCESSOR,
@@ -86,9 +91,9 @@ class NodeAccountHandler(BasicHandler):
                 VALIDATOR: ProtoForm,
             },
             NodeAccountMethod.TRANSFER_FROM_FROZEN_TO_UNFROZEN: {
-                PB_CLASS: NodeAccountInternalTransferPayload,
+                PB_CLASS: EmptyPayload,
                 PROCESSOR: self._transfer_from_frozen_to_unfrozen,
-                VALIDATOR: NodeAccountInternalTransferPayloadForm,
+                VALIDATOR: ProtoForm,
             },
             NodeAccountMethod.SET_BET: {
                 PB_CLASS: SetBetPayload,
@@ -222,34 +227,53 @@ class NodeAccountHandler(BasicHandler):
             node_account_address: node_account,
         }
 
-    def _transfer_from_frozen_to_unfrozen(self, context, node_account_public_key, internal_transfer_payload):
-        node_account_address = self.make_address_from_data(node_account_public_key)
+    def _transfer_from_frozen_to_unfrozen(self, context, public_key, payload):
+        node_account_address = self.make_address_from_data(public_key)
 
         node_account = get_data(context, NodeAccount, node_account_address)
-        minimum_stake = _get_setting_value(context, 'remme.settings.minimum_stake')
+        if node_account.node_state != NodeAccount.OPENED:
+            raise InvalidTransaction('Masternode is not opened or has been closed.')
 
-        if node_account is None:
-            raise InvalidTransaction('Invalid context or address.')
+        min_stake = _get_setting_value(context, SETTINGS_MINIMUM_STAKE)
+        if min_stake is None or not min_stake.isdigit():
+            raise InvalidTransaction(f'{SETTINGS_MINIMUM_STAKE} is malformed. Not set.')
 
-        if minimum_stake is None or not minimum_stake.isdigit():
-            raise InvalidTransaction('Wrong minimum stake address.')
+        min_stake = client_to_real_amount(int(min_stake))
 
-        minimum_stake = client_to_real_amount(int(minimum_stake))
+        if node_account.reputation.frozen <= min_stake:
+            raise InvalidTransaction("Not enough tokens on frozen balance to defrost")
 
-        amount = client_to_real_amount(internal_transfer_payload.value)
+        now = datetime.utcnow().timestamp()
+        tokens = 0
+        for share in node_account.shares:
+            if share.defrost_months == MAX_DEFROST_MONTH:
+                continue
 
-        if node_account.reputation.frozen < minimum_stake:
-            raise InvalidTransaction('Frozen balance is lower than the minimum stake.')
+            delta = datetime.fromtimestamp(now) - datetime.fromtimestamp(share.block_timestamp)
 
-        if node_account.reputation.frozen - amount < minimum_stake:
-            raise InvalidTransaction('Frozen balance after transfer lower than the minimum stake.')
+            # determine what was the diferrence
+            share_that_should_defrost = min(delta.days // 28, MAX_DEFROST_MONTH)
+            if not share_that_should_defrost or share.defrost_months >= share_that_should_defrost:
+                continue
 
-        node_account.reputation.frozen -= amount
-        node_account.reputation.unfrozen += amount
+            demand_month = (share_that_should_defrost - share.defrost_months)
+
+            defrosted_share = self._calculate_share_to_defrost(real_to_client_amount(share.frozen_share), demand_month)
+            defrosted_tokens = client_to_real_amount(defrosted_share * share.reward, 0)
+            tokens += defrosted_tokens
+
+            share.defrost_months += demand_month
+
+        node_account.reputation.frozen -= tokens
+        node_account.reputation.unfrozen += tokens
+        node_account.last_defrost_timestamp = int(datetime.utcnow().timestamp())
 
         return {
             node_account_address: node_account,
         }
+
+    def _calculate_share_to_defrost(self, frozen_share, demand_month, max_month=MAX_DEFROST_MONTH):
+        return real_to_client_amount(Decimal(frozen_share) * Decimal(demand_month / max_month), 0)
 
     def _set_bet(self, context, node_account_public_key, pb_payload):
         node_account_address = self.make_address_from_data(node_account_public_key)

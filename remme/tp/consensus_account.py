@@ -19,7 +19,7 @@ from sawtooth_sdk.processor.exceptions import InvalidTransaction
 
 from remme.protos.transaction_pb2 import EmptyPayload
 from remme.protos.account_pb2 import Account
-from remme.protos.node_account_pb2 import NodeAccount
+from remme.protos.node_account_pb2 import NodeAccount, ShareInfo
 from remme.protos.consensus_account_pb2 import (
     ConsensusAccount,
     ConsensusAccountMethod,
@@ -27,7 +27,7 @@ from remme.protos.consensus_account_pb2 import (
 from remme.settings import (
     SETTINGS_BLOCKCHAIN_TAX,
     SETTINGS_MIN_SHARE,
-    SETTINGS_COMMITTEE_SIZE,
+    SETTINGS_UNFREEZE_BONUS,
     SETTINGS_MINIMUM_STAKE,
     SETTINGS_GENESIS_OWNERS,
     ZERO_ADDRESS,
@@ -131,11 +131,12 @@ class ConsensusAccountHandler(BasicHandler):
             block_cost = zero_account.balance
 
 
-        min_stake, initial_stake, max_share, min_share = self._get_share_data(context)
+        min_stake, unfreeze_bonus, max_share, min_share = self._get_share_data(context)
 
         reputational = real_to_client_amount(node_account.reputation.unfrozen + node_account.reputation.frozen)
 
-        reward = real_to_client_amount(obligatory_payments + block_cost + bet)
+        real_reward = obligatory_payments + block_cost + bet
+        reward = real_to_client_amount(real_reward)
 
         state = {
             signer_node_address: node_account,
@@ -144,25 +145,37 @@ class ConsensusAccountHandler(BasicHandler):
             ZERO_ADDRESS: zero_account,
         }
 
-        if initial_stake <= reputational < min_stake * initial_stake:
-            share = self._calculate_share(max_share, min_share, initial_stake,
-                                          min_stake, reputational)
-            calc = client_to_real_amount(share * reward)
+        if unfreeze_bonus <= reputational < min_stake * unfreeze_bonus:
+            unfrozen_share = self._calculate_share(max_share, min_share, unfreeze_bonus,
+                                                   min_stake, reputational)
+            calc = client_to_real_amount(unfrozen_share * reward)
             node_account.reputation.unfrozen += calc
             node_account.reputation.frozen += client_to_real_amount(reward) - calc
-            LOGGER.info(f"Payng rewards. Unfrozen: {calc}; frozen: {client_to_real_amount(reward) - calc}; "
-                        f"signer: {signer_node_address}; reward: {client_to_real_amount(reward)}; "
-                        f"unfrozen share: {share}; frozen share: {1 - share}")
-        elif reputational >= min_stake * initial_stake:
+
+            frozen_share = 1 - unfrozen_share
+
+            si = ShareInfo(
+                block_num=block.block_num,
+                frozen_share=client_to_real_amount(frozen_share),
+                reward=real_reward,
+                block_timestamp=block.timestamp,
+            )
+            node_account.shares.extend([si])
+            LOGGER.info(f"Payng rewards. Unfrozen: {calc}; frozen: {real_reward - calc}; "
+                        f"signer: {signer_node_address}; reward: {real_reward}; "
+                        f"unfrozen share: {unfrozen_share}; frozen share: {frozen_share}")
+
+        elif reputational >= min_stake * unfreeze_bonus:
             calc = client_to_real_amount(max_share * reward)
             node_account.reputation.unfrozen += calc
             genesis_account.balance += client_to_real_amount(reward) - calc
 
             state[genesis_node_address] = genesis_account
 
-            LOGGER.info(f"Payng rewards. Unfrozen: {calc}, REMME: {client_to_real_amount(reward) - calc}; "
-                        f"signer: {signer_node_address}; reward: {client_to_real_amount(reward)}; "
+            LOGGER.info(f"Payng rewards. Unfrozen: {calc}, REMME: {real_reward - calc}; "
+                        f"signer: {signer_node_address}; reward: {real_reward}; "
                         f"unfrozen share: {max_share}")
+
         else:
             calc = client_to_real_amount(max_share * reward)
             node_account.reputation.frozen += calc
@@ -170,6 +183,13 @@ class ConsensusAccountHandler(BasicHandler):
 
             state[genesis_node_address] = genesis_account
 
+            si = ShareInfo(
+                block_num=block.block_num,
+                frozen_share=client_to_real_amount(max_share),
+                reward=real_reward,
+                block_timestamp=block.timestamp,
+            )
+            node_account.shares.extend([si])
             LOGGER.info(f"Payng rewards. Frozen: {calc}, REMME: {client_to_real_amount(reward) - calc}; "
                         f"signer: {signer_node_address}; reward: {client_to_real_amount(reward)}; "
                         f"frozen share: {max_share}")
@@ -189,10 +209,10 @@ class ConsensusAccountHandler(BasicHandler):
             raise InvalidTransaction(f'{SETTINGS_MINIMUM_STAKE} is malformed. Should be not negative integer.')
         min_stake = Decimal(min_stake)
 
-        initial_stake = _get_setting_value(context, SETTINGS_COMMITTEE_SIZE)
-        if initial_stake is None or not initial_stake.isdigit():
-            raise InvalidTransaction(f'{SETTINGS_COMMITTEE_SIZE} is malformed. Should be not negative integer.')
-        initial_stake = Decimal(initial_stake)
+        unfreeze_bonus = _get_setting_value(context, SETTINGS_UNFREEZE_BONUS)
+        if unfreeze_bonus is None or not unfreeze_bonus.isdigit():
+            raise InvalidTransaction(f'{SETTINGS_UNFREEZE_BONUS} is malformed. Should be not negative integer.')
+        unfreeze_bonus = Decimal(unfreeze_bonus)
 
         ledger_tax = _get_setting_value(context, SETTINGS_BLOCKCHAIN_TAX)
         if ledger_tax is None:
@@ -206,11 +226,11 @@ class ConsensusAccountHandler(BasicHandler):
 
         max_share = Decimal(1 - ledger_tax)
 
-        return min_stake, initial_stake, max_share, min_share
+        return min_stake, unfreeze_bonus, max_share, min_share
 
     @staticmethod
-    def _calculate_share(max_share, min_share, initial_stake, min_stake, reputational):
-        return Decimal((
-            ((max_share - min_share) / ((initial_stake - 1) * min_stake)) *
+    def _calculate_share(max_share, min_share, unfreeze_bonus, min_stake, reputational):
+        return real_to_client_amount((
+            ((max_share - min_share) / ((unfreeze_bonus - 1) * min_stake)) *
             (reputational - min_stake)
-        ) + min_share)
+        ) + min_share, 0)

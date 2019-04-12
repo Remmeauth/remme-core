@@ -100,6 +100,13 @@ def test_send_reward_less_condition():
     assert consensus_acc.obligatory_payments == 0
     assert NODE_ACCOUNT_SIGNER_ADDRESS not in consensus_acc.bets
 
+    share = node_acc.shares[0]
+    assert share.frozen_share == client_to_real_amount(0.9)
+    assert share.block_timestamp == CURRENT_TIMESTAMP
+    assert share.block_num == 1000
+    assert share.reward == client_to_real_amount(REW)
+    assert share.defrost_months == 0
+
 
 def test_send_reward_upper_condition():
     """
@@ -182,6 +189,13 @@ def test_send_reward_upper_condition():
     # assert consensus_acc.block_cost == 0
     assert consensus_acc.obligatory_payments == 0
     assert NODE_ACCOUNT_SIGNER_ADDRESS not in consensus_acc.bets
+
+    share = node_acc.shares[0]
+    assert share.frozen_share == client_to_real_amount(1 - 0.44)
+    assert share.block_timestamp == CURRENT_TIMESTAMP
+    assert share.block_num == 1000
+    assert share.reward == client_to_real_amount(REW)
+    assert share.defrost_months == 0
 
 
 def test_send_reward_middle_condition():
@@ -266,3 +280,5 @@ def test_send_reward_middle_condition():
     # assert consensus_acc.block_cost == 0
     assert consensus_acc.obligatory_payments == 0
     assert NODE_ACCOUNT_SIGNER_ADDRESS not in consensus_acc.bets
+
+    assert not node_acc.shares
