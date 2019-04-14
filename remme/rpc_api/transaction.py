@@ -39,7 +39,7 @@ from remme.shared.forms import (
     BatchIdentifierForm,
     TransactionIdentifierForm,
     ProtoForm,
-    ListTransactionsForm,
+    ListInfoForm,
     ListReceiptsForm,
 )
 
@@ -232,7 +232,7 @@ async def get_batch_status(request):
     return await account_client.get_batch_status(batch_id)
 
 
-@validate_params(ListTransactionsForm)
+@validate_params(ListInfoForm)
 async def list_transactions(request):
     ids = request.params.get('ids')
     start = request.params.get('start')

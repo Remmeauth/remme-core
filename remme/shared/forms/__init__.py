@@ -38,5 +38,5 @@ from .personal import (
 )
 from .transaction import (
     ListReceiptsForm,
-    ListTransactionsForm,
+    ListInfoForm,
 )

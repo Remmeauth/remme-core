@@ -10,7 +10,7 @@ from remme.shared.forms.base import ProtoForm
 FAMILY_NAMES = ['account', 'node_account', 'pub_key', 'AtomicSwap']
 
 
-class ListTransactionsForm(ProtoForm):
+class ListInfoForm(ProtoForm):
 
     ids = fields.StringField()
 
@@ -23,6 +23,7 @@ class ListTransactionsForm(ProtoForm):
     reverse = fields.StringField()
     family_name = fields.StringField()
 
+    @staticmethod
     def validate_ids(form, field):
         if field.data is None:
             return
@@ -38,6 +39,7 @@ class ListTransactionsForm(ProtoForm):
             if re.match(r'^[0-9a-f]{128}$', data) is None:
                 raise validators.StopValidation('Header signature is not of a blockchain token type.')
 
+    @staticmethod
     def validate_start(form, field):
         if field.data is None:
             return
@@ -48,6 +50,7 @@ class ListTransactionsForm(ProtoForm):
         if re.match(r'^[0-9a-f]{128}$', field.data) is None:
             raise validators.StopValidation('Header signature is not of a blockchain token type.')
 
+    @staticmethod
     def validate_limit(form, field):
         if field.data is None:
             return
@@ -55,6 +58,7 @@ class ListTransactionsForm(ProtoForm):
         if not isinstance(field.data, int) or isinstance(field.data, bool):
             raise validators.StopValidation('Invalid limit count.')
 
+    @staticmethod
     def validate_head(form, field):
         if field.data is None:
             return
@@ -65,6 +69,7 @@ class ListTransactionsForm(ProtoForm):
         if re.match(r'^[0-9a-f]{128}$', field.data) is None:
             raise validators.StopValidation('Given block id is not a valid.')
 
+    @staticmethod
     def validate_reverse(form, field):
         if not field.data and not isinstance(field.data, int):
             return
@@ -72,6 +77,7 @@ class ListTransactionsForm(ProtoForm):
         if field.data != 'false':
             raise validators.StopValidation('Incorrect reverse identifier.')
 
+    @staticmethod
     def validate_family_name(form, field):
         if field.data is None:
             return
