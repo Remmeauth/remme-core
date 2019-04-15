@@ -12,6 +12,7 @@ from sawtooth_signing.secp256k1 import (
     Secp256k1Context
 )
 
+from remme.protos.consensus_account_pb2 import ConsensusAccount
 from remme.protos.account_pb2 import Account
 from remme.protos.pub_key_pb2 import (
     PubKeyStorage,
@@ -20,8 +21,8 @@ from remme.protos.pub_key_pb2 import (
     NewPubKeyStoreAndPayPayload,
 )
 from remme.protos.transaction_pb2 import TransactionPayload
-from remme.settings import ZERO_ADDRESS
 from remme.shared.utils import client_to_real_amount
+from remme.tp.consensus_account import ConsensusAccountHandler
 from remme.tp.pub_key import (
     PUB_KEY_STORE_PRICE,
     PubKeyHandler,
@@ -64,7 +65,7 @@ RSA_PAYLOAD_WITH_PUBLIC_KEY = generate_rsa_payload(key=RSA_PUBLIC_KEY)
 INPUTS = OUTPUTS = [
     OWNER_ADDRESS,
     PAYER_ADDRESS,
-    ZERO_ADDRESS,
+    ConsensusAccountHandler.CONSENSUS_ADDRESS,
     IS_NODE_ECONOMY_ENABLED_ADDRESS,
 ]
 
@@ -168,14 +169,14 @@ def test_store_public_key_for_other(address_from_public_key, new_public_key_payl
     owner_account.pub_keys.append(RANDOM_ALREADY_STORED_OWNER_PUBLIC_KEY_ADDRESS)
     serialized_owner_account = owner_account.SerializeToString()
 
-    zero_account = Account()
-    zero_account.balance = 0
-    serialized_zero_account = zero_account.SerializeToString()
+    consensus_account = ConsensusAccount()
+    consensus_account.block_cost = 0
+    serialized_consensus_account = consensus_account.SerializeToString()
 
     mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
         OWNER_ADDRESS: serialized_owner_account,
         PAYER_ADDRESS: serialized_payer_account,
-        ZERO_ADDRESS: serialized_zero_account,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS: serialized_consensus_account,
     })
 
     expected_public_key_storage = PubKeyStorage()
@@ -193,21 +194,22 @@ def test_store_public_key_for_other(address_from_public_key, new_public_key_payl
     expected_owner_account.pub_keys.append(address_from_public_key)
     serialized_expected_owner_account = expected_owner_account.SerializeToString()
 
-    expected_zero_account = Account()
-    expected_zero_account.balance = client_to_real_amount(0 + PUB_KEY_STORE_PRICE)
-    expected_serialized_zero_account = expected_zero_account.SerializeToString()
+    expected_consensus_account = ConsensusAccount()
+    expected_consensus_account.block_cost = client_to_real_amount(0 + PUB_KEY_STORE_PRICE)
+    expected_serialized_consensus_account = expected_consensus_account.SerializeToString()
 
     expected_state = {
         OWNER_ADDRESS: serialized_expected_owner_account,
         PAYER_ADDRESS: serialized_expected_payer_account,
         address_from_public_key: expected_serialized_public_key_storage,
-        ZERO_ADDRESS: expected_serialized_zero_account,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS: expected_serialized_consensus_account,
     }
 
     PubKeyHandler().apply(transaction=transaction_request, context=mock_context)
 
     state_as_list = mock_context.get_state(addresses=[
-        OWNER_ADDRESS, PAYER_ADDRESS, address_from_public_key, ZERO_ADDRESS,
+        OWNER_ADDRESS, PAYER_ADDRESS, address_from_public_key,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS,
     ])
 
     state_as_dict = {entry.address: entry.data for entry in state_as_list}
@@ -254,13 +256,13 @@ def test_store_rsa_public_key_no_owner_account():
     payer_account.balance = client_to_real_amount(PAYER_INITIAL_BALANCE)
     serialized_payer_account = payer_account.SerializeToString()
 
-    zero_account = Account()
-    zero_account.balance = 0
-    serialized_zero_account = zero_account.SerializeToString()
+    consensus_account = ConsensusAccount()
+    consensus_account.block_cost = 0
+    serialized_consensus_account = consensus_account.SerializeToString()
 
     mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
         PAYER_ADDRESS: serialized_payer_account,
-        ZERO_ADDRESS: serialized_zero_account,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS: serialized_consensus_account,
     })
 
     expected_public_key_storage = PubKeyStorage()
@@ -277,21 +279,22 @@ def test_store_rsa_public_key_no_owner_account():
     expected_owner_account.pub_keys.append(ADDRESS_FROM_RSA_PUBLIC_KEY)
     serialized_expected_owner_account = expected_owner_account.SerializeToString()
 
-    expected_zero_account = Account()
-    expected_zero_account.balance = client_to_real_amount(0 + PUB_KEY_STORE_PRICE)
-    expected_serialized_zero_account = expected_zero_account.SerializeToString()
+    expected_consensus_account = ConsensusAccount()
+    expected_consensus_account.block_cost = client_to_real_amount(0 + PUB_KEY_STORE_PRICE)
+    expected_serialized_consensus_account = expected_consensus_account.SerializeToString()
 
     expected_state = {
         OWNER_ADDRESS: serialized_expected_owner_account,
         PAYER_ADDRESS: serialized_expected_payer_account,
         ADDRESS_FROM_RSA_PUBLIC_KEY: expected_serialized_public_key_storage,
-        ZERO_ADDRESS: expected_serialized_zero_account,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS: expected_serialized_consensus_account,
     }
 
     PubKeyHandler().apply(transaction=transaction_request, context=mock_context)
 
     state_as_list = mock_context.get_state(addresses=[
-        OWNER_ADDRESS, PAYER_ADDRESS, ADDRESS_FROM_RSA_PUBLIC_KEY, ZERO_ADDRESS,
+        OWNER_ADDRESS, PAYER_ADDRESS, ADDRESS_FROM_RSA_PUBLIC_KEY,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS,
     ])
 
     state_as_dict = {entry.address: entry.data for entry in state_as_list}
@@ -338,13 +341,13 @@ def test_store_public_key_for_other_no_payer_account():
     owner_account.pub_keys.append(RANDOM_ALREADY_STORED_OWNER_PUBLIC_KEY_ADDRESS)
     serialized_owner_account = owner_account.SerializeToString()
 
-    zero_account = Account()
-    zero_account.balance = 0
-    serialized_zero_account = zero_account.SerializeToString()
+    consensus_account = ConsensusAccount()
+    consensus_account.block_cost = 0
+    serialized_consensus_account = consensus_account.SerializeToString()
 
     mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
         OWNER_ADDRESS: serialized_owner_account,
-        ZERO_ADDRESS: serialized_zero_account,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS: serialized_consensus_account,
     })
 
     with pytest.raises(InvalidTransaction) as error:
@@ -523,7 +526,7 @@ def test_store_public_key_for_other_not_der_public_key_format():
     inputs = outputs = [
         address_from_public_key_to_store,
         OWNER_ADDRESS,
-        ZERO_ADDRESS,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS,
         IS_NODE_ECONOMY_ENABLED_ADDRESS,
     ]
 
@@ -700,9 +703,9 @@ def test_store_public_key_for_other_economy_is_not_enabled():
     owner_account.pub_keys.append(RANDOM_ALREADY_STORED_OWNER_PUBLIC_KEY_ADDRESS)
     serialized_owner_account = owner_account.SerializeToString()
 
-    zero_account = Account()
-    zero_account.balance = 0
-    serialized_zero_account = zero_account.SerializeToString()
+    consensus_account = ConsensusAccount()
+    consensus_account.block_cost = 0
+    serialized_consensus_account = consensus_account.SerializeToString()
 
     is_economy_enabled_setting = Setting()
     is_economy_enabled_setting.entries.add(key='remme.economy_enabled', value='false')
@@ -711,7 +714,7 @@ def test_store_public_key_for_other_economy_is_not_enabled():
     mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
         OWNER_ADDRESS: serialized_owner_account,
         PAYER_ADDRESS: serialized_payer_account,
-        ZERO_ADDRESS: serialized_zero_account,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS: serialized_consensus_account,
         IS_NODE_ECONOMY_ENABLED_ADDRESS: serialized_is_economy_enabled_setting,
     })
 
@@ -730,21 +733,22 @@ def test_store_public_key_for_other_economy_is_not_enabled():
     expected_owner_account.pub_keys.append(ADDRESS_FROM_RSA_PUBLIC_KEY)
     serialized_expected_owner_account = expected_owner_account.SerializeToString()
 
-    expected_zero_account = Account()
-    expected_zero_account.balance = 0
-    expected_serialized_zero_account = expected_zero_account.SerializeToString()
+    expected_consensus_account = ConsensusAccount()
+    expected_consensus_account.block_cost = 0
+    expected_serialized_consensus_account = expected_consensus_account.SerializeToString()
 
     expected_state = {
         OWNER_ADDRESS: serialized_expected_owner_account,
         PAYER_ADDRESS: serialized_expected_payer_account,
         ADDRESS_FROM_RSA_PUBLIC_KEY: expected_serialized_public_key_storage,
-        ZERO_ADDRESS: expected_serialized_zero_account,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS: expected_serialized_consensus_account,
     }
 
     PubKeyHandler().apply(transaction=transaction_request, context=mock_context)
 
     state_as_list = mock_context.get_state(addresses=[
-        OWNER_ADDRESS, PAYER_ADDRESS, ADDRESS_FROM_RSA_PUBLIC_KEY, ZERO_ADDRESS,
+        OWNER_ADDRESS, PAYER_ADDRESS, ADDRESS_FROM_RSA_PUBLIC_KEY,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS,
     ])
 
     state_as_dict = {entry.address: entry.data for entry in state_as_list}

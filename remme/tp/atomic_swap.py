@@ -24,7 +24,7 @@ from remme.protos.atomic_swap_pb2 import (
     AtomicSwapApprovePayload, AtomicSwapExpirePayload,
     AtomicSwapSetSecretLockPayload, AtomicSwapClosePayload
 )
-from remme.settings import SETTINGS_SWAP_COMMISSION, ZERO_ADDRESS
+from remme.settings import SETTINGS_SWAP_COMMISSION
 from remme.settings.helper import _get_setting_value, _make_settings_key
 
 
@@ -122,6 +122,8 @@ class AtomicSwapHandler(BasicHandler):
         if SecretLockOptionalBob is provided, Bob uses _swap_init to respond to requested swap
         Otherwise, Alice uses _swap_init to request a swap and thus, Bob can't receive funds until Alice "approves".
         """
+        from .consensus_account import ConsensusAccountHandler
+
         address_swap_info_is_stored_by = self.make_address_from_data(swap_init_payload.swap_id)
         swap_information = get_data(context, AtomicSwapInfo, address_swap_info_is_stored_by)
 
@@ -159,10 +161,11 @@ class AtomicSwapHandler(BasicHandler):
                 f'Not enough balance to perform the transaction in the amount (with a commission) {swap_total_amount}.'
             )
 
-        transfer_payload = AccountClient.get_transfer_payload(ZERO_ADDRESS, commission_amount)
+        transfer_payload = AccountClient.get_transfer_payload(ConsensusAccountHandler.CONSENSUS_ADDRESS, commission_amount)
 
         transfer_state = AccountHandler()._transfer_from_address(
             context, swap_information.sender_address, transfer_payload,
+            receiver_key='block_cost'
         )
 
         sender_account = transfer_state.get(swap_information.sender_address)

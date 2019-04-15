@@ -23,13 +23,12 @@ from remme.protos.account_pb2 import (
     GenesisPayload,
     TransferPayload
 )
+from remme.protos.consensus_account_pb2 import ConsensusAccount
 from remme.protos.node_account_pb2 import (
     NodeAccount,
 )
 from remme.tp.node_account import NodeAccountHandler
-from remme.settings import (
-    GENESIS_ADDRESS, ZERO_ADDRESS
-)
+from remme.settings import GENESIS_ADDRESS
 from remme.shared.forms import TransferPayloadForm, GenesisPayloadForm
 from remme.shared.constants import Events, EMIT_EVENT
 from remme.shared.utils import client_to_real_amount
@@ -109,11 +108,16 @@ class AccountHandler(BasicHandler):
         """
         Check if address is account address type.
         """
+        from .consensus_account import ConsensusAccountHandler
+
         return address.startswith(self._prefix) or \
                 address.startswith(NodeAccountHandler()._prefix) or \
-                address in (ZERO_ADDRESS,)
+                address == ConsensusAccountHandler.CONSENSUS_ADDRESS
 
-    def _transfer_from_address(self, context, address_from, transfer_payload):
+    def _transfer_from_address(self, context, address_from, transfer_payload,
+                               sender_key='balance', receiver_key='balance'):
+        from .consensus_account import ConsensusAccountHandler
+
         amount = client_to_real_amount(transfer_payload.value)
 
         if not amount:
@@ -129,6 +133,7 @@ class AccountHandler(BasicHandler):
             '000000': Account,
             AccountHandler()._prefix: Account,
             NodeAccountHandler()._prefix: NodeAccount,
+            ConsensusAccountHandler()._prefix: ConsensusAccount,
         }
 
         sender_account_pb_class = pb_classes.get(address_from[:6])
@@ -149,13 +154,16 @@ class AccountHandler(BasicHandler):
                 raise InvalidTransaction('Node account could not be created in transfer.')
             receiver_account = receiver_account_pb_class()
 
-        if sender_account.balance < amount:
+        sender_balance = getattr(sender_account, sender_key, 0)
+        receiver_balance = getattr(receiver_account, receiver_key, 0)
+
+        if sender_balance < amount:
             raise InvalidTransaction(
-                f'Not enough transferable balance. Sender\'s current balance: {sender_account.balance}.',
+                f'Not enough transferable balance. Sender\'s current balance: {sender_balance}.',
             )
 
-        receiver_account.balance += amount
-        sender_account.balance -= amount
+        setattr(receiver_account, receiver_key, receiver_balance + amount)
+        setattr(sender_account, sender_key, sender_balance - amount)
 
         LOGGER.info(
             f'Transferred {amount} tokens from {address_from} to '

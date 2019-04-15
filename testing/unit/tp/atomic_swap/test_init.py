@@ -20,6 +20,7 @@ from remme.clients.block_info import (
     CONFIG_ADDRESS,
     BlockInfoClient,
 )
+from remme.protos.consensus_account_pb2 import ConsensusAccount
 from remme.protos.account_pb2 import Account
 from remme.protos.atomic_swap_pb2 import (
     AtomicSwapInfo,
@@ -32,9 +33,9 @@ from remme.shared.utils import hash512, client_to_real_amount
 from remme.settings import (
     SETTINGS_KEY_ZERO_ADDRESS_OWNERS,
     SETTINGS_SWAP_COMMISSION,
-    ZERO_ADDRESS,
 )
 from remme.settings.helper import _make_settings_key
+from remme.tp.consensus_account import ConsensusAccountHandler
 from remme.tp.atomic_swap import AtomicSwapHandler
 from remme.tp.basic import BasicHandler
 
@@ -86,13 +87,13 @@ INPUTS = [
     BLOCK_INFO_CONFIG_ADDRESS,
     BLOCK_INFO_ADDRESS,
     BOT_ADDRESS,
-    ZERO_ADDRESS,
+    ConsensusAccountHandler.CONSENSUS_ADDRESS,
     ADDRESS_TO_STORE_SWAP_INFO_BY,
 ]
 
 OUTPUTS = [
     ADDRESS_TO_STORE_SWAP_INFO_BY,
-    ZERO_ADDRESS,
+    ConsensusAccountHandler.CONSENSUS_ADDRESS,
     BOT_ADDRESS,
 ]
 
@@ -107,7 +108,7 @@ def test_atomic_swap_init_with_empty_proto():
         BLOCK_INFO_CONFIG_ADDRESS,
         BLOCK_INFO_ADDRESS,
         BOT_ADDRESS,
-        ZERO_ADDRESS,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS,
         ADDRESS_TO_STORE_SWAP_INFO_BY,
         ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY,
     ]
@@ -203,9 +204,9 @@ def test_atomic_swap_init():
     bot_account.balance = client_to_real_amount(5000)
     serialized_bot_account = bot_account.SerializeToString()
 
-    zero_account = Account()
-    zero_account.balance = 0
-    serialized_zero_account = zero_account.SerializeToString()
+    consensus_account = ConsensusAccount()
+    consensus_account.block_cost = 0
+    serialized_consensus_account = consensus_account.SerializeToString()
 
     swap_commission_setting = Setting()
     swap_commission_setting.entries.add(key=SETTINGS_SWAP_COMMISSION, value=str(SWAP_COMMISSION_AMOUNT))
@@ -219,7 +220,7 @@ def test_atomic_swap_init():
         BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_BLOCK_INFO_CONFIG,
         BLOCK_INFO_ADDRESS: SERIALIZED_BLOCK_INFO,
         BOT_ADDRESS: serialized_bot_account,
-        ZERO_ADDRESS: serialized_zero_account,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS: serialized_consensus_account,
         ADDRESS_TO_GET_SWAP_COMMISSION_AMOUNT_BY: serialized_swap_commission_setting,
         ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY: serialized_genesis_members_setting,
     })
@@ -240,20 +241,20 @@ def test_atomic_swap_init():
     expected_bot_account.balance = client_to_real_amount(5000 - TOKENS_AMOUNT_TO_SWAP - SWAP_COMMISSION_AMOUNT)
     serialized_expected_bot_account = expected_bot_account.SerializeToString()
 
-    expected_zero_account = Account()
-    expected_zero_account.balance = client_to_real_amount(SWAP_COMMISSION_AMOUNT)
-    serialized_expected_zero_account = expected_zero_account.SerializeToString()
+    expected_consensus_account = ConsensusAccount()
+    expected_consensus_account.block_cost = client_to_real_amount(SWAP_COMMISSION_AMOUNT)
+    serialized_expected_consensus_account = expected_consensus_account.SerializeToString()
 
     expected_state = {
         BOT_ADDRESS: serialized_expected_bot_account,
-        ZERO_ADDRESS: serialized_expected_zero_account,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS: serialized_expected_consensus_account,
         ADDRESS_TO_STORE_SWAP_INFO_BY: serialized_swap_info,
     }
 
     AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
 
     state_as_list = mock_context.get_state(addresses=[
-        ADDRESS_TO_STORE_SWAP_INFO_BY, BOT_ADDRESS, ZERO_ADDRESS,
+        ADDRESS_TO_STORE_SWAP_INFO_BY, BOT_ADDRESS, ConsensusAccountHandler.CONSENSUS_ADDRESS,
     ])
     state_as_dict = {entry.address: entry.data for entry in state_as_list}
 

@@ -5,7 +5,7 @@ from remme.tp.account import Account
 from remme.tp.node_account import NodeAccountHandler, NodeAccount
 from remme.tp.consensus_account import ConsensusAccountHandler, ConsensusAccount
 
-from remme.settings import SETTINGS_MINIMUM_STAKE, NODE_STATE_ADDRESS, ZERO_ADDRESS, SETTINGS_GENESIS_OWNERS
+from remme.settings import SETTINGS_MINIMUM_STAKE, NODE_STATE_ADDRESS, SETTINGS_GENESIS_OWNERS
 from remme.settings.helper import _make_settings_key
 
 from remme.shared.utils import client_to_real_amount
@@ -27,7 +27,6 @@ INPUTS = OUTPUTS = [
     ADDRESS_TO_GET_MINIMUM_STAKE,
     NODE_STATE_ADDRESS,
     ConsensusAccountHandler.CONSENSUS_ADDRESS,
-    ZERO_ADDRESS,
     ADDRESS_GENESIS_OWNERS,
 ]
 
@@ -77,15 +76,13 @@ def create_context(account_from_balance, node_state=NodeAccount.NEW, frozen=0, u
     serialized_genesis_owners_setting = genesis_owners_setting.SerializeToString()
 
     consensus_account = ConsensusAccount()
-    # TODO: Uncomment in the future
-    # consensus_account.block_cost = block_cost
+    consensus_account.block_cost = client_to_real_amount(block_cost)
     serialized_consensus_account = consensus_account.SerializeToString()
 
     initial_state = {
         NODE_ACCOUNT_ADDRESS_FROM: serialized_account_from_balance,
         ADDRESS_TO_GET_MINIMUM_STAKE: serialized_swap_commission_setting,
         ConsensusAccountHandler.CONSENSUS_ADDRESS: serialized_consensus_account,
-        ZERO_ADDRESS: Account(balance=client_to_real_amount(block_cost)).SerializeToString(),
         ADDRESS_GENESIS_OWNERS: serialized_genesis_owners_setting,
     }
 
