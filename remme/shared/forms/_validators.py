@@ -82,3 +82,19 @@ class DataRequired(object):
 
             field.errors[:] = []
             raise validators.StopValidation(message)
+
+
+class NotRequired(object):
+    """
+    If the data is None then stops further validation.
+    """
+
+    field_flags = ('required',)
+
+    def __init__(self, message=None):
+        self.message = message
+
+    def __call__(self, form, field):
+
+        if field.data is None:
+            raise validators.StopValidation()
