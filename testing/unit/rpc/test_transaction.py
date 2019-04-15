@@ -4,6 +4,7 @@ from aiohttp_json_rpc.exceptions import RpcInvalidParamsError
 from remme.rpc_api.transaction import (
     get_batch_status,
     fetch_batch,
+    list_batches,
     fetch_transaction,
     list_transactions,
     list_receipts,
@@ -199,6 +200,178 @@ async def test_fetch_batch_with_non_existing_batch_id(mocker, request_):
         await fetch_batch(request_)
 
     assert expected_error_message == error.value.message
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('invalid_ids', [[1], ['123'], 123, True, 'e'])
+async def test_list_batches_with_invalid_ids(request_, invalid_ids):
+    """
+    Case: list batches with invalid ids.
+    Expect: exception with invalid id message is raised.
+    """
+    request_.params = {
+        'ids': invalid_ids,
+    }
+
+    with pytest.raises(RpcInvalidParamsError) as error:
+        await list_batches(request_)
+
+    assert 'Invalid id.' == error.value.message
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('invalid_start', [1, '1', True])
+async def test_list_batches_with_invalid_start(request_, invalid_start):
+    """
+    Case: list batches with invalid start field.
+    Expect: exception with invalid id message is raised.
+    """
+    request_.params = {
+        'start': invalid_start,
+    }
+
+    with pytest.raises(RpcInvalidParamsError) as error:
+        await list_batches(request_)
+
+    assert 'Invalid id.' == error.value.message
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('invalid_limit', [-1, '1', True])
+async def test_list_batches_with_invalid_limit(request_, invalid_limit):
+    """
+    Case: list batches with invalid limit field.
+    Expect: exception with invalid limit count message is raised.
+    """
+    request_.params = {
+        'limit': invalid_limit,
+    }
+
+    with pytest.raises(RpcInvalidParamsError) as error:
+        await list_batches(request_)
+
+    assert 'Invalid limit count.' == error.value.message
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('invalid_head', [1, '1', True])
+async def test_list_batches_with_invalid_head(request_, invalid_head):
+    """
+    Case: list batches with invalid start field.
+    Expect: exception with invalid id message is raised.
+    """
+    request_.params = {
+        'head': invalid_head,
+    }
+
+    with pytest.raises(RpcInvalidParamsError) as error:
+        await list_batches(request_)
+
+    assert 'Invalid id.' == error.value.message
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('invalid_reverse', [1, '1', [1]])
+async def test_list_batches_with_invalid_reverse(request_, invalid_reverse):
+    """
+    Case: list batches with invalid reverse field.
+    Expect: exception invalid identifier message is raised.
+    """
+    request_.params = {
+        'reverse': invalid_reverse
+    }
+
+    with pytest.raises(RpcInvalidParamsError) as error:
+        await list_batches(request_)
+
+    assert 'Incorrect identifier.' == error.value.message
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('non_existing_start', ['a'*128])
+async def test_list_batches_with_non_existing_start(request_, non_existing_start):
+    """
+    Case: list batches with non existing start.
+    Expect: exception with resource not found message is raised.
+    """
+    request_.params = {
+        'start': non_existing_start,
+    }
+
+    with pytest.raises(KeyNotFound) as error:
+        await list_batches(request_)
+
+    assert 'List of batches not found.' == error.value.message
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('non_existing_ids', [['a'*128]])
+async def test_list_batches_with_non_existing_ids(request_, non_existing_ids):
+    """
+    Case: list batches with non existing ids.
+    Expect: exception with resource not found message is raised.
+    """
+    request_.params = {
+        'ids': non_existing_ids,
+    }
+
+    with pytest.raises(KeyNotFound) as error:
+        await list_batches(request_)
+
+    assert 'List of batches not found.' == error.value.message
+
+@pytest.mark.asyncio
+async def test_list_batches_with_valid_params(mocker, request_,):
+    """
+    Case: list batches with valid params
+    Expect: particular data.
+    """
+    start = '8d8cb28c58f7785621b51d220b6a1d39fe5829266495d28eaf0362dc85d7e91c' \
+                     '205c1c4634604443dc566c56e1a4c0cf2eb122ac42cb482ef1436694634240c5'
+    head = '8d8cb28c58f7785621b51d220b6a1d39fe5829266495d28eaf0362dc85d7e91c' \
+                     '205c1c4634604443dc566c56e1a4c0cf2eb122ac42cb482ef1436694634240c5'
+    ids = ['8d8cb28c58f7785621b51d220b6a1d39fe5829266495d28eaf0362dc85d7e91c' \
+                     '205c1c4634604443dc566c56e1a4c0cf2eb122ac42cb482ef1436694634240c5']
+    limit = 5
+
+    expected_result = {
+        'data': {
+            'header': {
+                'batcher_public_key': '02a65796f249091c3087614b4d9c292b00b8eba580d045ac2fd781224b87b6f13e',
+                'family_name': 'sawtooth_settings',
+                'family_version': '1.0',
+                'inputs': [
+                    '000000a87cb5eafdcca6a8cde0fb0dec1400c5ab274474a6aa82c1c0cbf0fbcaf64c0b',
+                    '000000a87cb5eafdcca6a8cde0fb0dec1400c5ab274474a6aa82c12840f169a04216b7',
+                    '000000a87cb5eafdcca6a8cde0fb0dec1400c5ab274474a6aa82c1918142591ba4e8a7',
+                    '000000a87cb5eafdcca6a8f82af32160bc5311783bdad381ea57b4e3b0c44298fc1c14'
+                ],
+                'outputs': [
+                    '000000a87cb5eafdcca6a8cde0fb0dec1400c5ab274474a6aa82c1c0cbf0fbcaf64c0b',
+                    '000000a87cb5eafdcca6a8f82af32160bc5311783bdad381ea57b4e3b0c44298fc1c14'
+                ],
+                'payload_sha512': '82dd686e5298d24826d68ec2cdfbd1438a1b1d37a88abeacd24e25386d5939fa'
+                                  '139c3ab8b33ef594df804281c638887a0b9308c1f0a0922c5240202a4e2d0595',
+                'signer_public_key': '02a65796f249091c3087614b4d9c292b00b8eba580d045ac2fd781224b87b6f13e',
+                'dependencies': [],
+                'nonce': ''
+            },
+            'header_signature': '8d8cb28c58f7785621b51d220b6a1d39fe5829266495d28eaf0362dc85d7e91c'
+                                '205c1c4634604443dc566c56e1a4c0cf2eb122ac42cb482ef1436694634240c5',
+            'payload': 'CAESRAoic2F3dG9vdGgudmFsaWRhdG9yLmJhdGNoX2luamVj'
+                       'dG9ycxIKYmxvY2tfaW5mbxoSMHhhNGY2YzZhZWMxOWQ1OTBi'
+        }
+    }
+
+    mock_list_batches = mocker.patch('remme.shared.router.Router.list_batches')
+    mock_list_batches.return_value = return_async_value(expected_result)
+
+    request_.params = {
+        'start': start,
+        'head': head,
+        'limit': limit,
+        'ids': ids,
+    }
+
+    result = await list_batches(request_)
+
+    assert expected_result == result
 
 
 @pytest.mark.asyncio

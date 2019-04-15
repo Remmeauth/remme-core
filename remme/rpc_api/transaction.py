@@ -40,6 +40,7 @@ from remme.shared.forms import (
     TransactionIdentifierForm,
     ProtoForm,
     ListInfoForm,
+    ListBatchesForm,
     ListReceiptsForm,
 )
 
@@ -204,7 +205,7 @@ async def list_receipts(request):
         raise KeyNotFound(f'Transactions with ids "{ids}" not found.')
 
 
-@validate_params(ProtoForm, ignore_fields=('ids', 'start', 'limit', 'head', 'reverse'))
+@validate_params(ListBatchesForm)
 async def list_batches(request):
     ids = request.params.get('ids')
     start = request.params.get('start')
@@ -212,7 +213,12 @@ async def list_batches(request):
     head = request.params.get('head')
     reverse = request.params.get('reverse')
 
-    return await account_client.list_batches(ids, start, limit, head, reverse)
+    try:
+        return await account_client.list_batches(ids, start, limit, head, reverse)
+    except (KeyNotFound, ClientException):
+        raise KeyNotFound(f'List of batches not found.')
+    except CountInvalid:
+        raise CountInvalid(f'Invalid limit count.')
 
 
 @validate_params(BatchIdentifierForm)
