@@ -48,6 +48,7 @@ async def get_node_account(request):
         data['reputation']['frozen'] = str(real_to_client_amount(Decimal(data['reputation']['frozen'])))
         data['reputation']['unfrozen'] = str(real_to_client_amount(Decimal(data['reputation']['unfrozen'])))
     else:
+        data['reputation'] = dict()
         data['reputation']['frozen'] = str(real_to_client_amount(Decimal(0)))
         data['reputation']['unfrozen'] = str(real_to_client_amount(Decimal(0)))
     if 'fixed_amount' in data:
