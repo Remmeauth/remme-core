@@ -39,8 +39,8 @@ from remme.shared.forms import (
     BatchIdentifierForm,
     TransactionIdentifierForm,
     ProtoForm,
+    ListInfoForm,
     ListBatchesForm,
-    ListTransactionsForm,
     ListReceiptsForm,
 )
 
@@ -220,6 +220,7 @@ async def list_batches(request):
     except CountInvalid:
         raise CountInvalid(f'Invalid limit count.')
 
+
 @validate_params(BatchIdentifierForm)
 async def fetch_batch(request):
     batch_id = request.params['id']
@@ -237,7 +238,7 @@ async def get_batch_status(request):
     return await account_client.get_batch_status(batch_id)
 
 
-@validate_params(ListTransactionsForm)
+@validate_params(ListInfoForm)
 async def list_transactions(request):
     ids = request.params.get('ids')
     start = request.params.get('start')
