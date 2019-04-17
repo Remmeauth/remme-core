@@ -158,7 +158,10 @@ class AccountHandler(BasicHandler):
         sender_account.balance -= amount
 
         LOGGER.info(
-            f'Transferred {amount} tokens from {address_from} to {transfer_payload.address_to}.',
+            f'Transferred {amount} tokens from {address_from} to '
+            '{transfer_payload.address_to}. {address_from} balance: '
+            '{sender_account.balance}. {transfer_payload.address_to} balance: '
+            '{receiver_account.balance}',
         )
 
         return {
