@@ -353,7 +353,7 @@ def test_store_public_key_for_other_no_payer_account():
     with pytest.raises(InvalidTransaction) as error:
         PubKeyHandler().apply(transaction=transaction_request, context=mock_context)
 
-    assert 'Not enough transferable balance. Sender\'s current balance: 0.' == str(error.value)
+    assert 'Not enough balance to withdraw fee' == str(error.value)
 
 
 def test_store_public_key_for_other_decode_error():

@@ -217,3 +217,27 @@ class ConsensusAccountHandler(BasicHandler):
             ((max_share - min_share) / ((UNFREEZE_BONUS - 1) * min_stake)) *
             (reputational - min_stake)
         ) + min_share, 0)
+
+    @staticmethod
+    def withdraw_fee(context, address, fee):
+        if not address.startswith(AccountHandler()._prefix):
+            raise InvalidTransaction('Cannot withdraw fee: invalid account type')
+
+        payer_account, consensus_account = get_multiple_data(context, [
+            (address, Account),
+            (ConsensusAccountHandler.CONSENSUS_ADDRESS, ConsensusAccount),
+        ])
+
+        if payer_account is None:
+            raise InvalidTransaction('Not enough balance to withdraw fee')
+
+        if payer_account.balance < fee:
+            raise InvalidTransaction('Not enough balance to withdraw fee')
+
+        payer_account.balance -= fee
+        consensus_account.block_cost += fee
+
+        return {
+            address: payer_account,
+            ConsensusAccountHandler.CONSENSUS_ADDRESS: consensus_account,
+        }

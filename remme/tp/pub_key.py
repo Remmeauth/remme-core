@@ -33,6 +33,7 @@ from sawtooth_signing.secp256k1 import (
 )
 from secp256k1 import lib
 
+from remme.shared.utils import client_to_real_amount
 from remme.protos.account_pb2 import Account, TransferPayload
 from remme.protos.pub_key_pb2 import (
     PubKeyStorage,
@@ -226,26 +227,6 @@ class PubKeyHandler(BasicHandler):
         return True
 
     @staticmethod
-    def _charge_tokens_for_storing(context, address_from, address_to):
-        """
-        Send fixed tokens value from address that want to store public key to node's storage address.
-        """
-        from .consensus_account import ConsensusAccountHandler
-
-        if address_from == ConsensusAccountHandler.CONSENSUS_ADDRESS:
-            raise InvalidTransaction('Transactions from consensus address is used only for internal purposes.')
-
-        transfer_payload = TransferPayload()
-        transfer_payload.address_to = address_to
-        transfer_payload.value = PUB_KEY_STORE_PRICE
-
-        transfer_state = AccountHandler()._transfer_from_address(
-            context=context, address_from=address_from, transfer_payload=transfer_payload,
-            receiver_key='block_cost'
-        )
-        return transfer_state
-
-    @staticmethod
     def _get_public_key_processor(transaction_payload):
         """
         Get public key processor (class with functionality according to kind of key) class.
@@ -324,7 +305,7 @@ class PubKeyHandler(BasicHandler):
             public_key_to_store_address: public_key_information,
         }
 
-        charging_state = self._charge_for_storing(context=context, address_from=sender_account_address)
+        charging_state = self._charge_for_storing(context, sender_account_address)
         if charging_state is not None:
             state.update(charging_state)
             sender_account = state.get(sender_account_address)
@@ -415,7 +396,7 @@ class PubKeyHandler(BasicHandler):
             public_key_to_store_address: public_key_information,
         }
 
-        charging_state = self._charge_for_storing(context=context, address_from=payer_for_storing_address)
+        charging_state = self._charge_for_storing(context, payer_for_storing_address)
         if charging_state is not None:
             state.update(charging_state)
 
@@ -438,13 +419,12 @@ class PubKeyHandler(BasicHandler):
 
         is_economy_enabled = _get_setting_value(context, 'remme.economy_enabled', 'true').lower()
         if is_economy_enabled == 'true':
-
-            transfer_state = self._charge_tokens_for_storing(
-                context=context, address_from=address_from,
-                address_to=ConsensusAccountHandler.CONSENSUS_ADDRESS,
+            return ConsensusAccountHandler.withdraw_fee(
+                context,
+                address_from,
+                client_to_real_amount(PUB_KEY_STORE_PRICE),
             )
 
-            return transfer_state
 
     @staticmethod
     def _store_public_key_to_account(public_key_to_store_address, public_key_to_store_owner_account):

@@ -111,8 +111,7 @@ class AccountHandler(BasicHandler):
         from .consensus_account import ConsensusAccountHandler
 
         return address.startswith(self._prefix) or \
-                address.startswith(NodeAccountHandler()._prefix) or \
-                address == ConsensusAccountHandler.CONSENSUS_ADDRESS
+                address.startswith(NodeAccountHandler()._prefix)
 
     def _transfer_from_address(self, context, address_from, transfer_payload,
                                sender_key='balance', receiver_key='balance'):
@@ -133,7 +132,6 @@ class AccountHandler(BasicHandler):
             '000000': Account,
             AccountHandler()._prefix: Account,
             NodeAccountHandler()._prefix: NodeAccount,
-            ConsensusAccountHandler()._prefix: ConsensusAccount,
         }
 
         sender_account_pb_class = pb_classes.get(address_from[:6])

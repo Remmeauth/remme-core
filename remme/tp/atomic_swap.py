@@ -163,9 +163,10 @@ class AtomicSwapHandler(BasicHandler):
 
         transfer_payload = AccountClient.get_transfer_payload(ConsensusAccountHandler.CONSENSUS_ADDRESS, commission_amount)
 
-        transfer_state = AccountHandler()._transfer_from_address(
-            context, swap_information.sender_address, transfer_payload,
-            receiver_key='block_cost'
+        transfer_state = ConsensusAccountHandler.withdraw_fee(
+            context,
+            swap_information.sender_address,
+            client_to_real_amount(commission_amount),
         )
 
         sender_account = transfer_state.get(swap_information.sender_address)
