@@ -65,7 +65,6 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
         remme.settings.blockchain_tax=0.1 \
         remme.settings.minimum_stake=250000 \
         remme.settings.min_share=0.45 \
-        remme.settings.unfreeze_bonus=10 \
         -o settings_config.batch
 
     GENESIS_BATCHES="$GENESIS_BATCHES settings_config.batch"

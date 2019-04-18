@@ -10,7 +10,6 @@ SETTINGS_SWAP_COMMISSION = 'remme.settings.swap_comission'
 SETTINGS_MINIMUM_STAKE = 'remme.settings.minimum_stake'
 SETTINGS_BLOCKCHAIN_TAX = 'remme.settings.blockchain_tax'
 SETTINGS_MIN_SHARE = 'remme.settings.min_share'
-SETTINGS_UNFREEZE_BONUS = 'remme.settings.unfreeze_bonus'
 SETTINGS_GENESIS_OWNERS = 'remme.settings.genesis_owners'
 SETTINGS_OBLIGATORY_PAYMENT = 'remme.settings.obligatory_payment'
 
