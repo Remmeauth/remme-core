@@ -27,7 +27,6 @@ from remme.protos.consensus_account_pb2 import (
 from remme.settings import (
     SETTINGS_BLOCKCHAIN_TAX,
     SETTINGS_MIN_SHARE,
-    SETTINGS_UNFREEZE_BONUS,
     SETTINGS_MINIMUM_STAKE,
     SETTINGS_GENESIS_OWNERS,
     ZERO_ADDRESS,
@@ -51,6 +50,8 @@ LOGGER = logging.getLogger(__name__)
 
 FAMILY_NAME = 'consensus_account'
 FAMILY_VERSIONS = ['0.1']
+
+UNFREEZE_BONUS = Decimal("10")
 
 
 class ConsensusAccountHandler(BasicHandler):
@@ -131,7 +132,7 @@ class ConsensusAccountHandler(BasicHandler):
             block_cost = zero_account.balance
 
 
-        min_stake, unfreeze_bonus, max_share, min_share = self._get_share_data(context)
+        min_stake, max_share, min_share = self._get_share_data(context)
 
         reputational = real_to_client_amount(node_account.reputation.unfrozen + node_account.reputation.frozen)
 
@@ -145,9 +146,9 @@ class ConsensusAccountHandler(BasicHandler):
             ZERO_ADDRESS: zero_account,
         }
 
-        if unfreeze_bonus <= reputational < min_stake * unfreeze_bonus:
-            unfrozen_share = self._calculate_share(max_share, min_share, unfreeze_bonus,
-                                                   min_stake, reputational)
+        if UNFREEZE_BONUS <= reputational < min_stake * UNFREEZE_BONUS:
+            unfrozen_share = self._calculate_share(
+                max_share, min_share, min_stake, reputational)
             calc = client_to_real_amount(unfrozen_share * reward)
             node_account.reputation.unfrozen += calc
             node_account.reputation.frozen += client_to_real_amount(reward) - calc
@@ -165,7 +166,7 @@ class ConsensusAccountHandler(BasicHandler):
                         f"signer: {signer_node_address}; reward: {real_reward}; "
                         f"unfrozen share: {unfrozen_share}; frozen share: {frozen_share}")
 
-        elif reputational >= min_stake * unfreeze_bonus:
+        elif reputational >= min_stake * UNFREEZE_BONUS:
             calc = client_to_real_amount(max_share * reward)
             node_account.reputation.unfrozen += calc
             genesis_account.balance += client_to_real_amount(reward) - calc
@@ -209,11 +210,6 @@ class ConsensusAccountHandler(BasicHandler):
             raise InvalidTransaction(f'{SETTINGS_MINIMUM_STAKE} is malformed. Should be not negative integer.')
         min_stake = Decimal(min_stake)
 
-        unfreeze_bonus = _get_setting_value(context, SETTINGS_UNFREEZE_BONUS)
-        if unfreeze_bonus is None or not unfreeze_bonus.isdigit():
-            raise InvalidTransaction(f'{SETTINGS_UNFREEZE_BONUS} is malformed. Should be not negative integer.')
-        unfreeze_bonus = Decimal(unfreeze_bonus)
-
         ledger_tax = _get_setting_value(context, SETTINGS_BLOCKCHAIN_TAX)
         if ledger_tax is None:
             raise InvalidTransaction(f'{SETTINGS_BLOCKCHAIN_TAX} is malformed. Not set.')
@@ -226,11 +222,11 @@ class ConsensusAccountHandler(BasicHandler):
 
         max_share = Decimal(1 - ledger_tax)
 
-        return min_stake, unfreeze_bonus, max_share, min_share
+        return min_stake, max_share, min_share
 
     @staticmethod
-    def _calculate_share(max_share, min_share, unfreeze_bonus, min_stake, reputational):
+    def _calculate_share(max_share, min_share, min_stake, reputational):
         return real_to_client_amount((
-            ((max_share - min_share) / ((unfreeze_bonus - 1) * min_stake)) *
+            ((max_share - min_share) / ((UNFREEZE_BONUS - 1) * min_stake)) *
             (reputational - min_stake)
         ) + min_share, 0)

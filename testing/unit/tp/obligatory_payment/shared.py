@@ -8,9 +8,7 @@ from remme.tp.obligatory_payment import ObligatoryPaymentHandler
 from testing.mocks.stub import StubContext
 
 from remme.settings import (
-    CONSENSUS_ALLOWED_VALIDATORS,
     SETTINGS_OBLIGATORY_PAYMENT,
-    SETTINGS_COMMITTEE_SIZE,
     NODE_STATE_ADDRESS,
 )
 
@@ -38,15 +36,11 @@ for i in range(0, COMMITTEE_SIZE):
 
 BLOCK_WINNER_PRIVATE_KEY = '1cb15ecfe1b3dc02df0003ac396037f85b98cf9f99b0beae000dc5e9e8b6dab4'
 
-ADDRESS_TO_GET_ALLOWED_VALIDATORS = _make_settings_key(CONSENSUS_ALLOWED_VALIDATORS)
 ADDRESS_TO_GET_OBLIGATORY_PAYMENT = _make_settings_key(SETTINGS_OBLIGATORY_PAYMENT)
-ADDRESS_TO_GET_COMMITTEE_SIZE = _make_settings_key(SETTINGS_COMMITTEE_SIZE)
 
 INPUTS = OUTPUTS = [
     NODE_ACCOUNT_ADDRESS_FROM,
-    ADDRESS_TO_GET_ALLOWED_VALIDATORS,
     ADDRESS_TO_GET_OBLIGATORY_PAYMENT,
-    ADDRESS_TO_GET_COMMITTEE_SIZE,
     NODE_STATE_ADDRESS,
 ]
 INPUTS.extend(COMMITTEE_ADDRESSES)
@@ -81,9 +75,7 @@ def create_context(operational_balance, frozen_balance, unfrozen_balance, allowe
     obligatory_payment_settings = Setting()
     if allowed_validators is None:
         allowed_validators = ';'.join(COMMITTEE_PUBLIC_KEYS)
-    obligatory_payment_settings.entries.add(key=CONSENSUS_ALLOWED_VALIDATORS, value=allowed_validators)
     obligatory_payment_settings.entries.add(key=SETTINGS_OBLIGATORY_PAYMENT, value=str(OBLIGATORY_PAYMENT))
-    obligatory_payment_settings.entries.add(key=SETTINGS_COMMITTEE_SIZE, value=str(COMMITTEE_SIZE))
     serialized_obligatory_payment_setting = obligatory_payment_settings.SerializeToString()
 
     node_account = NodeAccount()
@@ -96,9 +88,7 @@ def create_context(operational_balance, frozen_balance, unfrozen_balance, allowe
     serialized_node_state = node_state.SerializeToString()
 
     initial_state = {
-        ADDRESS_TO_GET_ALLOWED_VALIDATORS: serialized_obligatory_payment_setting,
         ADDRESS_TO_GET_OBLIGATORY_PAYMENT: serialized_obligatory_payment_setting,
-        ADDRESS_TO_GET_COMMITTEE_SIZE: serialized_obligatory_payment_setting,
         NODE_ACCOUNT_ADDRESS_FROM: serialized_account_from_balance,
         NODE_STATE_ADDRESS: serialized_node_state,
     }
