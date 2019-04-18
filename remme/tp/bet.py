@@ -107,7 +107,6 @@ class BetHandler(BasicHandler):
         # block_cost = consensus_account.block_cost
         block_cost = zero_account.balance
 
-        bet = 0
         if node_account.min:
             bet = block_cost
         elif node_account.fixed_amount:
@@ -115,6 +114,15 @@ class BetHandler(BasicHandler):
                       .to_integral_value(rounding=ROUND_HALF_UP))
         elif node_account.max:
             bet = 9 * block_cost
+        else:
+            raise InvalidTransaction(f'Bet not configured for node account "{signer_node_address}"')
+
+        if not bet:
+            LOGGER.warning(f'Bet is zero, detailed: block_cost={block_cost}; '
+                           f'signer_node_address={signer_node_address}; '
+                           f'min={node_account.min}; '
+                           f'fixed_amount={node_account.fixed_amount}; '
+                           f'max={node_account.max};')
 
         consensus_account.bets[signer_node_address] = bet
         node_account.balance -= bet
