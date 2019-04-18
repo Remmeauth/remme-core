@@ -113,7 +113,7 @@ change ``157.230.146.230`` to your server's ``IP address``.
 .. code-block:: console
 
    $ export NODE_IP_ADDRESS=157.230.146.230
-   $ curl -X POST http://$NODE_IP_ADDRESS:8080 -H 'Content-Type: application/json' -d \
+   $ curl -X POST http://$NODE_IP_ADDRESS/rpc/ -H 'Content-Type: application/json' -d \
          '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python3 -m json.tool
 
 Then change the value of ``NODE_IP_ADDRESS`` to your domain name with an extension (i.e. ``the-coolest-masternode.xyz``)
@@ -122,7 +122,7 @@ and send execute the previous command again. A response should be similar to the
 .. code-block:: console
 
    $ export NODE_IP_ADDRESS=the-coolest-masternode.xyz
-   $ curl -X POST http://$NODE_IP_ADDRESS:8080 -H 'Content-Type: application/json' -d \
+   $ curl -X POST http://$NODE_IP_ADDRESS/rpc/ -H 'Content-Type: application/json' -d \
          '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python3 -m json.tool
 
 The flow is illustrated below.
@@ -132,5 +132,5 @@ The flow is illustrated below.
    :align: center
    :alt: Proof domain name works
 
-For now, you can reach your admin panel with the following address — ``http://the-coolest-masternode.xyz/login``,
+For now, you can reach your admin panel with the following address — ``http://the-coolest-masternode.xyz``,
 changing ``the-coolest-masternode.xyz`` to your domain name and extension.

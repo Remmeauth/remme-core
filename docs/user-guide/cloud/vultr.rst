@@ -141,20 +141,26 @@ the project that already specified in the command below.
 
 .. code-block:: console
 
-   $ export REMME_CORE_RELEASE=0.8.0-alpha
+   $ export REMME_CORE_RELEASE=0.8.1-alpha
    $ sudo apt-get install apt-transport-https ca-certificates curl software-properties-common make -y && \
          echo "REMME_CORE_RELEASE=$REMME_CORE_RELEASE" >> ~/.bashrc && \
          cd /home/ && curl -L https://github.com/Remmeauth/remme-core/archive/v$REMME_CORE_RELEASE.tar.gz | sudo tar zx && \
          cd remme-core-$REMME_CORE_RELEASE && \
+         sudo -i sed -i "s@80@3333@" /home/remme-core-$REMME_CORE_RELEASE/docker/compose/admin.yml && \
+         sudo -i sed -i '/      - GF_USERS_ALLOW_SIGN_UP=false/a \      - GF_SERVER_ROOT_URL=%(protocol)s:\/\/%(domain)s:\/monitoring\/' /home/remme-core-$REMME_CORE_RELEASE/docker/compose/mon.yml && \
          sudo apt update && sudo apt upgrade -y && \
-         curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - && \
-         sudo apt update && sudo apt install docker.io -y && \
+         curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add && \
+         sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" && \
+         sudo apt-get update && sudo apt-get install docker-ce -y && \
+         sudo apt update && sudo apt install nginx -y && \
+         curl https://gist.githubusercontent.com/dmytrostriletskyi/70dda8c594e60be1e089586f2ee8c0a0/raw/d453465e337cf5052a94b1d961f8a82c392ecf21/http-nginx.conf| sudo tee /etc/nginx/nginx.conf > /dev/null && \
          sudo curl -o /usr/local/bin/docker-compose -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" && \
          sudo chmod +x /usr/local/bin/docker-compose && \
          curl https://gist.githubusercontent.com/dmytrostriletskyi/9f525241acfc46799c65d5f010c43b5f/raw/3147860240613e7e2eab5e288d48a975934a260a/up-node-after-server-restart.sh > ~/up-node-after-server-restart.sh && \
          chmod +x ~/up-node-after-server-restart.sh && \
-         echo "@reboot $USER ~/./up-node-after-server-restart.sh $REMME_CORE_RELEASE" >> /etc/crontab && \
-         curl https://gist.githubusercontent.com/dmytrostriletskyi/48f2877d77570facffdea395521e8bd8/raw/9334bfb5cc18b4e143311fead9bd2447a0ae6d24/seeds-list.txt > config/seeds-list.txt && \
+         echo "@reboot $USER ~/./up-node-after-server-restart.sh $REMME_CORE_RELEASE" | sudo tee -a /etc/crontab > /dev/null && \
+         curl https://gist.githubusercontent.com/dmytrostriletskyi/48f2877d77570facffdea395521e8bd8/raw/9334bfb5cc18b4e143311fead9bd2447a0ae6d24/seeds-list.txt | sudo tee config/seeds-list.txt > /dev/null && \
+         sudo systemctl restart nginx && \
          sudo make run_bg_user
 
 .. image:: /img/user-guide/cloud/digital-ocean/installation-command.png
@@ -189,7 +195,7 @@ change ``157.230.146.230`` to your server's ``IP address``.
 .. code-block:: console
 
    $ export NODE_IP_ADDRESS=157.230.146.230
-   $ curl -X POST http://$NODE_IP_ADDRESS:8080 -H 'Content-Type: application/json' -d \
+   $ curl -X POST http://$NODE_IP_ADDRESS/rpc/ -H 'Content-Type: application/json' -d \
          '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python3 -m json.tool
 
 The response should look similar to this:
@@ -216,8 +222,8 @@ Step 5: admin panel
 ===================
 
 While starting the node, the admin panel has also been installed and started. Log into the admin panel. Copy your server's
-``IP address``, paste it into the browser address bar. Then add ``/login`` to the end of the address and press ``Enter``.
-Then you will see the initial admin panel page with authentication. Enter ``remme`` to the password fields.
+``IP address``, paste it into the browser address bar press ``Enter``. Then you will see the initial admin panel page with
+authentication. Enter ``remme`` to the password fields.
 
 .. image:: /img/user-guide/admin-panel/login-page.png
    :width: 100%
