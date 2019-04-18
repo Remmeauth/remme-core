@@ -33,7 +33,6 @@ from sawtooth_signing.secp256k1 import (
 )
 from secp256k1 import lib
 
-from remme.settings import ZERO_ADDRESS
 from remme.protos.account_pb2 import Account, TransferPayload
 from remme.protos.pub_key_pb2 import (
     PubKeyStorage,
@@ -231,8 +230,10 @@ class PubKeyHandler(BasicHandler):
         """
         Send fixed tokens value from address that want to store public key to node's storage address.
         """
-        if ZERO_ADDRESS == address_from:
-            raise InvalidTransaction('Transactions from zero address is used only for internal purposes.')
+        from .consensus_account import ConsensusAccountHandler
+
+        if address_from == ConsensusAccountHandler.CONSENSUS_ADDRESS:
+            raise InvalidTransaction('Transactions from consensus address is used only for internal purposes.')
 
         transfer_payload = TransferPayload()
         transfer_payload.address_to = address_to
@@ -240,8 +241,8 @@ class PubKeyHandler(BasicHandler):
 
         transfer_state = AccountHandler()._transfer_from_address(
             context=context, address_from=address_from, transfer_payload=transfer_payload,
+            receiver_key='block_cost'
         )
-
         return transfer_state
 
     @staticmethod
@@ -433,11 +434,14 @@ class PubKeyHandler(BasicHandler):
         """
         Send fixed tokens value from address to zero address.
         """
+        from .consensus_account import ConsensusAccountHandler
+
         is_economy_enabled = _get_setting_value(context, 'remme.economy_enabled', 'true').lower()
         if is_economy_enabled == 'true':
 
             transfer_state = self._charge_tokens_for_storing(
-                context=context, address_from=address_from, address_to=ZERO_ADDRESS,
+                context=context, address_from=address_from,
+                address_to=ConsensusAccountHandler.CONSENSUS_ADDRESS,
             )
 
             return transfer_state

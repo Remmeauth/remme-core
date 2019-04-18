@@ -19,10 +19,12 @@ from remme.tp.atomic_swap import AtomicSwapHandler
 from remme.protos.atomic_swap_pb2 import AtomicSwapInitPayload, AtomicSwapExpirePayload, AtomicSwapClosePayload, \
     AtomicSwapMethod, AtomicSwapInfo, AtomicSwapSetSecretLockPayload, AtomicSwapApprovePayload
 from sawtooth_sdk.protobuf.setting_pb2 import Setting
-from remme.settings import SETTINGS_SWAP_COMMISSION, ZERO_ADDRESS, SETTINGS_PUB_KEY_ENCRYPTION
+from remme.settings import SETTINGS_SWAP_COMMISSION, SETTINGS_PUB_KEY_ENCRYPTION
 from remme.settings.helper import _make_settings_key
 from remme.clients.basic import BasicClient
 from remme.clients.block_info import BLOCK_INFO_NAMESPACE, CONFIG_ADDRESS
+
+from remme.tp.consensus_account import ConsensusAccountHandler
 
 LOGGER = logging.getLogger(__name__)
 
@@ -81,14 +83,14 @@ class AtomicSwapClient(BasicClient):
             self.make_address_from_data(swap_init_payload.swap_id),
             self.get_user_address(),
             _make_settings_key(SETTINGS_SWAP_COMMISSION),
-            ZERO_ADDRESS,
+            ConsensusAccountHandler.CONSENSUS_ADDRESS,
             CONFIG_ADDRESS,
             BLOCK_INFO_NAMESPACE,
         ]
         addresses_output = [
             self.make_address_from_data(swap_init_payload.swap_id),
             self.get_user_address(),
-            ZERO_ADDRESS,
+            ConsensusAccountHandler.CONSENSUS_ADDRESS,
         ]
         return self._send_transaction(AtomicSwapMethod.INIT, swap_init_payload,
                                       addresses_input, addresses_output)
@@ -134,7 +136,7 @@ class AtomicSwapClient(BasicClient):
     def swap_close(self, swap_close_payload, receiver_address):
         addresses_input = [
             self.make_address_from_data(swap_close_payload.swap_id),
-            ZERO_ADDRESS,
+            ConsensusAccountHandler.CONSENSUS_ADDRESS,
             receiver_address,
             self.get_user_address(),
         ]

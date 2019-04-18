@@ -28,7 +28,6 @@ from .shared import (
     OUTPUTS,
     create_context,
     BLOCK_COST,
-    ZERO_ADDRESS,
 )
 
 
@@ -82,7 +81,6 @@ def test_do_bet_min():
 
     state_as_list = mock_context.get_state(addresses=[
         ConsensusAccountHandler.CONSENSUS_ADDRESS,
-        ZERO_ADDRESS,
         NODE_ACCOUNT_ADDRESS_FROM,
     ])
 
@@ -90,9 +88,6 @@ def test_do_bet_min():
 
     consensus_acc = ConsensusAccount()
     consensus_acc.ParseFromString(state_as_dict[ConsensusAccountHandler.CONSENSUS_ADDRESS])
-
-    zero_acc = Account()
-    zero_acc.ParseFromString(state_as_dict[ZERO_ADDRESS])
 
     node_acc = NodeAccount()
     node_acc.ParseFromString(state_as_dict[NODE_ACCOUNT_ADDRESS_FROM])
@@ -143,14 +138,10 @@ def test_do_bet_max():
 
     state_as_list = mock_context.get_state(addresses=[
         ConsensusAccountHandler.CONSENSUS_ADDRESS,
-        ZERO_ADDRESS,
         NODE_ACCOUNT_ADDRESS_FROM,
     ])
 
     state_as_dict = {entry.address: entry.data for entry in state_as_list}
-
-    zero_acc = Account()
-    zero_acc.ParseFromString(state_as_dict[ZERO_ADDRESS])
 
     consensus_acc = ConsensusAccount()
     consensus_acc.ParseFromString(state_as_dict[ConsensusAccountHandler.CONSENSUS_ADDRESS])
@@ -206,7 +197,6 @@ def test_do_bet_fixed_amount():
 
     state_as_list = mock_context.get_state(addresses=[
         ConsensusAccountHandler.CONSENSUS_ADDRESS,
-        ZERO_ADDRESS,
         NODE_ACCOUNT_ADDRESS_FROM,
     ])
 
@@ -214,9 +204,6 @@ def test_do_bet_fixed_amount():
 
     consensus_acc = ConsensusAccount()
     consensus_acc.ParseFromString(state_as_dict[ConsensusAccountHandler.CONSENSUS_ADDRESS])
-
-    zero_acc = Account()
-    zero_acc.ParseFromString(state_as_dict[ZERO_ADDRESS])
 
     node_acc = NodeAccount()
     node_acc.ParseFromString(state_as_dict[NODE_ACCOUNT_ADDRESS_FROM])

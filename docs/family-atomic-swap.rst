@@ -107,7 +107,7 @@ Inputs and Outputs
 
     * **Signer's account address** - formed from a public key of a transaction signer.
     * **Swap address** - 70 characters concatenation of 6 chars atomic swap family prefix + 64 chars hash of the swap id.
-    * **ZERO_ADDRESS** - reserved address used for locking funds *on chain*.
+    * **CONSENSUS_ADDRESS** - reserved address used for locking funds *on chain*.
     * **SETTINGS_SWAP_COMMISSION** - *settings* address for retrieving operation commision amount
     * **CONFIG_ADDRESS** - address for retrieving block configuration info
     * **BLOCK_INFO_NAMESPACE** - namespace for retrieving any block info (in this case the latest one from block config)
@@ -120,7 +120,7 @@ The inputs and outputs for account family transactions in respect to their paylo
 
     * Atomic swap address
     * Sender's account address
-    * ZERO_ADDRESS
+    * CONSENSUS_ADDRESS
     * SETTINGS_SWAP_COMMISSION
     * CONFIG_ADDRESS
     * BLOCK_INFO_NAMESPACE
@@ -129,7 +129,7 @@ The inputs and outputs for account family transactions in respect to their paylo
 
     * Atomic swap address
     * Sender's account address
-    * ZERO_ADDRESS
+    * CONSENSUS_ADDRESS
 * Approve:
 
   * Inputs: Atomic swap address

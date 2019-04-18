@@ -41,7 +41,6 @@ from remme.settings import (
     SETTINGS_MINIMUM_STAKE,
     SETTINGS_GENESIS_OWNERS,
     NODE_STATE_ADDRESS,
-    ZERO_ADDRESS,
 )
 
 from remme.settings.helper import _get_setting_value
@@ -88,10 +87,9 @@ class BetHandler(BasicHandler):
             return {}
 
         signer_node_address = NodeAccountHandler().make_address_from_data(public_key)
-        node_account, consensus_account, zero_account = get_multiple_data(context, [
+        node_account, consensus_account = get_multiple_data(context, [
             (signer_node_address, NodeAccount),
             (ConsensusAccountHandler.CONSENSUS_ADDRESS, ConsensusAccount),
-            (ZERO_ADDRESS, Account),
         ])
 
         if not node_account:
@@ -100,12 +98,7 @@ class BetHandler(BasicHandler):
         if not consensus_account:
             raise InvalidTransaction('Consensus account not found.')
 
-        if not zero_account:
-            zero_account = Account()
-
-        # TODO: Uncomment in the future
-        # block_cost = consensus_account.block_cost
-        block_cost = zero_account.balance
+        block_cost = consensus_account.block_cost
 
         if node_account.min:
             bet = block_cost

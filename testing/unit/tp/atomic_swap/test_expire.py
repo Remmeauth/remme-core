@@ -35,10 +35,7 @@ from remme.shared.utils import hash512, web3_hash, client_to_real_amount
 from remme.tp.atomic_swap import AtomicSwapHandler
 from remme.tp.basic import BasicHandler
 
-from remme.settings import (
-    SETTINGS_KEY_ZERO_ADDRESS_OWNERS,
-    ZERO_ADDRESS,
-)
+from remme.settings import SETTINGS_KEY_ZERO_ADDRESS_OWNERS
 
 TOKENS_AMOUNT_TO_SWAP = 200
 
