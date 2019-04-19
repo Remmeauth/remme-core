@@ -135,18 +135,33 @@ The flow is illustrated below.
 Step 4: start the project
 =========================
 
-Copy commands below and paste it into the terminal. You can change the value of ``REMME_CORE_RELEASE`` below, just take
-a look at our `release list <https://github.com/Remmeauth/remme-core/releases>`_. We would recommend the latest version of
-the project that already specified in the command below.
+Export environment variable with your server ``IP address`` with the following command. Remember to change
+``157.230.146.230`` to your server's ``IP address``.
+
+.. code-block:: console
+
+   $ export NODE_IP_ADDRESS=157.230.146.230
+
+Now, specify the release of the node you want to start. We would recommend the latest version of the project that already
+specified in the command below. But you can change the value of ``REMME_CORE_RELEASE``, just take a look at our
+`release list <https://github.com/Remmeauth/remme-core/releases>`_.
 
 .. code-block:: console
 
    $ export REMME_CORE_RELEASE=0.8.1-alpha
+
+After, copy and paste the following commands to the terminal which will install and start your node.
+
+.. code-block:: console
+
    $ sudo apt-get install apt-transport-https ca-certificates curl software-properties-common make -y && \
+         sudo sh -c "echo 'LC_ALL=en_US.UTF-8\nLANG=en_US.UTF-8' >> /etc/environment" && \
          echo "REMME_CORE_RELEASE=$REMME_CORE_RELEASE" >> ~/.bashrc && \
+         echo "NODE_IP_ADDRESS=NODE_IP_ADDRESS" >> ~/.bashrc && \
          cd /home/ && curl -L https://github.com/Remmeauth/remme-core/archive/v$REMME_CORE_RELEASE.tar.gz | sudo tar zx && \
          cd remme-core-$REMME_CORE_RELEASE && \
          sudo -i sed -i "s@80@3333@" /home/remme-core-$REMME_CORE_RELEASE/docker/compose/admin.yml && \
+         sudo -i sed -i "s@127.0.0.1@$NODE_IP_ADDRESS@" /home/remme-core-$REMME_CORE_RELEASE/config/network-config.env && \
          sudo -i sed -i '/      - GF_USERS_ALLOW_SIGN_UP=false/a \      - GF_SERVER_ROOT_URL=%(protocol)s:\/\/%(domain)s:\/monitoring\/' /home/remme-core-$REMME_CORE_RELEASE/docker/compose/mon.yml && \
          sudo apt update && sudo apt upgrade -y && \
          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add && \
@@ -189,12 +204,10 @@ When you see the same output as illustrated below, it means the node is ready to
    :align: center
    :alt: Proof core is up
 
-To check if your node has completed a correct setup, use the following commands, being logged in your server. Remember to
-change ``157.230.146.230`` to your server's ``IP address``.
+To check if your node has completed a correct setup, use the following command:
 
 .. code-block:: console
 
-   $ export NODE_IP_ADDRESS=157.230.146.230
    $ curl -X POST http://$NODE_IP_ADDRESS/rpc/ -H 'Content-Type: application/json' -d \
          '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python3 -m json.tool
 

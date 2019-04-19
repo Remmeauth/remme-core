@@ -112,17 +112,24 @@ change ``157.230.146.230`` to your server's ``IP address``.
 
 .. code-block:: console
 
-   $ export NODE_IP_ADDRESS=157.230.146.230
    $ curl -X POST http://$NODE_IP_ADDRESS/rpc/ -H 'Content-Type: application/json' -d \
          '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python3 -m json.tool
 
-Then change the value of ``NODE_IP_ADDRESS`` to your domain name with an extension (i.e. ``the-coolest-masternode.xyz``)
-and send execute the previous command again. A response should be similar to the previous one:
+Then create a new environment variable with your domain name with an extension as illustrated below. Also, there is
+a command to make your node to be discovered for synchronization by domain name instead of IP address. Change ``the-coolest-masternode.xyz``
+to your ``domain name``.
 
 .. code-block:: console
 
-   $ export NODE_IP_ADDRESS=the-coolest-masternode.xyz
-   $ curl -X POST http://$NODE_IP_ADDRESS/rpc/ -H 'Content-Type: application/json' -d \
+   $ export DOMAIN=the-coolest-masternode.xyz
+   $ sudo -i sed -i "s@$NODE_IP_ADDRESS@$DOMAIN@" /home/remme-core-$REMME_CORE_RELEASE/config/network-config.env && \
+         echo "DOMAIN=$DOMAIN" >> ~/.bashrc
+
+Execute the previous command again. A response should be similar to the previous one.
+
+.. code-block:: console
+
+   $ curl -X POST http://$DOMAIN/rpc/ -H 'Content-Type: application/json' -d \
          '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python3 -m json.tool
 
 The flow is illustrated below.

@@ -25,13 +25,6 @@ The flow is illustrated below.
    :align: center
    :alt: SSH login to the server
 
-Then create a new environment variable as illustrated below. Change ``the-coolest-masternode.xyz``
-with your ``domain name``.
-
-.. code-block:: console
-
-   $ export DOMAIN=the-coolest-masternode.xyz
-
 Then create a new environment variable with your ``email`` to receive notifications from ``Let's Encrypt``:
 
 .. code-block:: console
@@ -42,8 +35,7 @@ Copy the command below and paste into the terminal which will create an ``SSL ce
 
 .. code-block:: console
 
-    $ echo "DOMAIN=$DOMAIN" >> ~/.bashrc && \
-         sudo apt install software-properties-common -y && \
+    $ sudo apt install software-properties-common -y && \
          sudo add-apt-repository ppa:certbot/certbot -y && \
          sudo apt update && sudo apt install certbot python-certbot-nginx -y && \
          sudo -i sed -i "s@websitenamewithdomain@$DOMAIN@" /etc/nginx/nginx.conf && \
@@ -279,15 +271,8 @@ Using a brand new terminal window on the local machine transfer the file to the 
 
     $ scp ~/Desktop/210854864.zip root@157.230.226.218:~
 
-Then open a terminal window with the server. Then create a new environment variable with your domain name as illustrated below.
-Remember to change ``the-coolest-masternode.xyz`` with your ``domain name``.
-
-.. code-block:: console
-
-   $ export DOMAIN=the-coolest-masternode.xyz
-
-Copy the command below and paste into the terminal which will create an ``SSL certificate`` and order the web-server to
-serve ``https`` connections.
+Then open a terminal window with the server. Copy the command below and paste into the terminal which will
+create an ``SSL certificate`` and order the web-server to serve ``https`` connections.
 
 .. code-block:: console
 
