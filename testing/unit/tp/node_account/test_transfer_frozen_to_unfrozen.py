@@ -57,7 +57,7 @@ TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS = {
 
 def create_context(account_from_frozen_balance, account_to_unfrozen_balance,
                    minimum_stake=MINIMUM_STAKE, blockchain_tax=BLOCKCHAIN_TAX,
-                   status=NodeAccount.OPENED, shares=None):
+                   status=NodeAccount.OPENED, last_defrost_timestamp=0, shares=None):
     """
     Create stub context with initial data.
 
@@ -69,6 +69,7 @@ def create_context(account_from_frozen_balance, account_to_unfrozen_balance,
     """
     node_account = NodeAccount()
     node_account.node_state = status
+    node_account.last_defrost_timestamp = last_defrost_timestamp
 
     node_account.reputation.frozen = client_to_real_amount(account_from_frozen_balance)
     node_account.reputation.unfrozen = client_to_real_amount(account_to_unfrozen_balance)
@@ -157,6 +158,8 @@ def test_transfer_from_frozen_to_unfrozen_more_than_one_month():
 
     assert node_acc.last_defrost_timestamp is not None
 
+    assert len(node_acc.shares) == 1
+
     share = node_acc.shares[0]
 
     assert share.defrost_months == 1
@@ -237,6 +240,8 @@ def test_transfer_from_frozen_to_unfrozen_more_than_one_two_with_already_calcula
 
     assert node_acc.last_defrost_timestamp is not None
 
+    assert len(node_acc.shares) == 2
+
     share1 = node_acc.shares[0]
     share2 = node_acc.shares[1]
 
@@ -313,8 +318,131 @@ def test_transfer_from_frozen_to_unfrozen_one_share_unfrozen_already_and_one_mor
 
     assert node_acc.last_defrost_timestamp is not None
 
-    share1 = node_acc.shares[0]
-    share2 = node_acc.shares[1]
+    assert len(node_acc.shares) == 1
 
-    assert share1.defrost_months == 1
-    assert share2.defrost_months == 12
+    share = node_acc.shares[0]
+
+    assert share.defrost_months == 1
+
+
+def test_transfer_from_frozen_to_unfrozen_remove_shares_more_then_12_month():
+    internal_transfer_payload = EmptyPayload()
+
+    transaction_payload = TransactionPayload()
+    transaction_payload.method = NodeAccountMethod.TRANSFER_FROM_FROZEN_TO_UNFROZEN
+    transaction_payload.data = internal_transfer_payload.SerializeToString()
+
+    serialized_transaction_payload = transaction_payload.SerializeToString()
+
+    transaction_header = TransactionHeader(
+        signer_public_key=RANDOM_NODE_PUBLIC_KEY,
+        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
+        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
+        inputs=INPUTS,
+        outputs=OUTPUTS,
+        dependencies=[],
+        payload_sha512=hash512(data=serialized_transaction_payload),
+        batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
+        nonce=time.time().hex().encode(),
+    )
+
+    serialized_header = transaction_header.SerializeToString()
+
+    transaction_request = TpProcessRequest(
+        header=transaction_header,
+        payload=serialized_transaction_payload,
+        signature=create_signer(private_key=NODE_ACCOUNT_FROM_PRIVATE_KEY).sign(serialized_header),
+    )
+    now = datetime.utcnow()
+
+    shares = [
+        ShareInfo(
+            block_num=10,
+            frozen_share=4000,
+            reward=10_000,
+            block_timestamp=int((datetime.utcnow() - timedelta(days=28)).timestamp()),
+            defrost_months=0,
+        ),
+        ShareInfo(
+            block_num=11,
+            frozen_share=4000,
+            reward=10_000,
+            block_timestamp=int((datetime.utcnow() - timedelta(days=28 * 12)).timestamp()),
+            defrost_months=0,
+        ),
+        ShareInfo(
+            block_num=12,
+            frozen_share=6000,
+            reward=15_000,
+            block_timestamp=int((datetime.utcnow() - timedelta(days=28 * 12)).timestamp()),
+            defrost_months=0,
+        ),
+    ]
+    mock_context = create_context(account_from_frozen_balance=FROZEN,
+                                  account_to_unfrozen_balance=UNFROZEN,
+                                  shares=shares)
+
+    NodeAccountHandler().apply(transaction=transaction_request, context=mock_context)
+
+    state_as_list = mock_context.get_state(addresses=[
+        NODE_ACCOUNT_ADDRESS_FROM,
+    ])
+    state_as_dict = {entry.address: entry.data for entry in state_as_list}
+
+    node_acc = NodeAccount()
+    node_acc.ParseFromString(state_as_dict[NODE_ACCOUNT_ADDRESS_FROM])
+
+    delta1 = 0.0333  # 0.4 * 1/12 * 10_000
+    delta2 = 0.4  # 0.4 * 12/12 * 10_000
+    delta3 = 0.9  # 0.6 * 12/12 * 15_000
+
+    delta = delta1 + delta2 + delta3
+
+    assert node_acc.reputation.frozen == client_to_real_amount(FROZEN - delta)
+    assert node_acc.reputation.unfrozen == client_to_real_amount(UNFROZEN + delta)
+
+    assert node_acc.last_defrost_timestamp is not None
+
+    assert len(node_acc.shares) == 1
+
+    share = node_acc.shares[0]
+
+    assert share.defrost_months == 1
+
+
+def test_transfer_from_frozen_already_defrosted_in_two_week_period():
+    internal_transfer_payload = EmptyPayload()
+
+    transaction_payload = TransactionPayload()
+    transaction_payload.method = NodeAccountMethod.TRANSFER_FROM_FROZEN_TO_UNFROZEN
+    transaction_payload.data = internal_transfer_payload.SerializeToString()
+
+    serialized_transaction_payload = transaction_payload.SerializeToString()
+
+    transaction_header = TransactionHeader(
+        signer_public_key=RANDOM_NODE_PUBLIC_KEY,
+        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
+        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
+        inputs=INPUTS,
+        outputs=OUTPUTS,
+        dependencies=[],
+        payload_sha512=hash512(data=serialized_transaction_payload),
+        batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
+        nonce=time.time().hex().encode(),
+    )
+
+    serialized_header = transaction_header.SerializeToString()
+
+    transaction_request = TpProcessRequest(
+        header=transaction_header,
+        payload=serialized_transaction_payload,
+        signature=create_signer(private_key=NODE_ACCOUNT_FROM_PRIVATE_KEY).sign(serialized_header),
+    )
+    mock_context = create_context(account_from_frozen_balance=FROZEN,
+                                  account_to_unfrozen_balance=UNFROZEN,
+                                  last_defrost_timestamp=int(datetime.utcnow().timestamp()) + 160)
+
+    with pytest.raises(InvalidTransaction) as error:
+        NodeAccountHandler().apply(transaction=transaction_request, context=mock_context)
+
+    assert 'Passed not enough time from previous defrost.' == str(error.value)

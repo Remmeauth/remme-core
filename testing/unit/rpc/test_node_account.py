@@ -32,6 +32,13 @@ async def test_get_node_account(mocker, request_):
             frozen_share=2000,
             reward=10_000,
             defrost_months=11,
+        ),
+        ShareInfo(
+            block_num=2,
+            block_timestamp=now,
+            frozen_share=2000,
+            reward=10_000,
+            defrost_months=11,
         )
     ])
 
@@ -56,13 +63,22 @@ async def test_get_node_account(mocker, request_):
         },
         'node_state': 'NEW',
         'last_defrost_timestamp': str(now),
-        'shares': [{
-            'block_num': '1',
-            'block_timestamp': str(now),
-            'frozen_share': '0.2000',
-            'reward': '1.0000',
-            'defrost_months': 11,
-        }]
+        'shares': [
+            {
+                'block_num': '2',
+                'block_timestamp': str(now),
+                'frozen_share': '0.2000',
+                'reward': '1.0000',
+                'defrost_months': 11,
+            },
+            {
+                'block_num': '1',
+                'block_timestamp': str(now),
+                'frozen_share': '0.2000',
+                'reward': '1.0000',
+                'defrost_months': 11,
+            }
+        ]
     }
 
     assert expected_result == result

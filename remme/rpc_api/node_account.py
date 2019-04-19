@@ -60,5 +60,5 @@ async def get_node_account(request):
     if 'fixed_amount' in data:
         data['fixed_amount'] = str(real_to_client_amount(Decimal(data['fixed_amount'])))
     if 'shares':
-        data['shares'] = list(_filter_shares(data['shares']))
+        data['shares'] = list(reversed(_filter_shares(data['shares'])))
     return data

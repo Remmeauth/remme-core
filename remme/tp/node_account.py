@@ -13,7 +13,7 @@
 # limitations under the License.
 # ------------------------------------------------------------------------
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
@@ -233,6 +233,9 @@ class NodeAccountHandler(BasicHandler):
         if node_account.node_state != NodeAccount.OPENED:
             raise InvalidTransaction('Masternode is not opened or has been closed.')
 
+        if datetime.utcnow() - datetime.fromtimestamp(node_account.last_defrost_timestamp) < timedelta(weeks=2):
+            raise InvalidTransaction('Passed not enough time from previous defrost.')
+
         min_stake = _get_setting_value(context, SETTINGS_MINIMUM_STAKE)
         if min_stake is None or not min_stake.isdigit():
             raise InvalidTransaction(f'{SETTINGS_MINIMUM_STAKE} is malformed. Not set.')
@@ -242,17 +245,16 @@ class NodeAccountHandler(BasicHandler):
         if node_account.reputation.frozen <= min_stake:
             raise InvalidTransaction("Not enough tokens on frozen balance to defrost")
 
-        now = datetime.utcnow().timestamp()
+        now = datetime.utcnow()
         tokens = 0
+        shares_to_delete = []
         for share in node_account.shares:
-            if share.defrost_months == MAX_DEFROST_MONTH:
-                continue
-
-            delta = datetime.fromtimestamp(now) - datetime.fromtimestamp(share.block_timestamp)
+            delta = now - datetime.fromtimestamp(share.block_timestamp)
 
             # determine what was the diferrence
             share_that_should_defrost = min(delta.days // 28, MAX_DEFROST_MONTH)
             if not share_that_should_defrost or share.defrost_months >= share_that_should_defrost:
+                LOGGER.debug(f'Share not yet required to be defrosted: share={share}')
                 continue
 
             demand_month = (share_that_should_defrost - share.defrost_months)
@@ -263,9 +265,26 @@ class NodeAccountHandler(BasicHandler):
 
             share.defrost_months += demand_month
 
+            LOGGER.info(f'Share base info: demand_month={demand_month}; '
+                        f'defrosted_tokens={defrosted_tokens}; '
+                        f'defrosted_share={defrosted_share}; '
+                        f'share_that_should_defrost={share_that_should_defrost}; '
+                        f'node_account_address={node_account_address}')
+
+            if share.defrost_months == MAX_DEFROST_MONTH:
+                LOGGER.debug(f'Share that will be removed: share={share}')
+                shares_to_delete.append(share)
+
         node_account.reputation.frozen -= tokens
         node_account.reputation.unfrozen += tokens
         node_account.last_defrost_timestamp = int(datetime.utcnow().timestamp())
+
+        LOGGER.info(f'Defrosted info: tokens={tokens}; '
+                    f'last_defrost_timestamp={node_account.last_defrost_timestamp}; '
+                    f'node_account_address={node_account_address}')
+
+        for share in shares_to_delete:
+            node_account.shares.remove(share)
 
         return {
             node_account_address: node_account,
