@@ -128,67 +128,65 @@ class ConsensusAccountHandler(BasicHandler):
 
         reputational = real_to_client_amount(node_account.reputation.unfrozen + node_account.reputation.frozen)
 
-        real_reward = obligatory_payments + block_cost + bet
-        reward = real_to_client_amount(real_reward)
+        reward = obligatory_payments + block_cost + bet
+        node_reward = client_to_real_amount(max_share * reward, 0)
 
-        state = {
-            signer_node_address: node_account,
-            self.CONSENSUS_ADDRESS: consensus_account,
-        }
+        remme_reward = reward - node_reward
+        genesis_account.balance += remme_reward
+
+        LOGGER.debug(f'min_stake: {min_stake}; reputational: {reputational}; '
+                     f'unfreeze_bonus: {UNFREEZE_BONUS};')
 
         if UNFREEZE_BONUS <= reputational < min_stake * UNFREEZE_BONUS:
-            unfrozen_share = self._calculate_share(
-                max_share, min_share, min_stake, reputational)
-            calc = client_to_real_amount(unfrozen_share * reward)
-            node_account.reputation.unfrozen += calc
-            node_account.reputation.frozen += client_to_real_amount(reward) - calc
+            unfrozen_share = self._calculate_share(max_share, min_share,
+                                                   min_stake, reputational)
+            unfrozen_reward = client_to_real_amount(unfrozen_share * node_reward, 0)
+            frozen_reward = node_reward - unfrozen_reward
+            node_account.reputation.unfrozen += unfrozen_reward
+            node_account.reputation.frozen += frozen_reward
 
             frozen_share = 1 - unfrozen_share
 
             si = ShareInfo(
                 block_num=block.block_num,
                 frozen_share=client_to_real_amount(frozen_share),
-                reward=real_reward,
+                reward=node_reward,
                 block_timestamp=block.timestamp,
             )
             node_account.shares.extend([si])
-            LOGGER.info(f"Payng rewards. Unfrozen: {calc}; frozen: {real_reward - calc}; "
-                        f"signer: {signer_node_address}; reward: {real_reward}; "
+            LOGGER.info(f"Payng rewards. Unfrozen: {unfrozen_reward}; frozen: {frozen_reward}; "
+                        f"signer: {signer_node_address}; reward: {reward}; "
                         f"unfrozen share: {unfrozen_share}; frozen share: {frozen_share}")
 
         elif reputational >= min_stake * UNFREEZE_BONUS:
-            calc = client_to_real_amount(max_share * reward)
-            node_account.reputation.unfrozen += calc
-            genesis_account.balance += client_to_real_amount(reward) - calc
+            node_account.reputation.unfrozen += node_reward
 
-            state[genesis_node_address] = genesis_account
-
-            LOGGER.info(f"Payng rewards. Unfrozen: {calc}, REMME: {real_reward - calc}; "
-                        f"signer: {signer_node_address}; reward: {real_reward}; "
+            LOGGER.info(f"Payng rewards. Unfrozen: {node_reward}; "
+                        f"signer: {signer_node_address}; reward: {reward}; "
                         f"unfrozen share: {max_share}")
 
         else:
-            calc = client_to_real_amount(max_share * reward)
-            node_account.reputation.frozen += calc
-            genesis_account.balance += client_to_real_amount(reward) - calc
-
-            state[genesis_node_address] = genesis_account
+            node_account.reputation.frozen += node_reward
 
             si = ShareInfo(
                 block_num=block.block_num,
                 frozen_share=client_to_real_amount(max_share),
-                reward=real_reward,
+                reward=node_reward,
                 block_timestamp=block.timestamp,
             )
             node_account.shares.extend([si])
-            LOGGER.info(f"Payng rewards. Frozen: {calc}, REMME: {client_to_real_amount(reward) - calc}; "
-                        f"signer: {signer_node_address}; reward: {client_to_real_amount(reward)}; "
+            LOGGER.info(f"Payng rewards. Frozen: {node_reward}; "
+                        f"signer: {signer_node_address}; reward: {reward}; "
                         f"frozen share: {max_share}")
 
         consensus_account.obligatory_payments = 0
         consensus_account.block_cost = 0
 
-        return state
+        return {
+            genesis_node_address: genesis_account,
+            signer_node_address: node_account,
+            self.CONSENSUS_ADDRESS: consensus_account,
+        }
 
     @staticmethod
     def _get_share_data(context):

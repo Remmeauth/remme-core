@@ -60,8 +60,9 @@ def test_send_reward_less_condition():
     BET_VALUE = 10
 
     REW = BLOCK_COST + OBLIGATORY_PAYMENTS + BET_VALUE
-    REP = 0.9 * REW
-    REV_REP = REW - REP
+
+    NODE_REW = 0.9 * REW
+    REMME_REW = REW - NODE_REW
 
     mock_context = create_context(node_state=NodeAccount.OPENED,
                                   block_cost=BLOCK_COST,
@@ -86,9 +87,9 @@ def test_send_reward_less_condition():
     consensus_acc = ConsensusAccount()
     consensus_acc.ParseFromString(state_as_dict[ConsensusAccountHandler.CONSENSUS_ADDRESS])
 
-    assert node_acc.reputation.frozen == client_to_real_amount(REP)
+    assert node_acc.reputation.frozen == client_to_real_amount(NODE_REW)
     assert node_acc.reputation.unfrozen == 0
-    assert genesis_acc.balance == client_to_real_amount(REV_REP)
+    assert genesis_acc.balance == client_to_real_amount(REMME_REW)
 
     assert consensus_acc.block_cost == 0
     assert consensus_acc.obligatory_payments == 0
@@ -98,7 +99,7 @@ def test_send_reward_less_condition():
     assert share.frozen_share == client_to_real_amount(0.9)
     assert share.block_timestamp == CURRENT_TIMESTAMP
     assert share.block_num == 1000
-    assert share.reward == client_to_real_amount(REW)
+    assert share.reward == client_to_real_amount(NODE_REW)
     assert share.defrost_months == 0
 
 
@@ -135,7 +136,7 @@ def test_send_reward_upper_condition():
         signature=create_signer(private_key=NODE_ACCOUNT_SIGNER_PRIVATE_KEY).sign(serialized_header),
     )
 
-    FROZEN = 20_000
+    FROZEN = 120_000
     UNFROZEN = 180_000
 
     BLOCK_COST = 10
@@ -143,8 +144,12 @@ def test_send_reward_upper_condition():
     BET_VALUE = 10
 
     REW = BLOCK_COST + OBLIGATORY_PAYMENTS + BET_VALUE
-    REP = 0.44 * REW
-    REV_REP = REW - REP
+
+    NODE_REW = 0.9 * REW
+    REMME_REW = REW - NODE_REW
+
+    UNODE_REW = 0.46 * NODE_REW
+    FNODE_REW = NODE_REW - UNODE_REW
 
     mock_context = create_context(node_state=NodeAccount.OPENED,
                                   block_cost=BLOCK_COST,
@@ -171,18 +176,19 @@ def test_send_reward_upper_condition():
     consensus_acc = ConsensusAccount()
     consensus_acc.ParseFromString(state_as_dict[ConsensusAccountHandler.CONSENSUS_ADDRESS])
 
-    assert node_acc.reputation.unfrozen == client_to_real_amount(REP + UNFROZEN)
-    assert node_acc.reputation.frozen == client_to_real_amount(REV_REP + FROZEN)
+    assert node_acc.reputation.unfrozen == client_to_real_amount(UNODE_REW + UNFROZEN)
+    assert node_acc.reputation.frozen == client_to_real_amount(FNODE_REW + FROZEN)
+    assert genesis_acc.balance == client_to_real_amount(REMME_REW)
 
     assert consensus_acc.block_cost == 0
     assert consensus_acc.obligatory_payments == 0
     assert NODE_ACCOUNT_SIGNER_ADDRESS not in consensus_acc.bets
 
     share = node_acc.shares[0]
-    assert share.frozen_share == client_to_real_amount(1 - 0.44)
+    assert share.frozen_share == client_to_real_amount(1 - 0.46)
     assert share.block_timestamp == CURRENT_TIMESTAMP
     assert share.block_num == 1000
-    assert share.reward == client_to_real_amount(REW)
+    assert share.reward == client_to_real_amount(NODE_REW)
     assert share.defrost_months == 0
 
 
@@ -227,8 +233,9 @@ def test_send_reward_middle_condition():
     BET_VALUE = 10
 
     REW = BLOCK_COST + OBLIGATORY_PAYMENTS + BET_VALUE
-    REP = 0.9 * REW
-    REV_REP = REW - REP
+
+    NODE_REW = 0.9 * REW
+    REMME_REW = REW - NODE_REW
 
     mock_context = create_context(node_state=NodeAccount.OPENED,
                                   block_cost=BLOCK_COST,
@@ -256,8 +263,8 @@ def test_send_reward_middle_condition():
     consensus_acc.ParseFromString(state_as_dict[ConsensusAccountHandler.CONSENSUS_ADDRESS])
 
     assert node_acc.reputation.frozen == client_to_real_amount(FROZEN)
-    assert node_acc.reputation.unfrozen == client_to_real_amount(REP + UNFROZEN)
-    assert genesis_acc.balance == client_to_real_amount(REV_REP)
+    assert node_acc.reputation.unfrozen == client_to_real_amount(NODE_REW + UNFROZEN)
+    assert genesis_acc.balance == client_to_real_amount(REMME_REW)
 
     assert consensus_acc.block_cost == 0
     assert consensus_acc.obligatory_payments == 0
