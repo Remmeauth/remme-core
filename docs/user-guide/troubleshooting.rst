@@ -7,7 +7,6 @@ Troubleshooting is needed to identify the symptoms. Determining the most likely 
 causes of a problem.
 
 .. include:: /user-guide/throubleshooting/command-line-notation.rst
-.. include:: /user-guide/throubleshooting/nodes-network.rst
 .. include:: /user-guide/throubleshooting/open-terminal.rst
 .. include:: /user-guide/throubleshooting/ssh-keys.rst
 .. include:: /user-guide/throubleshooting/no-ssh-client.rst
