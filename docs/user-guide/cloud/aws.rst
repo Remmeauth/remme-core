@@ -178,18 +178,34 @@ If you need any assistance connecting to your instance, please see |connection_t
 Step 5: start the project
 =========================
 
-Copy commands below and paste it into the terminal. You can change the value of ``REMME_CORE_RELEASE`` below, just take
-a look at our `release list <https://github.com/Remmeauth/remme-core/releases>`_. We would recommend the latest version of
-the project that already specified in the command below.
+
+Export environment variable with your server ``IPv4 Public IP`` with the following command. Remember to change
+``157.230.146.230`` to your server's ``IPv4 Public IP``.
+
+.. code-block:: console
+
+   $ export NODE_IP_ADDRESS=157.230.146.230
+
+Now, specify the release of the node you want to start. We would recommend the latest version of the project that already
+specified in the command below. But you can change the value of ``REMME_CORE_RELEASE``, just take a look at our
+`release list <https://github.com/Remmeauth/remme-core/releases>`_.
 
 .. code-block:: console
 
    $ export REMME_CORE_RELEASE=0.8.1-alpha
+
+After, copy and paste the following commands to the terminal which will install and start your node.
+
+.. code-block:: console
+
    $ sudo apt-get install apt-transport-https ca-certificates curl software-properties-common make -y && \
+         sudo sh -c "echo 'LC_ALL=en_US.UTF-8\nLANG=en_US.UTF-8' >> /etc/environment" && \
          echo "REMME_CORE_RELEASE=$REMME_CORE_RELEASE" >> ~/.bashrc && \
+         echo "NODE_IP_ADDRESS=NODE_IP_ADDRESS" >> ~/.bashrc && \
          cd /home/ && curl -L https://github.com/Remmeauth/remme-core/archive/v$REMME_CORE_RELEASE.tar.gz | sudo tar zx && \
          cd remme-core-$REMME_CORE_RELEASE && \
          sudo -i sed -i "s@80@3333@" /home/remme-core-$REMME_CORE_RELEASE/docker/compose/admin.yml && \
+         sudo -i sed -i "s@127.0.0.1@$NODE_IP_ADDRESS@" /home/remme-core-$REMME_CORE_RELEASE/config/network-config.env && \
          sudo -i sed -i '/      - GF_USERS_ALLOW_SIGN_UP=false/a \      - GF_SERVER_ROOT_URL=%(protocol)s:\/\/%(domain)s:\/monitoring\/' /home/remme-core-$REMME_CORE_RELEASE/docker/compose/mon.yml && \
          sudo apt update && sudo apt upgrade -y && \
          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add && \
