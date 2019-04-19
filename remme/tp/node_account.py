@@ -62,6 +62,8 @@ LOGGER = logging.getLogger(__name__)
 FAMILY_NAME = 'node_account'
 FAMILY_VERSIONS = ['0.1']
 
+ALLOWED_WEEKS_TO_DEFROST = 2
+
 
 class NodeAccountHandler(BasicHandler):
     def __init__(self):
@@ -233,7 +235,11 @@ class NodeAccountHandler(BasicHandler):
         if node_account.node_state != NodeAccount.OPENED:
             raise InvalidTransaction('Masternode is not opened or has been closed.')
 
-        if datetime.utcnow() - datetime.fromtimestamp(node_account.last_defrost_timestamp) < timedelta(weeks=2):
+        block_info = self.get_latest_block_info(context)
+        now_ts = block_info.timestamp
+        now = datetime.fromtimestamp(now_ts)
+
+        if now - datetime.fromtimestamp(node_account.last_defrost_timestamp) < timedelta(weeks=ALLOWED_WEEKS_TO_DEFROST):
             raise InvalidTransaction('Passed not enough time from previous defrost.')
 
         min_stake = _get_setting_value(context, SETTINGS_MINIMUM_STAKE)
@@ -245,9 +251,11 @@ class NodeAccountHandler(BasicHandler):
         if node_account.reputation.frozen <= min_stake:
             raise InvalidTransaction("Not enough tokens on frozen balance to defrost")
 
-        now = datetime.utcnow()
+        # we take a diffrenece to know how many tokens only allowed to defrost
+        tokens_allowed_to_defrost = node_account.reputation.frozen - min_stake
         tokens = 0
         shares_to_delete = []
+
         for share in node_account.shares:
             delta = now - datetime.fromtimestamp(share.block_timestamp)
 
@@ -261,9 +269,17 @@ class NodeAccountHandler(BasicHandler):
 
             defrosted_share = self._calculate_share_to_defrost(real_to_client_amount(share.frozen_share), demand_month)
             defrosted_tokens = client_to_real_amount(defrosted_share * share.reward, 0)
-            tokens += defrosted_tokens
+            predict_tokens = tokens + defrosted_tokens
 
-            share.defrost_months += demand_month
+            if predict_tokens > tokens_allowed_to_defrost:
+                LOGGER.debug(f'Tokens overflow: predict_tokens={predict_tokens}; '
+                             f'defrosted_tokens={defrosted_tokens}; '
+                             f'tokens_allowed_to_defrost={tokens_allowed_to_defrost}; '
+                             f'min_stake={min_stake}. '
+                             f'Starting calculate share with tokens={tokens}.')
+                break
+
+            tokens = predict_tokens
 
             LOGGER.info(f'Share base info: demand_month={demand_month}; '
                         f'defrosted_tokens={defrosted_tokens}; '
@@ -271,13 +287,15 @@ class NodeAccountHandler(BasicHandler):
                         f'share_that_should_defrost={share_that_should_defrost}; '
                         f'node_account_address={node_account_address}')
 
+            share.defrost_months += demand_month
+
             if share.defrost_months == MAX_DEFROST_MONTH:
                 LOGGER.debug(f'Share that will be removed: share={share}')
                 shares_to_delete.append(share)
 
         node_account.reputation.frozen -= tokens
         node_account.reputation.unfrozen += tokens
-        node_account.last_defrost_timestamp = int(datetime.utcnow().timestamp())
+        node_account.last_defrost_timestamp = now_ts
 
         LOGGER.info(f'Defrosted info: tokens={tokens}; '
                     f'last_defrost_timestamp={node_account.last_defrost_timestamp}; '
