@@ -43,6 +43,7 @@ from .basic import (
     PB_CLASS,
     PROCESSOR,
     VALIDATOR,
+    FEE_AUTO_CHARGER,
     BasicHandler,
     get_data,
     get_multiple_data
@@ -96,6 +97,7 @@ class ObligatoryPaymentHandler(BasicHandler):
                 PB_CLASS: ObligatoryPaymentPayload,
                 PROCESSOR: self._pay_obligatory_payment,
                 VALIDATOR: ObligatoryPaymentPayloadForm,
+                FEE_AUTO_CHARGER: None,
             },
         }
 

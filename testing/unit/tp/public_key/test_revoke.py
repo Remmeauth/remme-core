@@ -5,13 +5,17 @@ import pytest
 from sawtooth_sdk.processor.exceptions import InvalidTransaction
 from sawtooth_sdk.protobuf.processor_pb2 import TpProcessRequest
 
+from remme.protos.account_pb2 import Account
 from remme.protos.pub_key_pb2 import (
     PubKeyStorage,
     RevokePubKeyPayload,
     PubKeyMethod,
 )
 from remme.protos.transaction_pb2 import TransactionPayload
+from remme.settings import TRANSACTION_FEE
+from remme.shared.utils import client_to_real_amount
 from remme.tp.pub_key import PubKeyHandler
+from remme.tp.consensus_account import ConsensusAccountHandler, ConsensusAccount
 
 from testing.conftest import create_signer
 from testing.mocks.stub import StubContext
@@ -20,6 +24,7 @@ from .base import (
     ADDRESS_FROM_RSA_PUBLIC_KEY,
     SENDER_PUBLIC_KEY,
     SENDER_PRIVATE_KEY,
+    SENDER_ADDRESS,
     NOT_SENDER_PUBLIC_KEY,
     generate_header,
     generate_rsa_payload,
@@ -28,6 +33,8 @@ from .base import (
 
 INPUTS = OUTPUTS = [
     ADDRESS_FROM_RSA_PUBLIC_KEY,
+    SENDER_ADDRESS,
+    ConsensusAccountHandler.CONSENSUS_ADDRESS,
 ]
 
 
@@ -98,8 +105,18 @@ def test_public_key_handler_revoke():
     existing_public_key_storage.is_revoked = False
     serialized_existing_public_key_storage = existing_public_key_storage.SerializeToString()
 
+    consensus_account = ConsensusAccount()
+    consensus_account.block_cost = 0
+    serialized_consensus_account = consensus_account.SerializeToString()
+
+    sender_account = Account()
+    sender_account.balance = client_to_real_amount(TRANSACTION_FEE)
+    serialized_sender_account = sender_account.SerializeToString()
+
     mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
         ADDRESS_FROM_RSA_PUBLIC_KEY: serialized_existing_public_key_storage,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS: serialized_consensus_account,
+        SENDER_ADDRESS: serialized_sender_account,
     })
 
     expected_public_key_payload = generate_rsa_payload()
@@ -110,13 +127,27 @@ def test_public_key_handler_revoke():
     expected_public_key_storage.is_revoked = True
     serialized_expected_public_key_storage = expected_public_key_storage.SerializeToString()
 
+    expected_consensus_account = ConsensusAccount()
+    expected_consensus_account.block_cost = client_to_real_amount(TRANSACTION_FEE)
+    serialized_expected_consensus_account = expected_consensus_account.SerializeToString()
+
+    expected_sender_account = Account()
+    sender_account.balance = 0
+    serialized_expected_sender_account = expected_sender_account.SerializeToString()
+
     expected_state = {
         ADDRESS_FROM_RSA_PUBLIC_KEY: serialized_expected_public_key_storage,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS: serialized_expected_consensus_account,
+        SENDER_ADDRESS: serialized_expected_sender_account,
     }
 
     PubKeyHandler().apply(transaction=transaction_request, context=mock_context)
 
-    state_as_list = mock_context.get_state(addresses=[ADDRESS_FROM_RSA_PUBLIC_KEY])
+    state_as_list = mock_context.get_state(addresses=[
+        ADDRESS_FROM_RSA_PUBLIC_KEY,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS,
+        SENDER_ADDRESS,
+    ])
     state_as_dict = {entry.address: entry.data for entry in state_as_list}
 
     assert expected_state == state_as_dict

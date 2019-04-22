@@ -15,6 +15,7 @@
 import logging
 import json
 import warnings
+from enum import IntEnum
 
 from google.protobuf.message import DecodeError
 from google.protobuf.text_format import ParseError
@@ -23,10 +24,14 @@ from sawtooth_sdk.processor.exceptions import InternalError, InvalidTransaction
 from sawtooth_sdk.protobuf.transaction_pb2 import TransactionHeader
 
 from remme.protos.transaction_pb2 import TransactionPayload
-from remme.shared.utils import hash512, Singleton, message_to_dict
+from remme.protos.account_pb2 import Account
+from remme.protos.node_account_pb2 import NodeAccount
+from remme.protos.consensus_account_pb2 import ConsensusAccount
+from remme.shared.utils import hash512, Singleton, message_to_dict, client_to_real_amount
 from remme.shared.metrics import METRICS_SENDER
 from remme.clients.block_info import BlockInfoClient, CONFIG_ADDRESS
 from remme.protos.block_info_pb2 import BlockInfo, BlockInfoConfig
+from remme.settings import TRANSACTION_FEE
 
 from .context import CacheContextService
 
@@ -38,6 +43,7 @@ EMIT_EVENT = 'emit_event'
 PB_CLASS = 'pb_class'
 PROCESSOR = 'processor'
 VALIDATOR = 'validator'
+FEE_AUTO_CHARGER = 'fee_auto_charger'
 
 
 def is_address(address):
@@ -88,6 +94,7 @@ class BasicHandler(metaclass=Singleton):
         self._family_name = name
         self._family_versions = versions
         self._prefix = hash512(self._family_name)[:6]
+        self._fee_address = None
 
     @property
     def family_name(self):
@@ -118,6 +125,14 @@ class BasicHandler(metaclass=Singleton):
     def is_handler_address(self, address):
         return is_address(address) and address.startswith(self._prefix)
 
+    def set_fee_address(self, address):
+        """Set address for fee withdraw
+        """
+        self._fee_address = address
+
+    def get_fee_address(self):
+        return self._fee_address
+
     def apply(self, transaction, context):
         """
         Accept transaction request that passed from validator.
@@ -147,10 +162,12 @@ class BasicHandler(metaclass=Singleton):
 
         state_processor = self.get_state_processor()
         try:
-            data_pb = state_processor[transaction_payload.method][PB_CLASS]()
+            processor_data = state_processor[transaction_payload.method]
+            data_pb = processor_data[PB_CLASS]()
             data_pb.ParseFromString(transaction_payload.data)
-            processor = state_processor[transaction_payload.method][PROCESSOR]
-            validator_class = state_processor[transaction_payload.method][VALIDATOR]
+            processor = processor_data[PROCESSOR]
+            validator_class = processor_data[VALIDATOR]
+            fee_auto_charger = processor_data[FEE_AUTO_CHARGER]
         except KeyError:
             raise InvalidTransaction(f'Invalid account method value ({transaction_payload.method}) has been set.')
 
@@ -167,10 +184,15 @@ class BasicHandler(metaclass=Singleton):
         context_service = CacheContextService(context=context)
         context_service.preload_state(transaction.header.inputs)
         updated_state = processor(context_service, transaction.header.signer_public_key, data_pb)
+        if fee_auto_charger is True:
+            self.set_fee_address(self.make_address_from_data(transaction.header.signer_public_key))
+
+        if fee_auto_charger is not None:
+            updated_state = self.withdraw_fee(context_service, updated_state)
 
         context_service.set_state({k: v.SerializeToString() for k, v in updated_state.items()})
 
-        event_name = state_processor[transaction_payload.method].get(EMIT_EVENT, None)
+        event_name = processor_data.get(EMIT_EVENT, None)
 
         if event_name:
             event_attributes = get_event_attributes(updated_state, transaction.signature)
@@ -205,3 +227,66 @@ class BasicHandler(metaclass=Singleton):
         LOGGER.debug(f'Block with number successfully loaded: {block_info.block_num + 1}')
 
         return block_info
+
+    def withdraw_fee(self, context, updated_state=None, fee=TRANSACTION_FEE):
+        from remme.tp.node_account import NodeAccountHandler
+        from remme.tp.account import AccountHandler
+        from remme.tp.consensus_account import ConsensusAccountHandler
+
+        if updated_state is None:
+            updated_state = {}
+
+        sender_address = self.get_fee_address()
+        if sender_address is None:
+            raise InvalidTransaction("Cannot withdraw fee: sender address not set")
+
+        payer_account_prefix = sender_address[:6]
+
+        payer_account_pb_selector = {
+            AccountHandler()._prefix: Account,
+            NodeAccountHandler()._prefix: NodeAccount,
+        }
+
+        try:
+            payer_account_pb_class = payer_account_pb_selector[payer_account_prefix]
+        except KeyError:
+            raise InvalidTransaction('Cannot withdraw fee: invalid account type')
+
+        consensus_address = ConsensusAccountHandler.CONSENSUS_ADDRESS
+
+        if all([
+            sender_address in updated_state,
+            consensus_address in updated_state
+        ]):
+            payer_account = updated_state[sender_address]
+            consensus_account = updated_state[consensus_address]
+        elif sender_address in updated_state:
+            payer_account = updated_state[sender_address]
+            consensus_account = get_data(context, ConsensusAccount, consensus_address)
+        elif consensus_address in updated_state:
+            payer_account = get_data(context, payer_account_pb_class, sender_address)
+            consensus_account = updated_state[consensus_address]
+        else:
+            payer_account, consensus_account = get_multiple_data(context, [
+                (sender_address, payer_account_pb_class),
+                (consensus_address, ConsensusAccount),
+            ])
+
+        if consensus_account is None:
+            raise InvalidTransaction('Consensus account not found')
+
+        real_fee = client_to_real_amount(fee)
+
+        if payer_account is None or payer_account.balance < real_fee:
+            raise InvalidTransaction('Not enough balance to withdraw fee')
+
+        payer_account.balance -= real_fee
+        consensus_account.block_cost += real_fee
+
+        if sender_address not in updated_state:
+            updated_state[sender_address] = payer_account
+
+        if consensus_address not in updated_state:
+            updated_state[consensus_address] = consensus_account
+
+        return updated_state

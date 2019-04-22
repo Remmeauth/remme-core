@@ -48,6 +48,7 @@ from .basic import (
     PB_CLASS,
     PROCESSOR,
     VALIDATOR,
+    FEE_AUTO_CHARGER,
     BasicHandler,
     get_data,
     get_multiple_data
@@ -70,6 +71,7 @@ class BetHandler(BasicHandler):
                 PB_CLASS: EmptyPayload,
                 PROCESSOR: self._do_bet,
                 VALIDATOR: ProtoForm,
+                FEE_AUTO_CHARGER: None,
             },
         }
 

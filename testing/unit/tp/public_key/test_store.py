@@ -15,11 +15,11 @@ from remme.protos.pub_key_pb2 import (
     PubKeyMethod,
     NewPubKeyPayload,
 )
+from remme.settings import TRANSACTION_FEE
 from remme.protos.transaction_pb2 import TransactionPayload
 from remme.shared.utils import client_to_real_amount
 from remme.tp.consensus_account import ConsensusAccountHandler
 from remme.tp.pub_key import (
-    PUB_KEY_STORE_PRICE,
     PubKeyHandler,
 )
 from testing.conftest import create_signer
@@ -147,13 +147,13 @@ def test_public_key_handler_store(address_from_public_key, new_public_key_payloa
     expected_serialized_public_key_storage = expected_public_key_storage.SerializeToString()
 
     expected_sender_account = Account()
-    expected_sender_account.balance = client_to_real_amount(SENDER_INITIAL_BALANCE - PUB_KEY_STORE_PRICE)
+    expected_sender_account.balance = client_to_real_amount(SENDER_INITIAL_BALANCE - TRANSACTION_FEE)
     expected_sender_account.pub_keys.append(RANDOM_ALREADY_STORED_SENDER_PUBLIC_KEY)
     expected_sender_account.pub_keys.append(address_from_public_key)
     expected_serialized_sender_account = expected_sender_account.SerializeToString()
 
     expected_consensus_account = ConsensusAccount()
-    expected_consensus_account.block_cost = client_to_real_amount(0 + PUB_KEY_STORE_PRICE)
+    expected_consensus_account.block_cost = client_to_real_amount(TRANSACTION_FEE)
     expected_serialized_consensus_account = expected_consensus_account.SerializeToString()
 
     expected_state = {
@@ -172,43 +172,6 @@ def test_public_key_handler_store(address_from_public_key, new_public_key_payloa
     state_as_dict = {entry.address: entry.data for entry in state_as_list}
 
     assert expected_state == state_as_dict
-
-
-def test_public_key_handler_non_existing_sender_account():
-    """
-    Case: send transaction request, to store certificate public key, from non-existing account.
-    Expect: invalid transaction error is raised with not enough transferable balance error message.
-    """
-    new_public_key_payload = RSA_PAYLOAD
-
-    transaction_payload = TransactionPayload()
-    transaction_payload.method = PubKeyMethod.STORE
-    transaction_payload.data = new_public_key_payload.SerializeToString()
-
-    serialized_transaction_payload = transaction_payload.SerializeToString()
-
-    transaction_header = generate_header(serialized_transaction_payload, INPUTS, OUTPUTS)
-
-    serialized_header = transaction_header.SerializeToString()
-
-    transaction_request = TpProcessRequest(
-        header=transaction_header,
-        payload=serialized_transaction_payload,
-        signature=create_signer(private_key=SENDER_PRIVATE_KEY).sign(serialized_header),
-    )
-
-    consensus_account = ConsensusAccount()
-    consensus_account.block_cost = 0
-    serialized_consensus_account = consensus_account.SerializeToString()
-
-    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
-        ConsensusAccountHandler.CONSENSUS_ADDRESS: serialized_consensus_account,
-    })
-
-    with pytest.raises(InvalidTransaction) as error:
-        PubKeyHandler().apply(transaction=transaction_request, context=mock_context)
-
-    assert 'Not enough transferable balance. Sender\'s current balance: 0.' == str(error.value)
 
 
 def test_public_key_handler_store_decode_error():
@@ -416,75 +379,3 @@ def test_public_key_handler_store_public_key_exceeded_validity():
         PubKeyHandler().apply(transaction=transaction_request, context=mock_context)
 
     assert 'The public key validity exceeds the maximum value.' == str(error.value)
-
-
-def test_public_key_handler_store_economy_is_not_enabled():
-    """
-    Case: send transaction request, to store certificate public key, when economy isn't enabled.
-    Expect: public key information is stored to blockchain linked to owner address. Owner hasn't paid for storing.
-    """
-    new_public_key_payload = RSA_PAYLOAD
-
-    transaction_payload = TransactionPayload()
-    transaction_payload.method = PubKeyMethod.STORE
-    transaction_payload.data = new_public_key_payload.SerializeToString()
-
-    serialized_transaction_payload = transaction_payload.SerializeToString()
-
-    transaction_header = generate_header(serialized_transaction_payload, INPUTS, OUTPUTS)
-
-    serialized_header = transaction_header.SerializeToString()
-
-    transaction_request = TpProcessRequest(
-        header=transaction_header,
-        payload=serialized_transaction_payload,
-        signature=create_signer(private_key=SENDER_PRIVATE_KEY).sign(serialized_header),
-    )
-
-    sender_account = Account()
-    sender_account.pub_keys.append(RANDOM_ALREADY_STORED_SENDER_PUBLIC_KEY)
-    serialized_sender_account = sender_account.SerializeToString()
-
-    consensus_account = ConsensusAccount()
-    serialized_consensus_account = consensus_account.SerializeToString()
-
-    is_economy_enabled_setting = Setting()
-    is_economy_enabled_setting.entries.add(key='remme.economy_enabled', value='false')
-    serialized_is_economy_enabled_setting = is_economy_enabled_setting.SerializeToString()
-
-    mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
-        SENDER_ADDRESS: serialized_sender_account,
-        IS_NODE_ECONOMY_ENABLED_ADDRESS: serialized_is_economy_enabled_setting,
-        ConsensusAccountHandler.CONSENSUS_ADDRESS: serialized_consensus_account,
-    })
-
-    expected_public_key_storage = PubKeyStorage()
-    expected_public_key_storage.owner = SENDER_PUBLIC_KEY
-    expected_public_key_storage.payload.CopyFrom(new_public_key_payload)
-    expected_public_key_storage.is_revoked = False
-    expected_serialized_public_key_storage = expected_public_key_storage.SerializeToString()
-
-    expected_sender_account = Account()
-    expected_sender_account.pub_keys.append(RANDOM_ALREADY_STORED_SENDER_PUBLIC_KEY)
-    expected_sender_account.pub_keys.append(ADDRESS_FROM_RSA_PUBLIC_KEY)
-    expected_serialized_sender_account = expected_sender_account.SerializeToString()
-
-    expected_consensus_account = ConsensusAccount()
-    expected_serialized_consensus_account = expected_consensus_account.SerializeToString()
-
-    expected_state = {
-        SENDER_ADDRESS: expected_serialized_sender_account,
-        ADDRESS_FROM_RSA_PUBLIC_KEY: expected_serialized_public_key_storage,
-        ConsensusAccountHandler.CONSENSUS_ADDRESS: expected_serialized_consensus_account,
-    }
-
-    PubKeyHandler().apply(transaction=transaction_request, context=mock_context)
-
-    state_as_list = mock_context.get_state(addresses=[
-        SENDER_ADDRESS, ADDRESS_FROM_RSA_PUBLIC_KEY,
-        ConsensusAccountHandler.CONSENSUS_ADDRESS,
-    ])
-
-    state_as_dict = {entry.address: entry.data for entry in state_as_list}
-
-    assert expected_state == state_as_dict

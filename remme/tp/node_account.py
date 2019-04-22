@@ -51,6 +51,7 @@ from .basic import (
     PB_CLASS,
     PROCESSOR,
     VALIDATOR,
+    FEE_AUTO_CHARGER,
     BasicHandler,
     get_data,
     get_multiple_data
@@ -75,31 +76,37 @@ class NodeAccountHandler(BasicHandler):
                 PB_CLASS: NodeAccountInternalTransferPayload,
                 PROCESSOR: self._transfer_from_unfrozen_to_operational,
                 VALIDATOR: NodeAccountInternalTransferPayloadForm,
+                FEE_AUTO_CHARGER: True,
             },
             NodeAccountMethod.INITIALIZE_NODE: {
                 PB_CLASS: NodeAccountInternalTransferPayload,
                 PROCESSOR: self._initialize_node,
                 VALIDATOR: NodeAccountGenesisForm,
+                FEE_AUTO_CHARGER: None,
             },
             NodeAccountMethod.INITIALIZE_MASTERNODE: {
                 PB_CLASS: NodeAccountInternalTransferPayload,
                 PROCESSOR: self._initialize_masternode,
                 VALIDATOR: NodeAccountInternalTransferPayloadForm,
+                FEE_AUTO_CHARGER: None,
             },
             NodeAccountMethod.CLOSE_MASTERNODE: {
                 PROCESSOR: self._close_masternode,
                 PB_CLASS: EmptyPayload,
                 VALIDATOR: ProtoForm,
+                FEE_AUTO_CHARGER: True,
             },
             NodeAccountMethod.TRANSFER_FROM_FROZEN_TO_UNFROZEN: {
                 PB_CLASS: EmptyPayload,
                 PROCESSOR: self._transfer_from_frozen_to_unfrozen,
                 VALIDATOR: ProtoForm,
+                FEE_AUTO_CHARGER: True,
             },
             NodeAccountMethod.SET_BET: {
                 PB_CLASS: SetBetPayload,
                 PROCESSOR: self._set_bet,
                 VALIDATOR: SetBetPayloadForm,
+                FEE_AUTO_CHARGER: True,
             },
         }
 

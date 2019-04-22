@@ -15,6 +15,7 @@ from remme.protos.node_account_pb2 import (
 )
 from remme.protos.transaction_pb2 import TransactionPayload, EmptyPayload
 from remme.shared.utils import hash512, client_to_real_amount
+from remme.settings import TRANSACTION_FEE
 from remme.tp.bet import BetHandler
 from remme.tp.consensus_account import ConsensusAccountHandler, ConsensusAccount
 from testing.utils.client import proto_error_msg

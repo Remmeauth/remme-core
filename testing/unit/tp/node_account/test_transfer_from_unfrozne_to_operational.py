@@ -18,6 +18,7 @@ from remme.protos.node_account_pb2 import (
     NodeAccount,
 )
 from remme.protos.transaction_pb2 import TransactionPayload
+from remme.settings import TRANSACTION_FEE
 from remme.shared.utils import hash512, client_to_real_amount
 from remme.tp.node_account import NodeAccountHandler
 from testing.conftest import create_signer
@@ -89,7 +90,7 @@ def test_transfer_from_unfrozen_to_operational():
 
     node_account = state_as_dict.get(NODE_ACCOUNT_ADDRESS_FROM, NodeAccount())
 
-    assert node_account.balance == client_to_real_amount(operational + tokens_to_transfer)
+    assert node_account.balance == client_to_real_amount(operational + tokens_to_transfer - TRANSACTION_FEE)
     assert node_account.reputation.unfrozen == client_to_real_amount(unfrozen - tokens_to_transfer)
 
 

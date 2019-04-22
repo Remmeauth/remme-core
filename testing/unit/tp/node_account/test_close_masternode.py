@@ -17,6 +17,7 @@ from remme.protos.node_account_pb2 import (
     NodeAccount,
 )
 from remme.protos.transaction_pb2 import TransactionPayload, EmptyPayload
+from remme.settings import TRANSACTION_FEE
 from remme.shared.utils import hash512, client_to_real_amount
 from remme.tp.node_account import NodeAccountHandler
 from testing.conftest import create_signer
@@ -86,7 +87,7 @@ def test_close_masternode():
 
     node_account = state_as_dict.get(NODE_ACCOUNT_ADDRESS_FROM, NodeAccount())
 
-    assert node_account.balance == client_to_real_amount(OPERATIONAL_BALANCE + FROZEN_BALANCE + UNFROZEN_BALANCE)
+    assert node_account.balance == client_to_real_amount(OPERATIONAL_BALANCE + FROZEN_BALANCE + UNFROZEN_BALANCE - TRANSACTION_FEE)
     assert node_account.reputation.frozen == 0
     assert node_account.reputation.unfrozen == 0
     assert node_account.node_state == NodeAccount.CLOSED
