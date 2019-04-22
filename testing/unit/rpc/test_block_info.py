@@ -285,6 +285,23 @@ async def test_list_blocks_with_invalid_ids(request_, invalid_ids):
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize('non_existing_ids', [['a'*128]])
+async def test_list_blocks_with_non_existing_ids(request_, non_existing_ids):
+    """
+    Case: list blocks with non existing ids.
+    Expect: list of blocks not found error message.
+    """
+    request_.params = {
+        'ids': non_existing_ids,
+    }
+
+    with pytest.raises(KeyNotFound) as error:
+        await list_blocks(request_)
+
+    assert 'List of blocks not found.' == error.value.message
+
+
+@pytest.mark.asyncio
 async def test_list_blocks_with_start(mocker, request_):
     """
     Case: get list blocks by start.
@@ -387,6 +404,23 @@ async def test_list_blocks_with_invalid_start(request_, invalid_start):
         await list_blocks(request_)
 
     assert 'Header signature is not of a blockchain token type.' == error.value.message
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('non_existing_start', ['a'*128])
+async def test_list_blocks_with_non_existing_start(request_, non_existing_start):
+    """
+    Case: list blocks with non existing start.
+    Expect: list of blocks not found error message.
+    """
+    request_.params = {
+        'start': non_existing_start,
+    }
+
+    with pytest.raises(KeyNotFound) as error:
+        await list_blocks(request_)
+
+    assert 'List of blocks not found.' == error.value.message
 
 
 @pytest.mark.asyncio
@@ -594,6 +628,23 @@ async def test_list_blocks_with_invalid_head(request_, invalid_head):
         await list_blocks(request_)
 
     assert 'Given block id is not a valid.' == error.value.message
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('non_existing_head', ['a'*128])
+async def test_list_blocks_with_non_existing_head(request_, non_existing_head):
+    """
+    Case: list blocks with non existing head.
+    Expect: list of blocks not found error message.
+    """
+    request_.params = {
+        'head': non_existing_head,
+    }
+
+    with pytest.raises(KeyNotFound) as error:
+        await list_blocks(request_)
+
+    assert 'List of blocks not found.' == error.value.message
 
 
 @pytest.mark.asyncio
