@@ -220,11 +220,23 @@ class ConsensusAccountHandler(BasicHandler):
 
     @staticmethod
     def withdraw_fee(context, address, fee):
-        if not address.startswith(AccountHandler()._prefix):
+        from remme.tp.node_account import NodeAccountHandler
+
+        payer_account_prefix = address[:6]
+
+        if payer_account_prefix != AccountHandler()._prefix \
+            and payer_account_prefix != NodeAccountHandler()._prefix:
             raise InvalidTransaction('Cannot withdraw fee: invalid account type')
 
+        payer_account_pb_selector = {
+            AccountHandler()._prefix: Account,
+            NodeAccountHandler()._prefix: NodeAccount,
+        }
+
+        payer_account_pb_class = payer_account_pb_selector[payer_account_prefix]
+
         payer_account, consensus_account = get_multiple_data(context, [
-            (address, Account),
+            (address, payer_account_pb_class),
             (ConsensusAccountHandler.CONSENSUS_ADDRESS, ConsensusAccount),
         ])
 

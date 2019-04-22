@@ -31,7 +31,7 @@ from remme.tp.node_account import NodeAccountHandler
 from remme.settings import GENESIS_ADDRESS
 from remme.shared.forms import TransferPayloadForm, GenesisPayloadForm
 from remme.shared.constants import Events, EMIT_EVENT
-from remme.shared.utils import client_to_real_amount
+from remme.shared.utils import client_to_real_amount, real_to_client_amount
 
 from .basic import (
     PB_CLASS, PROCESSOR, VALIDATOR, BasicHandler, get_data, get_multiple_data
@@ -41,6 +41,8 @@ LOGGER = logging.getLogger(__name__)
 
 FAMILY_NAME = 'account'
 FAMILY_VERSIONS = ['0.1']
+
+TRANSFER_FEE = 100000
 
 
 class AccountHandler(BasicHandler):
@@ -117,7 +119,7 @@ class AccountHandler(BasicHandler):
                                sender_key='balance', receiver_key='balance'):
         from .consensus_account import ConsensusAccountHandler
 
-        amount = client_to_real_amount(transfer_payload.value)
+        amount = transfer_payload.value
 
         if not amount:
             raise InvalidTransaction('Could not transfer with zero amount.')
@@ -152,6 +154,10 @@ class AccountHandler(BasicHandler):
                 raise InvalidTransaction('Node account could not be created in transfer.')
             receiver_account = receiver_account_pb_class()
 
+        fee_state = ConsensusAccountHandler.withdraw_fee(context, address_from, TRANSFER_FEE)
+        sender_account = fee_state[address_from]
+        consensus_account = fee_state[ConsensusAccountHandler.CONSENSUS_ADDRESS]
+
         sender_balance = getattr(sender_account, sender_key, 0)
         receiver_balance = getattr(receiver_account, receiver_key, 0)
 
@@ -173,4 +179,5 @@ class AccountHandler(BasicHandler):
         return {
             address_from: sender_account,
             transfer_payload.address_to: receiver_account,
+            ConsensusAccountHandler.CONSENSUS_ADDRESS: consensus_account,
         }

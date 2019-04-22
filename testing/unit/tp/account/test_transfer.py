@@ -21,8 +21,10 @@ from remme.protos.node_account_pb2 import (
     NodeAccount,
 )
 from remme.protos.transaction_pb2 import TransactionPayload
-from remme.shared.utils import hash512, client_to_real_amount
-from remme.tp.account import AccountHandler
+from remme.protos.consensus_account_pb2 import ConsensusAccount
+from remme.shared.utils import hash512
+from remme.tp.account import AccountHandler, TRANSFER_FEE
+from remme.tp.consensus_account import ConsensusAccountHandler
 from testing.conftest import create_signer
 from testing.mocks.stub import StubContext
 from testing.utils.client import proto_error_msg
@@ -31,10 +33,10 @@ RANDOM_NODE_PUBLIC_KEY = '039d6881f0a71d05659e1f40b443684b93c7b7c504ea23ea8949ef
 
 ADDRESS_NOT_ACCOUNT_TYPE = '000000' + 'cfe1b3dc02df0003ac396037f85b98cf9f99b0beae000dc5e9e8b6dab4'
 
-TOKENS_AMOUNT_TO_SEND = 1000
+TOKENS_AMOUNT_TO_SEND = 10000000
 
-ACCOUNT_FROM_BALANCE = NODE_ACCOUNT_FROM_BALANCE = 10000
-ACCOUNT_TO_BALANCE = NODE_ACCOUNT_TO_BALANCE = 1000
+ACCOUNT_FROM_BALANCE = NODE_ACCOUNT_FROM_BALANCE = 100000000
+ACCOUNT_TO_BALANCE = NODE_ACCOUNT_TO_BALANCE = 10000000
 
 ACCOUNT_ADDRESS_FROM = '112007d71fa7e120c60fb392a64fd69de891a60c667d9ea9e5d9d9d617263be6c20202'
 ACCOUNT_ADDRESS_TO = '1120071db7c02f5731d06df194dc95465e9b277c19e905ce642664a9a0d504a3909e31'
@@ -45,6 +47,7 @@ ACCOUNT_FROM_PUBLIC_KEY = '039d6881f0a71d05659e1f40b443684b93c7b7c504ea23ea8949e
 INPUTS = OUTPUTS = [
     ACCOUNT_ADDRESS_FROM,
     ACCOUNT_ADDRESS_TO,
+    ConsensusAccountHandler.CONSENSUS_ADDRESS,
 ]
 
 TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS = {
@@ -65,15 +68,16 @@ def create_context(account_from_balance, account_to_balance):
     """
     account_protobuf = Account()
 
-    account_protobuf.balance = client_to_real_amount(account_from_balance)
+    account_protobuf.balance = account_from_balance
     serialized_account_from_balance = account_protobuf.SerializeToString()
 
-    account_protobuf.balance = client_to_real_amount(account_to_balance)
+    account_protobuf.balance = account_to_balance
     serialized_account_to_balance = account_protobuf.SerializeToString()
 
     initial_state = {
         ACCOUNT_ADDRESS_FROM: serialized_account_from_balance,
         ACCOUNT_ADDRESS_TO: serialized_account_to_balance,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS: ConsensusAccount().SerializeToString(),
     }
 
     return StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state=initial_state)
@@ -133,8 +137,8 @@ def test_account_handler_apply():
     Case: send transaction request, to send tokens to address, to the account handler.
     Expect: addresses data, stored in state, are changed according to transfer amount.
     """
-    expected_account_from_balance = client_to_real_amount(ACCOUNT_FROM_BALANCE - TOKENS_AMOUNT_TO_SEND)
-    expected_account_to_balance = client_to_real_amount(ACCOUNT_TO_BALANCE + TOKENS_AMOUNT_TO_SEND)
+    expected_account_from_balance = ACCOUNT_FROM_BALANCE - TOKENS_AMOUNT_TO_SEND - TRANSFER_FEE
+    expected_account_to_balance = ACCOUNT_TO_BALANCE + TOKENS_AMOUNT_TO_SEND
 
     account_protobuf = Account()
 
@@ -144,9 +148,14 @@ def test_account_handler_apply():
     account_protobuf.balance = expected_account_to_balance
     expected_serialized_account_to_balance = account_protobuf.SerializeToString()
 
+    consensus_account = ConsensusAccount()
+    consensus_account.block_cost = TRANSFER_FEE
+    expected_serialized_consensus_account = consensus_account.SerializeToString()
+
     expected_state = {
         ACCOUNT_ADDRESS_FROM: expected_serialized_account_from_balance,
         ACCOUNT_ADDRESS_TO: expected_serialized_account_to_balance,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS: expected_serialized_consensus_account,
     }
 
     transfer_payload = TransferPayload()
@@ -183,7 +192,11 @@ def test_account_handler_apply():
 
     AccountHandler().apply(transaction=transaction_request, context=mock_context)
 
-    state_as_list = mock_context.get_state(addresses=[ACCOUNT_ADDRESS_TO, ACCOUNT_ADDRESS_FROM])
+    state_as_list = mock_context.get_state(addresses=[
+        ACCOUNT_ADDRESS_TO,
+        ACCOUNT_ADDRESS_FROM,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS,
+    ])
     state_as_dict = {entry.address: entry.data for entry in state_as_list}
 
     assert expected_state == state_as_dict
@@ -272,8 +285,18 @@ def test_account_transfer_from_address():
     Case: transfer tokens from address to address.
     Expect: account's balances, stored in state, are changed according to transfer amount.
     """
-    expected_account_from_balance = client_to_real_amount(ACCOUNT_FROM_BALANCE - TOKENS_AMOUNT_TO_SEND)
-    expected_account_to_balance = client_to_real_amount(ACCOUNT_TO_BALANCE + TOKENS_AMOUNT_TO_SEND)
+    expected_account_from_balance = ACCOUNT_FROM_BALANCE - TOKENS_AMOUNT_TO_SEND - TRANSFER_FEE
+    expected_account_to_balance = ACCOUNT_TO_BALANCE + TOKENS_AMOUNT_TO_SEND
+
+    expected_account_from_serialized = Account(balance=expected_account_from_balance).SerializeToString()
+    expected_account_to_serialized = Account(balance=expected_account_to_balance).SerializeToString()
+    expected_serialized_consensus_account = ConsensusAccount(block_cost=TRANSFER_FEE).SerializeToString()
+
+    expected_state = {
+        ACCOUNT_ADDRESS_FROM: expected_account_from_serialized,
+        ACCOUNT_ADDRESS_TO: expected_account_to_serialized,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS: expected_serialized_consensus_account,
+    }
 
     transfer_payload = TransferPayload()
     transfer_payload.address_to = ACCOUNT_ADDRESS_TO
@@ -310,17 +333,13 @@ def test_account_transfer_from_address():
     AccountHandler().apply(transaction=transaction_request, context=mock_context)
 
     state_as_list = mock_context.get_state(addresses=[
-        ACCOUNT_ADDRESS_FROM, ACCOUNT_ADDRESS_TO,
+        ACCOUNT_ADDRESS_FROM,
+        ACCOUNT_ADDRESS_TO,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS,
     ])
+    state_as_dict = {entry.address: entry.data for entry in state_as_list}
 
-    state_as_dict = {}
-    for entry in state_as_list:
-        acc = Account()
-        acc.ParseFromString(entry.data)
-        state_as_dict[entry.address] = acc
-
-    assert state_as_dict.get(ACCOUNT_ADDRESS_FROM, Account()).balance == expected_account_from_balance
-    assert state_as_dict.get(ACCOUNT_ADDRESS_TO, Account()).balance == expected_account_to_balance
+    assert expected_state == state_as_dict
 
 
 def test_account_transfer_from_address_zero_amount():
@@ -502,7 +521,7 @@ def test_account_transfer_from_address_without_tokens():
     with pytest.raises(InvalidTransaction) as error:
         AccountHandler().apply(transaction=transaction_request, context=mock_context)
 
-    assert 'Not enough transferable balance. Sender\'s current balance: 0.' == str(error.value)
+    assert 'Not enough balance to withdraw fee' == str(error.value)
 
 
 def test_account_transfer_from_address_without_previous_usage():
@@ -550,7 +569,7 @@ def test_account_transfer_from_address_without_previous_usage():
     with pytest.raises(InvalidTransaction) as error:
         AccountHandler().apply(transaction=transaction_request, context=mock_context)
 
-    assert f'Not enough transferable balance. Sender\'s current balance: 0.' == str(error.value)
+    assert 'Not enough balance to withdraw fee' == str(error.value)
 
 
 def test_node_account_transfer():
@@ -566,20 +585,26 @@ def test_node_account_transfer():
 
     inputs = outputs = [
         node_account_from_address_,
-        node_account_to_address
+        node_account_to_address,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS,
     ]
 
     node_account_from = NodeAccount()
-    node_account_from.balance = client_to_real_amount(NODE_ACCOUNT_FROM_BALANCE - TOKENS_AMOUNT_TO_SEND)
+    node_account_from.balance = NODE_ACCOUNT_FROM_BALANCE - TOKENS_AMOUNT_TO_SEND - TRANSFER_FEE
     expected_serialized_node_account_from_balance = node_account_from.SerializeToString()
 
     node_account_to = NodeAccount()
-    node_account_to.balance = client_to_real_amount(NODE_ACCOUNT_TO_BALANCE + TOKENS_AMOUNT_TO_SEND)
+    node_account_to.balance = NODE_ACCOUNT_TO_BALANCE + TOKENS_AMOUNT_TO_SEND
     expected_serialized_node_account_to_balance = node_account_to.SerializeToString()
+
+    consensus_account = ConsensusAccount()
+    consensus_account.block_cost = TRANSFER_FEE
+    expected_serialized_consensus_account = consensus_account.SerializeToString()
 
     expected_state = {
         node_account_from_address_: expected_serialized_node_account_from_balance,
         node_account_to_address: expected_serialized_node_account_to_balance,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS: expected_serialized_consensus_account,
     }
 
     transfer_payload = TransferPayload()
@@ -614,23 +639,33 @@ def test_node_account_transfer():
     )
 
     node_account_from = NodeAccount()
-    node_account_from.balance = client_to_real_amount(NODE_ACCOUNT_FROM_BALANCE)
+    node_account_from.balance = NODE_ACCOUNT_FROM_BALANCE
     serialized_node_account_from_balance = node_account_from.SerializeToString()
 
     node_account_to = NodeAccount()
-    node_account_to.balance = client_to_real_amount(NODE_ACCOUNT_TO_BALANCE)
+    node_account_to.balance = NODE_ACCOUNT_TO_BALANCE
     serialized_node_account_to_balance = node_account_to.SerializeToString()
+
+
+    consensus_account = ConsensusAccount()
+    consensus_account.block_cost = TRANSFER_FEE
+    expected_serialized_consensus_account = consensus_account.SerializeToString()
 
     initial_state = {
         node_account_from_address_: serialized_node_account_from_balance,
         node_account_to_address: serialized_node_account_to_balance,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS: ConsensusAccount().SerializeToString(),
     }
 
     mock_context = StubContext(inputs=inputs, outputs=outputs, initial_state=initial_state)
 
     AccountHandler().apply(transaction=transaction_request, context=mock_context)
 
-    state_as_list = mock_context.get_state(addresses=[node_account_from_address_, node_account_to_address])
+    state_as_list = mock_context.get_state(addresses=[
+        node_account_from_address_,
+        node_account_to_address,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS,
+    ])
     state_as_dict = {entry.address: entry.data for entry in state_as_list}
 
     assert expected_state == state_as_dict
