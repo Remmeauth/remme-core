@@ -284,6 +284,7 @@ async def test_list_batches_with_invalid_reverse(request_, invalid_reverse):
 
     assert 'Incorrect identifier.' == error.value.message
 
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize('non_existing_start', ['a'*128])
 async def test_list_batches_with_non_existing_start(request_, non_existing_start):
@@ -300,6 +301,7 @@ async def test_list_batches_with_non_existing_start(request_, non_existing_start
 
     assert 'List of batches not found.' == error.value.message
 
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize('non_existing_ids', [['a'*128]])
 async def test_list_batches_with_non_existing_ids(request_, non_existing_ids):
@@ -315,6 +317,7 @@ async def test_list_batches_with_non_existing_ids(request_, non_existing_ids):
         await list_batches(request_)
 
     assert 'List of batches not found.' == error.value.message
+
 
 @pytest.mark.asyncio
 async def test_list_batches_with_valid_params(mocker, request_,):
