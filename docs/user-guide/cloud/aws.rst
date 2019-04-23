@@ -201,7 +201,7 @@ After, copy and paste the following commands to the terminal which will install 
    $ sudo apt-get install apt-transport-https ca-certificates curl software-properties-common make -y && \
          sudo sh -c "echo 'LC_ALL=en_US.UTF-8\nLANG=en_US.UTF-8' >> /etc/environment" && \
          echo "REMME_CORE_RELEASE=$REMME_CORE_RELEASE" >> ~/.bashrc && \
-         echo "NODE_IP_ADDRESS=NODE_IP_ADDRESS" >> ~/.bashrc && \
+         echo "NODE_IP_ADDRESS=$NODE_IP_ADDRESS" >> ~/.bashrc && \
          cd /home/ && curl -L https://github.com/Remmeauth/remme-core/archive/v$REMME_CORE_RELEASE.tar.gz | sudo tar zx && \
          cd remme-core-$REMME_CORE_RELEASE && \
          sudo -i sed -i "s@80@3333@" /home/remme-core-$REMME_CORE_RELEASE/docker/compose/admin.yml && \
