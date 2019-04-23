@@ -26,6 +26,9 @@ from remme.tp.node_account import NodeAccountHandler
 from testing.conftest import create_signer
 from testing.mocks.stub import StubContext
 from testing.utils.client import proto_error_msg
+from .shared import (
+    MAX_UINT64
+)
 
 RANDOM_NODE_PUBLIC_KEY = '039d6881f0a71d05659e1f40b443684b93c7b7c504ea23ea8949ef5216a2236940'
 
@@ -178,6 +181,48 @@ def test_transfer_from_frozen_to_unfrozen():
     assert node_account_reputation.frozen == FROZEN - transfer_value
     assert node_account_reputation.unfrozen == UNFROZEN + transfer_value
 
+def test_transfer_from_frozen_to_unfrozen_integer_overflow():
+    """
+    Case: transfer from frozen to unfrozen such that it will cause integer overflow.
+    Expect: integer overflow exception is raised.
+    """
+    transfer_value = 1
+
+    internal_transfer_payload = NodeAccountInternalTransferPayload()
+    internal_transfer_payload.value = transfer_value
+
+    transaction_payload = TransactionPayload()
+    transaction_payload.method = NodeAccountMethod.TRANSFER_FROM_FROZEN_TO_UNFROZEN
+    transaction_payload.data = internal_transfer_payload.SerializeToString()
+
+    serialized_transaction_payload = transaction_payload.SerializeToString()
+
+    transaction_header = TransactionHeader(
+        signer_public_key=RANDOM_NODE_PUBLIC_KEY,
+        family_name=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_name'),
+        family_version=TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS.get('family_version'),
+        inputs=INPUTS,
+        outputs=OUTPUTS,
+        dependencies=[],
+        payload_sha512=hash512(data=serialized_transaction_payload),
+        batcher_public_key=RANDOM_NODE_PUBLIC_KEY,
+        nonce=time.time().hex().encode(),
+    )
+
+    serialized_header = transaction_header.SerializeToString()
+
+    transaction_request = TpProcessRequest(
+        header=transaction_header,
+        payload=serialized_transaction_payload,
+        signature=create_signer(private_key=NODE_ACCOUNT_FROM_PRIVATE_KEY).sign(serialized_header),
+    )
+
+    mock_context = create_context(account_from_frozen_balance=MINIMUM_STAKE+1, account_to_unfrozen_balance=MAX_UINT64)
+
+    with pytest.raises(ValueError) as error:
+        NodeAccountHandler().apply(transaction=transaction_request, context=mock_context)
+
+    assert str(error.value).startswith('Value out of range')
 
 def test_transfer_from_frozen_to_unfrozen_low_frozen_balance():
     """
