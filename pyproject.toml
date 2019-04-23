@@ -13,7 +13,7 @@ documentation = "https://docs.remme.io/"
 python = "^3.6"
 
 colorlog = "4.0.2"
-sawtooth-sdk = "1.1.3"
+sawtooth-sdk = "1.1.5"
 sawtooth-signing = "1.1.3"
 cryptography = "2.5"
 protobuf = "3.6.1"
