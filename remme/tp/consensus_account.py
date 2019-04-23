@@ -140,17 +140,17 @@ class ConsensusAccountHandler(BasicHandler):
         if UNFREEZE_BONUS <= reputational < min_stake * UNFREEZE_BONUS:
             unfrozen_share = self._calculate_share(max_share, min_share,
                                                    min_stake, reputational)
-            unfrozen_reward = client_to_real_amount(unfrozen_share * node_reward, 0)
-            frozen_reward = node_reward - unfrozen_reward
+            unfrozen_reward = client_to_real_amount(unfrozen_share * reward, 0)
+            frozen_reward = reward - unfrozen_reward
             node_account.reputation.unfrozen += unfrozen_reward
             node_account.reputation.frozen += frozen_reward
 
-            frozen_share = 1 - unfrozen_share
+            frozen_share = max_share - unfrozen_share
 
             si = ShareInfo(
                 block_num=block.block_num,
                 frozen_share=client_to_real_amount(frozen_share),
-                reward=node_reward,
+                reward=reward,
                 block_timestamp=block.timestamp,
             )
             node_account.shares.extend([si])
@@ -171,7 +171,7 @@ class ConsensusAccountHandler(BasicHandler):
             si = ShareInfo(
                 block_num=block.block_num,
                 frozen_share=client_to_real_amount(max_share),
-                reward=node_reward,
+                reward=reward,
                 block_timestamp=block.timestamp,
             )
             node_account.shares.extend([si])

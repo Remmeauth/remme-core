@@ -14,7 +14,6 @@
 # ------------------------------------------------------------------------
 import json
 import logging
-from decimal import Decimal
 
 from remme.clients.node_account import NodeAccountClient
 from remme.protos.node_account_pb2 import NodeAccount
@@ -27,6 +26,13 @@ __all__ = (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _filter_shares(shares):
+    for share in shares:
+        share['reward'] = str(real_to_client_amount(share['reward']))
+        share['frozen_share'] = str(real_to_client_amount(share['frozen_share']))
+        yield share
 
 
 @validate_params(get_address_form('node_account_address'))
@@ -43,14 +49,16 @@ async def get_node_account(request):
     account = await client.get_account(node_address)
 
     data = message_to_dict(account)
-    data['balance'] = str(real_to_client_amount(Decimal(data['balance'])))
+    data['balance'] = str(real_to_client_amount(data['balance']))
     if 'reputation' in data:
-        data['reputation']['frozen'] = str(real_to_client_amount(Decimal(data['reputation']['frozen'])))
-        data['reputation']['unfrozen'] = str(real_to_client_amount(Decimal(data['reputation']['unfrozen'])))
+        data['reputation']['frozen'] = str(real_to_client_amount(data['reputation']['frozen']))
+        data['reputation']['unfrozen'] = str(real_to_client_amount(data['reputation']['unfrozen']))
     else:
         data['reputation'] = dict()
-        data['reputation']['frozen'] = str(real_to_client_amount(Decimal(0)))
-        data['reputation']['unfrozen'] = str(real_to_client_amount(Decimal(0)))
+        data['reputation']['frozen'] = str(real_to_client_amount(0))
+        data['reputation']['unfrozen'] = str(real_to_client_amount(0))
     if 'fixed_amount' in data:
         data['fixed_amount'] = str(real_to_client_amount(Decimal(data['fixed_amount'])))
+    if 'shares':
+        data['shares'] = list(_filter_shares(data['shares']))
     return data

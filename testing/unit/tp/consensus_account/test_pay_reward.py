@@ -99,7 +99,7 @@ def test_send_reward_less_condition():
     assert share.frozen_share == client_to_real_amount(0.9)
     assert share.block_timestamp == CURRENT_TIMESTAMP
     assert share.block_num == 1000
-    assert share.reward == client_to_real_amount(NODE_REW)
+    assert share.reward == client_to_real_amount(REW)
     assert share.defrost_months == 0
 
 
@@ -148,8 +148,8 @@ def test_send_reward_upper_condition():
     NODE_REW = 0.9 * REW
     REMME_REW = REW - NODE_REW
 
-    UNODE_REW = 0.46 * NODE_REW
-    FNODE_REW = NODE_REW - UNODE_REW
+    UNODE_REW = 0.46 * REW
+    FNODE_REW = REW - UNODE_REW
 
     mock_context = create_context(node_state=NodeAccount.OPENED,
                                   block_cost=BLOCK_COST,
@@ -185,10 +185,10 @@ def test_send_reward_upper_condition():
     assert NODE_ACCOUNT_SIGNER_ADDRESS not in consensus_acc.bets
 
     share = node_acc.shares[0]
-    assert share.frozen_share == client_to_real_amount(1 - 0.46)
+    assert share.frozen_share == client_to_real_amount(0.9 - 0.46)
     assert share.block_timestamp == CURRENT_TIMESTAMP
     assert share.block_num == 1000
-    assert share.reward == client_to_real_amount(NODE_REW)
+    assert share.reward == client_to_real_amount(REW)
     assert share.defrost_months == 0
 
 
