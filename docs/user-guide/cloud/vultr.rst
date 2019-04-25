@@ -148,7 +148,7 @@ specified in the command below. But you can change the value of ``REMME_CORE_REL
 
 .. code-block:: console
 
-   $ export REMME_CORE_RELEASE=0.8.1-alpha
+   $ export REMME_CORE_RELEASE=0.9.0-alpha
 
 After, copy and paste the following commands to the terminal which will install and start your node.
 
@@ -173,8 +173,10 @@ After, copy and paste the following commands to the terminal which will install 
          sudo chmod +x /usr/local/bin/docker-compose && \
          curl https://gist.githubusercontent.com/dmytrostriletskyi/9f525241acfc46799c65d5f010c43b5f/raw/3147860240613e7e2eab5e288d48a975934a260a/up-node-after-server-restart.sh > ~/up-node-after-server-restart.sh && \
          chmod +x ~/up-node-after-server-restart.sh && \
+         curl https://gist.githubusercontent.com/dmytrostriletskyi/ddb0d8fc16512523f4942a2d60b57c63/raw/63de05cc7f68801bb6887fc07463422810276a10/upgrade-node.sh > ~/upgrade-node.sh && \
+         chmod +x ~/upgrade-node.sh && \
          echo "@reboot $USER ~/./up-node-after-server-restart.sh $REMME_CORE_RELEASE" | sudo tee -a /etc/crontab > /dev/null && \
-         curl https://gist.githubusercontent.com/dmytrostriletskyi/48f2877d77570facffdea395521e8bd8/raw/9334bfb5cc18b4e143311fead9bd2447a0ae6d24/seeds-list.txt | sudo tee config/seeds-list.txt > /dev/null && \
+         curl https://gist.githubusercontent.com/dmytrostriletskyi/8c07b752f8efd52d6f69feddd62e3af9/raw/438a72324fe8bfcaf9f56a4023eeaa1fa18ddb9a/seeds-list.txt | sudo tee config/seeds-list.txt > /dev/null && \
          sudo systemctl restart nginx && \
          sudo make run_bg_user
 
