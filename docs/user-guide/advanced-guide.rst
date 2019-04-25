@@ -10,4 +10,4 @@ Advanced guide
 .. include:: /user-guide/advanced-guide/node-ssl-cert.rst
 .. include:: /user-guide/advanced-guide/backup-ssh-keys.rst
 .. include:: /user-guide/advanced-guide/snapshots.rst
-.. include:: /user-guide/advanced-guide/node-private-key.rst
+.. include:: /user-guide/advanced-guide/node-keys.rst
