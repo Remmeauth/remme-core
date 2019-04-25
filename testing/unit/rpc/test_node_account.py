@@ -59,8 +59,8 @@ async def test_get_node_account(mocker, request_):
         'shares': [{
             'block_num': '1',
             'block_timestamp': str(now),
-            'frozen_share': '2000',
-            'reward': '10000',
+            'frozen_share': '0.2000',
+            'reward': '1.0000',
             'defrost_months': 11,
         }]
     }
