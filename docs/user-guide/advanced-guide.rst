@@ -4,6 +4,7 @@ Advanced guide
 
 .. include:: /user-guide/advanced-guide/types-of-node-running.rst
 .. include:: /user-guide/advanced-guide/admin-panel.rst
+.. include:: /user-guide/advanced-guide/upgrade-node.rst
 .. include:: /user-guide/advanced-guide/new-os-user.rst
 .. include:: /user-guide/advanced-guide/2fa-auth.rst
 .. include:: /user-guide/advanced-guide/domain-name.rst
