@@ -81,12 +81,15 @@ class BetHandler(BasicHandler):
         genesis_owners = genesis_owners.split(',') \
             if genesis_owners is not None else []
 
+        signer_node_address = NodeAccountHandler().make_address_from_data(public_key)
+
         # NOTE: Dirty hack for test
         if public_key in genesis_owners:
-            LOGGER.info("Genesis node, skipping bet")
+            LOGGER.info(f"Genesis node, skipping bet. Details: public key "
+                        f"of signer - {public_key}; address - {signer_node_address}; "
+                        f"current genesis owners - {genesis_owners}")
             return {}
 
-        signer_node_address = NodeAccountHandler().make_address_from_data(public_key)
         node_account, consensus_account = get_multiple_data(context, [
             (signer_node_address, NodeAccount),
             (ConsensusAccountHandler.CONSENSUS_ADDRESS, ConsensusAccount),
