@@ -123,7 +123,6 @@ class ConsensusAccountHandler(BasicHandler):
             obligatory_payments = consensus_account.obligatory_payments
             block_cost = consensus_account.block_cost
 
-
         min_stake, max_share, min_share = self._get_share_data(context)
 
         reputational = real_to_client_amount(node_account.reputation.unfrozen + node_account.reputation.frozen)
@@ -147,13 +146,15 @@ class ConsensusAccountHandler(BasicHandler):
 
             frozen_share = max_share - unfrozen_share
 
-            si = ShareInfo(
-                block_num=block.block_num,
-                frozen_share=client_to_real_amount(frozen_share),
-                reward=reward,
-                block_timestamp=block.timestamp,
-            )
-            node_account.shares.extend([si])
+            if node_reward:
+                si = ShareInfo(
+                    block_num=block.block_num,
+                    frozen_share=client_to_real_amount(frozen_share),
+                    reward=reward,
+                    block_timestamp=block.timestamp,
+                )
+                node_account.shares.extend([si])
+
             LOGGER.info(f"Payng rewards. Unfrozen: {unfrozen_reward}; frozen: {frozen_reward}; "
                         f"signer: {signer_node_address}; reward: {reward}; "
                         f"unfrozen share: {unfrozen_share}; frozen share: {frozen_share}")
@@ -168,13 +169,15 @@ class ConsensusAccountHandler(BasicHandler):
         else:
             node_account.reputation.frozen += node_reward
 
-            si = ShareInfo(
-                block_num=block.block_num,
-                frozen_share=client_to_real_amount(max_share),
-                reward=reward,
-                block_timestamp=block.timestamp,
-            )
-            node_account.shares.extend([si])
+            if node_reward:
+                si = ShareInfo(
+                    block_num=block.block_num,
+                    frozen_share=client_to_real_amount(max_share),
+                    reward=reward,
+                    block_timestamp=block.timestamp,
+                )
+                node_account.shares.extend([si])
+
             LOGGER.info(f"Payng rewards. Frozen: {node_reward}; "
                         f"signer: {signer_node_address}; reward: {reward}; "
                         f"frozen share: {max_share}")
