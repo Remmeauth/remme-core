@@ -81,6 +81,14 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
     echo "Writing batch for consensus account genesis..."
     GENESIS_BATCHES="$GENESIS_BATCHES /genesis/batch/consensus-proposal.batch"
 
+    echo "Writing sawtooth gossip lifetime..."
+    sawset proposal create \
+        -k /etc/sawtooth/keys/validator.priv \
+        "sawtooth.gossip.time_to_live=6" \
+        -o gossip.batch
+
+    GENESIS_BATCHES="$GENESIS_BATCHES gossip.batch"
+
     echo "Writing batch injector settings..."
     sawset proposal create \
         -k /etc/sawtooth/keys/validator.priv \
