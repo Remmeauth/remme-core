@@ -84,7 +84,7 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
     echo "Writing sawtooth gossip lifetime..."
     sawset proposal create \
         -k /etc/sawtooth/keys/validator.priv \
-        "sawtooth.gossip.time_to_live=6" \
+        "sawtooth.gossip.time_to_live=128" \
         -o gossip.batch
 
     GENESIS_BATCHES="$GENESIS_BATCHES gossip.batch"
