@@ -3,4 +3,4 @@
 
 peering = "dynamic"
 minimum_peer_connectivity = 1
-scheduler = "parallel"
+scheduler = "serial"
