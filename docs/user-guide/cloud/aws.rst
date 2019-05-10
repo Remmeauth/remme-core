@@ -192,7 +192,7 @@ specified in the command below. But you can change the value of ``REMME_CORE_REL
 
 .. code-block:: console
 
-   $ export REMME_CORE_RELEASE=0.9.1-alpha
+   $ export REMME_CORE_RELEASE=0.10.0-alpha
 
 After, copy and paste the following commands to the terminal which will install and start your node.
 
