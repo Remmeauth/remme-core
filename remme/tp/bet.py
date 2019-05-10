@@ -122,6 +122,10 @@ class BetHandler(BasicHandler):
                            f'fixed_amount={node_account.fixed_amount}; '
                            f'max={node_account.max};')
 
+        if bet > node_account.balance:
+            raise InvalidTransaction(
+                f'Not enough balance on node account "{signer_node_address}"')
+
         consensus_account.bets[signer_node_address] = bet
         node_account.balance -= bet
 
