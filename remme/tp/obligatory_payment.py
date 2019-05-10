@@ -48,7 +48,7 @@ from .basic import (
     get_data,
     get_multiple_data
 )
-from remme.shared.utils import hash512, client_to_real_amount
+from remme.shared.utils import hash512, client_to_real_amount, real_to_client_amount
 from remme.settings.helper import _get_setting_value
 LOGGER = logging.getLogger(__name__)
 
@@ -124,8 +124,10 @@ class ObligatoryPaymentHandler(BasicHandler):
             withdraw_obligatory_payment(committee_node_account, obligatory_payment)
             address_to_node_account_dict[address] = committee_node_account
 
-        node_account.reputation.unfrozen += client_to_real_amount((committee_size - 1) * obligatory_payment)
+        payment = client_to_real_amount((committee_size - 1) * obligatory_payment, 0)
 
-        LOGGER.info(f"Obligatory payment total: {(committee_size - 1) * obligatory_payment}")
+        node_account.reputation.unfrozen += payment
+
+        LOGGER.info(f"Obligatory payment total: {real_to_client_amount(payment)}")
 
         return address_to_node_account_dict

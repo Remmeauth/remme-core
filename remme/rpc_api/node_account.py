@@ -58,7 +58,7 @@ async def get_node_account(request):
         data['reputation']['frozen'] = str(real_to_client_amount(0))
         data['reputation']['unfrozen'] = str(real_to_client_amount(0))
     if 'fixed_amount' in data:
-        data['fixed_amount'] = str(real_to_client_amount(Decimal(data['fixed_amount'])))
+        data['fixed_amount'] = str(real_to_client_amount(data['fixed_amount']))
     if 'shares':
         data['shares'] = list(_filter_shares(reversed(data['shares'])))
     return data
