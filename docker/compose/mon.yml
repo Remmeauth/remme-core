@@ -73,7 +73,7 @@ services:
       org.label-schema.group: "monitoring"
   
   grafana:
-    image: grafana/grafana:4.6.3
+    image: grafana/grafana:master
     container_name: grafana
     volumes:
       - grafana_data:/var/lib/grafana
@@ -95,3 +95,28 @@ services:
       - monitor-net
     labels:
       org.label-schema.group: "monitoring"
+  
+  loki:
+    image: grafana/loki:master
+    container_name: loki
+    volumes:
+      - ./loki/loki-conf.yml:/etc/loki/local-config.yaml
+    expose:
+      - 3100
+    networks:
+      - monitor-net
+    labels:
+      org.label-schema.group: "monitoring"
+    command: -config.file=/etc/loki/local-config.yaml
+
+  promtail:
+    image: grafana/promtail:master
+    container_name: promtail
+    volumes:
+      - ./promtail/promtail-conf.yml:/etc/promtail/docker-config.yaml
+      - /var/lib/docker/volumes/remme_logs/_data:/var/log/_data
+    networks:
+      - monitor-net
+    labels:
+      org.label-schema.group: "monitoring"
+    command: -config.file=/etc/promtail/docker-config.yaml
