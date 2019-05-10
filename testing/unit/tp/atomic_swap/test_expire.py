@@ -34,8 +34,9 @@ from remme.settings.helper import _make_settings_key
 from remme.shared.utils import hash512, web3_hash, client_to_real_amount
 from remme.tp.atomic_swap import AtomicSwapHandler
 from remme.tp.basic import BasicHandler
+from remme.tp.consensus_account import ConsensusAccountHandler, ConsensusAccount
 
-from remme.settings import SETTINGS_KEY_ZERO_ADDRESS_OWNERS
+from remme.settings import SETTINGS_KEY_ZERO_ADDRESS_OWNERS, TRANSACTION_FEE, ZERO_ADDRESS
 
 TOKENS_AMOUNT_TO_SWAP = 200
 
@@ -85,10 +86,14 @@ INPUTS = [
     BLOCK_INFO_ADDRESS,
     BOT_ADDRESS,
     ADDRESS_TO_STORE_SWAP_INFO_BY,
+    ConsensusAccountHandler.CONSENSUS_ADDRESS,
+    ZERO_ADDRESS,
 ]
 OUTPUTS = [
     ADDRESS_TO_STORE_SWAP_INFO_BY,
     BOT_ADDRESS,
+    ConsensusAccountHandler.CONSENSUS_ADDRESS,
+    ZERO_ADDRESS,
 ]
 
 
@@ -173,12 +178,20 @@ def test_expire_atomic_swap():
         signature=create_signer(private_key=BOT_PRIVATE_KEY).sign(serialized_header),
     )
 
+    zero_account = Account()
+    zero_account.balance = client_to_real_amount(TOKENS_AMOUNT_TO_SWAP)
+    serialized_zero_account = zero_account.SerializeToString()
+
     bot_account = Account()
-    bot_account.balance = client_to_real_amount(4700)
+    bot_account.balance = client_to_real_amount(4700 + TRANSACTION_FEE)
     serialized_bot_account = bot_account.SerializeToString()
 
+    consensus_account = ConsensusAccount()
+    consensus_account.block_cost = 0
+    serialized_consensus_account = consensus_account.SerializeToString()
+
     genesis_members_setting = Setting()
-    genesis_members_setting.entries.add(key=SETTINGS_KEY_ZERO_ADDRESS_OWNERS, value=f'{BOT_PUBLIC_KEY},')
+    genesis_members_setting.entries.add(key=SETTINGS_KEY_ZERO_ADDRESS_OWNERS, value=BOT_PUBLIC_KEY)
     serialized_genesis_members_setting = genesis_members_setting.SerializeToString()
 
     existing_swap_info = AtomicSwapInfo()
@@ -195,9 +208,15 @@ def test_expire_atomic_swap():
         BLOCK_INFO_CONFIG_ADDRESS: SERIALIZED_BLOCK_INFO_CONFIG,
         BLOCK_INFO_ADDRESS: SERIALIZED_BLOCK_INFO,
         BOT_ADDRESS: serialized_bot_account,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS: serialized_consensus_account,
         ADDRESS_TO_STORE_SWAP_INFO_BY: serialized_existing_swap_info,
         ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY: serialized_genesis_members_setting,
+        ZERO_ADDRESS: serialized_zero_account,
     })
+
+    expected_zero_account = Account()
+    expected_zero_account.balance = 0
+    serialized_expected_zero_account = expected_zero_account.SerializeToString()
 
     expected_bot_account = Account()
     expected_bot_account.balance = client_to_real_amount(4700 + TOKENS_AMOUNT_TO_SWAP)
@@ -213,15 +232,24 @@ def test_expire_atomic_swap():
     expected_swap_info.is_initiator = True
     serialized_expected_swap_info = expected_swap_info.SerializeToString()
 
+    expected_consensus_account = ConsensusAccount()
+    expected_consensus_account.block_cost = client_to_real_amount(TRANSACTION_FEE)
+    serialized_expected_consensus_account = expected_consensus_account.SerializeToString()
+
     expected_state = {
         BOT_ADDRESS: serialized_expected_bot_account,
         ADDRESS_TO_STORE_SWAP_INFO_BY: serialized_expected_swap_info,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS: serialized_expected_consensus_account,
+        ZERO_ADDRESS: serialized_expected_zero_account,
     }
 
     AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
 
     state_as_list = mock_context.get_state(addresses=[
-        ADDRESS_TO_STORE_SWAP_INFO_BY, BOT_ADDRESS,
+        ADDRESS_TO_STORE_SWAP_INFO_BY,
+        BOT_ADDRESS,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS,
+        ZERO_ADDRESS,
     ])
     state_as_dict = {entry.address: entry.data for entry in state_as_list}
 

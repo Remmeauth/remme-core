@@ -48,6 +48,7 @@ from .basic import (
     PB_CLASS,
     PROCESSOR,
     VALIDATOR,
+    FEE_AUTO_CHARGER,
     BasicHandler,
     get_data,
     get_multiple_data
@@ -70,6 +71,7 @@ class BetHandler(BasicHandler):
                 PB_CLASS: EmptyPayload,
                 PROCESSOR: self._do_bet,
                 VALIDATOR: ProtoForm,
+                FEE_AUTO_CHARGER: None,
             },
         }
 
@@ -119,6 +121,10 @@ class BetHandler(BasicHandler):
                            f'min={node_account.min}; '
                            f'fixed_amount={node_account.fixed_amount}; '
                            f'max={node_account.max};')
+
+        if bet > node_account.balance:
+            raise InvalidTransaction(
+                f'Not enough balance on node account "{signer_node_address}"')
 
         consensus_account.bets[signer_node_address] = bet
         node_account.balance -= bet

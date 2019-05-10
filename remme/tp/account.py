@@ -28,13 +28,14 @@ from remme.protos.node_account_pb2 import (
     NodeAccount,
 )
 from remme.tp.node_account import NodeAccountHandler
-from remme.settings import GENESIS_ADDRESS
+from remme.settings import GENESIS_ADDRESS, ZERO_ADDRESS
 from remme.shared.forms import TransferPayloadForm, GenesisPayloadForm
 from remme.shared.constants import Events, EMIT_EVENT
 from remme.shared.utils import client_to_real_amount
 
 from .basic import (
-    PB_CLASS, PROCESSOR, VALIDATOR, BasicHandler, get_data, get_multiple_data
+    PB_CLASS, PROCESSOR, VALIDATOR, FEE_AUTO_CHARGER,
+    BasicHandler, get_data, get_multiple_data
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -55,11 +56,13 @@ class AccountHandler(BasicHandler):
                 PROCESSOR: self._transfer,
                 EMIT_EVENT: Events.ACCOUNT_TRANSFER.value,
                 VALIDATOR: TransferPayloadForm,
+                FEE_AUTO_CHARGER: False,
             },
             AccountMethod.GENESIS: {
                 PB_CLASS: GenesisPayload,
                 PROCESSOR: self._genesis,
                 VALIDATOR: GenesisPayloadForm,
+                FEE_AUTO_CHARGER: None,
             }
         }
 
@@ -110,9 +113,11 @@ class AccountHandler(BasicHandler):
         """
         from .consensus_account import ConsensusAccountHandler
 
-        return address.startswith(self._prefix) or \
-                address.startswith(NodeAccountHandler()._prefix) or \
-                address == ConsensusAccountHandler.CONSENSUS_ADDRESS
+        return any([
+            address.startswith(self._prefix),
+            address.startswith(NodeAccountHandler()._prefix),
+            address == ZERO_ADDRESS,
+        ])
 
     def _transfer_from_address(self, context, address_from, transfer_payload,
                                sender_key='balance', receiver_key='balance'):
@@ -171,6 +176,8 @@ class AccountHandler(BasicHandler):
             f'{sender_balance}. {transfer_payload.address_to} balance: '
             f'{receiver_balance}',
         )
+
+        self.set_fee_address(address_from)
 
         return {
             address_from: sender_account,

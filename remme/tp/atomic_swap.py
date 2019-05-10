@@ -24,11 +24,10 @@ from remme.protos.atomic_swap_pb2 import (
     AtomicSwapApprovePayload, AtomicSwapExpirePayload,
     AtomicSwapSetSecretLockPayload, AtomicSwapClosePayload
 )
-from remme.settings import SETTINGS_SWAP_COMMISSION
+from remme.settings import ZERO_ADDRESS
 from remme.settings.helper import _get_setting_value, _make_settings_key
 
-
-from remme.shared.utils import web3_hash, client_to_real_amount
+from remme.shared.utils import web3_hash, client_to_real_amount, real_to_client_amount
 from remme.clients.account import AccountClient
 
 from remme.shared.constants import Events, EMIT_EVENT
@@ -47,6 +46,7 @@ from .basic import (
     PROCESSOR,
     PB_CLASS,
     VALIDATOR,
+    FEE_AUTO_CHARGER,
 )
 
 
@@ -86,30 +86,35 @@ class AtomicSwapHandler(BasicHandler):
                 PROCESSOR: self._swap_init,
                 EMIT_EVENT: Events.SWAP_INIT.value,
                 VALIDATOR: AtomicSwapInitPayloadForm,
+                FEE_AUTO_CHARGER: False,
             },
             AtomicSwapMethod.APPROVE: {
                 PB_CLASS: AtomicSwapApprovePayload,
                 PROCESSOR: self._swap_approve,
                 EMIT_EVENT: Events.SWAP_APPROVE.value,
                 VALIDATOR: AtomicSwapApprovePayloadForm,
+                FEE_AUTO_CHARGER: False,
             },
             AtomicSwapMethod.EXPIRE: {
                 PB_CLASS: AtomicSwapExpirePayload,
                 PROCESSOR: self._swap_expire,
                 EMIT_EVENT: Events.SWAP_EXPIRE.value,
                 VALIDATOR: AtomicSwapExpirePayloadForm,
+                FEE_AUTO_CHARGER: False,
             },
             AtomicSwapMethod.SET_SECRET_LOCK: {
                 PB_CLASS: AtomicSwapSetSecretLockPayload,
                 PROCESSOR: self._swap_set_lock,
                 EMIT_EVENT: Events.SWAP_SET_SECRET_LOCK.value,
                 VALIDATOR: AtomicSwapSetSecretLockPayloadForm,
+                FEE_AUTO_CHARGER: False,
             },
             AtomicSwapMethod.CLOSE: {
                 PB_CLASS: AtomicSwapClosePayload,
                 PROCESSOR: self._swap_close,
                 EMIT_EVENT: Events.SWAP_CLOSE.value,
                 VALIDATOR: AtomicSwapClosePayloadForm,
+                FEE_AUTO_CHARGER: False,
             },
         }
 
@@ -145,31 +150,15 @@ class AtomicSwapHandler(BasicHandler):
         swap_information.receiver_address = swap_init_payload.receiver_address
         swap_information.is_initiator = not swap_init_payload.secret_lock_by_solicitor
 
-        commission_amount = int(_get_setting_value(context, SETTINGS_SWAP_COMMISSION))
-        if commission_amount < 0:
-            raise InvalidTransaction('Wrong commission address.')
-
-        swap_total_amount = swap_information.amount + client_to_real_amount(commission_amount)
-
-        account = get_data(context, Account, swap_information.sender_address)
-
-        if account is None:
-            account = Account()
-
-        if account.balance < swap_total_amount:
-            raise InvalidTransaction(
-                f'Not enough balance to perform the transaction in the amount (with a commission) {swap_total_amount}.'
-            )
-
-        transfer_payload = AccountClient.get_transfer_payload(ConsensusAccountHandler.CONSENSUS_ADDRESS, commission_amount)
-
+        transfer_payload = AccountClient.get_transfer_payload(
+            ZERO_ADDRESS,
+            swap_init_payload.amount
+        )
         transfer_state = AccountHandler()._transfer_from_address(
             context, swap_information.sender_address, transfer_payload,
-            receiver_key='block_cost'
         )
 
-        sender_account = transfer_state.get(swap_information.sender_address)
-        sender_account.balance -= swap_information.amount
+        self.set_fee_address(swap_information.sender_address)
 
         return {
             address_swap_info_is_stored_by: swap_information,
@@ -184,6 +173,7 @@ class AtomicSwapHandler(BasicHandler):
         Bob deposits escrow funds to zero address.
         Only works for Bob, Alice is the only one to approve
         """
+        signer_address = AccountHandler().make_address_from_data(signer_pubkey)
         swap_identifier = swap_set_lock_payload.swap_id
 
         address_swap_info_is_stored_by = self.make_address_from_data(swap_identifier)
@@ -202,6 +192,8 @@ class AtomicSwapHandler(BasicHandler):
 
         swap_information.secret_lock = swap_set_lock_payload.secret_lock
         swap_information.state = AtomicSwapInfo.SECRET_LOCK_PROVIDED
+
+        self.set_fee_address(signer_address)
 
         return {
             address_swap_info_is_stored_by: swap_information,
@@ -239,6 +231,7 @@ class AtomicSwapHandler(BasicHandler):
             raise InvalidTransaction(f'Swap identifier {swap_information.swap_id} is already closed.')
 
         swap_information.state = AtomicSwapInfo.APPROVED
+        self.set_fee_address(signer_address)
 
         return {
             address_swap_info_is_stored_by: swap_information,
@@ -281,16 +274,20 @@ class AtomicSwapHandler(BasicHandler):
                 f'timestamp {swap_information.created_at} to withdraw.'
             )
 
-        account = get_data(context, Account, swap_information.sender_address)
-        if account is None:
-            account = Account()
-        account.balance += swap_information.amount
+        transfer_payload = AccountClient.get_transfer_payload(
+            swap_information.sender_address,
+            client_to_real_amount(real_to_client_amount(swap_information.amount), 0),
+        )
+        transfer_state = AccountHandler()._transfer_from_address(
+            context, ZERO_ADDRESS, transfer_payload,
+        )
 
         swap_information.state = AtomicSwapInfo.EXPIRED
+        self.set_fee_address(signer_address)
 
         return {
             address_swap_info_is_stored_by: swap_information,
-            swap_information.sender_address: account,
+            **transfer_state,
         }
 
     def _swap_close(self, context, signer_pubkey, swap_close_payload):
@@ -303,6 +300,7 @@ class AtomicSwapHandler(BasicHandler):
 
         Closing requires atomic swap to be approved.
         """
+        signer_address = AccountHandler().make_address_from_data(signer_pubkey)
         swap_identifier = swap_close_payload.swap_id
 
         address_swap_info_is_stored_by = self.make_address_from_data(swap_identifier)
@@ -325,15 +323,20 @@ class AtomicSwapHandler(BasicHandler):
         if swap_information.is_initiator and swap_information.state != AtomicSwapInfo.APPROVED:
             raise InvalidTransaction('Transaction cannot be closed before it\'s approved.')
 
-        account = get_data(context, Account, swap_information.receiver_address)
-        if account is None:
-            account = Account()
-        account.balance += swap_information.amount
+        transfer_payload = AccountClient.get_transfer_payload(
+            swap_information.receiver_address,
+            client_to_real_amount(real_to_client_amount(swap_information.amount), 0),
+        )
+        transfer_state = AccountHandler()._transfer_from_address(
+            context, ZERO_ADDRESS, transfer_payload,
+        )
 
         swap_information.secret_key = swap_close_payload.secret_key
         swap_information.state = AtomicSwapInfo.CLOSED
 
+        self.set_fee_address(signer_address)
+
         return {
             address_swap_info_is_stored_by: swap_information,
-            swap_information.receiver_address: account,
+            **transfer_state,
         }

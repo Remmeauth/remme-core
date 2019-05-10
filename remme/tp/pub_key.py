@@ -48,7 +48,8 @@ from remme.shared.forms import (
     NewPubKeyStoreAndPayPayloadForm,
 )
 from .basic import (
-    BasicHandler, PB_CLASS, VALIDATOR, PROCESSOR, get_multiple_data, get_data
+    BasicHandler, PB_CLASS, VALIDATOR, PROCESSOR,
+    FEE_AUTO_CHARGER, get_multiple_data, get_data
 )
 from .account import AccountHandler
 
@@ -59,7 +60,6 @@ FAMILY_VERSIONS = ['0.1']
 
 PUB_KEY_ORGANIZATION = 'REMME'
 PUB_KEY_MAX_VALIDITY = timedelta(365)
-PUB_KEY_STORE_PRICE = 10
 
 ECONOMY_IS_ENABLED_VALUE = 'true'
 
@@ -198,16 +198,19 @@ class PubKeyHandler(BasicHandler):
                 PB_CLASS: NewPubKeyPayload,
                 PROCESSOR: self._store_pub_key,
                 VALIDATOR: NewPublicKeyPayloadForm,
+                FEE_AUTO_CHARGER: False,
             },
             PubKeyMethod.REVOKE: {
                 PB_CLASS: RevokePubKeyPayload,
                 PROCESSOR: self._revoke_pub_key,
                 VALIDATOR: RevokePubKeyPayloadForm,
+                FEE_AUTO_CHARGER: False,
             },
             PubKeyMethod.STORE_AND_PAY: {
                 PB_CLASS: NewPubKeyStoreAndPayPayload,
                 PROCESSOR: self._store_public_key_for_other,
                 VALIDATOR: NewPubKeyStoreAndPayPayloadForm,
+                FEE_AUTO_CHARGER: False,
             }
         }
 
@@ -224,26 +227,6 @@ class PubKeyHandler(BasicHandler):
             return False
 
         return True
-
-    @staticmethod
-    def _charge_tokens_for_storing(context, address_from, address_to):
-        """
-        Send fixed tokens value from address that want to store public key to node's storage address.
-        """
-        from .consensus_account import ConsensusAccountHandler
-
-        if address_from == ConsensusAccountHandler.CONSENSUS_ADDRESS:
-            raise InvalidTransaction('Transactions from consensus address is used only for internal purposes.')
-
-        transfer_payload = TransferPayload()
-        transfer_payload.address_to = address_to
-        transfer_payload.value = PUB_KEY_STORE_PRICE
-
-        transfer_state = AccountHandler()._transfer_from_address(
-            context=context, address_from=address_from, transfer_payload=transfer_payload,
-            receiver_key='block_cost'
-        )
-        return transfer_state
 
     @staticmethod
     def _get_public_key_processor(transaction_payload):
@@ -324,10 +307,7 @@ class PubKeyHandler(BasicHandler):
             public_key_to_store_address: public_key_information,
         }
 
-        charging_state = self._charge_for_storing(context=context, address_from=sender_account_address)
-        if charging_state is not None:
-            state.update(charging_state)
-            sender_account = state.get(sender_account_address)
+        self.set_fee_address(sender_account_address)
 
         sender_account = self._store_public_key_to_account(
             public_key_to_store_address=public_key_to_store_address,
@@ -415,9 +395,7 @@ class PubKeyHandler(BasicHandler):
             public_key_to_store_address: public_key_information,
         }
 
-        charging_state = self._charge_for_storing(context=context, address_from=payer_for_storing_address)
-        if charging_state is not None:
-            state.update(charging_state)
+        self.set_fee_address(payer_for_storing_address)
 
         public_key_to_store_owner_account = self._store_public_key_to_account(
             public_key_to_store_address=public_key_to_store_address,
@@ -429,22 +407,6 @@ class PubKeyHandler(BasicHandler):
         })
 
         return state
-
-    def _charge_for_storing(self, context, address_from):
-        """
-        Send fixed tokens value from address to zero address.
-        """
-        from .consensus_account import ConsensusAccountHandler
-
-        is_economy_enabled = _get_setting_value(context, 'remme.economy_enabled', 'true').lower()
-        if is_economy_enabled == 'true':
-
-            transfer_state = self._charge_tokens_for_storing(
-                context=context, address_from=address_from,
-                address_to=ConsensusAccountHandler.CONSENSUS_ADDRESS,
-            )
-
-            return transfer_state
 
     @staticmethod
     def _store_public_key_to_account(public_key_to_store_address, public_key_to_store_owner_account):
@@ -458,8 +420,8 @@ class PubKeyHandler(BasicHandler):
 
         return account
 
-    @staticmethod
-    def _revoke_pub_key(context, signer_pubkey, revoke_pub_key_payload):
+    def _revoke_pub_key(self, context, signer_pubkey, revoke_pub_key_payload):
+        payer_for_revoke_address = AccountHandler().make_address_from_data(signer_pubkey)
         public_key_information = get_data(context, PubKeyStorage, revoke_pub_key_payload.address)
 
         if public_key_information is None:
@@ -473,6 +435,8 @@ class PubKeyHandler(BasicHandler):
 
         public_key_information.is_revoked = True
         LOGGER.info('Revoked the pub key on address {}'.format(revoke_pub_key_payload.address))
+
+        self.set_fee_address(payer_for_revoke_address)
 
         return {
             revoke_pub_key_payload.address: public_key_information,

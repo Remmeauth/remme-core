@@ -14,18 +14,22 @@ from sawtooth_sdk.protobuf.transaction_pb2 import (
 from testing.conftest import create_signer
 from testing.mocks.stub import StubContext
 from testing.utils.client import proto_error_msg
+from remme.protos.account_pb2 import Account
 from remme.protos.atomic_swap_pb2 import (
     AtomicSwapInfo,
     AtomicSwapSetSecretLockPayload,
     AtomicSwapMethod,
 )
 from remme.protos.transaction_pb2 import TransactionPayload
+from remme.settings import TRANSACTION_FEE
 from remme.shared.utils import hash512, client_to_real_amount
 from remme.tp.atomic_swap import AtomicSwapHandler
 from remme.tp.basic import BasicHandler
+from remme.tp.consensus_account import ConsensusAccountHandler, ConsensusAccount
 
 BOT_PRIVATE_KEY = '1cb15ecfe1b3dc02df0003ac396037f85b98cf9f99b0beae000dc5e9e8b6dab4'
 BOT_PUBLIC_KEY = '03ecc5cb4094eb05319be6c7a63ebf17133d4ffaea48cdcfd1d5fc79dac7db7b6b'
+BOT_ADDRESS = '112007b9433e1da5c624ff926477141abedfd57585a36590b0a8edc4104ef28093ee30'
 
 SWAP_ID = '033102e41346242476b15a3a7966eb5249271025fc7fb0b37ed3fdb4bcce3884'
 SECRET_LOCK = '29c36b8dd380e0426bdc1d834e74a630bfd5d111'
@@ -44,6 +48,8 @@ RANDOM_NODE_PUBLIC_KEY = '039d6881f0a71d05659e1f40b443684b93c7b7c504ea23ea8949ef
 
 INPUTS = OUTPUTS = [
     ADDRESS_TO_STORE_SWAP_INFO_BY,
+    BOT_ADDRESS,
+    ConsensusAccountHandler.CONSENSUS_ADDRESS,
 ]
 
 
@@ -135,8 +141,18 @@ def test_set_lock_to_atomic_swa():
     existing_swap_info_to_lock.state = AtomicSwapInfo.OPENED
     serialized_existing_swap_info_to_lock = existing_swap_info_to_lock.SerializeToString()
 
+    bot_account = Account()
+    bot_account.balance = client_to_real_amount(TRANSACTION_FEE)
+    serialized_bot_account = bot_account.SerializeToString()
+
+    consensus_account = ConsensusAccount()
+    consensus_account.block_cost = 0
+    serialized_consensus_account = consensus_account.SerializeToString()
+
     mock_context = StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state={
         ADDRESS_TO_STORE_SWAP_INFO_BY: serialized_existing_swap_info_to_lock,
+        BOT_ADDRESS: serialized_bot_account,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS: serialized_consensus_account,
     })
 
     expected_swap_info = AtomicSwapInfo()
@@ -145,13 +161,27 @@ def test_set_lock_to_atomic_swa():
     expected_swap_info.secret_lock = SECRET_LOCK
     serialized_expected_swap_info = expected_swap_info.SerializeToString()
 
+    expected_bot_account = Account()
+    expected_bot_account.balance = 0
+    serialized_expected_bot_account = expected_bot_account.SerializeToString()
+
+    expected_consensus_account = ConsensusAccount()
+    expected_consensus_account.block_cost = client_to_real_amount(TRANSACTION_FEE)
+    serialized_expected_consensus_account = expected_consensus_account.SerializeToString()
+
     expected_state = {
         ADDRESS_TO_STORE_SWAP_INFO_BY: serialized_expected_swap_info,
+        BOT_ADDRESS: serialized_expected_bot_account,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS: serialized_expected_consensus_account,
     }
 
     AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
 
-    state_as_list = mock_context.get_state(addresses=[ADDRESS_TO_STORE_SWAP_INFO_BY])
+    state_as_list = mock_context.get_state(addresses=[
+        ADDRESS_TO_STORE_SWAP_INFO_BY,
+        BOT_ADDRESS,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS,
+    ])
     state_as_dict = {entry.address: entry.data for entry in state_as_list}
 
     assert expected_state == state_as_dict

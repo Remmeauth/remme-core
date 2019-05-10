@@ -14,7 +14,6 @@ from sawtooth_sdk.protobuf.transaction_pb2 import (
     Transaction,
     TransactionHeader,
 )
-
 from remme.protos.node_account_pb2 import (
     NodeAccount,
     NodeAccountMethod,
@@ -26,16 +25,18 @@ from remme.clients.block_info import (
 )
 from remme.protos.block_info_pb2 import BlockInfo, BlockInfoConfig
 from remme.protos.transaction_pb2 import TransactionPayload, EmptyPayload
-from remme.settings import SETTINGS_MINIMUM_STAKE, SETTINGS_BLOCKCHAIN_TAX
+from remme.settings import SETTINGS_MINIMUM_STAKE, SETTINGS_BLOCKCHAIN_TAX, TRANSACTION_FEE
 from remme.settings.helper import _make_settings_key
 from remme.shared.utils import hash512, client_to_real_amount
 from remme.tp.node_account import NodeAccountHandler
+from remme.tp.consensus_account import ConsensusAccountHandler, ConsensusAccount
 from testing.conftest import create_signer
 from testing.mocks.stub import StubContext
 from testing.utils.client import proto_error_msg
 
 RANDOM_NODE_PUBLIC_KEY = '039d6881f0a71d05659e1f40b443684b93c7b7c504ea23ea8949ef5216a2236940'
 
+BALANCE = 100
 FROZEN = 300_000
 UNFROZEN = 0
 MINIMUM_STAKE = 250_000
@@ -57,6 +58,7 @@ INPUTS = OUTPUTS = [
     ADDRESS_TO_BLOCKCHAIN_TAX,
     BLOCK_INFO_CONFIG_ADDRESS,
     BLOCK_INFO_ADDRESS,
+    ConsensusAccountHandler.CONSENSUS_ADDRESS,
 ]
 
 TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS = {
@@ -66,6 +68,7 @@ TRANSACTION_REQUEST_ACCOUNT_HANDLER_PARAMS = {
 
 
 def create_context(account_from_frozen_balance, account_to_unfrozen_balance,
+                   balance=BALANCE,
                    minimum_stake=MINIMUM_STAKE, blockchain_tax=BLOCKCHAIN_TAX,
                    status=NodeAccount.OPENED, last_defrost_timestamp=0, shares=None):
     """
@@ -78,6 +81,7 @@ def create_context(account_from_frozen_balance, account_to_unfrozen_balance,
         - https://github.com/Remmeauth/remme-core/blob/dev/testing/mocks/stub.py
     """
     node_account = NodeAccount()
+    node_account.balance = client_to_real_amount(balance)
     node_account.node_state = status
     node_account.last_defrost_timestamp = last_defrost_timestamp
 
@@ -103,12 +107,17 @@ def create_context(account_from_frozen_balance, account_to_unfrozen_balance,
     block_info.timestamp = int(datetime.now().timestamp())
     serialized_block_info = block_info.SerializeToString()
 
+    consensus_account = ConsensusAccount()
+    consensus_account.block_cost = 0
+    serialized_consensus_account = consensus_account.SerializeToString()
+
     initial_state = {
         NODE_ACCOUNT_ADDRESS_FROM: serialized_account_balance,
         ADDRESS_TO_GET_MINIMUM_STAKE_AMOUNT: serialized_minimum_stake_setting,
         ADDRESS_TO_BLOCKCHAIN_TAX: serialized_bt_setting,
         BLOCK_INFO_CONFIG_ADDRESS: serialized_block_info_config,
         BLOCK_INFO_ADDRESS: serialized_block_info,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS: serialized_consensus_account,
     }
 
     return StubContext(inputs=INPUTS, outputs=OUTPUTS, initial_state=initial_state)
@@ -173,6 +182,7 @@ def test_transfer_from_frozen_to_unfrozen_more_than_one_month():
 
     delta = 0.0333  # 0.4 * 1/12 * 10_000
 
+    assert node_acc.balance == client_to_real_amount(BALANCE - TRANSACTION_FEE)
     assert node_acc.reputation.frozen == client_to_real_amount(FROZEN - delta)
     assert node_acc.reputation.unfrozen == client_to_real_amount(UNFROZEN + delta)
 
@@ -255,6 +265,7 @@ def test_transfer_from_frozen_to_unfrozen_more_than_one_two_with_already_calcula
     delta2 = 0.0667  # 0.4 * 2/12 * 10_000
     delta = delta1 + delta2
 
+    assert node_acc.balance == client_to_real_amount(BALANCE - TRANSACTION_FEE)
     assert node_acc.reputation.frozen == client_to_real_amount(FROZEN - delta)
     assert node_acc.reputation.unfrozen == client_to_real_amount(UNFROZEN + delta)
 
@@ -333,6 +344,7 @@ def test_transfer_from_frozen_to_unfrozen_one_share_unfrozen_already_and_one_mor
     delta2 = 0.4  # 0.4 * 12/12 * 10_000
     delta = delta1 + delta2
 
+    assert node_acc.balance == client_to_real_amount(BALANCE - TRANSACTION_FEE)
     assert node_acc.reputation.frozen == client_to_real_amount(FROZEN - delta)
     assert node_acc.reputation.unfrozen == client_to_real_amount(UNFROZEN + delta)
 

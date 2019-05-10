@@ -8,18 +8,20 @@ from sawtooth_sdk.protobuf.transaction_pb2 import (
     Transaction,
     TransactionHeader,
 )
-
 from remme.protos.consensus_account_pb2 import (
     ConsensusAccountMethod,
     ConsensusAccount,
 )
 from remme.protos.transaction_pb2 import TransactionPayload, EmptyPayload
+from remme.settings import TRANSACTION_FEE
 from remme.shared.utils import hash512, client_to_real_amount
 from remme.tp.consensus_account import ConsensusAccountHandler
 from testing.utils.client import proto_error_msg
 from testing.conftest import create_signer
 
 from .shared import *
+
+ACCOUNT_BALANCE = 100
 
 
 def test_send_reward_less_condition():
@@ -67,7 +69,8 @@ def test_send_reward_less_condition():
     mock_context = create_context(node_state=NodeAccount.OPENED,
                                   block_cost=BLOCK_COST,
                                   obligatory_payments=OBLIGATORY_PAYMENTS,
-                                  bet_value=BET_VALUE)
+                                  bet_value=BET_VALUE,
+                                  account_from_balance=ACCOUNT_BALANCE)
 
     ConsensusAccountHandler().apply(transaction=transaction_request, context=mock_context)
 
@@ -87,6 +90,7 @@ def test_send_reward_less_condition():
     consensus_acc = ConsensusAccount()
     consensus_acc.ParseFromString(state_as_dict[ConsensusAccountHandler.CONSENSUS_ADDRESS])
 
+    assert node_acc.balance == client_to_real_amount(ACCOUNT_BALANCE)
     assert node_acc.reputation.frozen == client_to_real_amount(NODE_REW)
     assert node_acc.reputation.unfrozen == 0
     assert genesis_acc.balance == client_to_real_amount(REMME_REW)
@@ -149,14 +153,15 @@ def test_send_reward_upper_condition():
     REMME_REW = REW - NODE_REW
 
     UNODE_REW = 0.46 * REW
-    FNODE_REW = REW - UNODE_REW
+    FNODE_REW = NODE_REW - UNODE_REW
 
     mock_context = create_context(node_state=NodeAccount.OPENED,
                                   block_cost=BLOCK_COST,
                                   obligatory_payments=OBLIGATORY_PAYMENTS,
                                   bet_value=BET_VALUE,
                                   frozen=FROZEN,
-                                  unfrozen=UNFROZEN)
+                                  unfrozen=UNFROZEN,
+                                  account_from_balance=ACCOUNT_BALANCE)
 
     ConsensusAccountHandler().apply(transaction=transaction_request, context=mock_context)
 
@@ -176,6 +181,7 @@ def test_send_reward_upper_condition():
     consensus_acc = ConsensusAccount()
     consensus_acc.ParseFromString(state_as_dict[ConsensusAccountHandler.CONSENSUS_ADDRESS])
 
+    assert node_acc.balance == client_to_real_amount(ACCOUNT_BALANCE)
     assert node_acc.reputation.unfrozen == client_to_real_amount(UNODE_REW + UNFROZEN)
     assert node_acc.reputation.frozen == client_to_real_amount(FNODE_REW + FROZEN)
     assert genesis_acc.balance == client_to_real_amount(REMME_REW)
@@ -242,7 +248,8 @@ def test_send_reward_middle_condition():
                                   obligatory_payments=OBLIGATORY_PAYMENTS,
                                   bet_value=BET_VALUE,
                                   frozen=FROZEN,
-                                  unfrozen=UNFROZEN)
+                                  unfrozen=UNFROZEN,
+                                  account_from_balance=ACCOUNT_BALANCE)
 
     ConsensusAccountHandler().apply(transaction=transaction_request, context=mock_context)
 
@@ -262,6 +269,7 @@ def test_send_reward_middle_condition():
     consensus_acc = ConsensusAccount()
     consensus_acc.ParseFromString(state_as_dict[ConsensusAccountHandler.CONSENSUS_ADDRESS])
 
+    assert node_acc.balance == client_to_real_amount(ACCOUNT_BALANCE)
     assert node_acc.reputation.frozen == client_to_real_amount(FROZEN)
     assert node_acc.reputation.unfrozen == client_to_real_amount(NODE_REW + UNFROZEN)
     assert genesis_acc.balance == client_to_real_amount(REMME_REW)

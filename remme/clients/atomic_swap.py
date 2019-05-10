@@ -19,7 +19,7 @@ from remme.tp.atomic_swap import AtomicSwapHandler
 from remme.protos.atomic_swap_pb2 import AtomicSwapInitPayload, AtomicSwapExpirePayload, AtomicSwapClosePayload, \
     AtomicSwapMethod, AtomicSwapInfo, AtomicSwapSetSecretLockPayload, AtomicSwapApprovePayload
 from sawtooth_sdk.protobuf.setting_pb2 import Setting
-from remme.settings import SETTINGS_SWAP_COMMISSION, SETTINGS_PUB_KEY_ENCRYPTION
+from remme.settings import SETTINGS_PUB_KEY_ENCRYPTION
 from remme.settings.helper import _make_settings_key
 from remme.clients.basic import BasicClient
 from remme.clients.block_info import BLOCK_INFO_NAMESPACE, CONFIG_ADDRESS
@@ -82,7 +82,6 @@ class AtomicSwapClient(BasicClient):
         addresses_input = [
             self.make_address_from_data(swap_init_payload.swap_id),
             self.get_user_address(),
-            _make_settings_key(SETTINGS_SWAP_COMMISSION),
             ConsensusAccountHandler.CONSENSUS_ADDRESS,
             CONFIG_ADDRESS,
             BLOCK_INFO_NAMESPACE,

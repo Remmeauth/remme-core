@@ -37,6 +37,7 @@ from .basic import (
     PB_CLASS,
     PROCESSOR,
     VALIDATOR,
+    FEE_AUTO_CHARGER,
     BasicHandler,
     get_data,
     get_multiple_data
@@ -66,11 +67,13 @@ class ConsensusAccountHandler(BasicHandler):
                 PB_CLASS: EmptyPayload,
                 PROCESSOR: self._genesis,
                 VALIDATOR: ProtoForm,
+                FEE_AUTO_CHARGER: None,
             },
             ConsensusAccountMethod.SEND_REWARD: {
                 PB_CLASS: EmptyPayload,
                 PROCESSOR: self._send_reward,
                 VALIDATOR: ProtoForm,
+                FEE_AUTO_CHARGER: None,
             },
         }
 
@@ -140,7 +143,7 @@ class ConsensusAccountHandler(BasicHandler):
             unfrozen_share = self._calculate_share(max_share, min_share,
                                                    min_stake, reputational)
             unfrozen_reward = client_to_real_amount(unfrozen_share * reward, 0)
-            frozen_reward = reward - unfrozen_reward
+            frozen_reward = node_reward - unfrozen_reward
             node_account.reputation.unfrozen += unfrozen_reward
             node_account.reputation.frozen += frozen_reward
 

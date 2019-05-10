@@ -26,8 +26,9 @@ from remme.settings.helper import _make_settings_key
 from remme.shared.utils import hash512, web3_hash, client_to_real_amount
 from remme.tp.atomic_swap import AtomicSwapHandler
 from remme.tp.basic import BasicHandler
+from remme.tp.consensus_account import ConsensusAccountHandler, ConsensusAccount
 
-from remme.settings import SETTINGS_KEY_ZERO_ADDRESS_OWNERS
+from remme.settings import SETTINGS_KEY_ZERO_ADDRESS_OWNERS, TRANSACTION_FEE, ZERO_ADDRESS
 
 TOKENS_AMOUNT_TO_SWAP = 200
 SWAP_COMMISSION_AMOUNT = 100
@@ -63,6 +64,9 @@ RANDOM_PUBLIC_KEY = '8c87d914a6cfeaf027413760ad359b5a56bfe0eda504d879b21872c7dc5
 INPUTS = OUTPUTS = [
     ADDRESS_TO_STORE_SWAP_INFO_BY,
     ALICE_ADDRESS,
+    BOT_ADDRESS,
+    ConsensusAccountHandler.CONSENSUS_ADDRESS,
+    ZERO_ADDRESS,
 ]
 
 
@@ -149,6 +153,10 @@ def test_close_atomic_swap():
         signature=create_signer(private_key=BOT_PRIVATE_KEY).sign(serialized_header),
     )
 
+    zero_account = Account()
+    zero_account.balance = client_to_real_amount(TOKENS_AMOUNT_TO_SWAP)
+    serialized_zero_account = zero_account.SerializeToString()
+
     alice_account = Account()
     alice_account.balance = 0
     serialized_alice_account = alice_account.SerializeToString()
@@ -163,6 +171,14 @@ def test_close_atomic_swap():
     existing_swap_info_to_close.receiver_address = ALICE_ADDRESS
     serialized_existing_swap_info_to_lock = existing_swap_info_to_close.SerializeToString()
 
+    consensus_account = ConsensusAccount()
+    consensus_account.block_cost = 0
+    serialized_consensus_account = consensus_account.SerializeToString()
+
+    sender_account = Account()
+    sender_account.balance = client_to_real_amount(TRANSACTION_FEE)
+    serialized_sender_account = sender_account.SerializeToString()
+
     genesis_members_setting = Setting()
     genesis_members_setting.entries.add(key=SETTINGS_KEY_ZERO_ADDRESS_OWNERS, value=f'{BOT_PUBLIC_KEY},')
     serialized_genesis_members_setting = genesis_members_setting.SerializeToString()
@@ -171,6 +187,9 @@ def test_close_atomic_swap():
         ADDRESS_TO_GET_GENESIS_MEMBERS_AS_STRING_BY: serialized_genesis_members_setting,
         ADDRESS_TO_STORE_SWAP_INFO_BY: serialized_existing_swap_info_to_lock,
         ALICE_ADDRESS: serialized_alice_account,
+        BOT_ADDRESS: serialized_sender_account,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS: serialized_consensus_account,
+        ZERO_ADDRESS: serialized_zero_account,
     })
 
     expected_alice_account = Account()
@@ -188,14 +207,35 @@ def test_close_atomic_swap():
     expected_closed_swap_info.receiver_address = ALICE_ADDRESS
     serialized_expected_closed_swap_info = expected_closed_swap_info.SerializeToString()
 
+    expected_zero_account = Account()
+    expected_zero_account.balance = 0
+    serialized_expected_zero_account = expected_zero_account.SerializeToString()
+
+    expected_consensus_account = ConsensusAccount()
+    expected_consensus_account.block_cost = client_to_real_amount(TRANSACTION_FEE)
+    serialized_expected_consensus_account = expected_consensus_account.SerializeToString()
+
+    expected_sender_account = Account()
+    expected_sender_account.balance = 0
+    serialized_expected_sender_account = expected_sender_account.SerializeToString()
+
     expected_state = {
         ADDRESS_TO_STORE_SWAP_INFO_BY: serialized_expected_closed_swap_info,
         ALICE_ADDRESS: serialized_expected_alice_account,
+        BOT_ADDRESS: serialized_expected_sender_account,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS: serialized_expected_consensus_account,
+        ZERO_ADDRESS: serialized_expected_zero_account,
     }
 
     AtomicSwapHandler().apply(transaction=transaction_request, context=mock_context)
 
-    state_as_list = mock_context.get_state(addresses=[ADDRESS_TO_STORE_SWAP_INFO_BY, ALICE_ADDRESS])
+    state_as_list = mock_context.get_state(addresses=[
+        ADDRESS_TO_STORE_SWAP_INFO_BY,
+        ALICE_ADDRESS,
+        BOT_ADDRESS,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS,
+        ZERO_ADDRESS,
+    ])
     state_as_dict = {entry.address: entry.data for entry in state_as_list}
 
     assert expected_state == state_as_dict
