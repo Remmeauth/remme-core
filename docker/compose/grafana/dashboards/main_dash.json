@@ -75,7 +75,7 @@
           "tableColumn": "",
           "targets": [
             {
-              "expr": "node_time - node_boot_time",
+              "expr": "node_time_seconds - node_boot_time_seconds",
               "interval": "30s",
               "intervalFactor": 1,
               "refId": "A",
@@ -156,7 +156,7 @@
           "tableColumn": "",
           "targets": [
             {
-              "expr": "sum(rate(node_cpu{mode=\"user\"}[1m])) * 100 / scalar(count(node_cpu{mode=\"idle\"}))",
+              "expr": "sum(rate(node_cpu_seconds_total{mode=\"user\"}[1m])) * 100 / scalar(count(node_cpu_seconds_total{mode=\"idle\"}))",
               "format": "time_series",
               "interval": "10s",
               "intervalFactor": 1,
@@ -319,7 +319,7 @@
           "tableColumn": "",
           "targets": [
             {
-              "expr": "(sum(node_memory_MemTotal) - sum(node_memory_MemFree+node_memory_Buffers+node_memory_Cached) ) / sum(node_memory_MemTotal) * 100",
+              "expr": "(sum(node_memory_MemTotal_bytes) - sum(node_memory_MemFree_bytes+node_memory_Buffers_bytes+node_memory_Cached_bytes) ) / sum(node_memory_MemTotal_bytes) * 100",
               "format": "time_series",
               "interval": "10s",
               "intervalFactor": 2,
@@ -403,7 +403,7 @@
           "tableColumn": "",
           "targets": [
             {
-              "expr": "sum(node_memory_MemFree+node_memory_Buffers+node_memory_Cached)/1048576",
+              "expr": "sum(node_memory_MemFree_bytes+node_memory_Buffers_bytes+node_memory_Cached_bytes)/1048576",
               "format": "time_series",
               "interval": "10s",
               "intervalFactor": 2,
@@ -487,7 +487,7 @@
           "tableColumn": "",
           "targets": [
             {
-              "expr": "(node_filesystem_size{fstype=\"ext4\"} - node_filesystem_free{fstype=\"ext4\"}) / node_filesystem_size{fstype=\"ext4\"}  * 100",
+              "expr": "(node_filesystem_size_bytes{fstype=\"ext4\"} - node_filesystem_free_bytes{fstype=\"ext4\"}) / node_filesystem_size_bytes{fstype=\"ext4\"}  * 100",
               "format": "time_series",
               "interval": "30s",
               "intervalFactor": 1,
@@ -570,7 +570,7 @@
           "tableColumn": "",
           "targets": [
             {
-              "expr": "sum(node_filesystem_free{fstype=\"ext4\"})/1073741824",
+              "expr": "sum(node_filesystem_free_bytes{fstype=\"ext4\"})/1073741824",
               "format": "time_series",
               "interval": "30s",
               "intervalFactor": 1,
@@ -643,7 +643,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum by (name) (rate(container_cpu_usage_seconds_total{image!=\"\",container_label_org_label_schema_group=\"\"}[1m])) / scalar(count(node_cpu{mode=\"user\"})) * 100",
+              "expr": "sum by (name) (rate(container_cpu_usage_seconds_total{image!=\"\",container_label_org_label_schema_group=\"\"}[1m])) / scalar(count(node_cpu_seconds_total{mode=\"user\"})) * 100",
               "format": "time_series",
               "intervalFactor": 10,
               "legendFormat": "{{ name }}",
