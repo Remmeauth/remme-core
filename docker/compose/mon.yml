@@ -11,7 +11,7 @@ volumes:
 services:
 
   prometheus:
-    image: prom/prometheus:v2.2.0-rc.0
+    image: prom/prometheus:v2.9.2
     container_name: prometheus
     volumes:
       - ./prometheus/:/etc/prometheus/
@@ -32,7 +32,7 @@ services:
       org.label-schema.group: "monitoring"
   
   nodeexporter:
-    image: prom/node-exporter:v0.15.2
+    image: prom/node-exporter:v0.17.0
     container_name: nodeexporter
     user: root
     privileged: true
@@ -57,7 +57,7 @@ services:
       org.label-schema.group: "monitoring"
 
   cadvisor:
-    image: google/cadvisor:v0.28.3
+    image: google/cadvisor:v0.33.0
     container_name: cadvisor
     volumes:
       - /:/rootfs:ro
@@ -73,7 +73,7 @@ services:
       org.label-schema.group: "monitoring"
   
   grafana:
-    image: grafana/grafana:4.6.3
+    image: grafana/grafana:6.1.6
     container_name: grafana
     volumes:
       - grafana_data:/var/lib/grafana
@@ -82,6 +82,7 @@ services:
       - ./grafana/dashboards:/etc/grafana/dashboards
       - ./grafana/setup.sh:/setup.sh
     entrypoint: /setup.sh
+    user: root
     env_file:
       - ../../config/admin.env
     environment:
