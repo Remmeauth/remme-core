@@ -34,10 +34,13 @@ from remme.settings import (
     NODE_STATE_ADDRESS,
 )
 from remme.tp.node_account import NodeAccountHandler
+from remme.protos.consensus_account_pb2 import ConsensusAccount
 
 from remme.shared.forms import (
     ObligatoryPaymentPayloadForm,
 )
+from remme.shared.utils import hash512, client_to_real_amount, real_to_client_amount
+from remme.settings.helper import _get_setting_value
 
 from .basic import (
     PB_CLASS,
@@ -48,43 +51,13 @@ from .basic import (
     get_data,
     get_multiple_data
 )
-from remme.shared.utils import hash512, client_to_real_amount, real_to_client_amount
-from remme.settings.helper import _get_setting_value
+from .consensus_account import ConsensusAccountHandler
+
+
 LOGGER = logging.getLogger(__name__)
 
 FAMILY_NAME = 'obligatory_payment'
 FAMILY_VERSIONS = ['0.1']
-
-
-def withdraw_obligatory_payment(node_account, obligatory_payment):
-    if node_account.balance >= obligatory_payment:
-        node_account.balance -= obligatory_payment
-
-    elif node_account.reputation.unfrozen >= obligatory_payment:
-        node_account.reputation.unfrozen -= obligatory_payment
-
-    elif node_account.reputation.frozen >= obligatory_payment:
-        node_account.reputation.frozen -= obligatory_payment
-
-    else:
-        raise InvalidTransaction("Malformed committee. A node doesn't have enough tokens to pay obligatory payment.")
-
-
-def get_obligatory_payment_parameters(context):
-    node_state = get_data(context, NodeState, NODE_STATE_ADDRESS)
-    committee_pub_keys = node_state.master_nodes
-    committee_size = len(committee_pub_keys)
-    if committee_size == 0:
-        raise InvalidTransaction('Committee size should be a positive integer.')
-    obligatory_payment = _get_setting_value(context, SETTINGS_OBLIGATORY_PAYMENT)
-    try:
-        obligatory_payment = client_to_real_amount(int(obligatory_payment))
-    except e:
-        raise InvalidTransaction('Obligatory payment amount should be a positive integer.')
-    if obligatory_payment == 0:
-        raise InvalidTransaction('Obligatory payment amount should be a positive integer.')
-
-    return committee_pub_keys, obligatory_payment, committee_size
 
 
 class ObligatoryPaymentHandler(BasicHandler):
@@ -101,33 +74,72 @@ class ObligatoryPaymentHandler(BasicHandler):
             },
         }
 
+    def __withdraw_obligatory_payment(self, node_account, obligatory_payment):
+        if node_account.balance >= obligatory_payment:
+            node_account.balance -= obligatory_payment
+
+        elif node_account.reputation.unfrozen >= obligatory_payment:
+            node_account.reputation.unfrozen -= obligatory_payment
+
+        elif node_account.reputation.frozen >= obligatory_payment:
+            node_account.reputation.frozen -= obligatory_payment
+
+        else:
+            raise InvalidTransaction("Malformed committee. A node doesn't have enough tokens to pay obligatory payment.")
+
+    def __get_obligatory_payment_parameters(self, context):
+        node_state = get_data(context, NodeState, NODE_STATE_ADDRESS)
+        committee_pub_keys = node_state.master_nodes
+        committee_size = len(committee_pub_keys)
+        if committee_size == 0:
+            raise InvalidTransaction('Committee size should be a positive integer.')
+        obligatory_payment = _get_setting_value(context, SETTINGS_OBLIGATORY_PAYMENT)
+        try:
+            obligatory_payment = client_to_real_amount(int(obligatory_payment))
+        except e:
+            raise InvalidTransaction('Obligatory payment amount should be a positive integer.')
+        if obligatory_payment == 0:
+            raise InvalidTransaction('Obligatory payment amount should be a positive integer.')
+
+        return committee_pub_keys, obligatory_payment, committee_size
+
     def _pay_obligatory_payment(self, context, node_account_public_key, obligatory_payment_payload):
         node_account_address = NodeAccountHandler().make_address_from_data(node_account_public_key)
         node_account = get_data(context, NodeAccount, node_account_address)
         if node_account is None:
             raise InvalidTransaction('Invalid context or address.')
 
-        committee_addresses, obligatory_payment, committee_size = get_obligatory_payment_parameters(context)
+        consensus_account = get_data(context, ConsensusAccount, ConsensusAccountHandler.CONSENSUS_ADDRESS)
+        if consensus_account is None:
+            raise InvalidTransaction('Consensus account not found')
 
-        address_to_node_account_dict = {
+        committee_addresses, obligatory_payment, committee_size = self.__get_obligatory_payment_parameters(context)
+
+        state = {
             node_account_address: node_account,
+            ConsensusAccountHandler.CONSENSUS_ADDRESS: consensus_account,
         }
         try:
             committee_addresses.remove(node_account_address)  # committee to charge obligatory payment
         except ValueError:
             pass
 
-        for address in committee_addresses:
-            committee_node_account = get_data(context, NodeAccount, address)
+        committee_node_accounts = get_multiple_data(context, [
+            (address, NodeAccount) for address in committee_addresses
+        ])
+        for i, committee_node_account in enumerate(committee_node_accounts):
             if committee_node_account is None:
                 raise InvalidTransaction('Invalid context or address.')
-            withdraw_obligatory_payment(committee_node_account, obligatory_payment)
-            address_to_node_account_dict[address] = committee_node_account
+
+            address = committee_addresses[i]
+
+            self.__withdraw_obligatory_payment(committee_node_account, obligatory_payment)
+            state[address] = committee_node_account
 
         payment = client_to_real_amount((committee_size - 1) * obligatory_payment, 0)
 
-        node_account.reputation.unfrozen += payment
+        consensus_account.obligatory_payments += payment
 
         LOGGER.info(f"Obligatory payment total: {real_to_client_amount(payment)}")
 
-        return address_to_node_account_dict
+        return state
