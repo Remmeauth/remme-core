@@ -204,6 +204,8 @@ class NodeAccountHandler(BasicHandler):
         node_account.reputation.frozen = 0
         node_account.reputation.unfrozen = 0
 
+        del node_account.shares[:]
+
         if node_state is None:
             node_state = NodeState()
 
