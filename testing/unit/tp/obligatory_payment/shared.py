@@ -1,9 +1,11 @@
 from sawtooth_sdk.protobuf.setting_pb2 import Setting
 
+from remme.protos.consensus_account_pb2 import ConsensusAccount
 from remme.protos.node_account_pb2 import (
     NodeAccount,
     NodeState,
 )
+from remme.tp.consensus_account import ConsensusAccountHandler
 from remme.tp.obligatory_payment import ObligatoryPaymentHandler
 from testing.mocks.stub import StubContext
 
@@ -42,6 +44,7 @@ INPUTS = OUTPUTS = [
     NODE_ACCOUNT_ADDRESS_FROM,
     ADDRESS_TO_GET_OBLIGATORY_PAYMENT,
     NODE_STATE_ADDRESS,
+    ConsensusAccountHandler.CONSENSUS_ADDRESS,
 ]
 INPUTS.extend(COMMITTEE_ADDRESSES)
 
@@ -73,10 +76,10 @@ def create_context(operational_balance, frozen_balance, unfrozen_balance, allowe
         serialized_node_accounts.append(serialized_node_account)
 
     obligatory_payment_settings = Setting()
-    if allowed_validators is None:
-        allowed_validators = ';'.join(COMMITTEE_PUBLIC_KEYS)
     obligatory_payment_settings.entries.add(key=SETTINGS_OBLIGATORY_PAYMENT, value=str(OBLIGATORY_PAYMENT))
     serialized_obligatory_payment_setting = obligatory_payment_settings.SerializeToString()
+
+    consensus_account = ConsensusAccount()
 
     node_account = NodeAccount()
     serialized_account_from_balance = node_account.SerializeToString()
@@ -91,6 +94,7 @@ def create_context(operational_balance, frozen_balance, unfrozen_balance, allowe
         ADDRESS_TO_GET_OBLIGATORY_PAYMENT: serialized_obligatory_payment_setting,
         NODE_ACCOUNT_ADDRESS_FROM: serialized_account_from_balance,
         NODE_STATE_ADDRESS: serialized_node_state,
+        ConsensusAccountHandler.CONSENSUS_ADDRESS: consensus_account.SerializeToString(),
     }
 
     for i in range(0, COMMITTEE_SIZE):
