@@ -23,21 +23,19 @@ class BlockInfoClient(BasicClient):
         return bi
 
     async def get_blocks_info(self, start, limit):
-        if not (start and limit):
-            block_config = None
-            try:
-                block_config = await self.get_block_info_config()
-            except Exception:
-                return []
+        init_start = start or None
+        init_limit = limit or None
 
-            if not start:
-                start = block_config.latest_block + 1
+        try:
+            block_config = await self.get_block_info_config()
+        except Exception:
+            return []
 
-            if not limit:
-                limit = start - block_config.oldest_block + 1
+        start = block_config.oldest_block if not init_start else start - 1
 
-        if limit - start > 0:
-            limit = start
+        limit = min(block_config.latest_block if not init_limit else limit - 1, 100)
+
+        end = min(start + limit, block_config.latest_block) + 1
 
         async def _get_block_data(i, end):
             try:
@@ -45,7 +43,7 @@ class BlockInfoClient(BasicClient):
             except Exception as e:
                 LOGGER.exception(e)
                 return
-            
+
             try:
                 nc = i + 1
                 if nc == end:
@@ -69,11 +67,21 @@ class BlockInfoClient(BasicClient):
 
             return self.interpret_block_info(bi, votes)
 
-        blocks = await asyncio.gather(*(_get_block_data(i, start)
-                                        for i in range(start - limit, start)))
+        blocks = await asyncio.gather(*(_get_block_data(i, end) for i in range(start, end)))
         blocks = list(filter(None, blocks))
 
-        return list(reversed(blocks))
+        next_ = None
+        if end < block_config.latest_block + 1:
+            next_ = blocks[0]['block_number'] + 1
+
+        return {
+            "data": list(reversed(blocks)),
+            "paging": {
+                "next": next_,
+                "start": init_start,
+                "limit": init_limit,
+            }
+        }
 
     @staticmethod
     def parse_votes(votes):
