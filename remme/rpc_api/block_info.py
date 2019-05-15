@@ -16,7 +16,7 @@ import logging
 
 from remme.clients.block_info import BlockInfoClient
 from remme.shared.exceptions import KeyNotFound
-from remme.shared.forms import ProtoForm, IdentifierForm
+from remme.shared.forms import ProtoForm, IdentifierForm, BlockInfoForm
 
 from .utils import validate_params
 
@@ -41,7 +41,7 @@ async def get_block_number(request):
         return 0
 
 
-@validate_params(ProtoForm, ignore_fields=('start', 'limit'))
+@validate_params(BlockInfoForm)
 async def get_blocks(request):
     start = request.params.get('start', 0)
     limit = request.params.get('limit', 0)

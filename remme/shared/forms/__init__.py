@@ -37,3 +37,4 @@ from .identifier import (
     IdentifierForm,
     IdentifiersForm,
 )
+from .block_info import BlockInfoForm
