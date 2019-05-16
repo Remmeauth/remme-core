@@ -43,7 +43,7 @@ class BlockInfoClient(BasicClient):
 
         start = block_config.oldest_block if not init_start else start
 
-        limit = min(block_config.latest_block + 2 if not init_limit else limit, 100)
+        limit = min(block_config.latest_block + 1 if not init_limit else limit, 100)
 
         end = min(start + limit, block_config.latest_block) + 1
 
