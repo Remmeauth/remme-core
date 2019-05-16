@@ -54,7 +54,7 @@ class BlockInfoClient(BasicClient):
         start_for_list_blocks = f'0000000000000000{hex(int(start[:16], 16) + 1)[2:]}'[:16]
         # We should grab next block after limit because it's need for parsing last block for limit.
         limit_for_list_blocks = limit + 1
-        blocks = (await self.list_blocks(start=f'0x{start_for_list_blocks}', limit_for_list_blocks, reverse=''))['data']
+        blocks = (await self.list_blocks(start=f'0x{start_for_list_blocks}', limit=limit_for_list_blocks, reverse=''))['data']
         
         blocks_info = []
         for index, value in enumerate(states):
