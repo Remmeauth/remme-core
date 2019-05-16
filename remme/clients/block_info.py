@@ -80,8 +80,6 @@ class BlockInfoClient(BasicClient):
             self.parse_votes(votes)
 
             blocks_info.append(self.interpret_block_info(bi, votes))
-        
-        blocks_info = list(filter(None, blocks_info))
 
         next_ = None
         if end < block_config.latest_block + 1:
