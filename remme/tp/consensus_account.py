@@ -139,7 +139,7 @@ class ConsensusAccountHandler(BasicHandler):
         LOGGER.debug(f'min_stake: {min_stake}; reputational: {reputational}; '
                      f'unfreeze_bonus: {UNFREEZE_BONUS};')
 
-        if UNFREEZE_BONUS <= reputational < min_stake * UNFREEZE_BONUS:
+        if min_stake <= reputational < min_stake * UNFREEZE_BONUS:
             unfrozen_share = self._calculate_share(max_share, min_share,
                                                    min_stake, reputational)
             unfrozen_reward = client_to_real_amount(unfrozen_share * reward, 0)
