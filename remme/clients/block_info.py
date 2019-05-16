@@ -36,10 +36,12 @@ class BlockInfoClient(BasicClient):
         limit = min(block_config.latest_block if not init_limit else limit - 1, 100)
 
         end = min(start + limit, block_config.latest_block) + 1
-
+        
+        pbi = None
+        
         async def _get_block_data(i, end):
             try:
-                bi = await self.get_block_info(i)
+                bi = pbi or await self.get_block_info(i)
             except Exception as e:
                 LOGGER.exception(e)
                 return
