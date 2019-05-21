@@ -78,10 +78,16 @@ class NodeAccountHandler(BasicHandler):
                 VALIDATOR: NodeAccountInternalTransferPayloadForm,
                 FEE_AUTO_CHARGER: True,
             },
+            NodeAccountMethod.GENESIS: {
+                PB_CLASS: EmptyPayload,
+                PROCESSOR: self._genesis,
+                VALIDATOR: ProtoForm,
+                FEE_AUTO_CHARGER: None,
+            },
             NodeAccountMethod.INITIALIZE_NODE: {
-                PB_CLASS: NodeAccountInternalTransferPayload,
+                PB_CLASS: EmptyPayload,
                 PROCESSOR: self._initialize_node,
-                VALIDATOR: NodeAccountGenesisForm,
+                VALIDATOR: ProtoForm,
                 FEE_AUTO_CHARGER: None,
             },
             NodeAccountMethod.INITIALIZE_MASTERNODE: {
@@ -110,18 +116,46 @@ class NodeAccountHandler(BasicHandler):
             },
         }
 
-    def _initialize_node(self, context, node_account_public_key, internal_transfer_payload):
+    def _genesis(self, context, node_account_public_key, empty_payload):
+        node_account_address = self.make_address_from_data(node_account_public_key)
+
+        genesis_owners = _get_setting_value(context, SETTINGS_GENESIS_OWNERS)
+        genesis_owners = genesis_owners.split(',') if genesis_owners is not None else []
+        if node_account_public_key not in genesis_owners:
+            raise InvalidTransaction('Not allowed to perform this operation.')
+
+        node_account, node_state = get_multiple_data(context, [
+            (node_account_address, NodeAccount),
+            (NODE_STATE_ADDRESS, NodeState),
+        ])
+
+        if node_account is not None:
+            raise InvalidTransaction('Node account already exists.')
+
+        node_account = NodeAccount(min=True, node_state=NodeAccount.OPENED)
+
+        LOGGER.info(f"Node account \"{node_account_address}\" created")
+
+        if node_state is None:
+            node_state = NodeState()
+
+        if node_account_address not in node_state.master_nodes:
+            node_state.master_nodes.append(node_account_address)
+
+        return {
+            node_account_address: node_account,
+            NODE_STATE_ADDRESS: node_state,
+        }
+
+    def _initialize_node(self, context, node_account_public_key, empty_payload):
         node_account_address = self.make_address_from_data(node_account_public_key)
 
         node_account = get_data(context, NodeAccount, node_account_address)
 
-        if node_account is None:
-            node_account = NodeAccount(
-                balance=client_to_real_amount(internal_transfer_payload.value),
-                min=True,
-            )
-        else:
+        if node_account is not None:
             raise InvalidTransaction('Node account already exists.')
+
+        node_account = NodeAccount(min=True)
 
         LOGGER.info(f"Node account \"{node_account_address}\" created")
 
