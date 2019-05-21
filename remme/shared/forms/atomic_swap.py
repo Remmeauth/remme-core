@@ -11,7 +11,6 @@ class AtomicSwapInitPayloadForm(ProtoForm):
     swap_id = SwapIDField()
     secret_lock_by_solicitor = fields.StringField(validators=[validators.Optional()])
     email_address_encrypted_by_initiator = fields.StringField(validators=[validators.Optional()])
-    created_at = fields.IntegerField(validators=[validators.DataRequired()])
 
 
 class AtomicSwapApprovePayloadForm(ProtoForm):

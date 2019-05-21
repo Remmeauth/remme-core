@@ -75,9 +75,6 @@ if [ "$REMME_START_MODE" = "genesis" ]; then
     echo "Writing batch for node account genesis..."
     GENESIS_BATCHES="$GENESIS_BATCHES /genesis/batch/node-proposal.batch"
 
-    echo "Writing batch for node 2 master node convertion genesis..."
-    GENESIS_BATCHES="$GENESIS_BATCHES /genesis/batch/n2mn-proposal.batch"
-
     echo "Writing batch for consensus account genesis..."
     GENESIS_BATCHES="$GENESIS_BATCHES /genesis/batch/consensus-proposal.batch"
 

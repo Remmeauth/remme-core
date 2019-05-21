@@ -151,7 +151,6 @@ def test_atomic_swap_init_with_empty_proto():
             'sender_address_non_local': ['This field is required.'],
             'amount': ['This field is required.'],
             'swap_id': ['Missed swap_id.'],
-            'created_at': ['This field is required.'],
         }
     ) == str(error.value)
 
@@ -169,7 +168,6 @@ def test_atomic_swap_init():
         swap_id=SWAP_ID,
         secret_lock_by_solicitor=BOT_IT_IS_INITIATOR_MARK,
         email_address_encrypted_by_initiator=ALICE_EMAIL_ADDRESS_ENCRYPTED_BY_INITIATOR,
-        created_at=CURRENT_TIMESTAMP,
     )
 
     transaction_payload = TransactionPayload()
@@ -280,7 +278,6 @@ def test_atomic_swap_init_already_taken_id():
         swap_id=SWAP_ID,
         secret_lock_by_solicitor=BOT_IT_IS_INITIATOR_MARK,
         email_address_encrypted_by_initiator=ALICE_EMAIL_ADDRESS_ENCRYPTED_BY_INITIATOR,
-        created_at=CURRENT_TIMESTAMP,
     )
 
     transaction_payload = TransactionPayload()
@@ -343,7 +340,6 @@ def test_atomic_swap_init_swap_no_block_config_info():
         swap_id=SWAP_ID,
         secret_lock_by_solicitor=BOT_IT_IS_INITIATOR_MARK,
         email_address_encrypted_by_initiator=ALICE_EMAIL_ADDRESS_ENCRYPTED_BY_INITIATOR,
-        created_at=CURRENT_TIMESTAMP,
     )
 
     transaction_payload = TransactionPayload()
@@ -393,7 +389,6 @@ def test_atomic_swap_init_swap_no_block_info():
         swap_id=SWAP_ID,
         secret_lock_by_solicitor=BOT_IT_IS_INITIATOR_MARK,
         email_address_encrypted_by_initiator=ALICE_EMAIL_ADDRESS_ENCRYPTED_BY_INITIATOR,
-        created_at=CURRENT_TIMESTAMP,
     )
 
     transaction_payload = TransactionPayload()
@@ -446,7 +441,6 @@ def test_atomic_swap_init_swap_receiver_address_invalid_type():
         swap_id=SWAP_ID,
         secret_lock_by_solicitor=BOT_IT_IS_INITIATOR_MARK,
         email_address_encrypted_by_initiator=ALICE_EMAIL_ADDRESS_ENCRYPTED_BY_INITIATOR,
-        created_at=CURRENT_TIMESTAMP,
     )
 
     transaction_payload = TransactionPayload()
