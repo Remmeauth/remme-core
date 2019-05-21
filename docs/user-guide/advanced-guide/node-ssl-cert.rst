@@ -25,13 +25,6 @@ The flow is illustrated below.
    :align: center
    :alt: SSH login to the server
 
-Then create a new environment variable as illustrated below. Change ``the-coolest-masternode.xyz``
-with your ``domain name``.
-
-.. code-block:: console
-
-   $ export DOMAIN=the-coolest-masternode.xyz
-
 Then create a new environment variable with your ``email`` to receive notifications from ``Let's Encrypt``:
 
 .. code-block:: console
@@ -42,22 +35,22 @@ Copy the command below and paste into the terminal which will create an ``SSL ce
 
 .. code-block:: console
 
-    $ echo "DOMAIN=$DOMAIN" >> ~/.bashrc && \
-         sudo apt install software-properties-common -y && \
+    $ sudo apt install software-properties-common -y && \
          sudo add-apt-repository ppa:certbot/certbot -y && \
          sudo apt update && sudo apt install certbot python-certbot-nginx -y && \
          sudo -i sed -i "s@websitenamewithdomain@$DOMAIN@" /etc/nginx/nginx.conf && \
          sudo certbot run --nginx -d $DOMAIN --non-interactive --agree-tos -m $EMAIL && \
-         curl https://raw.githubusercontent.com/Remmeauth/remme-core/master/docs/user-guide/templates/letsencrypt-nginx.conf | sudo tee /etc/nginx/nginx.conf > /dev/null && \
+         curl https://gist.githubusercontent.com/dmytrostriletskyi/24a8125e609bba7e8d8f9b3e54d634ff/raw/6e9fa256fe07c99d1e15bc652bd328cb3447b046/letsencrypt-nginx.conf | sudo tee /etc/nginx/nginx.conf > /dev/null && \
          sudo -i sed -i "s@websitenamewithdomain@$DOMAIN@" /etc/nginx/nginx.conf && \
          sudo systemctl restart nginx && \
-         echo "* * * * * $USER /usr/bin/certbot renew" | sudo tee -a /etc/crontab > /dev/null
+         echo "1 5 * * * $USER /usr/bin/certbot renew" | sudo tee -a /etc/crontab > /dev/null && \
+         echo "5 5 * * * /usr/bin/systemctl reload nginx" | sudo tee -a /etc/crontab > /dev/null
 
 To check if your node has completed a correct ``SSL certificate`` setup, use the following commands, being logged in your server.
 
 .. code-block:: console
 
-   $ curl -X POST https://$DOMAIN -H 'Content-Type: application/json' -d \
+   $ curl -X POST https://$DOMAIN/rpc/ -H 'Content-Type: application/json' -d \
          '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python3 -m json.tool
 
 The flow is illustrated below.
@@ -67,7 +60,7 @@ The flow is illustrated below.
    :align: center
    :alt: Proof node works over HTTPS
 
-For now, you can reach your monitoring page with the following address — ``https://the-coolest-masternode.xyz/grafana/``,
+For now, you can reach your monitoring page with the following address — ``https://the-coolest-masternode.xyz``,
 changing ``the-coolest-masternode.xyz`` to your domain name and extension.
 
 Comodo
@@ -278,15 +271,8 @@ Using a brand new terminal window on the local machine transfer the file to the 
 
     $ scp ~/Desktop/210854864.zip root@157.230.226.218:~
 
-Then open a terminal window with the server. Then create a new environment variable with your domain name as illustrated below.
-Remember to change ``the-coolest-masternode.xyz`` with your ``domain name``.
-
-.. code-block:: console
-
-   $ export DOMAIN=the-coolest-masternode.xyz
-
-Copy the command below and paste into the terminal which will create an ``SSL certificate`` and order the web-server to
-serve ``https`` connections.
+Then open a terminal window with the server. Copy the command below and paste into the terminal which will
+create an ``SSL certificate`` and order the web-server to serve ``https`` connections.
 
 .. code-block:: console
 
@@ -295,7 +281,7 @@ serve ``https`` connections.
          cd "CER - CRT Files" && cat ${DOMAIN%.*}_${DOMAIN##*.}.crt My_CA_Bundle.ca-bundle > ssl-bundle.crt && \
          cd .. && mv CER\ -\ CRT\ Files/ssl-bundle.crt . && \
          sudo mkdir /etc/comodo/ && sudo mv server.key ssl-bundle.crt /etc/comodo/ && \
-         curl https://raw.githubusercontent.com/Remmeauth/remme-core/master/docs/user-guide/templates/comodo-nginx.conf | sudo tee /etc/nginx/nginx.conf > /dev/null && \
+         curl https://gist.githubusercontent.com/dmytrostriletskyi/a0b4c24e0b34788596ed3f6264282694/raw/35be13584c781037c775f2f082387515ad069815/comodo-nginx.conf | sudo tee /etc/nginx/nginx.conf > /dev/null && \
          sudo -i sed -i "s@websitenamewithdomain@$DOMAIN@" /etc/nginx/nginx.conf && \
          sudo systemctl restart nginx
 
@@ -303,7 +289,7 @@ To check if your node has completed a correct ``SSL certificate`` setup, use the
 
 .. code-block:: console
 
-   $ curl -X POST https://$DOMAIN -H 'Content-Type: application/json' -d \
+   $ curl -X POST https://$DOMAIN/rpc/ -H 'Content-Type: application/json' -d \
          '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python3 -m json.tool
 
 The flow is illustrated below.
@@ -317,5 +303,5 @@ The flow is illustrated below.
 
    <a href="https://curl.haxx.se/download.html" target="_blank">tool named curl </a>
 
-For now, you can reach your admin panel with the following address — ``https://the-coolest-masternode.xyz/login``,
+For now, you can reach your admin panel with the following address — ``https://the-coolest-masternode.xyz``,
 changing ``the-coolest-masternode.xyz`` to your domain name and extension.

@@ -178,27 +178,28 @@ The flow is illustrated below.
 Step 5: start the project
 =========================
 
-Copy commands below and paste it into the terminal. You can change the value of ``REMME_CORE_RELEASE`` below, just take
-a look at our `release list <https://github.com/Remmeauth/remme-core/releases>`_. We would recommend the latest version of
-the project that already specified in the command below.
+Export environment variable with your server ``IP address`` with the following command. Remember to change
+``157.230.146.230`` to your server's ``IP address``.
 
 .. code-block:: console
 
-   $ export REMME_CORE_RELEASE=0.8.0-alpha
-   $ sudo apt-get install apt-transport-https ca-certificates curl software-properties-common make -y && \
-         echo "REMME_CORE_RELEASE=$REMME_CORE_RELEASE" >> ~/.bashrc && \
-         cd /home/ && curl -L https://github.com/Remmeauth/remme-core/archive/v$REMME_CORE_RELEASE.tar.gz | sudo tar zx && \
-         cd remme-core-$REMME_CORE_RELEASE && \
-         sudo apt update && sudo apt upgrade -y && \
-         curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - && \
-         sudo apt update && sudo apt install docker.io -y && \
-         sudo curl -o /usr/local/bin/docker-compose -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" && \
-         sudo chmod +x /usr/local/bin/docker-compose && \
-         curl https://gist.githubusercontent.com/dmytrostriletskyi/9f525241acfc46799c65d5f010c43b5f/raw/3147860240613e7e2eab5e288d48a975934a260a/up-node-after-server-restart.sh > ~/up-node-after-server-restart.sh && \
-         chmod +x ~/up-node-after-server-restart.sh && \
-         echo "@reboot $USER ~/./up-node-after-server-restart.sh $REMME_CORE_RELEASE" >> /etc/crontab && \
-         curl https://gist.githubusercontent.com/dmytrostriletskyi/48f2877d77570facffdea395521e8bd8/raw/9334bfb5cc18b4e143311fead9bd2447a0ae6d24/seeds-list.txt > config/seeds-list.txt && \
-         sudo make run_bg_user
+   $ export NODE_IP_ADDRESS=157.230.146.230
+
+Now, specify the release of the node you want to start. We would recommend the latest version of the project that already
+specified in the command below. But you can change the value of ``REMME_CORE_RELEASE``, just take a look at our
+`release list <https://github.com/Remmeauth/remme-core/releases>`_.
+
+.. code-block:: console
+
+   $ export REMME_CORE_RELEASE=0.11.0-alpha
+
+After, copy and paste the following command to the terminal which will install and start your node.
+
+.. code-block:: console
+
+    $ curl https://gist.githubusercontent.com/dmytrostriletskyi/c02b5b3a5f0e0a0a22abb2d35d6a8f20/raw/fbeb7d7e949c4d2cc27255117a79c31a72bfe315/install-and-start-node.sh > ~/install-and-start-node.sh && \
+          chmod +x ~/install-and-start-node.sh && \
+          ~/./install-and-start-node.sh $NODE_IP_ADDRESS $REMME_CORE_RELEASE
 
 .. image:: /img/user-guide/cloud/digital-ocean/installation-command.png
    :width: 100%
@@ -226,13 +227,11 @@ When you see the same output as illustrated below, it means the node is ready to
    :align: center
    :alt: Proof core works
 
-To check if your node has completed a correct setup, use the following commands, being logged in your droplet. Remember to
-change ``157.230.146.230`` to your server's ``IP address``.
+To check if your node has completed a correct setup, use the following command:
 
 .. code-block:: console
 
-   $ export NODE_IP_ADDRESS=157.230.146.230
-   $ curl -X POST http://$NODE_IP_ADDRESS:8080 -H 'Content-Type: application/json' -d \
+   $ curl -X POST http://$NODE_IP_ADDRESS/rpc/ -H 'Content-Type: application/json' -d \
          '{"jsonrpc":"2.0","id":"11","method":"get_node_config","params":{}}' | python3 -m json.tool
 
 The response should look similar to this:
@@ -259,8 +258,8 @@ Step 6: admin panel
 ===================
 
 While starting the node, the admin panel has also been installed and started. Log into the admin panel. Copy your server's
-``IP address``, paste it into the browser address bar. Then add ``/login`` to the end of the address and press ``Enter``.
-Then you will see the initial admin panel page with authentication. Enter ``remme`` to the password fields.
+``IP address``, paste it into the browser address bar press ``Enter``. Then you will see the initial admin panel page with
+authentication. Enter ``remme`` to the password fields.
 
 .. image:: /img/user-guide/admin-panel/login-page.png
    :width: 100%
