@@ -4,10 +4,21 @@ Upgrade the node
 This section describes how to upgrade the node to latest version. After upgrade you are required to redo login
 to the server if you want to execute commands farther.
 
-From 0.9.1-alpha to 0.10.0-alpha
--------------------------------
+From 0.10.0-alpha to 0.11.0-alpha
+---------------------------------
 
-From upgrade from the version ``0.9.1-alpha`` to the version ``0.10.0-alpha``, use the following command on the server:
+To upgrade from the version ``0.10.0-alpha`` to the version ``0.11.0-alpha``, use the following command on the server:
+
+.. code-block:: console
+
+   $ curl https://gist.githubusercontent.com/dmytrostriletskyi/7407898a9737d5808716ea3b0f3d6f75/raw/958e05113283d7d7e9ead73e69095b5ca834c9c9/upgrade-node-from-0.10.0a-to-0.11.0a.sh > ~/upgrade-node-from-0.10.0a-to-0.11.0a.sh && \
+         chmod +x ~/upgrade-node-from-0.10.0a-to-0.11.0a.sh && \
+         ~/./upgrade-node-from-0.10.0a-to-0.11.0a.sh 0.10.0-alpha 0.11.0-alpha
+
+From 0.9.1-alpha to 0.10.0-alpha
+--------------------------------
+
+To upgrade from the version ``0.9.1-alpha`` to the version ``0.10.0-alpha``, use the following command on the server:
 
 .. code-block:: console
 
@@ -18,7 +29,7 @@ From upgrade from the version ``0.9.1-alpha`` to the version ``0.10.0-alpha``, u
 From 0.9.0-alpha to 0.9.1-alpha
 -------------------------------
 
-From upgrade from the version ``0.9.0-alpha`` to the version ``0.9.1-alpha``, use the following command on the server:
+To upgrade from the version ``0.9.0-alpha`` to the version ``0.9.1-alpha``, use the following command on the server:
 
 .. code-block:: console
 
@@ -29,7 +40,7 @@ From upgrade from the version ``0.9.0-alpha`` to the version ``0.9.1-alpha``, us
 From 0.8.1-alpha to 0.9.0-alpha
 -------------------------------
 
-From upgrade from the version ``0.8.1-alpha`` to the version ``0.9.0-alpha``, use the following command on the server:
+To upgrade from the version ``0.8.1-alpha`` to the version ``0.9.0-alpha``, use the following command on the server:
 
 .. code-block:: console
 
