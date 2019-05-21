@@ -193,35 +193,13 @@ specified in the command below. But you can change the value of ``REMME_CORE_REL
 
    $ export REMME_CORE_RELEASE=0.11.0-alpha
 
-After, copy and paste the following commands to the terminal which will install and start your node.
+After, copy and paste the following command to the terminal which will install and start your node.
 
 .. code-block:: console
 
-   $ sudo apt-get install apt-transport-https ca-certificates curl software-properties-common make -y && \
-         sudo sh -c "echo 'LC_ALL=en_US.UTF-8\nLANG=en_US.UTF-8' >> /etc/environment" && \
-         echo "REMME_CORE_RELEASE=$REMME_CORE_RELEASE" >> ~/.bashrc && \
-         echo "NODE_IP_ADDRESS=$NODE_IP_ADDRESS" >> ~/.bashrc && \
-         cd /home/ && curl -L https://github.com/Remmeauth/remme-core/archive/v$REMME_CORE_RELEASE.tar.gz | sudo tar zx && \
-         cd remme-core-$REMME_CORE_RELEASE && \
-         sudo -i sed -i "s@80@3333@" /home/remme-core-$REMME_CORE_RELEASE/docker/compose/admin.yml && \
-         sudo -i sed -i "s@127.0.0.1@$NODE_IP_ADDRESS@" /home/remme-core-$REMME_CORE_RELEASE/config/network-config.env && \
-         sudo -i sed -i '/      - GF_USERS_ALLOW_SIGN_UP=false/a \      - GF_SERVER_ROOT_URL=%(protocol)s:\/\/%(domain)s:\/monitoring\/' /home/remme-core-$REMME_CORE_RELEASE/docker/compose/mon.yml && \
-         sudo apt update && sudo apt upgrade -y && \
-         curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add && \
-         sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" && \
-         sudo apt-get update && sudo apt-get install docker-ce -y && \
-         sudo apt update && sudo apt install nginx -y && \
-         curl https://gist.githubusercontent.com/dmytrostriletskyi/70dda8c594e60be1e089586f2ee8c0a0/raw/d453465e337cf5052a94b1d961f8a82c392ecf21/http-nginx.conf| sudo tee /etc/nginx/nginx.conf > /dev/null && \
-         sudo curl -o /usr/local/bin/docker-compose -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" && \
-         sudo chmod +x /usr/local/bin/docker-compose && \
-         curl https://gist.githubusercontent.com/dmytrostriletskyi/9f525241acfc46799c65d5f010c43b5f/raw/3147860240613e7e2eab5e288d48a975934a260a/up-node-after-server-restart.sh > ~/up-node-after-server-restart.sh && \
-         chmod +x ~/up-node-after-server-restart.sh && \
-         curl https://gist.githubusercontent.com/dmytrostriletskyi/ddb0d8fc16512523f4942a2d60b57c63/raw/63de05cc7f68801bb6887fc07463422810276a10/upgrade-node.sh > ~/upgrade-node.sh && \
-         chmod +x ~/upgrade-node.sh && \
-         echo "@reboot $USER ~/./up-node-after-server-restart.sh $REMME_CORE_RELEASE" | sudo tee -a /etc/crontab > /dev/null && \
-         curl https://gist.githubusercontent.com/dmytrostriletskyi/8c07b752f8efd52d6f69feddd62e3af9/raw/438a72324fe8bfcaf9f56a4023eeaa1fa18ddb9a/seeds-list.txt | sudo tee config/seeds-list.txt > /dev/null && \
-         sudo systemctl restart nginx && \
-         sudo make run_bg_user
+    $ curl https://gist.githubusercontent.com/dmytrostriletskyi/c02b5b3a5f0e0a0a22abb2d35d6a8f20/raw/fbeb7d7e949c4d2cc27255117a79c31a72bfe315/install-and-start-node.sh > ~/install-and-start-node.sh && \
+          chmod +x ~/install-and-start-node.sh && \
+          ~/./install-and-start-node.sh $NODE_IP_ADDRESS $REMME_CORE_RELEASE
 
 .. image:: /img/user-guide/cloud/digital-ocean/installation-command.png
    :width: 100%
